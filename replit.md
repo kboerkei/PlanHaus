@@ -1,0 +1,114 @@
+# Wedding Planning Application
+
+## Overview
+
+This is a full-stack wedding planning application called "Gatherly" that helps couples plan their weddings with AI assistance. The application features real-time collaboration, comprehensive wedding planning tools, and AI-powered recommendations.
+
+## User Preferences
+
+Preferred communication style: Simple, everyday language.
+
+## System Architecture
+
+### Frontend Architecture
+- **Framework**: React 18 with TypeScript
+- **Routing**: Wouter for client-side routing
+- **Styling**: Tailwind CSS with shadcn/ui components
+- **State Management**: TanStack Query for server state and caching
+- **Build Tool**: Vite for fast development and optimized builds
+- **UI Components**: Radix UI primitives with custom styling
+
+### Backend Architecture
+- **Runtime**: Node.js with Express.js server
+- **Language**: TypeScript with ES modules
+- **Database ORM**: Drizzle ORM with PostgreSQL
+- **Real-time Communication**: WebSocket implementation for live collaboration
+- **AI Integration**: OpenAI API for intelligent planning recommendations
+
+### Data Storage Solutions
+- **Primary Database**: PostgreSQL (configured for Neon serverless)
+- **ORM**: Drizzle ORM with code-first schema definitions
+- **Session Storage**: In-memory Map for demo authentication (production would use database sessions)
+- **Database Connection**: @neondatabase/serverless for serverless PostgreSQL
+
+## Key Components
+
+### Database Schema
+The application uses a comprehensive schema covering:
+- **Users**: Authentication and profile management
+- **Wedding Projects**: Main wedding planning containers
+- **Collaborators**: Role-based access control for multiple users
+- **Tasks**: Project management with priorities and assignments
+- **Guests**: Guest list management with RSVP tracking
+- **Vendors**: Vendor contact and booking management
+- **Budget Items**: Financial planning and expense tracking
+- **Timeline Events**: Wedding planning milestone management
+- **Inspiration Items**: Mood board and design inspiration storage
+- **Activities**: Real-time activity logging
+
+### AI Services
+- **Timeline Generation**: Automated 52-week wedding planning timeline
+- **Budget Breakdown**: Intelligent budget allocation suggestions
+- **Vendor Recommendations**: Location and style-based vendor matching
+- **Theme Analysis**: Style and preference interpretation
+- **Personalized Recommendations**: Context-aware planning advice
+
+### Real-time Features
+- **WebSocket Service**: Live collaboration between multiple users
+- **Activity Streams**: Real-time updates on project changes
+- **Notification System**: Toast notifications for user feedback
+
+## Data Flow
+
+1. **Authentication**: Simple session-based auth with Bearer tokens
+2. **API Layer**: RESTful endpoints with Express middleware for logging and error handling
+3. **Database Operations**: Drizzle ORM provides type-safe database queries
+4. **Real-time Updates**: WebSocket connections for live collaboration
+5. **AI Integration**: OpenAI service calls for intelligent recommendations
+6. **Frontend State**: TanStack Query manages server state with optimistic updates
+
+## External Dependencies
+
+### Core Framework Dependencies
+- **React Ecosystem**: React 18, React DOM, TanStack Query
+- **UI Framework**: Radix UI components, Tailwind CSS, shadcn/ui
+- **Backend**: Express.js, Drizzle ORM, WebSocket support
+- **Development**: Vite, TypeScript, PostCSS
+
+### Database & Storage
+- **@neondatabase/serverless**: Serverless PostgreSQL driver
+- **drizzle-orm**: Type-safe ORM with PostgreSQL dialect
+- **connect-pg-simple**: PostgreSQL session store (prepared for production)
+
+### AI & External Services
+- **OpenAI**: GPT-4o integration for AI planning features
+- **date-fns**: Date manipulation utilities for timeline calculations
+
+### Form & Validation
+- **react-hook-form**: Form state management
+- **@hookform/resolvers**: Form validation resolvers
+- **zod**: Schema validation and type inference
+- **drizzle-zod**: Database schema to Zod validation mapping
+
+## Deployment Strategy
+
+### Development Environment
+- **Vite Dev Server**: Hot module replacement for frontend development
+- **Express Server**: Backend API with middleware logging
+- **Database**: Drizzle migrations with `db:push` command
+- **Environment Variables**: DATABASE_URL and OPENAI_API_KEY required
+
+### Production Build
+- **Frontend**: Vite builds optimized static assets to `dist/public`
+- **Backend**: esbuild bundles server code with external dependencies
+- **Database**: PostgreSQL with Drizzle schema migrations
+- **Deployment**: Node.js server serving both API and static files
+
+### Key Architectural Decisions
+
+1. **Monorepo Structure**: Shared schema between client and server ensures type safety
+2. **Session-based Auth**: Simple authentication suitable for demo, easily upgradeable to JWT or database sessions
+3. **PostgreSQL Choice**: Relational database appropriate for complex wedding planning relationships
+4. **AI Integration**: OpenAI provides intelligent recommendations without requiring custom ML infrastructure
+5. **WebSocket Implementation**: Custom WebSocket service for real-time collaboration features
+6. **Component Architecture**: shadcn/ui provides accessible, customizable components with consistent styling
