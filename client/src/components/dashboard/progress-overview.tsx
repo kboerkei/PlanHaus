@@ -52,28 +52,31 @@ export default function ProgressOverview() {
     enabled: !!localStorage.getItem('sessionId')
   });
 
+  // Prioritize Austin farmhouse wedding demo
+  const currentProject = projects?.find(p => p.name === "Emma & Jake's Wedding") || projects?.[0];
+
   const { data: tasks } = useQuery({
-    queryKey: ['/api/projects', projects?.[0]?.id, 'tasks'],
-    enabled: !!projects?.[0]?.id
+    queryKey: ['/api/projects', currentProject?.id, 'tasks'],
+    enabled: !!currentProject?.id
   });
 
   const { data: guests } = useQuery({
-    queryKey: ['/api/projects', projects?.[0]?.id, 'guests'],
-    enabled: !!projects?.[0]?.id
+    queryKey: ['/api/projects', currentProject?.id, 'guests'],
+    enabled: !!currentProject?.id
   });
 
   const { data: vendors } = useQuery({
-    queryKey: ['/api/projects', projects?.[0]?.id, 'vendors'],
-    enabled: !!projects?.[0]?.id
+    queryKey: ['/api/projects', currentProject?.id, 'vendors'],
+    enabled: !!currentProject?.id
   });
 
   const { data: budgetItems } = useQuery({
-    queryKey: ['/api/projects', projects?.[0]?.id, 'budget'],
-    enabled: !!projects?.[0]?.id
+    queryKey: ['/api/projects', currentProject?.id, 'budget'],
+    enabled: !!currentProject?.id
   });
 
   // Calculate real progress
-  const project = projects?.[0];
+  const project = currentProject;
   const completedTasks = tasks?.filter(t => t.status === 'completed') || [];
   const confirmedGuests = guests?.filter(g => g.rsvpStatus === 'confirmed') || [];
   const bookedVendors = vendors?.filter(v => v.status === 'booked') || [];

@@ -26,17 +26,18 @@ export default function SmartOnboarding() {
     enabled: !!localStorage.getItem('sessionId')
   });
 
+  // Prioritize Austin farmhouse wedding demo
+  const project = projects?.find(p => p.name === "Emma & Jake's Wedding") || projects?.[0];
+
   const { data: tasks } = useQuery({
-    queryKey: ['/api/projects', projects?.[0]?.id, 'tasks'],
-    enabled: !!projects?.[0]?.id
+    queryKey: ['/api/projects', project?.id, 'tasks'],
+    enabled: !!project?.id
   });
 
   const { data: guests } = useQuery({
-    queryKey: ['/api/projects', projects?.[0]?.id, 'guests'],
-    enabled: !!projects?.[0]?.id
+    queryKey: ['/api/projects', project?.id, 'guests'],
+    enabled: !!project?.id
   });
-
-  const project = projects?.[0];
 
   // Check if user has dismissed onboarding permanently
   useEffect(() => {

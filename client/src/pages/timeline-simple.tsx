@@ -132,7 +132,8 @@ export default function TimelineSimple() {
   // Safe data access
   const safeWeddingProjects = weddingProjects || [];
   const safeTasks = tasks || [];
-  const currentProject = safeWeddingProjects[0];
+  // Prioritize Austin farmhouse wedding demo
+  const currentProject = safeWeddingProjects.find(p => p.name === "Emma & Jake's Wedding") || safeWeddingProjects[0];
   
   // Safe stats calculation
   const getSimpleStats = () => {

@@ -12,17 +12,19 @@ export default function CollaborativeFeatures() {
     enabled: !!localStorage.getItem('sessionId')
   });
 
+  // Prioritize Austin farmhouse wedding demo
+  const project = projects?.find(p => p.name === "Emma & Jake's Wedding") || projects?.[0];
+
   const { data: collaborators } = useQuery({
-    queryKey: ['/api/projects', projects?.[0]?.id, 'collaborators'],
-    enabled: !!projects?.[0]?.id
+    queryKey: ['/api/projects', project?.id, 'collaborators'],
+    enabled: !!project?.id
   });
 
   const { data: activities } = useQuery({
-    queryKey: ['/api/projects', projects?.[0]?.id, 'activities'],
-    enabled: !!projects?.[0]?.id
+    queryKey: ['/api/projects', project?.id, 'activities'],
+    enabled: !!project?.id
   });
 
-  const project = projects?.[0];
   const recentActivities = activities?.slice(0, 3) || [];
   const activeCollaborators = collaborators?.filter(c => c.status === 'active') || [];
 
