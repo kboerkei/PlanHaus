@@ -352,7 +352,14 @@ export default function Timeline() {
 
             {/* Timeline Items */}
             <div className="space-y-6">
-              {timelineItems.map((item: any, index: number) => {
+              {timelineItems
+                .sort((a: any, b: any) => {
+                  // Sort by due date if available, otherwise by creation date
+                  const dateA = a.dueDate ? new Date(a.dueDate) : new Date(a.createdAt);
+                  const dateB = b.dueDate ? new Date(b.dueDate) : new Date(b.createdAt);
+                  return dateA.getTime() - dateB.getTime();
+                })
+                .map((item: any, index: number) => {
                 const isCompleted = item.status === 'completed';
                 const isOverdue = item.dueDate && new Date(item.dueDate) < new Date() && !isCompleted;
                 
@@ -458,6 +465,48 @@ export default function Timeline() {
                 );
               })}
             </div>
+            
+            {/* Timeline Visual Guide */}
+            {timelineItems.length > 0 && (
+              <div className="mt-12 p-6 bg-white rounded-lg border border-gray-200">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4">Timeline Overview</h3>
+                <div className="space-y-2">
+                  {timelineItems
+                    .filter((item: any) => item.dueDate)
+                    .sort((a: any, b: any) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
+                    .map((item: any) => {
+                      const dueDate = new Date(item.dueDate);
+                      const isCompleted = item.status === 'completed';
+                      const isOverdue = dueDate < new Date() && !isCompleted;
+                      const daysUntilDue = Math.ceil((dueDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+                      
+                      return (
+                        <div key={item.id} className="flex items-center justify-between py-2 px-4 rounded-lg bg-gray-50">
+                          <div className="flex items-center space-x-3">
+                            <div className={`w-3 h-3 rounded-full ${
+                              isCompleted ? 'bg-green-500' : isOverdue ? 'bg-red-500' : 'bg-blush'
+                            }`}></div>
+                            <span className={`font-medium ${isCompleted ? 'text-green-700 line-through' : 'text-gray-800'}`}>
+                              {item.title}
+                            </span>
+                          </div>
+                          <div className="text-sm text-gray-600">
+                            {dueDate.toLocaleDateString()} 
+                            {!isCompleted && (
+                              <span className={`ml-2 ${isOverdue ? 'text-red-600' : daysUntilDue <= 7 ? 'text-orange-600' : 'text-gray-500'}`}>
+                                ({isOverdue ? `${Math.abs(daysUntilDue)} days overdue` : 
+                                  daysUntilDue === 0 ? 'Due today' : 
+                                  daysUntilDue === 1 ? 'Due tomorrow' : 
+                                  `${daysUntilDue} days left`})
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </main>

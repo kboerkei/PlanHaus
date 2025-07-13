@@ -200,6 +200,13 @@ The application uses a comprehensive schema covering:
 - AI timeline generation creates comprehensive task lists with proper due dates based on wedding date
 - Removed generic "first task complete" messages in favor of specific wedding planning achievements
 
+### Timeline Due Date Integration (January 13, 2025)
+- Tasks with due dates automatically appear on timeline sorted chronologically
+- Timeline overview section shows all upcoming due dates with countdown
+- Visual indicators for overdue, due soon, and completed tasks
+- Automatic sorting of timeline items by due date for better planning visibility
+- Enhanced timeline view with deadline tracking and progress visualization
+
 ### Critical Server Issues Resolved (January 13, 2025)
 - Fixed critical server routing problem where API routes were serving frontend HTML instead of backend responses
 - Resolved route registration timing issue that prevented Express routes from being properly initialized
