@@ -1014,6 +1014,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Add missing budget items POST route
+  app.post("/api/budget-items", requireAuth, async (req, res) => {
+    try {
+      const userId = (req as any).userId;
+      let projects = await storage.getWeddingProjectsByUserId(userId);
+      
+      if (projects.length === 0) {
+        const defaultProject = await storage.createWeddingProject({
+          name: "My Wedding",
+          date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+          createdBy: userId,
+          budget: null,
+          guestCount: null,
+          theme: null,
+          venue: null
+        });
+        projects = [defaultProject];
+      }
+      
+      const budgetData = {
+        ...req.body,
+        projectId: projects[0].id,
+        createdBy: userId
+      };
+      
+      const budgetItem = await storage.createBudgetItem(budgetData);
+      res.json(budgetItem);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create budget item" });
+    }
+  });
+
   app.post("/api/projects/:id/budget", requireAuth, async (req, res) => {
     try {
       const projectId = parseInt(req.params.id);
