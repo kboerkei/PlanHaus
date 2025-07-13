@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Home, Bot, Calendar, DollarSign, MoreHorizontal } from "lucide-react";
+import { Home, Bot, Calendar, DollarSign, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const mobileNavigation = [
@@ -7,7 +7,7 @@ const mobileNavigation = [
   { name: "AI", href: "/ai-assistant", icon: Bot },
   { name: "Timeline", href: "/timeline", icon: Calendar },
   { name: "Budget", href: "/budget", icon: DollarSign },
-  { name: "More", href: "/guests", icon: MoreHorizontal },
+  { name: "Profile", href: "/profile", icon: User },
 ];
 
 export default function MobileNav() {

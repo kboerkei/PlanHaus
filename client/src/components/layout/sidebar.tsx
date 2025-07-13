@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Heart, Home, Bot, Calendar, DollarSign, Users, Store, Palette } from "lucide-react";
+import { Heart, Home, Bot, Calendar, DollarSign, Users, Store, Palette, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navigation = [
@@ -10,6 +10,10 @@ const navigation = [
   { name: "Guest List", href: "/guests", icon: Users },
   { name: "Vendors", href: "/vendors", icon: Store },
   { name: "Inspiration", href: "/inspiration", icon: Palette },
+];
+
+const accountNavigation = [
+  { name: "Profile", href: "/profile", icon: User },
 ];
 
 export default function Sidebar() {
@@ -55,6 +59,33 @@ export default function Sidebar() {
         </ul>
         
         <div className="mt-8 pt-6 border-t border-gray-100">
+          <div className="mb-6">
+            <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Account</h3>
+            <ul className="space-y-2">
+              {accountNavigation.map((item) => {
+                const Icon = item.icon;
+                const isActive = location === item.href;
+                
+                return (
+                  <li key={item.name}>
+                    <Link 
+                      href={item.href}
+                      className={cn(
+                        "flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors font-medium",
+                        isActive 
+                          ? "gradient-blush-rose text-white" 
+                          : "text-gray-600 hover:bg-gray-50"
+                      )}
+                    >
+                      <Icon size={16} />
+                      <span>{item.name}</span>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+
           <div className="bg-soft-gold rounded-lg p-4">
             <div className="flex items-center space-x-3 mb-3">
               <Users className="text-champagne" size={16} />

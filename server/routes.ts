@@ -88,6 +88,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json({ message: "Logged out successfully" });
   });
 
+  app.get("/api/auth/me", requireAuth, async (req: any, res) => {
+    try {
+      const user = await storage.getUserById(req.userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      res.json({ 
+        id: user.id, 
+        username: user.username, 
+        email: user.email, 
+        avatar: user.avatar 
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
+
+  app.patch("/api/auth/profile", requireAuth, async (req: any, res) => {
+    try {
+      const { username, email, avatar } = req.body;
+      const user = await storage.getUserById(req.userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Check if email is being changed and if it's already taken
+      if (email !== user.email) {
+        const existingUser = await storage.getUserByEmail(email);
+        if (existingUser && existingUser.id !== user.id) {
+          return res.status(400).json({ message: "Email already in use" });
+        }
+      }
+
+      // Update user in storage (we'll need to add this method)
+      const updatedUser = { ...user, username, email, avatar: avatar || null };
+      // For now, we'll update directly in the storage map
+      (storage as any).users.set(user.id, updatedUser);
+
+      res.json({ 
+        id: updatedUser.id, 
+        username: updatedUser.username, 
+        email: updatedUser.email, 
+        avatar: updatedUser.avatar 
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update profile" });
+    }
+  });
+
   // Wedding projects
   app.get("/api/projects", requireAuth, async (req: any, res) => {
     try {
