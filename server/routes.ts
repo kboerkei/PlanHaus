@@ -1033,15 +1033,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         projects = [defaultProject];
       }
       
-      const budgetData = {
+      const budgetData = insertBudgetItemSchema.parse({
         ...req.body,
         projectId: projects[0].id,
         createdBy: userId
-      };
+      });
       
       const budgetItem = await storage.createBudgetItem(budgetData);
+      
+      // Create activity
+      await storage.createActivity({
+        projectId: projects[0].id,
+        userId,
+        action: 'added budget item',
+        target: 'budget',
+        targetId: budgetItem.id,
+        details: { item: budgetItem.item, category: budgetItem.category }
+      });
+
       res.json(budgetItem);
     } catch (error) {
+      console.error('Budget creation error:', error);
       res.status(500).json({ message: "Failed to create budget item" });
     }
   });
@@ -2065,6 +2077,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Tasks error:', error);
       res.status(500).json({ message: "Failed to fetch tasks" });
+    }
+  });
+
+  app.post("/api/tasks", requireAuth, async (req, res) => {
+    try {
+      const userId = (req as any).userId;
+      let projects = await storage.getWeddingProjectsByUserId(userId);
+      
+      // Create a default project if none exists
+      if (projects.length === 0) {
+        const defaultProject = await storage.createWeddingProject({
+          name: "My Wedding",
+          date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+          createdBy: userId,
+          budget: null,
+          guestCount: null,
+          theme: null,
+          venue: null
+        });
+        projects = [defaultProject];
+      }
+
+      const project = projects[0];
+      const taskData = insertTaskSchema.parse({
+        ...req.body,
+        projectId: project.id,
+        createdBy: userId
+      });
+      
+      const task = await storage.createTask(taskData);
+      
+      // Create activity
+      await storage.createActivity({
+        projectId: project.id,
+        userId,
+        action: 'created task',
+        target: 'task',
+        targetId: task.id,
+        details: { taskTitle: task.title }
+      });
+
+      res.json(task);
+    } catch (error) {
+      console.error('Task creation error:', error);
+      res.status(500).json({ message: "Failed to create task" });
     }
   });
 

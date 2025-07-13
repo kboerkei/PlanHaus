@@ -18,7 +18,8 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { 
   Store, Plus, Mail, Phone, Globe, MapPin, Search, DollarSign, FileText, Building, 
   Sparkles, Star, ExternalLink, MoreVertical, Edit, Trash2, Calendar, CheckCircle, 
-  AlertCircle, Clock, BookOpen, Filter, SortAsc, Grid, List, Users, TrendingUp
+  AlertCircle, Clock, BookOpen, Filter, SortAsc, Grid, List, Users, TrendingUp,
+  Upload, Download, File
 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -35,6 +36,7 @@ const vendorSchema = z.object({
   address: z.string().optional(),
   quote: z.string().optional(),
   notes: z.string().optional(),
+  contractSigned: z.boolean().optional(),
 });
 
 type VendorFormData = z.infer<typeof vendorSchema>;
@@ -73,6 +75,8 @@ export default function VendorsEnhanced() {
   const [editingVendor, setEditingVendor] = useState<any>(null);
   const [searchLocation, setSearchLocation] = useState("");
   const [searchCategory, setSearchCategory] = useState("");
+  const [uploadingContract, setUploadingContract] = useState(false);
+  const [contractFile, setContractFile] = useState<File | null>(null);
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const { toast } = useToast();

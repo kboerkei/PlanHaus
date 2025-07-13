@@ -18,30 +18,40 @@ export default function AIAssistant() {
     }
   ]);
 
+  const handleQuickAction = (actionMessage: string) => {
+    setMessage(actionMessage);
+    // Auto-send the message after a brief delay to show it was populated
+    setTimeout(() => {
+      if (actionMessage.trim() && !isLoading) {
+        handleSendMessage();
+      }
+    }, 100);
+  };
+
   const quickActions = [
     {
       icon: Calendar,
       title: "Generate Timeline",
       description: "Create a custom wedding planning timeline",
-      action: () => setMessage("Can you help me create a detailed wedding planning timeline? My wedding is in 6 months and I need to know what to do when.")
+      message: "Can you help me create a detailed wedding planning timeline? My wedding is in 6 months and I need to know what to do when."
     },
     {
       icon: DollarSign,
       title: "Budget Breakdown",
       description: "Get a detailed budget analysis",
-      action: () => setMessage("I need help creating a realistic budget breakdown for my wedding. My total budget is around $50,000.")
+      message: "I need help creating a realistic budget breakdown for my wedding. My total budget is around $50,000."
     },
     {
       icon: Users,
       title: "Vendor Suggestions",
       description: "Find recommended vendors in your area",
-      action: () => setMessage("Can you suggest reliable wedding vendors in my area? I need a photographer, florist, and caterer.")
+      message: "Can you suggest reliable wedding vendors in my area? I need a photographer, florist, and caterer."
     },
     {
       icon: Sparkles,
       title: "Style Inspiration",
       description: "Get personalized theme and style ideas",
-      action: () => setMessage("I'm looking for wedding theme and style inspiration. I love garden parties and romantic, elegant vibes.")
+      message: "I'm looking for wedding theme and style inspiration. I love garden parties and romantic, elegant vibes."
     }
   ];
 
@@ -50,18 +60,20 @@ export default function AIAssistant() {
   const handleSendMessage = async () => {
     if (!message.trim() || isLoading) return;
     
-    // Add user message
-    const userMessage = {
-      id: chatHistory.length + 1,
-      type: 'user',
-      message: message,
-      timestamp: new Date()
-    };
-    
-    setChatHistory(prev => [...prev, userMessage]);
     const currentMessage = message;
     setMessage("");
     setIsLoading(true);
+    
+    // Add user message using callback to ensure correct ID
+    setChatHistory(prev => {
+      const userMessage = {
+        id: Date.now(), // Use timestamp for unique ID
+        type: 'user' as const,
+        message: currentMessage,
+        timestamp: new Date()
+      };
+      return [...prev, userMessage];
+    });
     
     try {
       const response = await fetch('/api/ai/chat', {
@@ -76,24 +88,33 @@ export default function AIAssistant() {
         })
       });
       
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status}`);
+      }
+      
       const data = await response.json();
       
-      const aiResponse = {
-        id: chatHistory.length + 2,
-        type: 'ai',
-        message: data.response || "I'm here to help with your wedding planning! Could you tell me more about what you'd like assistance with?",
-        timestamp: new Date()
-      };
-      
-      setChatHistory(prev => [...prev, aiResponse]);
+      // Add AI response using callback to ensure correct state
+      setChatHistory(prev => {
+        const aiResponse = {
+          id: Date.now() + 1, // Use timestamp + 1 for unique ID
+          type: 'ai' as const,
+          message: data.response || "I'm here to help with your wedding planning! Could you tell me more about what you'd like assistance with?",
+          timestamp: new Date()
+        };
+        return [...prev, aiResponse];
+      });
     } catch (error) {
-      const errorResponse = {
-        id: chatHistory.length + 2,
-        type: 'ai',
-        message: "I'm sorry, I'm having trouble connecting right now. Please try again in a moment.",
-        timestamp: new Date()
-      };
-      setChatHistory(prev => [...prev, errorResponse]);
+      console.error('Chat error:', error);
+      setChatHistory(prev => {
+        const errorResponse = {
+          id: Date.now() + 1,
+          type: 'ai' as const,
+          message: "I'm sorry, I'm having trouble connecting right now. Please try again in a moment.",
+          timestamp: new Date()
+        };
+        return [...prev, errorResponse];
+      });
     } finally {
       setIsLoading(false);
     }
