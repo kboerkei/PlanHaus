@@ -236,40 +236,40 @@ export default function TimelineModern() {
   });
 
   // Helper functions
-  const filteredTasks = tasks.filter((task: any) => {
-    const matchesSearch = task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         (task.description && task.description.toLowerCase().includes(searchTerm.toLowerCase()));
-    const matchesPriority = !filterPriority || task.priority === filterPriority;
-    const matchesCategory = !filterCategory || task.category === filterCategory;
-    const matchesAssignee = !filterAssignee || task.assignedTo === filterAssignee;
-    const matchesCompleted = showCompleted || task.status !== 'completed';
+  const filteredTasks = (tasks || []).filter((task: any) => {
+    const matchesSearch = (task?.title || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (task?.description && task.description.toLowerCase().includes(searchTerm.toLowerCase()));
+    const matchesPriority = !filterPriority || task?.priority === filterPriority;
+    const matchesCategory = !filterCategory || task?.category === filterCategory;
+    const matchesAssignee = !filterAssignee || task?.assignedTo === filterAssignee;
+    const matchesCompleted = showCompleted || task?.status !== 'completed';
     
     return matchesSearch && matchesPriority && matchesCategory && matchesAssignee && matchesCompleted;
   }).sort((a: any, b: any) => {
     if (sortBy === "dueDate") {
-      if (!a.dueDate && !b.dueDate) return 0;
-      if (!a.dueDate) return 1;
-      if (!b.dueDate) return -1;
+      if (!a?.dueDate && !b?.dueDate) return 0;
+      if (!a?.dueDate) return 1;
+      if (!b?.dueDate) return -1;
       return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
     }
     if (sortBy === "priority") {
       const priorityOrder = { high: 3, medium: 2, low: 1 };
-      return priorityOrder[b.priority as keyof typeof priorityOrder] - priorityOrder[a.priority as keyof typeof priorityOrder];
+      return (priorityOrder[b?.priority as keyof typeof priorityOrder] || 0) - (priorityOrder[a?.priority as keyof typeof priorityOrder] || 0);
     }
-    if (sortBy === "title") return a.title.localeCompare(b.title);
+    if (sortBy === "title") return (a?.title || "").localeCompare(b?.title || "");
     return 0;
   });
 
   const getTaskStats = () => {
-    const total = tasks.length;
-    const completed = tasks.filter((task: any) => task.status === 'completed').length;
-    const pending = tasks.filter((task: any) => task.status === 'pending').length;
-    const overdue = tasks.filter((task: any) => {
-      if (!task.dueDate || task.status === 'completed') return false;
+    const total = (tasks || []).length;
+    const completed = (tasks || []).filter((task: any) => task?.status === 'completed').length;
+    const pending = (tasks || []).filter((task: any) => task?.status === 'pending').length;
+    const overdue = (tasks || []).filter((task: any) => {
+      if (!task?.dueDate || task?.status === 'completed') return false;
       return new Date(task.dueDate) < new Date();
     }).length;
-    const upcoming = tasks.filter((task: any) => {
-      if (!task.dueDate || task.status === 'completed') return false;
+    const upcoming = (tasks || []).filter((task: any) => {
+      if (!task?.dueDate || task?.status === 'completed') return false;
       const dueDate = new Date(task.dueDate);
       const weekFromNow = new Date();
       weekFromNow.setDate(weekFromNow.getDate() + 7);
@@ -280,7 +280,7 @@ export default function TimelineModern() {
   };
 
   const getTaskNotes = (taskId: number) => {
-    return taskNotes.filter((note: any) => note.taskId === taskId);
+    return (taskNotes || []).filter((note: any) => note?.taskId === taskId);
   };
 
   const toggleTaskExpansion = (taskId: number) => {
