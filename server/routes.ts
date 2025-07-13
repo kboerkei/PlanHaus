@@ -832,10 +832,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/intake", requireAuth, async (req, res) => {
     try {
       const userId = (req as any).userId;
+      console.log('Intake API - User ID:', userId);
+      console.log('Intake API - Request body:', JSON.stringify(req.body, null, 2));
+      
       const intakeData = insertIntakeDataSchema.parse({
         ...req.body,
         userId
       });
+      
+      console.log('Intake API - Parsed data:', JSON.stringify(intakeData, null, 2));
       
       // Save intake data
       const intake = await storage.createIntakeData(intakeData);
@@ -962,7 +967,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(intake);
     } catch (error) {
       console.error("Error saving intake data:", error);
-      res.status(400).json({ message: "Invalid intake data" });
+      console.error("Error details:", error.message);
+      if (error.issues) {
+        console.error("Validation issues:", error.issues);
+      }
+      res.status(400).json({ 
+        message: "Invalid intake data",
+        error: error.message,
+        details: error.issues || null
+      });
     }
   });
 
