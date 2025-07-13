@@ -379,48 +379,75 @@ export default function Timeline() {
                             )}
                           </div>
                           
-                          <div className="flex-1">
-                            <div className="flex items-center justify-between mb-2">
-                              <div className="flex items-center space-x-3">
-                                <h3 className="font-semibold text-lg text-gray-800">
-                                  {item.title}
-                                </h3>
-                                {item.priority && (
-                                  <Badge className={priorityColors[item.priority as keyof typeof priorityColors]}>
-                                    {item.priority}
-                                  </Badge>
+                          {/* Completion checkbox */}
+                          <div className="flex items-start space-x-3">
+                            <input
+                              type="checkbox"
+                              checked={isCompleted}
+                              onChange={() => {
+                                // Toggle completion status
+                                const updateData = { 
+                                  status: isCompleted ? 'pending' : 'completed',
+                                  completedAt: isCompleted ? null : new Date().toISOString()
+                                };
+                                
+                                fetch(`/api/tasks/${item.id}`, {
+                                  method: 'PATCH',
+                                  headers: {
+                                    'Authorization': `Bearer ${localStorage.getItem('sessionId')}`,
+                                    'Content-Type': 'application/json'
+                                  },
+                                  body: JSON.stringify(updateData)
+                                }).then(() => {
+                                  queryClient.invalidateQueries({ queryKey: ['/api/tasks'] });
+                                });
+                              }}
+                              className="w-5 h-5 text-green-600 rounded focus:ring-green-500 mt-1"
+                            />
+                          
+                            <div className="flex-1">
+                              <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center space-x-3">
+                                  <h3 className={`font-semibold text-lg ${isCompleted ? 'text-green-700 line-through' : 'text-gray-800'}`}>
+                                    {item.title}
+                                  </h3>
+                                  {item.priority && (
+                                    <Badge className={priorityColors[item.priority as keyof typeof priorityColors]}>
+                                      {item.priority}
+                                    </Badge>
+                                  )}
+                                </div>
+                                {item.dueDate && (
+                                  <span className={`text-sm font-medium ${isOverdue ? 'text-red-600' : 'text-blush'}`}>
+                                    Due: {new Date(item.dueDate).toLocaleDateString()}
+                                  </span>
                                 )}
-                              </div>
-                              {item.dueDate && (
-                                <span className={`text-sm font-medium ${isOverdue ? 'text-red-600' : 'text-blush'}`}>
-                                  Due: {new Date(item.dueDate).toLocaleDateString()}
-                                </span>
-                              )}
-                            </div>
-                            
-                            <p className="text-gray-600 mb-4">{item.description}</p>
-                            
-                            <div className="mt-4 pt-4 border-t border-gray-200 flex items-center justify-between">
-                              <div className="flex items-center space-x-4">
-                                {item.category && (
-                                  <Badge variant="outline" className="text-xs">
-                                    {item.category}
-                                  </Badge>
-                                )}
-                                <span className="text-xs text-gray-500">
-                                  Created: {new Date(item.createdAt || Date.now()).toLocaleDateString()}
-                                </span>
                               </div>
                               
-                              <div className="flex items-center space-x-2">
-                                {!isCompleted && (
-                                  <Button size="sm" variant="outline">
-                                    Mark Complete
+                              <p className={`text-gray-600 mb-4 ${isCompleted ? 'line-through' : ''}`}>{item.description}</p>
+                              
+                              <div className="mt-4 pt-4 border-t border-gray-200 flex items-center justify-between">
+                                <div className="flex items-center space-x-4">
+                                  {item.category && (
+                                    <Badge variant="outline" className="text-xs">
+                                      {item.category}
+                                    </Badge>
+                                  )}
+                                  <span className="text-xs text-gray-500">
+                                    Created: {new Date(item.createdAt || Date.now()).toLocaleDateString()}
+                                  </span>
+                                  {isCompleted && item.completedAt && (
+                                    <span className="text-xs text-green-600">
+                                      Completed: {new Date(item.completedAt).toLocaleDateString()}
+                                    </span>
+                                  )}
+                                </div>
+                                
+                                <div className="flex items-center space-x-2">
+                                  <Button size="sm" variant="ghost">
+                                    Edit
                                   </Button>
-                                )}
-                                <Button size="sm" variant="ghost">
-                                  Edit
-                                </Button>
+                                </div>
                               </div>
                             </div>
                           </div>
