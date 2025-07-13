@@ -1146,14 +1146,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create a default project if none exists
       if (projects.length === 0) {
         const defaultProject = await storage.createWeddingProject({
-          userId: userId,
           name: "My Wedding",
-          description: "Wedding planning project",
-          weddingDate: null,
-          venue: null,
+          date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+          createdBy: userId,
           budget: null,
           guestCount: null,
-          status: "planning"
+          theme: null,
+          venue: null
         });
         projects = [defaultProject];
       }
@@ -1161,6 +1160,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const budgetItems = await storage.getBudgetItemsByProjectId(projects[0].id);
       res.json(budgetItems);
     } catch (error) {
+      console.error('Budget items error:', error);
       res.status(500).json({ message: "Failed to fetch budget items" });
     }
   });
@@ -1174,9 +1174,94 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create a default project if none exists
       if (projects.length === 0) {
         const defaultProject = await storage.createWeddingProject({
+          name: "My Wedding",
+          date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+          createdBy: userId,
+          budget: null,
+          guestCount: null,
+          theme: null,
+          venue: null
+        });
+        projects = [defaultProject];
+      }
+      
+      const tasks = await storage.getTasksByProjectId(projects[0].id);
+      res.json(tasks);
+    } catch (error) {
+      console.error('Tasks error:', error);
+      res.status(500).json({ message: "Failed to fetch tasks" });
+    }
+  });
+
+  // Guests API
+  app.get("/api/guests", requireAuth, async (req, res) => {
+    try {
+      const userId = (req as any).userId;
+      let projects = await storage.getWeddingProjectsByUserId(userId);
+      
+      if (projects.length === 0) {
+        const defaultProject = await storage.createWeddingProject({
+          name: "My Wedding",
+          date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+          createdBy: userId,
+          budget: null,
+          guestCount: null,
+          theme: null,
+          venue: null
+        });
+        projects = [defaultProject];
+      }
+      
+      const guests = await storage.getGuestsByProjectId(projects[0].id);
+      res.json(guests);
+    } catch (error) {
+      console.error('Guests fetch error:', error);
+      res.status(500).json({ message: "Failed to fetch guests" });
+    }
+  });
+
+  app.post("/api/guests", requireAuth, async (req, res) => {
+    try {
+      const userId = (req as any).userId;
+      let projects = await storage.getWeddingProjectsByUserId(userId);
+      
+      if (projects.length === 0) {
+        const defaultProject = await storage.createWeddingProject({
+          name: "My Wedding",
+          date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+          createdBy: userId,
+          budget: null,
+          guestCount: null,
+          theme: null,
+          venue: null
+        });
+        projects = [defaultProject];
+      }
+
+      const guestData = {
+        ...req.body,
+        projectId: projects[0].id,
+        addedBy: userId
+      };
+      const guest = await storage.createGuest(guestData);
+      res.json(guest);
+    } catch (error) {
+      console.error('Guest creation error:', error);
+      res.status(500).json({ message: "Failed to create guest" });
+    }
+  });
+
+  // Inspiration Items API
+  app.get("/api/inspiration-items", requireAuth, async (req, res) => {
+    try {
+      const userId = (req as any).userId;
+      let projects = await storage.getWeddingProjectsByUserId(userId);
+      
+      if (projects.length === 0) {
+        const defaultProject = await storage.createWeddingProject({
           userId: userId,
           name: "My Wedding",
-          description: "Wedding planning project", 
+          description: "Wedding planning project",
           weddingDate: null,
           venue: null,
           budget: null,
@@ -1186,10 +1271,163 @@ export async function registerRoutes(app: Express): Promise<Server> {
         projects = [defaultProject];
       }
       
-      const tasks = await storage.getTasksByProjectId(projects[0].id);
-      res.json(tasks);
+      const inspirationItems = await storage.getInspirationItemsByProjectId(projects[0].id);
+      res.json(inspirationItems);
     } catch (error) {
-      res.status(500).json({ message: "Failed to fetch tasks" });
+      res.status(500).json({ message: "Failed to fetch inspiration items" });
+    }
+  });
+
+  app.post("/api/inspiration-items", requireAuth, async (req, res) => {
+    try {
+      const userId = (req as any).userId;
+      let projects = await storage.getWeddingProjectsByUserId(userId);
+      
+      if (projects.length === 0) {
+        const defaultProject = await storage.createWeddingProject({
+          userId: userId,
+          name: "My Wedding",
+          description: "Wedding planning project",
+          weddingDate: null,
+          venue: null,
+          budget: null,
+          guestCount: null,
+          status: "planning"
+        });
+        projects = [defaultProject];
+      }
+
+      const inspirationData = {
+        ...req.body,
+        projectId: projects[0].id,
+        createdBy: userId
+      };
+      const inspirationItem = await storage.createInspirationItem(inspirationData);
+      res.json(inspirationItem);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create inspiration item" });
+    }
+  });
+
+  // Vendors API
+  app.get("/api/vendors", requireAuth, async (req, res) => {
+    try {
+      const userId = (req as any).userId;
+      let projects = await storage.getWeddingProjectsByUserId(userId);
+      
+      if (projects.length === 0) {
+        const defaultProject = await storage.createWeddingProject({
+          userId: userId,
+          name: "My Wedding",
+          description: "Wedding planning project",
+          weddingDate: null,
+          venue: null,
+          budget: null,
+          guestCount: null,
+          status: "planning"
+        });
+        projects = [defaultProject];
+      }
+      
+      const vendors = await storage.getVendorsByProjectId(projects[0].id);
+      res.json(vendors);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch vendors" });
+    }
+  });
+
+  app.post("/api/vendors", requireAuth, async (req, res) => {
+    try {
+      const userId = (req as any).userId;
+      let projects = await storage.getWeddingProjectsByUserId(userId);
+      
+      if (projects.length === 0) {
+        const defaultProject = await storage.createWeddingProject({
+          userId: userId,
+          name: "My Wedding",
+          description: "Wedding planning project",
+          weddingDate: null,
+          venue: null,
+          budget: null,
+          guestCount: null,
+          status: "planning"
+        });
+        projects = [defaultProject];
+      }
+
+      const vendorData = {
+        ...req.body,
+        projectId: projects[0].id,
+        createdBy: userId
+      };
+      const vendor = await storage.createVendor(vendorData);
+      res.json(vendor);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create vendor" });
+    }
+  });
+
+  // Budget Items API (POST endpoint)
+  app.post("/api/budget-items", requireAuth, async (req, res) => {
+    try {
+      const userId = (req as any).userId;
+      let projects = await storage.getWeddingProjectsByUserId(userId);
+      
+      if (projects.length === 0) {
+        const defaultProject = await storage.createWeddingProject({
+          userId: userId,
+          name: "My Wedding",
+          description: "Wedding planning project",
+          weddingDate: null,
+          venue: null,
+          budget: null,
+          guestCount: null,
+          status: "planning"
+        });
+        projects = [defaultProject];
+      }
+
+      const budgetData = {
+        ...req.body,
+        projectId: projects[0].id,
+        createdBy: userId
+      };
+      const budgetItem = await storage.createBudgetItem(budgetData);
+      res.json(budgetItem);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create budget item" });
+    }
+  });
+
+  // Tasks API (POST endpoint)
+  app.post("/api/tasks", requireAuth, async (req, res) => {
+    try {
+      const userId = (req as any).userId;
+      let projects = await storage.getWeddingProjectsByUserId(userId);
+      
+      if (projects.length === 0) {
+        const defaultProject = await storage.createWeddingProject({
+          userId: userId,
+          name: "My Wedding",
+          description: "Wedding planning project",
+          weddingDate: null,
+          venue: null,
+          budget: null,
+          guestCount: null,
+          status: "planning"
+        });
+        projects = [defaultProject];
+      }
+
+      const taskData = {
+        ...req.body,
+        projectId: projects[0].id,
+        createdBy: userId
+      };
+      const task = await storage.createTask(taskData);
+      res.json(task);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create task" });
     }
   });
 

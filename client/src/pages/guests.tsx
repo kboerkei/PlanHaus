@@ -52,13 +52,11 @@ export default function Guests() {
   const { toast } = useToast();
 
   const { data: projects } = useQuery({
-    queryKey: ['/api/projects'],
-    enabled: !!localStorage.getItem('sessionId')
+    queryKey: ['/api/wedding-projects']
   });
 
   const { data: guests = [] } = useQuery({
-    queryKey: ['/api/projects', projects?.[0]?.id, 'guests'],
-    enabled: !!projects?.[0]?.id
+    queryKey: ['/api/guests']
   });
 
   const form = useForm<GuestFormData>({

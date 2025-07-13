@@ -65,17 +65,15 @@ export default function Schedules() {
   const { toast } = useToast();
 
   const { data: projects } = useQuery({
-    queryKey: ['/api/projects'],
-    enabled: !!localStorage.getItem('sessionId')
+    queryKey: ['/api/wedding-projects']
   });
 
   const { data: schedules = [] } = useQuery({
-    queryKey: ['/api/projects', projects?.[0]?.id, 'schedules'],
-    enabled: !!projects?.[0]?.id
+    queryKey: ['/api/schedules']
   });
 
   const { data: events = [] } = useQuery({
-    queryKey: ['/api/schedules', selectedSchedule?.id, 'events'],
+    queryKey: ['/api/schedule-events', selectedSchedule?.id],
     enabled: !!selectedSchedule?.id
   });
 
