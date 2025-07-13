@@ -1,6 +1,6 @@
 import ProgressOverview from "@/components/dashboard/progress-overview";
 import AIAssistantCard from "@/components/dashboard/ai-assistant-card";
-import QuickActions from "@/components/dashboard/quick-actions";
+import EnhancedQuickActions from "@/components/dashboard/enhanced-quick-actions";
 import UpcomingTasks from "@/components/dashboard/upcoming-tasks";
 import RecentActivity from "@/components/dashboard/recent-activity";
 import InspirationPreview from "@/components/dashboard/inspiration-preview";
@@ -18,7 +18,7 @@ export default function Dashboard() {
       {/* Main Dashboard Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <AIAssistantCard />
-        <QuickActions />
+        <EnhancedQuickActions />
       </div>
 
       {/* Tasks and Timeline */}

@@ -3,6 +3,8 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import Sidebar from "@/components/layout/sidebar";
 import Header from "@/components/layout/header";
 import MobileNav from "@/components/layout/mobile-nav";
+import SearchFilterBar from "@/components/ui/search-filter-bar";
+import ExportOptions from "@/components/ui/export-options";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -136,6 +138,58 @@ export default function Guests() {
     return matchesSearch && matchesGroup && matchesRsvp;
   });
 
+  const groups = [...new Set((guests || []).map((guest: any) => guest.group))].filter(Boolean);
+  const totalGuests = guests?.length || 0;
+  const acceptedGuests = guests?.filter((guest: any) => guest.rsvpStatus === 'accepted').length || 0;
+  const pendingGuests = guests?.filter((guest: any) => guest.rsvpStatus === 'pending').length || 0;
+  const declinedGuests = guests?.filter((guest: any) => guest.rsvpStatus === 'declined').length || 0;
+
+  // Configure search and filter options
+  const filterOptions = [
+    {
+      key: 'group',
+      label: 'Group',
+      value: filterGroup,
+      options: groups.map(group => ({ value: group, label: group })),
+      onChange: setFilterGroup
+    },
+    {
+      key: 'rsvp',
+      label: 'RSVP Status',
+      value: filterRsvp,
+      options: [
+        { value: 'accepted', label: 'Accepted' },
+        { value: 'pending', label: 'Pending' },
+        { value: 'declined', label: 'Declined' }
+      ],
+      onChange: setFilterRsvp
+    }
+  ];
+
+  const quickFilters = [
+    {
+      label: 'All Guests',
+      value: 'all',
+      count: totalGuests,
+      active: !filterRsvp,
+      onClick: () => setFilterRsvp('')
+    },
+    {
+      label: 'Accepted',
+      value: 'accepted',
+      count: acceptedGuests,
+      active: filterRsvp === 'accepted',
+      onClick: () => setFilterRsvp('accepted')
+    },
+    {
+      label: 'Pending',
+      value: 'pending',
+      count: pendingGuests,
+      active: filterRsvp === 'pending',
+      onClick: () => setFilterRsvp('pending')
+    }
+  ];
+
   const createGuestMutation = useMutation({
     mutationFn: (data: GuestFormData) => apiRequest('/api/guests', {
       method: 'POST',
@@ -161,12 +215,7 @@ export default function Guests() {
     createGuestMutation.mutate(data);
   };
 
-  const totalGuests = (guests || []).length;
-  const acceptedGuests = (guests || []).filter(g => g.rsvpStatus === "accepted").length;
-  const pendingGuests = (guests || []).filter(g => g.rsvpStatus === "pending").length;
   const totalAttending = (guests || []).filter(g => g.rsvpStatus === "accepted").reduce((sum, g) => sum + (g.plusOne ? 2 : 1), 0);
-
-  const groups = [...new Set((guests || []).map((g: any) => g.group).filter(Boolean))];
 
   if (isLoading) {
     return (
@@ -299,10 +348,11 @@ export default function Guests() {
                 </p>
               </div>
               <div className="flex space-x-3">
-                <Button variant="outline">
-                  <Download size={16} className="mr-2" />
-                  Export List
-                </Button>
+                <ExportOptions 
+                  data={filteredGuests}
+                  filename="wedding-guest-list"
+                  type="guests"
+                />
                 <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
                   <DialogTrigger asChild>
                     <Button className="gradient-blush-rose text-white">

@@ -719,6 +719,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post("/api/vendors", requireAuth, async (req, res) => {
+    try {
+      const userId = (req as any).userId;
+      let projects = await storage.getWeddingProjectsByUserId(userId);
+      
+      if (projects.length === 0) {
+        const defaultProject = await storage.createWeddingProject({
+          name: "My Wedding",
+          description: "Wedding planning project",
+          date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+          createdBy: userId
+        });
+        projects = [defaultProject];
+      }
+      
+      const vendorData = {
+        ...req.body,
+        projectId: projects[0].id,
+        addedBy: userId
+      };
+      
+      const vendor = await storage.createVendor(vendorData);
+      res.json(vendor);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create vendor" });
+    }
+  });
+
   app.post("/api/projects/:id/vendors", requireAuth, async (req, res) => {
     try {
       const projectId = parseInt(req.params.id);
@@ -1488,6 +1516,217 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(projects);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch wedding projects" });
+    }
+  });
+
+  // Dashboard stats endpoint
+  app.get("/api/dashboard/stats", requireAuth, async (req, res) => {
+    try {
+      const userId = (req as any).userId;
+      const projects = await storage.getWeddingProjectsByUserId(userId);
+      
+      if (projects.length === 0) {
+        return res.json({
+          tasks: { completed: 0, total: 0, pending: 0, overdue: 0, upcoming: 0 },
+          budget: { spent: 0, total: 0 },
+          guests: { confirmed: 0, pending: 0, declined: 0, total: 0 },
+          vendors: { booked: 0, contacted: 0, quoted: 0, total: 0 },
+          weddingDate: null,
+          guestCount: 0,
+          nextMilestone: null
+        });
+      }
+
+      const projectId = projects[0].id;
+      
+      // Get task statistics
+      const tasks = await storage.getTasksByProjectId(projectId);
+      const taskStats = {
+        completed: tasks.filter(t => t.status === 'completed').length,
+        total: tasks.length,
+        pending: tasks.filter(t => t.status === 'pending').length,
+        overdue: tasks.filter(t => {
+          if (!t.dueDate) return false;
+          const dueDate = new Date(t.dueDate);
+          const today = new Date();
+          return dueDate < today && t.status !== 'completed';
+        }).length,
+        upcoming: tasks.filter(t => {
+          if (!t.dueDate) return false;
+          const dueDate = new Date(t.dueDate);
+          const today = new Date();
+          const nextWeek = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
+          return dueDate >= today && dueDate <= nextWeek && t.status !== 'completed';
+        }).length
+      };
+
+      // Get budget statistics
+      const budgetItems = await storage.getBudgetItemsByProjectId(projectId);
+      const budgetStats = {
+        spent: budgetItems.reduce((sum, item) => sum + (parseFloat(item.actualCost || '0')), 0),
+        total: parseFloat(projects[0].budget || '0')
+      };
+
+      // Get guest statistics
+      const guests = await storage.getGuestsByProjectId(projectId);
+      const guestStats = {
+        confirmed: guests.filter(g => g.rsvpStatus === 'confirmed').length,
+        pending: guests.filter(g => g.rsvpStatus === 'pending').length,
+        declined: guests.filter(g => g.rsvpStatus === 'declined').length,
+        total: guests.length
+      };
+
+      // Get vendor statistics
+      const vendors = await storage.getVendorsByProjectId(projectId);
+      const vendorStats = {
+        booked: vendors.filter(v => v.status === 'booked').length,
+        contacted: vendors.filter(v => v.status === 'contacted').length,
+        quoted: vendors.filter(v => v.status === 'quoted').length,
+        total: vendors.length
+      };
+
+      // Find next milestone (upcoming task with highest priority)
+      const upcomingTasks = tasks
+        .filter(t => t.status !== 'completed' && t.dueDate)
+        .sort((a, b) => {
+          const dateA = new Date(a.dueDate!);
+          const dateB = new Date(b.dueDate!);
+          return dateA.getTime() - dateB.getTime();
+        });
+
+      const nextMilestone = upcomingTasks.length > 0 ? {
+        title: upcomingTasks[0].title,
+        date: upcomingTasks[0].dueDate,
+        progress: taskStats.total > 0 ? Math.round((taskStats.completed / taskStats.total) * 100) : 0
+      } : null;
+
+      res.json({
+        tasks: taskStats,
+        budget: budgetStats,
+        guests: guestStats,
+        vendors: vendorStats,
+        weddingDate: projects[0].date,
+        guestCount: projects[0].guestCount,
+        nextMilestone
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch dashboard stats" });
+    }
+  });
+
+  // Quick actions endpoint
+  app.get("/api/dashboard/quick-actions", requireAuth, async (req, res) => {
+    try {
+      const userId = (req as any).userId;
+      const projects = await storage.getWeddingProjectsByUserId(userId);
+      
+      if (projects.length === 0) {
+        return res.json([]);
+      }
+
+      const projectId = projects[0].id;
+      const project = projects[0];
+      
+      // Get current data to determine urgent actions
+      const tasks = await storage.getTasksByProjectId(projectId);
+      const guests = await storage.getGuestsByProjectId(projectId);
+      const vendors = await storage.getVendorsByProjectId(projectId);
+      const budgetItems = await storage.getBudgetItemsByProjectId(projectId);
+
+      const actions = [];
+
+      // Check for overdue tasks
+      const overdueTasks = tasks.filter(t => {
+        if (!t.dueDate || t.status === 'completed') return false;
+        const dueDate = new Date(t.dueDate);
+        const today = new Date();
+        return dueDate < today;
+      });
+
+      if (overdueTasks.length > 0) {
+        actions.push({
+          id: 'overdue-tasks',
+          title: 'Review Overdue Tasks',
+          description: `${overdueTasks.length} tasks are overdue`,
+          category: 'urgent',
+          urgent: true,
+          icon: 'calendar',
+          color: 'bg-red-100 text-red-600'
+        });
+      }
+
+      // Check budget usage
+      const budgetSpent = budgetItems.reduce((sum, item) => sum + (parseFloat(item.actualCost || '0')), 0);
+      const budgetTotal = parseFloat(project.budget || '0');
+      if (budgetTotal > 0 && (budgetSpent / budgetTotal) > 0.8) {
+        actions.push({
+          id: 'budget-warning',
+          title: 'Budget Review Needed',
+          description: 'You\'ve used 80%+ of your budget',
+          category: 'budget',
+          urgent: true,
+          icon: 'dollar',
+          color: 'bg-orange-100 text-orange-600'
+        });
+      }
+
+      // Check for pending RSVPs
+      const pendingRsvps = guests.filter(g => g.rsvpStatus === 'pending');
+      if (pendingRsvps.length > 0) {
+        actions.push({
+          id: 'follow-up-rsvps',
+          title: 'Follow Up on RSVPs',
+          description: `${pendingRsvps.length} guests haven't responded`,
+          category: 'guests',
+          icon: 'users',
+          color: 'bg-blue-100 text-blue-600'
+        });
+      }
+
+      // Suggest vendor bookings
+      const unbookedVendors = vendors.filter(v => v.status !== 'booked');
+      if (unbookedVendors.length > 0) {
+        actions.push({
+          id: 'book-vendors',
+          title: 'Book Vendors',
+          description: `${unbookedVendors.length} vendors need booking`,
+          category: 'vendors',
+          icon: 'building',
+          color: 'bg-purple-100 text-purple-600'
+        });
+      }
+
+      // Always available actions
+      actions.push(
+        {
+          id: 'add-guest',
+          title: 'Add Guest',
+          description: 'Add someone to your guest list',
+          category: 'guests',
+          icon: 'users',
+          color: 'bg-green-100 text-green-600'
+        },
+        {
+          id: 'add-vendor',
+          title: 'Add Vendor',
+          description: 'Find a new vendor',
+          category: 'vendors',
+          icon: 'building',
+          color: 'bg-indigo-100 text-indigo-600'
+        },
+        {
+          id: 'add-task',
+          title: 'Add Task',
+          description: 'Create a new to-do item',
+          category: 'planning',
+          icon: 'calendar',
+          color: 'bg-yellow-100 text-yellow-600'
+        }
+      );
+
+      res.json(actions);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch quick actions" });
     }
   });
 

@@ -4,6 +4,7 @@ import Sidebar from "@/components/layout/sidebar";
 import Header from "@/components/layout/header";
 import MobileNav from "@/components/layout/mobile-nav";
 import LoadingSpinner from "@/components/loading-spinner";
+import TimelineOverview from "@/components/ui/timeline-overview";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -32,6 +33,7 @@ type TaskFormData = z.infer<typeof taskSchema>;
 export default function Timeline() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const { toast } = useToast();
+  
   // Fetch wedding project data
   const { data: weddingProjects, isLoading: projectsLoading } = useQuery({
     queryKey: ['/api/wedding-projects'],
@@ -40,6 +42,11 @@ export default function Timeline() {
   // Fetch tasks/timeline data
   const { data: tasks, isLoading: tasksLoading } = useQuery({
     queryKey: ['/api/tasks'],
+  });
+
+  // Fetch dashboard stats for enhanced overview
+  const { data: dashboardStats } = useQuery({
+    queryKey: ['/api/dashboard/stats'],
   });
 
   const currentProject = weddingProjects?.[0];
