@@ -61,6 +61,10 @@ function generateSessionId(): string {
 
 function requireAuth(req: any, res: any, next: any) {
   const sessionId = req.headers.authorization?.replace('Bearer ', '');
+  console.log('Auth check - sessionId:', sessionId);
+  console.log('Auth check - sessions has sessionId:', sessionId ? sessions.has(sessionId) : false);
+  console.log('Auth check - all sessions:', Array.from(sessions.keys()));
+  
   if (!sessionId || !sessions.has(sessionId)) {
     return res.status(401).json({ message: 'Unauthorized' });
   }
@@ -137,7 +141,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         id: user.id, 
         username: user.username, 
         email: user.email, 
-        avatar: user.avatar 
+        avatar: user.avatar,
+        hasCompletedIntake: user.hasCompletedIntake || false
       });
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch user" });

@@ -83,16 +83,38 @@ function App() {
     if (storedSessionId && storedUser) {
       try {
         const userData = JSON.parse(storedUser);
-        setSessionId(storedSessionId);
-        setUser(userData);
+        
+        // Verify session is still valid by checking with server
+        fetch('/api/auth/me', {
+          headers: { Authorization: `Bearer ${storedSessionId}` }
+        })
+        .then(async (response) => {
+          if (response.ok) {
+            const serverUser = await response.json();
+            setSessionId(storedSessionId);
+            setUser({ ...userData, hasCompletedIntake: serverUser.hasCompletedIntake });
+          } else {
+            // Session expired, clear localStorage
+            localStorage.removeItem('sessionId');
+            localStorage.removeItem('user');
+          }
+          setIsLoading(false);
+        })
+        .catch(() => {
+          // Network error or server down, clear session
+          localStorage.removeItem('sessionId');
+          localStorage.removeItem('user');
+          setIsLoading(false);
+        });
       } catch (error) {
         console.error('Error parsing stored user data:', error);
         localStorage.removeItem('sessionId');
         localStorage.removeItem('user');
+        setIsLoading(false);
       }
+    } else {
+      setIsLoading(false);
     }
-    
-    setIsLoading(false);
   }, []);
 
   const handleAuth = (userData: any, newSessionId: string, isRegistration = false) => {

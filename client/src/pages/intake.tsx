@@ -212,12 +212,29 @@ export default function Intake({ onComplete }: IntakeProps) {
 
   const addColorPalette = () => {
     if (newColorPalette.trim()) {
+      const currentColors = formData.styleVision.colorPalette 
+        ? formData.styleVision.colorPalette.split(',').map(c => c.trim())
+        : [];
+      const updatedColors = [...currentColors, newColorPalette.trim()];
+      
       setFormData(prev => ({
         ...prev,
-        styleVision: { ...prev.styleVision, colorPalette: newColorPalette.trim() }
+        styleVision: { ...prev.styleVision, colorPalette: updatedColors.join(', ') }
       }));
       setNewColorPalette("");
     }
+  };
+
+  const removeColorFromPalette = (indexToRemove: number) => {
+    const currentColors = formData.styleVision.colorPalette 
+      ? formData.styleVision.colorPalette.split(',').map(c => c.trim())
+      : [];
+    const updatedColors = currentColors.filter((_, index) => index !== indexToRemove);
+    
+    setFormData(prev => ({
+      ...prev,
+      styleVision: { ...prev.styleVision, colorPalette: updatedColors.join(', ') }
+    }));
   };
 
   const clearColorPalette = () => {
@@ -680,25 +697,35 @@ export default function Intake({ onComplete }: IntakeProps) {
                   placeholder="e.g., Blush pink, sage green, gold accents"
                   value={newColorPalette}
                   onChange={(e) => setNewColorPalette(e.target.value)}
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      addColorPalette();
+                    }
+                  }}
                 />
                 <Button type="button" onClick={addColorPalette}>
                   <Plus className="h-4 w-4" />
                 </Button>
               </div>
               {formData.styleVision.colorPalette && (
-                <div className="bg-gradient-to-r from-blush/10 to-rose/10 p-3 rounded-lg border border-blush/20">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">{formData.styleVision.colorPalette}</span>
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="ghost"
-                      onClick={clearColorPalette}
-                      className="h-6 w-6 p-0"
-                    >
-                      <Trash2 className="h-3 w-3" />
-                    </Button>
-                  </div>
+                <div className="space-y-2">
+                  {formData.styleVision.colorPalette.split(',').map((color, index) => (
+                    <div key={index} className="bg-gradient-to-r from-blush/10 to-rose/10 p-3 rounded-lg border border-blush/20">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium">{color.trim()}</span>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => removeColorFromPalette(index)}
+                          className="h-6 w-6 p-0"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
