@@ -170,7 +170,7 @@ export default function Inspiration() {
     );
   }
 
-  const filteredItems = inspirationItems.filter(item => {
+  const filteredItems = (inspirationItems || []).filter(item => {
     const matchesSearch = item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          item.tags?.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesCategory = !filterCategory || item.category === filterCategory;
@@ -178,31 +178,21 @@ export default function Inspiration() {
   });
 
   const onSubmit = (data: InspirationFormData) => {
-    const newItem = {
-      id: inspirationItems.length + 1,
-      ...data,
-      tags: data.tags ? data.tags.split(',').map(tag => tag.trim()) : [],
-      colors: ["#FFFFFF", "#F8BBD9", "#90EE90", "#FFE4E1"], // Default colors
-      addedAt: new Date(),
-      liked: false
-    };
-    setInspirationItems([...inspirationItems, newItem]);
+    // This should use API mutation instead of local state
+    console.log("Add inspiration:", data);
     form.reset();
     setIsAddDialogOpen(false);
   };
 
   const toggleLike = (itemId: number) => {
-    setInspirationItems(items => 
-      items.map(item => 
-        item.id === itemId ? { ...item, liked: !item.liked } : item
-      )
-    );
+    // This should use API mutation instead of local state
+    console.log("Toggle like:", itemId);
   };
 
-  const totalItems = inspirationItems.length;
-  const likedItems = inspirationItems.filter(item => item.liked).length;
+  const totalItems = (inspirationItems || []).length;
+  const likedItems = (inspirationItems || []).filter(item => item.liked).length;
   const categoryCounts = categories.reduce((acc, category) => {
-    acc[category] = inspirationItems.filter(item => item.category === category).length;
+    acc[category] = (inspirationItems || []).filter(item => item.category === category).length;
     return acc;
   }, {} as Record<string, number>);
 

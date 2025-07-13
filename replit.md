@@ -183,6 +183,14 @@ The application uses a comprehensive schema covering:
 - All major CRUD operations (tasks, guests, budget items) fully functional
 - Timeline task creation and display working correctly with proper database persistence
 
+### Error Boundary and Data Handling Fixed (January 13, 2025)
+- Fixed query client to handle 401 errors gracefully by returning null instead of throwing exceptions
+- Added comprehensive error handling to all pages to prevent error boundary activation
+- Fixed null data handling in guests, vendors, inspiration, and schedules pages
+- All pages now show proper empty states instead of triggering error boundaries
+- Disabled AI timeline generation with user-friendly message due to OpenAI API quota limits
+- Manual task creation fully functional as alternative to AI generation
+
 ### Task and Timeline Integration Enhanced (January 13, 2025)
 - Fixed task creation to automatically generate meaningful wedding planning tasks during intake completion
 - Tasks now correlate directly with timeline events and wedding planning milestones

@@ -153,6 +153,9 @@ export default function Timeline() {
                         return;
                       }
                       
+                      alert('AI timeline generation is temporarily unavailable due to API quota limits. You can add tasks manually using the "Add Task" button.');
+                      return;
+                      
                       // Generate AI timeline by making a request to the general timeline endpoint
                       const response = await fetch('/api/ai/generate-timeline', {
                         method: 'POST',

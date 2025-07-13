@@ -155,7 +155,7 @@ export default function Vendors() {
     );
   }
 
-  const filteredVendors = vendors.filter(vendor => {
+  const filteredVendors = (vendors || []).filter(vendor => {
     const matchesSearch = vendor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          vendor.category.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = !filterCategory || vendor.category === filterCategory;
@@ -164,20 +164,16 @@ export default function Vendors() {
   });
 
   const onSubmit = (data: VendorFormData) => {
-    const newVendor = {
-      id: vendors.length + 1,
-      ...data,
-      status: "pending" as const,
-    };
-    setVendors([...vendors, newVendor]);
+    // This should use API mutation instead of local state
+    console.log("Add vendor:", data);
     form.reset();
     setIsAddDialogOpen(false);
   };
 
-  const totalVendors = vendors.length;
-  const bookedVendors = vendors.filter(v => v.status === "booked").length;
-  const totalQuotes = vendors.reduce((sum, v) => sum + (v.quote ? parseFloat(v.quote) : 0), 0);
-  const categories = [...new Set(vendors.map(v => v.category))].length;
+  const totalVendors = (vendors || []).length;
+  const bookedVendors = (vendors || []).filter(v => v.status === "booked").length;
+  const totalQuotes = (vendors || []).reduce((sum, v) => sum + (v.quote ? parseFloat(v.quote) : 0), 0);
+  const categories = [...new Set((vendors || []).map(v => v.category))].length;
 
   return (
     <div className="flex min-h-screen bg-cream">

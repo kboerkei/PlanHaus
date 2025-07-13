@@ -77,7 +77,7 @@ export default function Guests() {
     },
   });
 
-  const filteredGuests = guests.filter((guest: any) => {
+  const filteredGuests = (guests || []).filter((guest: any) => {
     const matchesSearch = guest.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          (guest.email && guest.email.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesGroup = !filterGroup || guest.group === filterGroup;
@@ -110,12 +110,12 @@ export default function Guests() {
     createGuestMutation.mutate(data);
   };
 
-  const totalGuests = guests.length;
-  const acceptedGuests = guests.filter(g => g.rsvpStatus === "accepted").length;
-  const pendingGuests = guests.filter(g => g.rsvpStatus === "pending").length;
-  const totalAttending = guests.filter(g => g.rsvpStatus === "accepted").reduce((sum, g) => sum + (g.plusOne ? 2 : 1), 0);
+  const totalGuests = (guests || []).length;
+  const acceptedGuests = (guests || []).filter(g => g.rsvpStatus === "accepted").length;
+  const pendingGuests = (guests || []).filter(g => g.rsvpStatus === "pending").length;
+  const totalAttending = (guests || []).filter(g => g.rsvpStatus === "accepted").reduce((sum, g) => sum + (g.plusOne ? 2 : 1), 0);
 
-  const groups = [...new Set(guests.map((g: any) => g.group))];
+  const groups = [...new Set((guests || []).map((g: any) => g.group))];
 
   if (isLoading) {
     return (
