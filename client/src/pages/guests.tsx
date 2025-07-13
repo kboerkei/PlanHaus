@@ -161,7 +161,8 @@ export default function Guests() {
 
   const groups = [...new Set((guests || []).map((guest: any) => guest.group))].filter(Boolean);
   const totalGuests = guests?.length || 0;
-  const attendingGuests = guests?.filter((guest: any) => guest.rsvpStatus === 'attending').length || 0;
+  const attendingGuests = guests?.filter((guest: any) => guest.rsvpStatus === 'confirmed' || guest.rsvpStatus === 'attending').length || 0;
+  const acceptedGuests = attendingGuests; // Fixed: add missing acceptedGuests variable
   const pendingGuests = guests?.filter((guest: any) => guest.rsvpStatus === 'pending').length || 0;
   const declinedGuests = guests?.filter((guest: any) => guest.rsvpStatus === 'declined').length || 0;
   const noResponseGuests = guests?.filter((guest: any) => guest.rsvpStatus === 'no_response').length || 0;
@@ -333,7 +334,7 @@ export default function Guests() {
     );
   }
 
-  if (error || guests === null) {
+  if (error) {
     return (
       <div className="flex min-h-screen bg-cream">
         <Sidebar />
