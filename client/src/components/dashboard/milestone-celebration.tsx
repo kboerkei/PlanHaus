@@ -54,16 +54,6 @@ export default function MilestoneCelebration() {
       completed: !!project && !!project.date,
       celebrationMessage: "Congratulations! Your wedding planning timeline is ready. Let's make your dream wedding happen!"
     },
-
-    {
-      id: 'first_vendor',
-      title: 'Dream Team Building',
-      description: 'Book your first wedding vendor',
-      icon: Heart,
-      progress: bookedVendors.length,
-      completed: bookedVendors.length >= 1,
-      celebrationMessage: "Your wedding dream team is coming together! First vendor secured and many more exciting partnerships ahead!"
-    },
     {
       id: 'guest_responses',
       title: 'Guest List Success',
@@ -194,7 +184,6 @@ export default function MilestoneCelebration() {
 function getProgressTarget(milestoneId: string): number {
   switch (milestoneId) {
     case 'intake_complete': return 1;
-    case 'first_vendor': return 1;
     case 'guest_responses': return 5;
     default: return 1;
   }
