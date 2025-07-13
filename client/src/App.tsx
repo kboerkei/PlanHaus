@@ -80,9 +80,20 @@ function App() {
     const storedSessionId = localStorage.getItem('sessionId');
     const storedUser = localStorage.getItem('user');
     
+    console.log('App useEffect - storedSessionId:', storedSessionId);
+    console.log('App useEffect - storedUser:', storedUser);
+    
     if (storedSessionId && storedUser) {
-      setSessionId(storedSessionId);
-      setUser(JSON.parse(storedUser));
+      try {
+        const userData = JSON.parse(storedUser);
+        setSessionId(storedSessionId);
+        setUser(userData);
+        console.log('App useEffect - Setting user:', userData);
+      } catch (error) {
+        console.error('Error parsing stored user data:', error);
+        localStorage.removeItem('sessionId');
+        localStorage.removeItem('user');
+      }
     }
     
     setIsLoading(false);
@@ -97,11 +108,22 @@ function App() {
   };
 
   const handleLogout = () => {
+    console.log('Logging out user');
     setUser(null);
     setSessionId(null);
     setIsNewUser(false);
     localStorage.removeItem('sessionId');
     localStorage.removeItem('user');
+  };
+
+  // Force clear session for testing
+  const handleForceClear = () => {
+    console.log('Force clearing session');
+    localStorage.clear();
+    setUser(null);
+    setSessionId(null);
+    setIsNewUser(false);
+    window.location.reload();
   };
 
   const handleIntakeComplete = () => {
@@ -122,6 +144,12 @@ function App() {
             <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
           </div>
           <p className="text-gray-600">Loading Gatherly...</p>
+          <button 
+            onClick={handleForceClear}
+            className="mt-4 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+          >
+            Clear Cache
+          </button>
         </div>
       </div>
     );
@@ -131,16 +159,21 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <div className="min-h-screen bg-gray-50">
-          {user && sessionId ? (
-            <Router 
-              user={user} 
-              onLogout={handleLogout} 
-              isNewUser={isNewUser}
-              onIntakeComplete={handleIntakeComplete}
-            />
-          ) : (
-            <Auth onAuth={handleAuth} />
-          )}
+          {(() => {
+            console.log('App render - user:', user);
+            console.log('App render - sessionId:', sessionId);
+            console.log('App render - showing auth?', !user || !sessionId);
+            return user && sessionId ? (
+              <Router 
+                user={user} 
+                onLogout={handleLogout} 
+                isNewUser={isNewUser}
+                onIntakeComplete={handleIntakeComplete}
+              />
+            ) : (
+              <Auth onAuth={handleAuth} />
+            );
+          })()}
         </div>
         <Toaster />
       </TooltipProvider>
