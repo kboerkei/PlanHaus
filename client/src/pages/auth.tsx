@@ -55,6 +55,16 @@ export default function Auth({ onAuth }: AuthProps) {
     mode: "onChange"
   });
 
+  // Reset forms when switching modes to ensure clean state
+  const handleModeSwitch = (newIsLogin: boolean) => {
+    setIsLogin(newIsLogin);
+    if (newIsLogin) {
+      loginForm.reset();
+    } else {
+      registerForm.reset();
+    }
+  };
+
   // Debug logging
   console.log('Auth component rendered, isLogin:', isLogin);
 
@@ -321,7 +331,7 @@ export default function Auth({ onAuth }: AuthProps) {
             <div className="text-center">
               <Button
                 variant="link"
-                onClick={() => setIsLogin(!isLogin)}
+                onClick={() => handleModeSwitch(!isLogin)}
                 className="text-gray-600 hover:text-blush"
               >
                 {isLogin 
