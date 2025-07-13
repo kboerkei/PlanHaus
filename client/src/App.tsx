@@ -16,6 +16,9 @@ import Vendors from "@/pages/vendors";
 import Inspiration from "@/pages/inspiration";
 import Schedules from "@/pages/schedules";
 import Intake from "@/pages/intake";
+import Sidebar from "@/components/layout/sidebar";
+import Header from "@/components/layout/header";
+import MobileNav from "@/components/layout/mobile-nav";
 
 function Router({ user, onLogout, isNewUser, onIntakeComplete }: { user: any; onLogout: () => void; isNewUser: boolean; onIntakeComplete: () => void }) {
   // If user is new and hasn't completed intake, redirect them to intake form
@@ -37,23 +40,32 @@ function Router({ user, onLogout, isNewUser, onIntakeComplete }: { user: any; on
   }
 
   return (
-    <Switch>
-      <Route path="/" component={Dashboard} />
-      <Route path="/intake">
-        <Intake onComplete={onIntakeComplete} />
-      </Route>
-      <Route path="/ai-assistant" component={AIAssistant} />
-      <Route path="/timeline" component={Timeline} />
-      <Route path="/budget" component={Budget} />
-      <Route path="/guests" component={Guests} />
-      <Route path="/vendors" component={Vendors} />
-      <Route path="/inspiration" component={Inspiration} />
-      <Route path="/schedules" component={Schedules} />
-      <Route path="/profile">
-        <Profile user={user} onLogout={onLogout} />
-      </Route>
-      <Route component={NotFound} />
-    </Switch>
+    <div className="flex h-screen">
+      <Sidebar />
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <Header user={user} />
+        <main className="flex-1 overflow-auto">
+          <Switch>
+            <Route path="/" component={Dashboard} />
+            <Route path="/intake">
+              <Intake onComplete={onIntakeComplete} />
+            </Route>
+            <Route path="/ai-assistant" component={AIAssistant} />
+            <Route path="/timeline" component={Timeline} />
+            <Route path="/budget" component={Budget} />
+            <Route path="/guests" component={Guests} />
+            <Route path="/vendors" component={Vendors} />
+            <Route path="/inspiration" component={Inspiration} />
+            <Route path="/schedules" component={Schedules} />
+            <Route path="/profile">
+              <Profile user={user} onLogout={onLogout} />
+            </Route>
+            <Route component={NotFound} />
+          </Switch>
+        </main>
+      </div>
+      <MobileNav />
+    </div>
   );
 }
 
