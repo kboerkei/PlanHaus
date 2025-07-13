@@ -55,7 +55,7 @@ export default function Guests() {
     queryKey: ['/api/wedding-projects']
   });
 
-  const { data: guests = [] } = useQuery({
+  const { data: guests = [], isLoading, error } = useQuery({
     queryKey: ['/api/guests']
   });
 
@@ -77,25 +77,32 @@ export default function Guests() {
     },
   });
 
-  const filteredGuests = guests.filter(guest => {
+  const filteredGuests = guests.filter((guest: any) => {
     const matchesSearch = guest.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         guest.email.toLowerCase().includes(searchTerm.toLowerCase());
+                         (guest.email && guest.email.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesGroup = !filterGroup || guest.group === filterGroup;
     const matchesRsvp = !filterRsvp || guest.rsvpStatus === filterRsvp;
     return matchesSearch && matchesGroup && matchesRsvp;
   });
 
   const createGuestMutation = useMutation({
-    mutationFn: (data: GuestFormData) => apiRequest(`/api/projects/${projects[0].id}/guests`, {
+    mutationFn: (data: GuestFormData) => apiRequest('/api/guests', {
       method: 'POST',
       body: JSON.stringify(data),
       headers: { 'Content-Type': 'application/json' }
     }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/projects', projects[0].id, 'guests'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/guests'] });
       form.reset();
       setIsAddDialogOpen(false);
       toast({ title: "Guest added successfully!" });
+    },
+    onError: () => {
+      toast({ 
+        title: "Error", 
+        description: "Failed to add guest", 
+        variant: "destructive" 
+      });
     }
   });
 
@@ -108,7 +115,119 @@ export default function Guests() {
   const pendingGuests = guests.filter(g => g.rsvpStatus === "pending").length;
   const totalAttending = guests.filter(g => g.rsvpStatus === "accepted").reduce((sum, g) => sum + (g.plusOne ? 2 : 1), 0);
 
-  const groups = [...new Set(guests.map(g => g.group))];
+  const groups = [...new Set(guests.map((g: any) => g.group))];
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen bg-cream">
+        <Sidebar />
+        <main className="flex-1 overflow-y-auto">
+          <Header />
+          <div className="p-6">
+            <div className="text-center py-12">
+              <div className="text-lg">Loading guests...</div>
+            </div>
+          </div>
+        </main>
+        <MobileNav />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex min-h-screen bg-cream">
+        <Sidebar />
+        <main className="flex-1 overflow-y-auto">
+          <Header />
+          <div className="p-6">
+            <div className="max-w-6xl mx-auto">
+              <div className="text-center py-12">
+                <Users className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-gray-800 mb-2">Welcome to Guest Management</h3>
+                <p className="text-gray-600 mb-6">Start building your guest list for your special day.</p>
+                <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button className="gradient-blush-rose text-white">
+                      <Plus size={16} className="mr-2" />
+                      Add First Guest
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Add New Guest</DialogTitle>
+                    </DialogHeader>
+                    <Form {...form}>
+                      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                        <FormField
+                          control={form.control}
+                          name="name"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Name *</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Enter guest name" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="email"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Email</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Enter email address" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="group"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Group *</FormLabel>
+                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select group" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="Family">Family</SelectItem>
+                                  <SelectItem value="Friends">Friends</SelectItem>
+                                  <SelectItem value="Work">Work</SelectItem>
+                                  <SelectItem value="Other">Other</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <div className="flex justify-end space-x-2">
+                          <Button type="button" variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+                            Cancel
+                          </Button>
+                          <Button type="submit" disabled={createGuestMutation.isPending} className="gradient-blush-rose text-white">
+                            {createGuestMutation.isPending ? "Adding..." : "Add Guest"}
+                          </Button>
+                        </div>
+                      </form>
+                    </Form>
+                  </DialogContent>
+                </Dialog>
+              </div>
+            </div>
+          </div>
+        </main>
+        <MobileNav />
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen bg-cream">
