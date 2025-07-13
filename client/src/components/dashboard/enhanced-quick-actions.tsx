@@ -29,16 +29,19 @@ import {
   Flower,
   CheckCircle2,
   Clock,
-  TrendingUp
+  TrendingUp,
+  Search
 } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import AIVendorSearch from "@/components/ai-vendor-search";
 
 export default function EnhancedQuickActions() {
   const [, setLocation] = useLocation();
   const [isTaskDialogOpen, setIsTaskDialogOpen] = useState(false);
   const [isGuestDialogOpen, setIsGuestDialogOpen] = useState(false);
   const [isBudgetDialogOpen, setIsBudgetDialogOpen] = useState(false);
+  const [isVendorSearchOpen, setIsVendorSearchOpen] = useState(false);
   const [taskForm, setTaskForm] = useState({ title: "", description: "", priority: "medium", category: "" });
   const [guestForm, setGuestForm] = useState({ name: "", email: "", group: "family" });
   const [budgetForm, setBudgetForm] = useState({ item: "", category: "venue", estimatedCost: "" });
@@ -140,6 +143,15 @@ export default function EnhancedQuickActions() {
 
     // Navigation actions
     const navigationActions = [
+      {
+        id: "find-vendor",
+        title: "Find Vendor",
+        description: "AI-powered vendor search",
+        icon: <Search className="h-5 w-5" />,
+        color: "bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600",
+        category: "AI Tools",
+        action: () => setIsVendorSearchOpen(true)
+      },
       {
         id: "book-venue",
         title: "Find Venues",
@@ -474,6 +486,13 @@ export default function EnhancedQuickActions() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* AI Vendor Search Dialog */}
+      <AIVendorSearch
+        isOpen={isVendorSearchOpen}
+        onClose={() => setIsVendorSearchOpen(false)}
+        projectId={dashboardStats?.currentProject?.id}
+      />
     </>
   );
 }
