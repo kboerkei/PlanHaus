@@ -82,17 +82,58 @@ function App() {
             setSessionId(storedSessionId);
             setUser({ ...userData, hasCompletedIntake: serverUser.hasCompletedIntake });
           } else {
-            // Session expired, clear localStorage
-            localStorage.removeItem('sessionId');
-            localStorage.removeItem('user');
+            // Session expired, try demo login for seamless user experience
+            console.log('Session expired, attempting demo login...');
+            fetch('/api/auth/demo-login', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' }
+            })
+            .then(async (demoResponse) => {
+              if (demoResponse.ok) {
+                const demoData = await demoResponse.json();
+                setUser(demoData.user);
+                setSessionId(demoData.sessionId);
+                localStorage.setItem('sessionId', demoData.sessionId);
+                localStorage.setItem('user', JSON.stringify(demoData.user));
+              } else {
+                // Clear invalid session
+                localStorage.removeItem('sessionId');
+                localStorage.removeItem('user');
+              }
+            })
+            .catch(() => {
+              localStorage.removeItem('sessionId');
+              localStorage.removeItem('user');
+            });
           }
           setIsLoading(false);
         })
         .catch(() => {
-          // Network error or server down, clear session
-          localStorage.removeItem('sessionId');
-          localStorage.removeItem('user');
-          setIsLoading(false);
+          // Network error - try demo login for development
+          console.log('Network error, attempting demo login...');
+          fetch('/api/auth/demo-login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+          })
+          .then(async (demoResponse) => {
+            if (demoResponse.ok) {
+              const demoData = await demoResponse.json();
+              setUser(demoData.user);
+              setSessionId(demoData.sessionId);
+              localStorage.setItem('sessionId', demoData.sessionId);
+              localStorage.setItem('user', JSON.stringify(demoData.user));
+            } else {
+              localStorage.removeItem('sessionId');
+              localStorage.removeItem('user');
+            }
+          })
+          .catch(() => {
+            localStorage.removeItem('sessionId');
+            localStorage.removeItem('user');
+          })
+          .finally(() => {
+            setIsLoading(false);
+          });
         });
       } catch (error) {
         console.error('Error parsing stored user data:', error);
@@ -101,7 +142,27 @@ function App() {
         setIsLoading(false);
       }
     } else {
-      setIsLoading(false);
+      // No stored session, try demo login for development
+      console.log('No stored session, attempting demo login...');
+      fetch('/api/auth/demo-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      })
+      .then(async (demoResponse) => {
+        if (demoResponse.ok) {
+          const demoData = await demoResponse.json();
+          setUser(demoData.user);
+          setSessionId(demoData.sessionId);
+          localStorage.setItem('sessionId', demoData.sessionId);
+          localStorage.setItem('user', JSON.stringify(demoData.user));
+        }
+      })
+      .catch(() => {
+        console.log('Demo login failed, showing auth page');
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
     }
   }, []);
 

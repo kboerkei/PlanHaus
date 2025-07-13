@@ -22,6 +22,38 @@ export async function apiRequest<T = any>(
     },
   });
 
+  // If we get a 401, try to refresh session with demo login
+  if (res.status === 401) {
+    console.log('API request got 401, attempting demo login...');
+    try {
+      const demoResponse = await fetch('/api/auth/demo-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      
+      if (demoResponse.ok) {
+        const demoData = await demoResponse.json();
+        localStorage.setItem('sessionId', demoData.sessionId);
+        localStorage.setItem('user', JSON.stringify(demoData.user));
+        
+        // Retry the original request with new session
+        const retryRes = await fetch(url, {
+          ...options,
+          headers: {
+            'Content-Type': 'application/json',
+            ...options?.headers,
+            Authorization: `Bearer ${demoData.sessionId}`,
+          },
+        });
+        
+        await throwIfResNotOk(retryRes);
+        return await retryRes.json();
+      }
+    } catch (error) {
+      console.log('Demo login retry failed:', error);
+    }
+  }
+
   await throwIfResNotOk(res);
   return await res.json();
 }
