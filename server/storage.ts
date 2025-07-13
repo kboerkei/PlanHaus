@@ -1,10 +1,11 @@
 import {
-  users, weddingProjects, collaborators, tasks, guests, vendors, budgetItems,
+  users, weddingProjects, collaborators, tasks, guests, vendors, vendorPayments, budgetItems,
   timelineEvents, inspirationItems, activities, shoppingLists, shoppingItems,
   schedules, scheduleEvents, intakeData,
   type User, type InsertUser, type WeddingProject, type InsertWeddingProject,
   type Collaborator, type InsertCollaborator, type Task, type InsertTask,
   type Guest, type InsertGuest, type Vendor, type InsertVendor,
+  type VendorPayment, type InsertVendorPayment,
   type BudgetItem, type InsertBudgetItem, type TimelineEvent, type InsertTimelineEvent,
   type InspirationItem, type InsertInspirationItem, type Activity, type InsertActivity,
   type ShoppingList, type InsertShoppingList, type ShoppingItem, type InsertShoppingItem,
@@ -50,6 +51,14 @@ export interface IStorage {
   getVendorsByProjectId(projectId: number): Promise<Vendor[]>;
   updateVendor(id: number, updates: Partial<InsertVendor>): Promise<Vendor | undefined>;
   deleteVendor(id: number): Promise<boolean>;
+
+  // Vendor Payments
+  createVendorPayment(payment: InsertVendorPayment): Promise<VendorPayment>;
+  getVendorPaymentsByVendorId(vendorId: number): Promise<VendorPayment[]>;
+  getVendorPaymentsByProjectId(projectId: number): Promise<VendorPayment[]>;
+  updateVendorPayment(id: number, updates: Partial<InsertVendorPayment>): Promise<VendorPayment | undefined>;
+  deleteVendorPayment(id: number): Promise<boolean>;
+  markVendorPaymentPaid(id: number): Promise<VendorPayment | undefined>;
 
   // Budget Items
   createBudgetItem(item: InsertBudgetItem): Promise<BudgetItem>;
@@ -118,6 +127,7 @@ export class MemStorage implements IStorage {
   private timelineEvents: Map<number, TimelineEvent> = new Map();
   private inspirationItems: Map<number, InspirationItem> = new Map();
   private activities: Map<number, Activity> = new Map();
+  private vendorPayments: Map<number, VendorPayment> = new Map();
 
   private currentId = 1;
 
@@ -347,6 +357,9 @@ export class MemStorage implements IStorage {
       status: insertVendor.status ?? null,
       quote: insertVendor.quote ?? null,
       notes: insertVendor.notes ?? null,
+      contractUrl: insertVendor.contractUrl ?? null,
+      contractSigned: insertVendor.contractSigned ?? null,
+      contractSignedDate: insertVendor.contractSignedDate ?? null,
       documents: insertVendor.documents ?? null,
       projectId: insertVendor.projectId,
       addedBy: insertVendor.addedBy,
@@ -372,6 +385,62 @@ export class MemStorage implements IStorage {
 
   async deleteVendor(id: number): Promise<boolean> {
     return this.vendors.delete(id);
+  }
+
+  // Vendor Payments
+  async createVendorPayment(insertPayment: InsertVendorPayment): Promise<VendorPayment> {
+    const id = this.generateId();
+    const payment: VendorPayment = {
+      id,
+      vendorId: insertPayment.vendorId,
+      projectId: insertPayment.projectId,
+      paymentType: insertPayment.paymentType,
+      amount: insertPayment.amount,
+      dueDate: insertPayment.dueDate,
+      paidDate: insertPayment.paidDate ?? null,
+      isPaid: insertPayment.isPaid ?? false,
+      notes: insertPayment.notes ?? null,
+      createdBy: insertPayment.createdBy,
+      createdAt: new Date(),
+    };
+    this.vendorPayments.set(id, payment);
+    return payment;
+  }
+
+  async getVendorPaymentsByVendorId(vendorId: number): Promise<VendorPayment[]> {
+    return Array.from(this.vendorPayments.values())
+      .filter(payment => payment.vendorId === vendorId);
+  }
+
+  async getVendorPaymentsByProjectId(projectId: number): Promise<VendorPayment[]> {
+    return Array.from(this.vendorPayments.values())
+      .filter(payment => payment.projectId === projectId);
+  }
+
+  async updateVendorPayment(id: number, updates: Partial<InsertVendorPayment>): Promise<VendorPayment | undefined> {
+    const payment = this.vendorPayments.get(id);
+    if (!payment) return undefined;
+
+    const updated = { ...payment, ...updates };
+    this.vendorPayments.set(id, updated);
+    return updated;
+  }
+
+  async deleteVendorPayment(id: number): Promise<boolean> {
+    return this.vendorPayments.delete(id);
+  }
+
+  async markVendorPaymentPaid(id: number): Promise<VendorPayment | undefined> {
+    const payment = this.vendorPayments.get(id);
+    if (!payment) return undefined;
+
+    const updated = { 
+      ...payment, 
+      isPaid: true,
+      paidDate: new Date(),
+    };
+    this.vendorPayments.set(id, updated);
+    return updated;
   }
 
   // Budget Items

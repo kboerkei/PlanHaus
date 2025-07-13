@@ -6,10 +6,10 @@ import { db } from "./db";
 import { eq } from "drizzle-orm";
 import { 
   insertUserSchema, insertWeddingProjectSchema, insertCollaboratorSchema,
-  insertTaskSchema, insertGuestSchema, insertVendorSchema, insertBudgetItemSchema,
-  insertTimelineEventSchema, insertInspirationItemSchema, insertActivitySchema,
-  insertScheduleSchema, insertScheduleEventSchema, insertIntakeDataSchema,
-  users
+  insertTaskSchema, insertGuestSchema, insertVendorSchema, insertVendorPaymentSchema,
+  insertBudgetItemSchema, insertTimelineEventSchema, insertInspirationItemSchema, 
+  insertActivitySchema, insertScheduleSchema, insertScheduleEventSchema, 
+  insertIntakeDataSchema, users
 } from "@shared/schema";
 import { 
   generateWeddingTimeline, generateBudgetBreakdown, generateVendorSuggestions,
@@ -19,6 +19,8 @@ import { initializeWebSocketService, websocketService } from "./services/websock
 import multer from "multer";
 import path from "path";
 import fs from "fs";
+import * as XLSX from "xlsx";
+// import pdfParse from "pdf-parse";
 
 // Simple session storage for demo purposes
 const sessions = new Map<string, { userId: number }>();
@@ -512,6 +514,104 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Guest import endpoint
+  app.post("/api/guests/import", requireAuth, upload.single('file'), async (req, res) => {
+    try {
+      const userId = (req as any).userId;
+      if (!req.file) {
+        return res.status(400).json({ message: "No file uploaded" });
+      }
+
+      let projects = await storage.getWeddingProjectsByUserId(userId);
+      
+      // Create a default project if none exists
+      if (projects.length === 0) {
+        const defaultProject = await storage.createWeddingProject({
+          name: "My Wedding",
+          date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+          createdBy: userId,
+          budget: null,
+          guestCount: null,
+          theme: null,
+          venue: null
+        });
+        projects = [defaultProject];
+      }
+
+      const projectId = projects[0].id;
+      const filePath = req.file.path;
+      const fileExtension = path.extname(req.file.originalname).toLowerCase();
+      
+      let guestData: any[] = [];
+
+      if (fileExtension === '.pdf') {
+        // PDF parsing temporarily disabled - use Excel format for now
+        return res.status(400).json({ message: "PDF import temporarily unavailable. Please use Excel format." });
+      } else if (fileExtension === '.xlsx' || fileExtension === '.xls') {
+        // Parse Excel file
+        const workbook = XLSX.readFile(filePath);
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        const jsonData = XLSX.utils.sheet_to_json(worksheet);
+        
+        guestData = jsonData.map((row: any) => ({
+          name: row['Name'] || row['name'] || '',
+          email: row['Email'] || row['email'] || '',
+          phone: row['Phone'] || row['phone'] || '',
+          address: row['Address'] || row['address'] || '',
+          group: row['Group'] || row['group'] || 'Other',
+          hotel: row['Hotel'] || row['hotel'] || '',
+          checkInDate: row['Check-in Date'] || row['check_in_date'] || null,
+          checkOutDate: row['Check-out Date'] || row['check_out_date'] || null,
+          notes: row['Notes'] || row['notes'] || ''
+        }));
+      } else {
+        return res.status(400).json({ message: "Unsupported file format" });
+      }
+
+      // Create guests in database
+      const createdGuests = [];
+      for (const guestInfo of guestData) {
+        if (guestInfo.name && guestInfo.name.trim().length > 0) {
+          try {
+            const guest = await storage.createGuest({
+              ...guestInfo,
+              projectId,
+              addedBy: userId,
+              rsvpStatus: 'pending',
+              plusOne: false,
+              checkInDate: guestInfo.checkInDate ? new Date(guestInfo.checkInDate) : null,
+              checkOutDate: guestInfo.checkOutDate ? new Date(guestInfo.checkOutDate) : null
+            });
+            createdGuests.push(guest);
+          } catch (error) {
+            console.error('Error creating guest:', error);
+          }
+        }
+      }
+
+      // Create activity
+      await storage.createActivity({
+        projectId,
+        userId,
+        action: 'imported guests',
+        target: 'guest',
+        details: { imported: createdGuests.length }
+      });
+
+      // Clean up uploaded file
+      fs.unlinkSync(filePath);
+
+      res.json({ 
+        imported: createdGuests.length, 
+        guests: createdGuests 
+      });
+    } catch (error) {
+      console.error('Import error:', error);
+      res.status(500).json({ message: "Failed to import guests" });
+    }
+  });
+
   // Vendors
   app.get("/api/projects/:id/vendors", requireAuth, async (req, res) => {
     try {
@@ -549,6 +649,90 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(vendor);
     } catch (error) {
       res.status(400).json({ message: "Invalid vendor data" });
+    }
+  });
+
+  // Vendor contract upload
+  app.post("/api/vendors/:id/contract", requireAuth, upload.single('contract'), async (req, res) => {
+    try {
+      const vendorId = parseInt(req.params.id);
+      if (!req.file) {
+        return res.status(400).json({ message: "No contract file uploaded" });
+      }
+
+      const contractUrl = `/uploads/${req.file.filename}`;
+      const vendor = await storage.updateVendor(vendorId, { contractUrl });
+      
+      if (!vendor) {
+        return res.status(404).json({ message: "Vendor not found" });
+      }
+
+      res.json({ contractUrl, vendor });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to upload contract" });
+    }
+  });
+
+  // Mark vendor contract as signed
+  app.patch("/api/vendors/:id/contract/sign", requireAuth, async (req, res) => {
+    try {
+      const vendorId = parseInt(req.params.id);
+      const { signed } = req.body;
+      
+      const vendor = await storage.updateVendor(vendorId, { 
+        contractSigned: signed,
+        contractSignedDate: signed ? new Date() : null
+      });
+      
+      if (!vendor) {
+        return res.status(404).json({ message: "Vendor not found" });
+      }
+
+      res.json(vendor);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update contract status" });
+    }
+  });
+
+  // Vendor Payments
+  app.get("/api/vendors/:id/payments", requireAuth, async (req, res) => {
+    try {
+      const vendorId = parseInt(req.params.id);
+      const payments = await storage.getVendorPaymentsByVendorId(vendorId);
+      res.json(payments);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch vendor payments" });
+    }
+  });
+
+  app.post("/api/vendors/:id/payments", requireAuth, async (req, res) => {
+    try {
+      const vendorId = parseInt(req.params.id);
+      const paymentData = insertVendorPaymentSchema.parse({
+        ...req.body,
+        vendorId,
+        createdBy: (req as any).userId
+      });
+      
+      const payment = await storage.createVendorPayment(paymentData);
+      res.json(payment);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid payment data" });
+    }
+  });
+
+  app.patch("/api/vendor-payments/:id/paid", requireAuth, async (req, res) => {
+    try {
+      const paymentId = parseInt(req.params.id);
+      const payment = await storage.markVendorPaymentPaid(paymentId);
+      
+      if (!payment) {
+        return res.status(404).json({ message: "Payment not found" });
+      }
+
+      res.json(payment);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to mark payment as paid" });
     }
   });
 

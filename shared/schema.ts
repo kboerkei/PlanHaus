@@ -83,9 +83,26 @@ export const vendors = pgTable("vendors", {
   quote: decimal("quote", { precision: 10, scale: 2 }),
   status: text("status").default('pending'), // 'pending', 'contacted', 'booked', 'declined'
   notes: text("notes"),
+  contractUrl: text("contract_url"),
+  contractSigned: boolean("contract_signed").default(false),
+  contractSignedDate: timestamp("contract_signed_date"),
   documents: text("documents").array(),
   addedBy: integer("added_by").notNull(),
   addedAt: timestamp("added_at").defaultNow().notNull(),
+});
+
+export const vendorPayments = pgTable("vendor_payments", {
+  id: serial("id").primaryKey(),
+  vendorId: integer("vendor_id").references(() => vendors.id).notNull(),
+  projectId: integer("project_id").notNull(),
+  paymentType: text("payment_type").notNull(), // 'deposit', 'first_payment', 'second_payment', 'final_payment', 'custom'
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  dueDate: timestamp("due_date").notNull(),
+  paidDate: timestamp("paid_date"),
+  isPaid: boolean("is_paid").default(false),
+  notes: text("notes"),
+  createdBy: integer("created_by").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
 export const budgetItems = pgTable("budget_items", {
@@ -236,6 +253,11 @@ export const insertGuestSchema = createInsertSchema(guests).omit({
 export const insertVendorSchema = createInsertSchema(vendors).omit({
   id: true,
   addedAt: true,
+});
+
+export const insertVendorPaymentSchema = createInsertSchema(vendorPayments).omit({
+  id: true,
+  createdAt: true,
 });
 
 export const insertBudgetItemSchema = createInsertSchema(budgetItems).omit({
@@ -544,6 +566,8 @@ export type Guest = typeof guests.$inferSelect;
 export type InsertGuest = z.infer<typeof insertGuestSchema>;
 export type Vendor = typeof vendors.$inferSelect;
 export type InsertVendor = z.infer<typeof insertVendorSchema>;
+export type VendorPayment = typeof vendorPayments.$inferSelect;
+export type InsertVendorPayment = z.infer<typeof insertVendorPaymentSchema>;
 export type BudgetItem = typeof budgetItems.$inferSelect;
 export type InsertBudgetItem = z.infer<typeof insertBudgetItemSchema>;
 export type TimelineEvent = typeof timelineEvents.$inferSelect;

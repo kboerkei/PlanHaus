@@ -12,7 +12,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Users, Plus, Mail, Phone, MapPin, Search, Download, Filter } from "lucide-react";
+import { Users, Plus, Mail, Phone, MapPin, Search, Download, Filter, Upload, FileText, FileSpreadsheet } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -49,6 +49,9 @@ export default function Guests() {
   const [filterGroup, setFilterGroup] = useState("");
   const [filterRsvp, setFilterRsvp] = useState("");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
+  const [importFile, setImportFile] = useState<File | null>(null);
+  const [isImporting, setIsImporting] = useState(false);
   const { toast } = useToast();
 
   const { data: projects } = useQuery({
@@ -58,6 +61,54 @@ export default function Guests() {
   const { data: guests = [], isLoading, error } = useQuery({
     queryKey: ['/api/guests']
   });
+
+  const importGuestsMutation = useMutation({
+    mutationFn: async (formData: FormData) => {
+      const response = await fetch('/api/guests/import', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('sessionId')}`
+        },
+        body: formData
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to import guests');
+      }
+      
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Import successful",
+        description: `Successfully imported ${data.imported} guests.`
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/guests'] });
+      setIsImportDialogOpen(false);
+      setImportFile(null);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Import failed",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  });
+
+  const handleFileImport = async () => {
+    if (!importFile) return;
+    
+    setIsImporting(true);
+    const formData = new FormData();
+    formData.append('file', importFile);
+    
+    try {
+      await importGuestsMutation.mutateAsync(formData);
+    } finally {
+      setIsImporting(false);
+    }
+  };
 
   const form = useForm<GuestFormData>({
     resolver: zodResolver(guestSchema),
