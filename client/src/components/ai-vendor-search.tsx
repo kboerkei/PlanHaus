@@ -140,10 +140,9 @@ export default function AIVendorSearch({ isOpen, onClose, projectId }: AIVendorS
   };
 
   const handleAddVendor = async (vendor: VendorResult) => {
-    if (!projectId) return;
-    
     try {
-      await apiRequest(`/api/projects/${projectId}/vendors`, {
+      // Use the generic vendors endpoint that auto-creates projects if needed
+      await apiRequest('/api/vendors', {
         method: 'POST',
         body: JSON.stringify({
           name: vendor.name,
