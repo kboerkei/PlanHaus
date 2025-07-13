@@ -71,6 +71,28 @@ export default function Auth({ onAuth }: AuthProps) {
     },
   });
 
+  const demoLoginMutation = useMutation({
+    mutationFn: () => 
+      apiRequest<{ user: any; sessionId: string }>("/api/auth/demo-login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      }),
+    onSuccess: (data) => {
+      onAuth(data.user, data.sessionId, false);
+      toast({
+        title: "Welcome to Gatherly!",
+        description: "Logged in as demo user.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Demo login failed",
+        description: "Please try again or contact support.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const registerMutation = useMutation({
     mutationFn: (data: RegisterFormData) =>
       apiRequest<{ user: any; sessionId: string }>("/api/auth/register", {
@@ -212,6 +234,21 @@ export default function Auth({ onAuth }: AuthProps) {
                     </>
                   )}
                 </Button>
+
+                <div className="text-center text-sm text-gray-500 my-4">or</div>
+
+                <Button 
+                  type="button"
+                  onClick={() => demoLoginMutation.mutate()}
+                  className="w-full bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  disabled={demoLoginMutation.isPending}
+                >
+                  {demoLoginMutation.isPending ? (
+                    "Logging in..."
+                  ) : (
+                    "Try Demo (demo@example.com)"
+                  )}
+                </Button>
               </form>
             ) : (
               <form onSubmit={handleRegisterSubmit} className="space-y-4">
@@ -277,24 +314,7 @@ export default function Auth({ onAuth }: AuthProps) {
               </form>
             )}
 
-            {/* Demo login button */}
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-white px-2 text-gray-500">or</span>
-              </div>
-            </div>
 
-            <Button 
-              variant="outline" 
-              className="w-full" 
-              onClick={demoLogin}
-              disabled={loginMutation.isPending}
-            >
-              Try Demo Account
-            </Button>
 
             {/* Toggle between login/register */}
             <div className="text-center">
