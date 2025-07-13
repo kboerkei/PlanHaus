@@ -422,8 +422,8 @@ export default function TimelineModern() {
                           Wedding Timeline
                         </h1>
                         <p className="text-gray-600 text-lg">
-                          {currentProject?.weddingDate 
-                            ? `${Math.ceil((new Date(currentProject.weddingDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))} days until your big day`
+                          {currentProject?.date 
+                            ? `${Math.ceil((new Date(currentProject.date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))} days until your big day`
                             : "Organize your perfect wedding journey"
                           }
                         </p>
