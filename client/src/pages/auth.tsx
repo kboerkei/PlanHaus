@@ -35,18 +35,28 @@ export default function Auth({ onAuth }: AuthProps) {
   const [isLogin, setIsLogin] = useState(true);
   const { toast } = useToast();
 
-  // Debug logging
-  console.log('Auth component rendered, isLogin:', isLogin);
-
   const loginForm = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
-    defaultValues: { email: "", password: "" },
+    defaultValues: { 
+      email: "", 
+      password: "" 
+    },
+    mode: "onChange"
   });
 
   const registerForm = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
-    defaultValues: { username: "", email: "", password: "", avatar: "" },
+    defaultValues: { 
+      username: "", 
+      email: "", 
+      password: "", 
+      avatar: "" 
+    },
+    mode: "onChange"
   });
+
+  // Debug logging
+  console.log('Auth component rendered, isLogin:', isLogin);
 
   const loginMutation = useMutation({
     mutationFn: (data: LoginFormData) => 
@@ -156,6 +166,8 @@ export default function Auth({ onAuth }: AuthProps) {
                             autoComplete="email"
                             autoFocus={isLogin}
                             type="email"
+                            value={field.value || ""}
+                            onChange={field.onChange}
                           />
                         </FormControl>
                         <FormMessage />
@@ -178,6 +190,8 @@ export default function Auth({ onAuth }: AuthProps) {
                             placeholder="Enter your password" 
                             {...field}
                             autoComplete="current-password"
+                            value={field.value || ""}
+                            onChange={field.onChange}
                           />
                         </FormControl>
                         <FormMessage />
@@ -219,6 +233,8 @@ export default function Auth({ onAuth }: AuthProps) {
                             {...field}
                             autoComplete="name"
                             autoFocus={!isLogin}
+                            value={field.value || ""}
+                            onChange={field.onChange}
                           />
                         </FormControl>
                         <FormMessage />
@@ -241,6 +257,8 @@ export default function Auth({ onAuth }: AuthProps) {
                             {...field}
                             autoComplete="email"
                             type="email"
+                            value={field.value || ""}
+                            onChange={field.onChange}
                           />
                         </FormControl>
                         <FormMessage />
@@ -263,6 +281,8 @@ export default function Auth({ onAuth }: AuthProps) {
                             placeholder="Choose a secure password" 
                             {...field}
                             autoComplete="new-password"
+                            value={field.value || ""}
+                            onChange={field.onChange}
                           />
                         </FormControl>
                         <FormMessage />
@@ -287,6 +307,17 @@ export default function Auth({ onAuth }: AuthProps) {
                 </form>
               </Form>
             )}
+
+            {/* Test input field for debugging */}
+            <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+              <label className="block text-sm font-medium mb-2">Test Input (for debugging):</label>
+              <input
+                type="text"
+                placeholder="Type here to test..."
+                className="w-full p-2 border border-gray-300 rounded"
+                onChange={(e) => console.log('Test input value:', e.target.value)}
+              />
+            </div>
 
             {/* Demo login button */}
             <div className="relative">
