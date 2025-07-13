@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -97,6 +97,7 @@ interface IntakeProps {
 export default function Intake({ onComplete }: IntakeProps) {
   const [, navigate] = useLocation();
   const { toast } = useToast();
+  const [isLoadingExisting, setIsLoadingExisting] = useState(false);
   
   const [formData, setFormData] = useState<IntakeFormData>({
     coupleInfo: {
@@ -132,6 +133,72 @@ export default function Intake({ onComplete }: IntakeProps) {
   const [newPinterestBoard, setNewPinterestBoard] = useState("");
   const [newColorPalette, setNewColorPalette] = useState("");
 
+  // Load existing intake data if it exists
+  useEffect(() => {
+    const loadExistingData = async () => {
+      setIsLoadingExisting(true);
+      try {
+        const response = await fetch("/api/intake", {
+          headers: {
+            "Authorization": `Bearer ${localStorage.getItem("sessionId")}`
+          }
+        });
+        
+        if (response.ok) {
+          const existingData = await response.json();
+          // Convert the API data back to form structure
+          setFormData({
+            coupleInfo: {
+              partner1: {
+                firstName: existingData.partner1FirstName || "",
+                lastName: existingData.partner1LastName || "",
+                email: existingData.partner1Email || "",
+                role: existingData.partner1Role || ""
+              },
+              partner2: {
+                firstName: existingData.partner2FirstName || "",
+                lastName: existingData.partner2LastName || "",
+                email: existingData.partner2Email || "",
+                role: existingData.partner2Role || ""
+              },
+              hasWeddingPlanner: existingData.hasWeddingPlanner || false
+            },
+            weddingBasics: {
+              weddingDate: existingData.weddingDate ? new Date(existingData.weddingDate) : undefined,
+              ceremonyLocation: existingData.ceremonyLocation || "",
+              receptionLocation: existingData.receptionLocation || "",
+              estimatedGuests: existingData.estimatedGuests || 0,
+              totalBudget: existingData.totalBudget ? parseFloat(existingData.totalBudget) : 0
+            },
+            styleVision: {
+              overallVibe: existingData.overallVibe || "",
+              colorPalette: existingData.colorPalette || "",
+              mustHaveElements: existingData.mustHaveElements || [],
+              pinterestBoards: existingData.pinterestBoards || []
+            },
+            priorities: {
+              topPriorities: existingData.topPriorities || [],
+              nonNegotiables: existingData.nonNegotiables || ""
+            },
+            keyPeople: {
+              vips: existingData.vips && existingData.vips.length > 0 ? existingData.vips : [{ name: "", role: "" }],
+              weddingParty: existingData.weddingParty && existingData.weddingParty.length > 0 ? existingData.weddingParty : [{ name: "", role: "" }],
+              officiantStatus: existingData.officiantStatus || ""
+            }
+          });
+          console.log('Loaded existing intake data:', existingData);
+        }
+      } catch (error) {
+        // No existing data or error loading - continue with empty form
+        console.log('No existing intake data found or error loading:', error);
+      } finally {
+        setIsLoadingExisting(false);
+      }
+    };
+
+    loadExistingData();
+  }, []);
+
   const submitIntakeMutation = useMutation({
     mutationFn: (data: IntakeFormData) => {
       // Transform form data to match API structure
@@ -149,8 +216,8 @@ export default function Intake({ onComplete }: IntakeProps) {
         weddingDate: data.weddingBasics.weddingDate ? new Date(data.weddingBasics.weddingDate) : null,
         ceremonyLocation: data.weddingBasics.ceremonyLocation,
         receptionLocation: data.weddingBasics.receptionLocation,
-        estimatedGuests: data.weddingBasics.estimatedGuests,
-        totalBudget: data.weddingBasics.totalBudget.toString(),
+        estimatedGuests: data.weddingBasics.estimatedGuests || null,
+        totalBudget: data.weddingBasics.totalBudget ? data.weddingBasics.totalBudget.toString() : "",
         overallVibe: data.styleVision.overallVibe,
         colorPalette: data.styleVision.colorPalette,
         mustHaveElements: data.styleVision.mustHaveElements,

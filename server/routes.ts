@@ -840,15 +840,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('Intake API - User ID:', userId);
       console.log('Intake API - Request body:', JSON.stringify(req.body, null, 2));
       
-      const intakeData = insertIntakeDataSchema.parse({
+      // Transform the request body to handle date conversion
+      const requestData = {
         ...req.body,
-        userId
-      });
+        userId,
+        weddingDate: req.body.weddingDate ? new Date(req.body.weddingDate) : null
+      };
+      
+      const intakeData = insertIntakeDataSchema.parse(requestData);
       
       console.log('Intake API - Parsed data:', JSON.stringify(intakeData, null, 2));
       
-      // Save intake data
-      const intake = await storage.createIntakeData(intakeData);
+      // Save or update intake data
+      let intake = await storage.getIntakeDataByUserId(userId);
+      if (intake) {
+        // Update existing intake data
+        console.log('Updating existing intake data for user:', userId);
+        intake = await storage.updateIntakeData(userId, intakeData);
+      } else {
+        // Create new intake data
+        console.log('Creating new intake data for user:', userId);
+        intake = await storage.createIntakeData(intakeData);
+      }
+      
+      if (!intake) {
+        throw new Error('Failed to save intake data');
+      }
       
       // Mark user as having completed intake
       await storage.markUserIntakeComplete(userId);
@@ -858,7 +875,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!project) {
         const projectData = {
           name: `${intake.partner1FirstName || 'Our'} Wedding`,
-          weddingDate: intake.weddingDate,
+          date: intake.weddingDate || new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // Default to 1 year from now if no date
           createdBy: userId,
           budget: intake.totalBudget ? parseFloat(intake.totalBudget) : null,
           guestCount: intake.estimatedGuests || null,

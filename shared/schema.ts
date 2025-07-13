@@ -330,6 +330,21 @@ export const insertIntakeDataSchema = createInsertSchema(intakeData).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+}).extend({
+  // Make optional fields truly optional for validation
+  partner2FirstName: z.string().optional(),
+  partner2LastName: z.string().optional(),
+  partner2Email: z.string().optional(),
+  partner2Role: z.string().optional(),
+  weddingDate: z.preprocess((val) => val ? new Date(val as string) : null, z.date().nullable().optional()),
+  ceremonyLocation: z.string().optional(),
+  receptionLocation: z.string().optional(),
+  estimatedGuests: z.number().optional().nullable(),
+  totalBudget: z.string().optional(),
+  overallVibe: z.string().optional(),
+  colorPalette: z.string().optional(),
+  nonNegotiables: z.string().optional(),
+  officiantStatus: z.string().optional(),
 });
 
 // Types
