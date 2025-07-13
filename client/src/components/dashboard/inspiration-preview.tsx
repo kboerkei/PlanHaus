@@ -1,5 +1,6 @@
 import { Heart, Palette } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useLocation } from "wouter";
 
 const inspirationImages = [
   {
@@ -32,11 +33,17 @@ const colorPalette = [
 ];
 
 export default function InspirationPreview() {
+  const [, setLocation] = useLocation();
+
   return (
     <div className="mt-6 bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
       <div className="flex items-center justify-between mb-4">
         <h3 className="font-serif text-lg font-semibold text-gray-800">Inspiration Board</h3>
-        <Button variant="ghost" className="text-blush hover:text-rose-gold">
+        <Button 
+          variant="ghost" 
+          className="text-blush hover:text-rose-gold"
+          onClick={() => setLocation('/inspiration')}
+        >
           View All
         </Button>
       </div>

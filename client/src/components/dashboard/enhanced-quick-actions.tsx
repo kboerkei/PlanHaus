@@ -42,7 +42,7 @@ export default function EnhancedQuickActions() {
   const [isGuestDialogOpen, setIsGuestDialogOpen] = useState(false);
   const [isBudgetDialogOpen, setIsBudgetDialogOpen] = useState(false);
   const [isVendorSearchOpen, setIsVendorSearchOpen] = useState(false);
-  const [taskForm, setTaskForm] = useState({ title: "", description: "", priority: "medium", category: "" });
+  const [taskForm, setTaskForm] = useState({ title: "", description: "", priority: "medium", category: "", dueDate: "" });
   const [guestForm, setGuestForm] = useState({ name: "", email: "", group: "family" });
   const [budgetForm, setBudgetForm] = useState({ item: "", category: "venue", estimatedCost: "" });
   const { toast } = useToast();
@@ -67,7 +67,7 @@ export default function EnhancedQuickActions() {
         title: "Task Created",
         description: "New wedding task added successfully",
       });
-      setTaskForm({ title: "", description: "", priority: "medium", category: "" });
+      setTaskForm({ title: "", description: "", priority: "medium", category: "", dueDate: "" });
       setIsTaskDialogOpen(false);
     },
   });
@@ -320,6 +320,15 @@ export default function EnhancedQuickActions() {
                 onChange={(e) => setTaskForm({ ...taskForm, description: e.target.value })}
               />
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="task-due-date">Due Date (Optional)</Label>
+              <Input
+                id="task-due-date"
+                type="date"
+                value={taskForm.dueDate}
+                onChange={(e) => setTaskForm({ ...taskForm, dueDate: e.target.value })}
+              />
+            </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Priority</Label>
@@ -360,7 +369,10 @@ export default function EnhancedQuickActions() {
               Cancel
             </Button>
             <Button 
-              onClick={() => createTaskMutation.mutate(taskForm)}
+              onClick={() => createTaskMutation.mutate({
+                ...taskForm,
+                dueDate: taskForm.dueDate ? new Date(taskForm.dueDate).toISOString() : null
+              })}
               disabled={!taskForm.title || createTaskMutation.isPending}
               className="gradient-blush-rose text-white"
             >
