@@ -40,9 +40,23 @@ export default function Header({ user, onLogout }: HeaderProps) {
     enabled: !!user,
   });
 
-  const coupleInitials = getCoupleInitials(intakeData?.partner1FirstName, intakeData?.partner2FirstName);
-  const coupleNames = getCoupleNames(intakeData?.partner1FirstName, intakeData?.partner2FirstName);
-  const daysUntilWedding = calculateDaysUntilWedding(intakeData?.weddingDate);
+  const { data: projects } = useQuery({
+    queryKey: ['/api/projects'],
+    enabled: !!user,
+  });
+
+  // Prioritize Austin farmhouse wedding demo
+  const currentProject = projects?.find(p => p.name === "Emma & Jake's Wedding") || projects?.[0];
+  
+  // For demo, use project data if intake data is not available
+  const isDemo = user?.email === "demo@example.com";
+  const partner1Name = intakeData?.partner1FirstName || (isDemo && currentProject?.name === "Emma & Jake's Wedding" ? "Emma" : "");
+  const partner2Name = intakeData?.partner2FirstName || (isDemo && currentProject?.name === "Emma & Jake's Wedding" ? "Jake" : "");
+  const weddingDate = intakeData?.weddingDate || (isDemo ? currentProject?.date : "");
+
+  const coupleInitials = getCoupleInitials(partner1Name, partner2Name);
+  const coupleNames = getCoupleNames(partner1Name, partner2Name);
+  const daysUntilWedding = calculateDaysUntilWedding(weddingDate);
 
   return (
     <header className="bg-white border-b border-gray-100 px-6 py-4">
