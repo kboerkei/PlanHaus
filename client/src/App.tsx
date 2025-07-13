@@ -15,11 +15,29 @@ import Guests from "@/pages/guests";
 import Vendors from "@/pages/vendors";
 import Inspiration from "@/pages/inspiration";
 import Schedules from "@/pages/schedules";
+import Intake from "@/pages/intake";
 
-function Router({ user, onLogout }: { user: any; onLogout: () => void }) {
+function Router({ user, onLogout, needsIntake }: { user: any; onLogout: () => void; needsIntake: boolean }) {
+  // If user needs to complete intake, redirect them to intake form
+  if (needsIntake) {
+    return (
+      <Switch>
+        <Route path="/intake" component={Intake} />
+        <Route>
+          {() => {
+            // Redirect any other route to intake
+            window.location.href = '/intake';
+            return null;
+          }}
+        </Route>
+      </Switch>
+    );
+  }
+
   return (
     <Switch>
       <Route path="/" component={Dashboard} />
+      <Route path="/intake" component={Intake} />
       <Route path="/ai-assistant" component={AIAssistant} />
       <Route path="/timeline" component={Timeline} />
       <Route path="/budget" component={Budget} />
@@ -85,7 +103,11 @@ function App() {
       <TooltipProvider>
         <Toaster />
         {user && sessionId ? (
-          <Router user={user} onLogout={handleLogout} />
+          <Router 
+            user={user} 
+            onLogout={handleLogout} 
+            needsIntake={!user.hasCompletedIntake}
+          />
         ) : (
           <Auth onAuth={handleAuth} />
         )}

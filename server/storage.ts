@@ -1,14 +1,15 @@
 import {
   users, weddingProjects, collaborators, tasks, guests, vendors, budgetItems,
   timelineEvents, inspirationItems, activities, shoppingLists, shoppingItems,
-  schedules, scheduleEvents,
+  schedules, scheduleEvents, intakeData,
   type User, type InsertUser, type WeddingProject, type InsertWeddingProject,
   type Collaborator, type InsertCollaborator, type Task, type InsertTask,
   type Guest, type InsertGuest, type Vendor, type InsertVendor,
   type BudgetItem, type InsertBudgetItem, type TimelineEvent, type InsertTimelineEvent,
   type InspirationItem, type InsertInspirationItem, type Activity, type InsertActivity,
   type ShoppingList, type InsertShoppingList, type ShoppingItem, type InsertShoppingItem,
-  type Schedule, type InsertSchedule, type ScheduleEvent, type InsertScheduleEvent
+  type Schedule, type InsertSchedule, type ScheduleEvent, type InsertScheduleEvent,
+  type IntakeData, type InsertIntakeData
 } from "@shared/schema";
 
 export interface IStorage {
@@ -97,6 +98,12 @@ export interface IStorage {
   getScheduleEventsByScheduleId(scheduleId: number): Promise<ScheduleEvent[]>;
   updateScheduleEvent(id: number, updates: Partial<InsertScheduleEvent>): Promise<ScheduleEvent | undefined>;
   deleteScheduleEvent(id: number): Promise<boolean>;
+
+  // Intake Data
+  createIntakeData(data: InsertIntakeData): Promise<IntakeData>;
+  getIntakeDataByUserId(userId: number): Promise<IntakeData | undefined>;
+  updateIntakeData(userId: number, updates: Partial<InsertIntakeData>): Promise<IntakeData | undefined>;
+  markUserIntakeComplete(userId: number): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {
@@ -850,6 +857,42 @@ export class DatabaseStorage implements IStorage {
   async deleteScheduleEvent(id: number): Promise<boolean> {
     const result = await db.delete(scheduleEvents).where(eq(scheduleEvents.id, id));
     return result.rowCount > 0;
+  }
+
+  // Intake Data methods
+  async createIntakeData(insertData: InsertIntakeData): Promise<IntakeData> {
+    const [data] = await db
+      .insert(intakeData)
+      .values(insertData)
+      .returning();
+    return data;
+  }
+
+  async getIntakeDataByUserId(userId: number): Promise<IntakeData | undefined> {
+    const [data] = await db.select().from(intakeData).where(eq(intakeData.userId, userId));
+    return data || undefined;
+  }
+
+  async updateIntakeData(userId: number, updates: Partial<InsertIntakeData>): Promise<IntakeData | undefined> {
+    const [data] = await db
+      .update(intakeData)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(intakeData.userId, userId))
+      .returning();
+    return data || undefined;
+  }
+
+  async markUserIntakeComplete(userId: number): Promise<boolean> {
+    try {
+      await db
+        .update(users)
+        .set({ hasCompletedIntake: true })
+        .where(eq(users.id, userId));
+      return true;
+    } catch (error) {
+      console.error('Error marking user intake complete:', error);
+      return false;
+    }
   }
 }
 

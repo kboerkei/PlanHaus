@@ -8,7 +8,7 @@ import {
   insertUserSchema, insertWeddingProjectSchema, insertCollaboratorSchema,
   insertTaskSchema, insertGuestSchema, insertVendorSchema, insertBudgetItemSchema,
   insertTimelineEventSchema, insertInspirationItemSchema, insertActivitySchema,
-  insertScheduleSchema, insertScheduleEventSchema,
+  insertScheduleSchema, insertScheduleEventSchema, insertIntakeDataSchema,
   users
 } from "@shared/schema";
 import { 
@@ -825,6 +825,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Schedule event creation error:', error);
       res.status(400).json({ message: "Invalid event data" });
+    }
+  });
+
+  // Intake API
+  app.post("/api/intake", requireAuth, async (req, res) => {
+    try {
+      const userId = (req as any).userId;
+      const intakeData = insertIntakeDataSchema.parse({
+        ...req.body,
+        userId
+      });
+      
+      // Save intake data
+      const intake = await storage.createIntakeData(intakeData);
+      
+      // Mark user as having completed intake
+      await storage.markUserIntakeComplete(userId);
+      
+      res.json(intake);
+    } catch (error) {
+      console.error("Error saving intake data:", error);
+      res.status(400).json({ message: "Invalid intake data" });
+    }
+  });
+
+  app.get("/api/intake", requireAuth, async (req, res) => {
+    try {
+      const userId = (req as any).userId;
+      const intake = await storage.getIntakeDataByUserId(userId);
+      res.json(intake);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch intake data" });
+    }
+  });
+
+  app.patch("/api/intake", requireAuth, async (req, res) => {
+    try {
+      const userId = (req as any).userId;
+      const updates = req.body;
+      const intake = await storage.updateIntakeData(userId, updates);
+      
+      if (!intake) {
+        return res.status(404).json({ message: "Intake data not found" });
+      }
+      
+      res.json(intake);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update intake data" });
     }
   });
 

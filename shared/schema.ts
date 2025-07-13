@@ -9,6 +9,7 @@ export const users = pgTable("users", {
   email: text("email").notNull().unique(),
   password: text("password").notNull(),
   avatar: text("avatar"),
+  hasCompletedIntake: boolean("has_completed_intake").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -281,7 +282,60 @@ export const insertScheduleEventSchema = createInsertSchema(scheduleEvents).omit
   updatedAt: true,
 });
 
+export const intakeData = pgTable("intake_data", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().unique(),
+  
+  // Couple Information
+  partner1FirstName: text("partner1_first_name").notNull(),
+  partner1LastName: text("partner1_last_name"),
+  partner1Email: text("partner1_email").notNull(),
+  partner1Role: text("partner1_role"),
+  
+  partner2FirstName: text("partner2_first_name"),
+  partner2LastName: text("partner2_last_name"),
+  partner2Email: text("partner2_email"),
+  partner2Role: text("partner2_role"),
+  
+  hasWeddingPlanner: boolean("has_wedding_planner").default(false),
+  
+  // Wedding Basics
+  weddingDate: timestamp("wedding_date"),
+  ceremonyLocation: text("ceremony_location"),
+  receptionLocation: text("reception_location"),
+  estimatedGuests: integer("estimated_guests"),
+  totalBudget: decimal("total_budget", { precision: 10, scale: 2 }),
+  
+  // Style & Vision
+  overallVibe: text("overall_vibe"),
+  colorPalette: text("color_palette"),
+  mustHaveElements: jsonb("must_have_elements"),
+  pinterestBoards: jsonb("pinterest_boards"),
+  
+  // Priorities
+  topPriorities: jsonb("top_priorities"),
+  nonNegotiables: text("non_negotiables"),
+  
+  // Key People
+  vips: jsonb("vips"),
+  weddingParty: jsonb("wedding_party"),
+  officiantStatus: text("officiant_status"),
+  
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Schema validations
+export const insertIntakeDataSchema = createInsertSchema(intakeData).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
+export type IntakeData = typeof intakeData.$inferSelect;
+export type InsertIntakeData = typeof intakeData.$inferInsert;
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   weddingProjects: many(weddingProjects),

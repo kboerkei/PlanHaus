@@ -1,7 +1,8 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { User, Mail, Camera, Save, LogOut } from "lucide-react";
+import { User, Mail, Camera, Save, LogOut, Edit, Heart } from "lucide-react";
+import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -196,6 +197,35 @@ export default function Profile({ user, onLogout }: ProfileProps) {
                     </Button>
                   </form>
                 </Form>
+              </CardContent>
+            </Card>
+
+            {/* Wedding Details */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Heart size={20} />
+                  Wedding Information
+                </CardTitle>
+                <CardDescription>
+                  Manage your wedding planning details and preferences
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between p-4 bg-blush/5 rounded-lg border border-blush/20">
+                    <div>
+                      <h4 className="font-medium">Wedding Intake Form</h4>
+                      <p className="text-sm text-gray-600">Update your couple details, preferences, and wedding vision</p>
+                    </div>
+                    <Link href="/intake">
+                      <Button variant="outline" className="border-blush text-blush hover:bg-blush hover:text-white">
+                        <Edit size={16} className="mr-2" />
+                        Edit Details
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
               </CardContent>
             </Card>
 
