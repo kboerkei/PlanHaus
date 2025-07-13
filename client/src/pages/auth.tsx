@@ -35,6 +35,9 @@ export default function Auth({ onAuth }: AuthProps) {
   const [isLogin, setIsLogin] = useState(true);
   const { toast } = useToast();
 
+  // Debug logging
+  console.log('Auth component rendered, isLogin:', isLogin);
+
   const loginForm = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: { email: "", password: "" },
@@ -92,10 +95,12 @@ export default function Auth({ onAuth }: AuthProps) {
   });
 
   const onLoginSubmit = (data: LoginFormData) => {
+    console.log('Login form submitted:', data);
     loginMutation.mutate(data);
   };
 
   const onRegisterSubmit = (data: RegisterFormData) => {
+    console.log('Register form submitted:', data);
     registerMutation.mutate(data);
   };
 
@@ -145,7 +150,13 @@ export default function Auth({ onAuth }: AuthProps) {
                           Email
                         </FormLabel>
                         <FormControl>
-                          <Input placeholder="your@email.com" {...field} />
+                          <Input 
+                            placeholder="your@email.com" 
+                            {...field}
+                            autoComplete="email"
+                            autoFocus={isLogin}
+                            type="email"
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -162,7 +173,12 @@ export default function Auth({ onAuth }: AuthProps) {
                           Password
                         </FormLabel>
                         <FormControl>
-                          <Input type="password" placeholder="Enter your password" {...field} />
+                          <Input 
+                            type="password" 
+                            placeholder="Enter your password" 
+                            {...field}
+                            autoComplete="current-password"
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -198,7 +214,12 @@ export default function Auth({ onAuth }: AuthProps) {
                           Username
                         </FormLabel>
                         <FormControl>
-                          <Input placeholder="Your name" {...field} />
+                          <Input 
+                            placeholder="Your name" 
+                            {...field}
+                            autoComplete="name"
+                            autoFocus={!isLogin}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -215,7 +236,12 @@ export default function Auth({ onAuth }: AuthProps) {
                           Email
                         </FormLabel>
                         <FormControl>
-                          <Input placeholder="your@email.com" {...field} />
+                          <Input 
+                            placeholder="your@email.com" 
+                            {...field}
+                            autoComplete="email"
+                            type="email"
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -232,7 +258,12 @@ export default function Auth({ onAuth }: AuthProps) {
                           Password
                         </FormLabel>
                         <FormControl>
-                          <Input type="password" placeholder="Choose a secure password" {...field} />
+                          <Input 
+                            type="password" 
+                            placeholder="Choose a secure password" 
+                            {...field}
+                            autoComplete="new-password"
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>

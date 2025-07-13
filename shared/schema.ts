@@ -62,6 +62,10 @@ export const guests = pgTable("guests", {
   plusOne: boolean("plus_one").default(false),
   group: text("group"), // 'family', 'friends', 'work', etc.
   notes: text("notes"),
+  hotel: text("hotel"),
+  hotelAddress: text("hotel_address"),
+  checkInDate: timestamp("check_in_date"),
+  checkOutDate: timestamp("check_out_date"),
   addedBy: integer("added_by").notNull(),
   addedAt: timestamp("added_at").defaultNow().notNull(),
 });
@@ -135,6 +139,72 @@ export const activities = pgTable("activities", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+export const shoppingLists = pgTable("shopping_lists", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id").notNull(),
+  name: text("name").notNull(),
+  category: text("category").notNull(), // 'decor', 'day-of', 'attire', 'beauty', 'favors', 'other'
+  description: text("description"),
+  createdBy: integer("created_by").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const shoppingItems = pgTable("shopping_items", {
+  id: serial("id").primaryKey(),
+  listId: integer("list_id").references(() => shoppingLists.id),
+  projectId: integer("project_id").notNull(),
+  name: text("name").notNull(),
+  description: text("description"),
+  category: text("category").notNull(),
+  quantity: integer("quantity").default(1),
+  estimatedPrice: decimal("estimated_price", { precision: 10, scale: 2 }),
+  actualPrice: decimal("actual_price", { precision: 10, scale: 2 }),
+  store: text("store"),
+  url: text("url"),
+  priority: text("priority").notNull().default("medium"), // 'high', 'medium', 'low'
+  status: text("status").notNull().default("needed"), // 'needed', 'ordered', 'purchased', 'returned'
+  notes: text("notes"),
+  dueDate: timestamp("due_date"),
+  purchasedDate: timestamp("purchased_date"),
+  assignedTo: integer("assigned_to").references(() => users.id),
+  createdBy: integer("created_by").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const schedules = pgTable("schedules", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id").notNull(),
+  name: text("name").notNull(),
+  date: timestamp("date").notNull(),
+  type: text("type").notNull(), // 'wedding_day', 'rehearsal', 'welcome_party', 'brunch', 'custom'
+  description: text("description"),
+  location: text("location"),
+  isActive: boolean("is_active").default(true),
+  createdBy: integer("created_by").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const scheduleEvents = pgTable("schedule_events", {
+  id: serial("id").primaryKey(),
+  scheduleId: integer("schedule_id").references(() => schedules.id),
+  projectId: integer("project_id").notNull(),
+  title: text("title").notNull(),
+  description: text("description"),
+  startTime: timestamp("start_time").notNull(),
+  endTime: timestamp("end_time"),
+  location: text("location"),
+  type: text("type").notNull(), // 'ceremony', 'reception', 'photos', 'transportation', 'vendor', 'personal'
+  attendees: text("attendees").array(), // guest IDs or roles
+  notes: text("notes"),
+  vendorId: integer("vendor_id"),
+  createdBy: integer("created_by").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -185,6 +255,30 @@ export const insertInspirationItemSchema = createInsertSchema(inspirationItems).
 export const insertActivitySchema = createInsertSchema(activities).omit({
   id: true,
   createdAt: true,
+});
+
+export const insertShoppingListSchema = createInsertSchema(shoppingLists).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertShoppingItemSchema = createInsertSchema(shoppingItems).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertScheduleSchema = createInsertSchema(schedules).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertScheduleEventSchema = createInsertSchema(scheduleEvents).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
 });
 
 // Types
@@ -307,6 +401,68 @@ export const activitiesRelations = relations(activities, ({ one }) => ({
   }),
 }));
 
+export const shoppingListsRelations = relations(shoppingLists, ({ one, many }) => ({
+  project: one(weddingProjects, {
+    fields: [shoppingLists.projectId],
+    references: [weddingProjects.id],
+  }),
+  createdBy: one(users, {
+    fields: [shoppingLists.createdBy],
+    references: [users.id],
+  }),
+  items: many(shoppingItems),
+}));
+
+export const shoppingItemsRelations = relations(shoppingItems, ({ one }) => ({
+  list: one(shoppingLists, {
+    fields: [shoppingItems.listId],
+    references: [shoppingLists.id],
+  }),
+  project: one(weddingProjects, {
+    fields: [shoppingItems.projectId],
+    references: [weddingProjects.id],
+  }),
+  assignedTo: one(users, {
+    fields: [shoppingItems.assignedTo],
+    references: [users.id],
+  }),
+  createdBy: one(users, {
+    fields: [shoppingItems.createdBy],
+    references: [users.id],
+  }),
+}));
+
+export const schedulesRelations = relations(schedules, ({ one, many }) => ({
+  project: one(weddingProjects, {
+    fields: [schedules.projectId],
+    references: [weddingProjects.id],
+  }),
+  createdBy: one(users, {
+    fields: [schedules.createdBy],
+    references: [users.id],
+  }),
+  events: many(scheduleEvents),
+}));
+
+export const scheduleEventsRelations = relations(scheduleEvents, ({ one }) => ({
+  schedule: one(schedules, {
+    fields: [scheduleEvents.scheduleId],
+    references: [schedules.id],
+  }),
+  project: one(weddingProjects, {
+    fields: [scheduleEvents.projectId],
+    references: [weddingProjects.id],
+  }),
+  vendor: one(vendors, {
+    fields: [scheduleEvents.vendorId],
+    references: [vendors.id],
+  }),
+  createdBy: one(users, {
+    fields: [scheduleEvents.createdBy],
+    references: [users.id],
+  }),
+}));
+
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type WeddingProject = typeof weddingProjects.$inferSelect;
@@ -327,3 +483,11 @@ export type InspirationItem = typeof inspirationItems.$inferSelect;
 export type InsertInspirationItem = z.infer<typeof insertInspirationItemSchema>;
 export type Activity = typeof activities.$inferSelect;
 export type InsertActivity = z.infer<typeof insertActivitySchema>;
+export type ShoppingList = typeof shoppingLists.$inferSelect;
+export type InsertShoppingList = z.infer<typeof insertShoppingListSchema>;
+export type ShoppingItem = typeof shoppingItems.$inferSelect;
+export type InsertShoppingItem = z.infer<typeof insertShoppingItemSchema>;
+export type Schedule = typeof schedules.$inferSelect;
+export type InsertSchedule = z.infer<typeof insertScheduleSchema>;
+export type ScheduleEvent = typeof scheduleEvents.$inferSelect;
+export type InsertScheduleEvent = z.infer<typeof insertScheduleEventSchema>;

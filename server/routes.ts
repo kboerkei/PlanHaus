@@ -8,6 +8,7 @@ import {
   insertUserSchema, insertWeddingProjectSchema, insertCollaboratorSchema,
   insertTaskSchema, insertGuestSchema, insertVendorSchema, insertBudgetItemSchema,
   insertTimelineEventSchema, insertInspirationItemSchema, insertActivitySchema,
+  insertScheduleSchema, insertScheduleEventSchema,
   users
 } from "@shared/schema";
 import { 
@@ -15,9 +16,44 @@ import {
   generatePersonalizedRecommendation, analyzeWeddingTheme 
 } from "./services/openai";
 import { initializeWebSocketService, websocketService } from "./services/websocket";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
 
 // Simple session storage for demo purposes
 const sessions = new Map<string, { userId: number }>();
+
+// Ensure uploads directory exists
+const uploadsDir = path.join(process.cwd(), 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
+// Configure multer for file uploads
+const storage_config = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, uploadsDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({ 
+  storage: storage_config,
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    // Check if file is an image
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed!'));
+    }
+  }
+});
 
 function generateSessionId(): string {
   return Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
@@ -722,6 +758,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
         error: "Sorry, I'm having trouble right now. Please try again.",
         response: "I'm here to help with your wedding planning! Could you tell me more about what you'd like assistance with?"
       });
+    }
+  });
+
+  // Schedule routes
+  app.get("/api/projects/:id/schedules", requireAuth, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const schedules = await storage.getSchedulesByProjectId(projectId);
+      res.json(schedules);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch schedules" });
+    }
+  });
+
+  app.post("/api/projects/:id/schedules", requireAuth, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const scheduleData = insertScheduleSchema.parse({
+        ...req.body,
+        projectId,
+        createdBy: req.userId
+      });
+      
+      const schedule = await storage.createSchedule(scheduleData);
+      res.json(schedule);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid schedule data" });
+    }
+  });
+
+  app.get("/api/schedules/:id/events", requireAuth, async (req: any, res) => {
+    try {
+      const scheduleId = parseInt(req.params.id);
+      const events = await storage.getScheduleEventsByScheduleId(scheduleId);
+      res.json(events);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch schedule events" });
+    }
+  });
+
+  app.post("/api/schedules/:id/events", requireAuth, async (req: any, res) => {
+    try {
+      const scheduleId = parseInt(req.params.id);
+      
+      // Parse dates properly for schedule events
+      const eventData = {
+        ...req.body,
+        scheduleId,
+        projectId: req.body.projectId || 1, // This should come from the request
+        createdBy: req.userId,
+        startTime: new Date(`2000-01-01T${req.body.startTime}:00`),
+        endTime: req.body.endTime ? new Date(`2000-01-01T${req.body.endTime}:00`) : null,
+      };
+      
+      const validatedData = insertScheduleEventSchema.parse(eventData);
+      const event = await storage.createScheduleEvent(validatedData);
+      res.json(event);
+    } catch (error) {
+      console.error('Schedule event creation error:', error);
+      res.status(400).json({ message: "Invalid event data" });
     }
   });
 

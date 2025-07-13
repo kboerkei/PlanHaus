@@ -1,11 +1,14 @@
 import {
   users, weddingProjects, collaborators, tasks, guests, vendors, budgetItems,
-  timelineEvents, inspirationItems, activities,
+  timelineEvents, inspirationItems, activities, shoppingLists, shoppingItems,
+  schedules, scheduleEvents,
   type User, type InsertUser, type WeddingProject, type InsertWeddingProject,
   type Collaborator, type InsertCollaborator, type Task, type InsertTask,
   type Guest, type InsertGuest, type Vendor, type InsertVendor,
   type BudgetItem, type InsertBudgetItem, type TimelineEvent, type InsertTimelineEvent,
-  type InspirationItem, type InsertInspirationItem, type Activity, type InsertActivity
+  type InspirationItem, type InsertInspirationItem, type Activity, type InsertActivity,
+  type ShoppingList, type InsertShoppingList, type ShoppingItem, type InsertShoppingItem,
+  type Schedule, type InsertSchedule, type ScheduleEvent, type InsertScheduleEvent
 } from "@shared/schema";
 
 export interface IStorage {
@@ -67,6 +70,32 @@ export interface IStorage {
   // Activities
   createActivity(activity: InsertActivity): Promise<Activity>;
   getActivitiesByProjectId(projectId: number): Promise<(Activity & { user: User })[]>;
+
+  // Shopping Lists
+  createShoppingList(list: InsertShoppingList): Promise<ShoppingList>;
+  getShoppingListsByProjectId(projectId: number): Promise<ShoppingList[]>;
+  updateShoppingList(id: number, updates: Partial<InsertShoppingList>): Promise<ShoppingList | undefined>;
+  deleteShoppingList(id: number): Promise<boolean>;
+
+  // Shopping Items
+  createShoppingItem(item: InsertShoppingItem): Promise<ShoppingItem>;
+  getShoppingItemsByProjectId(projectId: number): Promise<ShoppingItem[]>;
+  getShoppingItemsByListId(listId: number): Promise<ShoppingItem[]>;
+  updateShoppingItem(id: number, updates: Partial<InsertShoppingItem>): Promise<ShoppingItem | undefined>;
+  deleteShoppingItem(id: number): Promise<boolean>;
+  markItemPurchased(id: number): Promise<ShoppingItem | undefined>;
+
+  // Schedules
+  createSchedule(schedule: InsertSchedule): Promise<Schedule>;
+  getSchedulesByProjectId(projectId: number): Promise<Schedule[]>;
+  updateSchedule(id: number, updates: Partial<InsertSchedule>): Promise<Schedule | undefined>;
+  deleteSchedule(id: number): Promise<boolean>;
+
+  // Schedule Events
+  createScheduleEvent(event: InsertScheduleEvent): Promise<ScheduleEvent>;
+  getScheduleEventsByScheduleId(scheduleId: number): Promise<ScheduleEvent[]>;
+  updateScheduleEvent(id: number, updates: Partial<InsertScheduleEvent>): Promise<ScheduleEvent | undefined>;
+  deleteScheduleEvent(id: number): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {
@@ -723,6 +752,98 @@ export class DatabaseStorage implements IStorage {
       ...row,
       user: row.user
     }));
+  }
+
+  // Shopping Lists
+  async createShoppingList(insertList: InsertShoppingList): Promise<ShoppingList> {
+    const [list] = await db.insert(shoppingLists).values(insertList).returning();
+    return list;
+  }
+
+  async getShoppingListsByProjectId(projectId: number): Promise<ShoppingList[]> {
+    return await db.select().from(shoppingLists).where(eq(shoppingLists.projectId, projectId));
+  }
+
+  async updateShoppingList(id: number, updates: Partial<InsertShoppingList>): Promise<ShoppingList | undefined> {
+    const [list] = await db.update(shoppingLists).set(updates).where(eq(shoppingLists.id, id)).returning();
+    return list || undefined;
+  }
+
+  async deleteShoppingList(id: number): Promise<boolean> {
+    const result = await db.delete(shoppingLists).where(eq(shoppingLists.id, id));
+    return result.rowCount > 0;
+  }
+
+  // Shopping Items
+  async createShoppingItem(insertItem: InsertShoppingItem): Promise<ShoppingItem> {
+    const [item] = await db.insert(shoppingItems).values(insertItem).returning();
+    return item;
+  }
+
+  async getShoppingItemsByProjectId(projectId: number): Promise<ShoppingItem[]> {
+    return await db.select().from(shoppingItems).where(eq(shoppingItems.projectId, projectId));
+  }
+
+  async getShoppingItemsByListId(listId: number): Promise<ShoppingItem[]> {
+    return await db.select().from(shoppingItems).where(eq(shoppingItems.listId, listId));
+  }
+
+  async updateShoppingItem(id: number, updates: Partial<InsertShoppingItem>): Promise<ShoppingItem | undefined> {
+    const [item] = await db.update(shoppingItems).set(updates).where(eq(shoppingItems.id, id)).returning();
+    return item || undefined;
+  }
+
+  async deleteShoppingItem(id: number): Promise<boolean> {
+    const result = await db.delete(shoppingItems).where(eq(shoppingItems.id, id));
+    return result.rowCount > 0;
+  }
+
+  async markItemPurchased(id: number): Promise<ShoppingItem | undefined> {
+    const [item] = await db.update(shoppingItems).set({ 
+      status: 'purchased', 
+      purchasedDate: new Date() 
+    }).where(eq(shoppingItems.id, id)).returning();
+    return item || undefined;
+  }
+
+  // Schedules
+  async createSchedule(insertSchedule: InsertSchedule): Promise<Schedule> {
+    const [schedule] = await db.insert(schedules).values(insertSchedule).returning();
+    return schedule;
+  }
+
+  async getSchedulesByProjectId(projectId: number): Promise<Schedule[]> {
+    return await db.select().from(schedules).where(eq(schedules.projectId, projectId));
+  }
+
+  async updateSchedule(id: number, updates: Partial<InsertSchedule>): Promise<Schedule | undefined> {
+    const [schedule] = await db.update(schedules).set(updates).where(eq(schedules.id, id)).returning();
+    return schedule || undefined;
+  }
+
+  async deleteSchedule(id: number): Promise<boolean> {
+    const result = await db.delete(schedules).where(eq(schedules.id, id));
+    return result.rowCount > 0;
+  }
+
+  // Schedule Events
+  async createScheduleEvent(insertEvent: InsertScheduleEvent): Promise<ScheduleEvent> {
+    const [event] = await db.insert(scheduleEvents).values(insertEvent).returning();
+    return event;
+  }
+
+  async getScheduleEventsByScheduleId(scheduleId: number): Promise<ScheduleEvent[]> {
+    return await db.select().from(scheduleEvents).where(eq(scheduleEvents.scheduleId, scheduleId));
+  }
+
+  async updateScheduleEvent(id: number, updates: Partial<InsertScheduleEvent>): Promise<ScheduleEvent | undefined> {
+    const [event] = await db.update(scheduleEvents).set(updates).where(eq(scheduleEvents.id, id)).returning();
+    return event || undefined;
+  }
+
+  async deleteScheduleEvent(id: number): Promise<boolean> {
+    const result = await db.delete(scheduleEvents).where(eq(scheduleEvents.id, id));
+    return result.rowCount > 0;
   }
 }
 

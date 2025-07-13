@@ -24,6 +24,10 @@ const guestSchema = z.object({
   group: z.string().min(1, "Group is required"),
   mealPreference: z.string().optional(),
   plusOne: z.boolean().default(false),
+  hotel: z.string().optional(),
+  hotelAddress: z.string().optional(),
+  checkInDate: z.string().optional(),
+  checkOutDate: z.string().optional(),
   notes: z.string().optional(),
 });
 
@@ -111,6 +115,10 @@ export default function Guests() {
       group: "",
       mealPreference: "",
       plusOne: false,
+      hotel: "",
+      hotelAddress: "",
+      checkInDate: "",
+      checkOutDate: "",
       notes: "",
     },
   });
@@ -264,6 +272,73 @@ export default function Guests() {
                               <FormLabel>Address</FormLabel>
                               <FormControl>
                                 <Textarea placeholder="Enter address" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="hotel"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Hotel</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Hotel name" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="hotelAddress"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Hotel Address</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Hotel address" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <div className="grid grid-cols-2 gap-4">
+                          <FormField
+                            control={form.control}
+                            name="checkInDate"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Check-in Date</FormLabel>
+                                <FormControl>
+                                  <Input type="date" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="checkOutDate"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Check-out Date</FormLabel>
+                                <FormControl>
+                                  <Input type="date" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                        <FormField
+                          control={form.control}
+                          name="notes"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Notes</FormLabel>
+                              <FormControl>
+                                <Textarea placeholder="Any special notes or requirements..." {...field} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -431,6 +506,32 @@ export default function Guests() {
                               </div>
                             )}
                           </div>
+                          
+                          {(guest.hotel || guest.notes) && (
+                            <div className="mt-3 pt-3 border-t border-gray-100">
+                              {guest.hotel && (
+                                <div className="flex items-center space-x-1 text-sm text-gray-600 mb-1">
+                                  <MapPin size={14} />
+                                  <span className="font-medium">Hotel:</span>
+                                  <span>{guest.hotel}</span>
+                                  {guest.hotelAddress && <span className="text-gray-500">• {guest.hotelAddress}</span>}
+                                </div>
+                              )}
+                              {(guest.checkInDate || guest.checkOutDate) && (
+                                <div className="text-sm text-gray-600 mb-1">
+                                  <span className="font-medium">Stay:</span>
+                                  {guest.checkInDate && <span> Check-in: {new Date(guest.checkInDate).toLocaleDateString()}</span>}
+                                  {guest.checkOutDate && <span> • Check-out: {new Date(guest.checkOutDate).toLocaleDateString()}</span>}
+                                </div>
+                              )}
+                              {guest.notes && (
+                                <div className="text-sm text-gray-600">
+                                  <span className="font-medium">Notes:</span>
+                                  <span className="ml-1">{guest.notes}</span>
+                                </div>
+                              )}
+                            </div>
+                          )}
                         </div>
                         
                         <div className="flex items-center space-x-2">

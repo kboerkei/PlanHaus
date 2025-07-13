@@ -14,6 +14,7 @@ import Budget from "@/pages/budget";
 import Guests from "@/pages/guests";
 import Vendors from "@/pages/vendors";
 import Inspiration from "@/pages/inspiration";
+import Schedules from "@/pages/schedules";
 
 function Router({ user, onLogout }: { user: any; onLogout: () => void }) {
   return (
@@ -25,6 +26,7 @@ function Router({ user, onLogout }: { user: any; onLogout: () => void }) {
       <Route path="/guests" component={Guests} />
       <Route path="/vendors" component={Vendors} />
       <Route path="/inspiration" component={Inspiration} />
+      <Route path="/schedules" component={Schedules} />
       <Route path="/profile">
         <Profile user={user} onLogout={onLogout} />
       </Route>

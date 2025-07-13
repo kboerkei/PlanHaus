@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Heart, Home, Bot, Calendar, DollarSign, Users, Store, Palette, User } from "lucide-react";
+import { Heart, Home, Bot, Calendar, DollarSign, Users, Store, Palette, User, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navigation = [
@@ -9,6 +9,7 @@ const navigation = [
   { name: "Budget", href: "/budget", icon: DollarSign },
   { name: "Guest List", href: "/guests", icon: Users },
   { name: "Vendors", href: "/vendors", icon: Store },
+  { name: "Schedules", href: "/schedules", icon: Clock },
   { name: "Inspiration", href: "/inspiration", icon: Palette },
 ];
 
