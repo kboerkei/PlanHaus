@@ -61,9 +61,6 @@ function generateSessionId(): string {
 
 function requireAuth(req: any, res: any, next: any) {
   const sessionId = req.headers.authorization?.replace('Bearer ', '');
-  console.log('Auth check - sessionId:', sessionId);
-  console.log('Auth check - sessions has sessionId:', sessionId ? sessions.has(sessionId) : false);
-  console.log('Auth check - all sessions:', Array.from(sessions.keys()));
   
   if (!sessionId || !sessions.has(sessionId)) {
     return res.status(401).json({ message: 'Unauthorized' });
