@@ -132,8 +132,7 @@ export default function Budget() {
       vendor: budgetForm.vendor || null,
       notes: budgetForm.notes || null,
     };
-    console.log('Frontend: Budget form data:', budgetForm);
-    console.log('Frontend: Sending budget data:', budgetData);
+
     createBudgetMutation.mutate(budgetData);
   };
 
