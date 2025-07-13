@@ -54,15 +54,7 @@ export default function MilestoneCelebration() {
       completed: !!project && !!project.date,
       celebrationMessage: "Congratulations! Your wedding planning timeline is ready. Let's make your dream wedding happen!"
     },
-    {
-      id: 'venue_milestone',
-      title: 'Major Venue Progress',
-      description: 'Complete venue-related planning tasks',
-      icon: Calendar,
-      progress: completedTasks.filter(t => t.title.toLowerCase().includes('venue')).length,
-      completed: completedTasks.filter(t => t.title.toLowerCase().includes('venue')).length >= 1,
-      celebrationMessage: "Fantastic! Your venue planning is moving forward. The foundation of your special day is taking shape!"
-    },
+
     {
       id: 'first_vendor',
       title: 'Dream Team Building',
@@ -202,7 +194,6 @@ export default function MilestoneCelebration() {
 function getProgressTarget(milestoneId: string): number {
   switch (milestoneId) {
     case 'intake_complete': return 1;
-    case 'venue_milestone': return 1;
     case 'first_vendor': return 1;
     case 'guest_responses': return 5;
     default: return 1;
