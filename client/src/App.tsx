@@ -43,7 +43,7 @@ function Router({ user, onLogout, isNewUser, onIntakeComplete }: { user: any; on
     <div className="flex h-screen">
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
-        <Header user={user} />
+        <Header user={user} onLogout={handleLogout} />
         <main className="flex-1 overflow-auto">
           <Switch>
             <Route path="/" component={Dashboard} />

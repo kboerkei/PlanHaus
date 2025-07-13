@@ -69,11 +69,19 @@ export default function Profile({ user, onLogout }: ProfileProps) {
         method: "POST",
       }),
     onSuccess: () => {
-      onLogout();
       toast({
         title: "Logged out",
         description: "You've been successfully logged out.",
       });
+      onLogout();
+    },
+    onError: () => {
+      // Force logout even if API call fails
+      toast({
+        title: "Logged out",
+        description: "You've been logged out.",
+      });
+      onLogout();
     },
   });
 

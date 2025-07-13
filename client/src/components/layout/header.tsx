@@ -31,9 +31,10 @@ function calculateDaysUntilWedding(weddingDate?: string): number | null {
 
 interface HeaderProps {
   user?: any;
+  onLogout?: () => void;
 }
 
-export default function Header({ user }: HeaderProps) {
+export default function Header({ user, onLogout }: HeaderProps) {
   const { data: intakeData } = useQuery({
     queryKey: ['/api/intake'],
     enabled: !!user,
@@ -65,6 +66,14 @@ export default function Header({ user }: HeaderProps) {
               <Bell size={20} />
               <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
             </button>
+            {onLogout && (
+              <button 
+                onClick={onLogout}
+                className="px-3 py-1 text-sm text-gray-600 hover:text-gray-800 transition-colors"
+              >
+                Logout
+              </button>
+            )}
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 gradient-blush-rose rounded-full flex items-center justify-center">
                 <span className="text-white font-medium text-sm">{coupleInitials}</span>
