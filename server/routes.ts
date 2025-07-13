@@ -122,6 +122,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post("/api/auth/demo-login", async (req, res) => {
+    try {
+      const user = await storage.getUserByEmail("demo@example.com");
+      
+      if (!user) {
+        return res.status(404).json({ message: "Demo user not found" });
+      }
+
+      const sessionId = generateSessionId();
+      sessions.set(sessionId, { userId: user.id });
+
+      res.json({ 
+        user: { id: user.id, username: user.username, email: user.email, avatar: user.avatar },
+        sessionId 
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Demo login failed" });
+    }
+  });
+
   app.post("/api/auth/logout", requireAuth, async (req, res) => {
     const sessionId = req.headers.authorization?.replace('Bearer ', '');
     if (sessionId) {
