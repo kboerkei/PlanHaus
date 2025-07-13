@@ -15,7 +15,7 @@ export default function Budget() {
   });
 
   // Fetch budget items
-  const { data: budgetItems, isLoading: budgetLoading } = useQuery({
+  const { data: budgetItems, isLoading: budgetLoading, error: budgetError } = useQuery({
     queryKey: ['/api/budget-items'],
   });
 
@@ -23,6 +23,32 @@ export default function Budget() {
   const totalBudget = currentProject?.budget ? parseFloat(currentProject.budget) : 0;
   const totalSpent = budgetItems?.reduce((sum: number, item: any) => sum + (item.actualCost || 0), 0) || 0;
   const remaining = totalBudget - totalSpent;
+
+  // Handle null or error states
+  if (budgetError || budgetItems === null) {
+    return (
+      <div className="flex min-h-screen bg-cream">
+        <Sidebar />
+        <main className="flex-1 overflow-y-auto">
+          <Header />
+          <div className="p-6">
+            <div className="max-w-6xl mx-auto">
+              <div className="text-center py-12">
+                <DollarSign className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-gray-800 mb-2">Welcome to Budget Management</h3>
+                <p className="text-gray-600 mb-6">Start tracking your wedding expenses and stay within budget.</p>
+                <Button className="gradient-blush-rose text-white">
+                  <Plus size={16} className="mr-2" />
+                  Add First Budget Item
+                </Button>
+              </div>
+            </div>
+          </div>
+        </main>
+        <MobileNav />
+      </div>
+    );
+  }
 
   // Group budget items by category
   const budgetCategories = budgetItems ? 

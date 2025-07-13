@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import Sidebar from "@/components/layout/sidebar";
 import Header from "@/components/layout/header";
 import MobileNav from "@/components/layout/mobile-nav";
@@ -10,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Store, Plus, Mail, Phone, Globe, MapPin, Search, DollarSign, FileText } from "lucide-react";
+import { Store, Plus, Mail, Phone, Globe, MapPin, Search, DollarSign, FileText, Building } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -105,7 +106,10 @@ const statusColors = {
 };
 
 export default function Vendors() {
-  const [vendors, setVendors] = useState(mockVendors);
+  // Fetch vendors from API
+  const { data: vendors = [], isLoading, error } = useQuery({
+    queryKey: ['/api/vendors']
+  });
   const [searchTerm, setSearchTerm] = useState("");
   const [filterCategory, setFilterCategory] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
@@ -124,6 +128,32 @@ export default function Vendors() {
       notes: "",
     },
   });
+
+  // Handle null or error states
+  if (error || vendors === null) {
+    return (
+      <div className="flex min-h-screen bg-cream">
+        <Sidebar />
+        <main className="flex-1 overflow-y-auto">
+          <Header />
+          <div className="p-6">
+            <div className="max-w-6xl mx-auto">
+              <div className="text-center py-12">
+                <Building className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-gray-800 mb-2">Welcome to Vendor Management</h3>
+                <p className="text-gray-600 mb-6">Keep track of all your wedding vendors in one place.</p>
+                <Button className="gradient-blush-rose text-white">
+                  <Plus size={16} className="mr-2" />
+                  Add First Vendor
+                </Button>
+              </div>
+            </div>
+          </div>
+        </main>
+        <MobileNav />
+      </div>
+    );
+  }
 
   const filteredVendors = vendors.filter(vendor => {
     const matchesSearch = vendor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||

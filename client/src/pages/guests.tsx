@@ -134,7 +134,7 @@ export default function Guests() {
     );
   }
 
-  if (error) {
+  if (error || guests === null) {
     return (
       <div className="flex min-h-screen bg-cream">
         <Sidebar />

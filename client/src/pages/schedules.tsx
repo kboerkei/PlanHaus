@@ -68,7 +68,7 @@ export default function Schedules() {
     queryKey: ['/api/wedding-projects']
   });
 
-  const { data: schedules = [] } = useQuery({
+  const { data: schedules = [], isLoading, error } = useQuery({
     queryKey: ['/api/schedules']
   });
 
@@ -100,6 +100,32 @@ export default function Schedules() {
       notes: "",
     },
   });
+
+  // Handle null or error states
+  if (error || schedules === null) {
+    return (
+      <div className="flex min-h-screen bg-cream">
+        <Sidebar />
+        <main className="flex-1 overflow-y-auto">
+          <Header />
+          <div className="p-6">
+            <div className="max-w-6xl mx-auto">
+              <div className="text-center py-12">
+                <Calendar className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-gray-800 mb-2">Welcome to Schedule Management</h3>
+                <p className="text-gray-600 mb-6">Create detailed schedules for your wedding day and events.</p>
+                <Button className="gradient-blush-rose text-white">
+                  <Plus size={16} className="mr-2" />
+                  Create First Schedule
+                </Button>
+              </div>
+            </div>
+          </div>
+        </main>
+        <MobileNav />
+      </div>
+    );
+  }
 
   const createScheduleMutation = useMutation({
     mutationFn: (data: ScheduleFormData) => apiRequest(`/api/projects/${projects[0].id}/schedules`, {

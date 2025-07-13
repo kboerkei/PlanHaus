@@ -130,8 +130,8 @@ export default function Timeline() {
     );
   }
 
-  // Show empty state if no tasks exist
-  if (timelineItems.length === 0) {
+  // Show empty state if no tasks exist or data is null
+  if (!timelineItems || timelineItems.length === 0) {
     return (
       <div className="flex min-h-screen bg-cream">
         <Sidebar />

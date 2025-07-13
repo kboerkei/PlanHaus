@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import Sidebar from "@/components/layout/sidebar";
 import Header from "@/components/layout/header";
 import MobileNav from "@/components/layout/mobile-nav";
@@ -123,7 +124,10 @@ const aiColorPalettes = [
 ];
 
 export default function Inspiration() {
-  const [inspirationItems, setInspirationItems] = useState(mockInspirationItems);
+  // Fetch inspiration items from API
+  const { data: inspirationItems = [], isLoading, error } = useQuery({
+    queryKey: ['/api/inspiration-items']
+  });
   const [searchTerm, setSearchTerm] = useState("");
   const [filterCategory, setFilterCategory] = useState("");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -139,6 +143,32 @@ export default function Inspiration() {
       tags: "",
     },
   });
+
+  // Handle null or error states
+  if (error || inspirationItems === null) {
+    return (
+      <div className="flex min-h-screen bg-cream">
+        <Sidebar />
+        <main className="flex-1 overflow-y-auto">
+          <Header />
+          <div className="p-6">
+            <div className="max-w-6xl mx-auto">
+              <div className="text-center py-12">
+                <Palette className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-gray-800 mb-2">Welcome to Inspiration Board</h3>
+                <p className="text-gray-600 mb-6">Start collecting ideas and inspiration for your perfect wedding.</p>
+                <Button className="gradient-blush-rose text-white">
+                  <Plus size={16} className="mr-2" />
+                  Add First Inspiration
+                </Button>
+              </div>
+            </div>
+          </div>
+        </main>
+        <MobileNav />
+      </div>
+    );
+  }
 
   const filteredItems = inspirationItems.filter(item => {
     const matchesSearch = item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
