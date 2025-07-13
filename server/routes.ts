@@ -2,10 +2,13 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { z } from "zod";
 import { storage } from "./storage";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
 import { 
   insertUserSchema, insertWeddingProjectSchema, insertCollaboratorSchema,
   insertTaskSchema, insertGuestSchema, insertVendorSchema, insertBudgetItemSchema,
-  insertTimelineEventSchema, insertInspirationItemSchema, insertActivitySchema
+  insertTimelineEventSchema, insertInspirationItemSchema, insertActivitySchema,
+  users
 } from "@shared/schema";
 import { 
   generateWeddingTimeline, generateBudgetBreakdown, generateVendorSuggestions,
@@ -122,10 +125,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      // Update user in storage (we'll need to add this method)
+      // Update user in storage using direct database update
+      await db.update(users).set({ username, email, avatar: avatar || null }).where(eq(users.id, user.id));
       const updatedUser = { ...user, username, email, avatar: avatar || null };
-      // For now, we'll update directly in the storage map
-      (storage as any).users.set(user.id, updatedUser);
 
       res.json({ 
         id: updatedUser.id, 

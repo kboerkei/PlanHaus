@@ -478,4 +478,252 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+// Database Storage Implementation
+import { db } from "./db";
+import { eq } from "drizzle-orm";
+
+export class DatabaseStorage implements IStorage {
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const [user] = await db.insert(users).values(insertUser).returning();
+    return user;
+  }
+
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.email, email));
+    return user || undefined;
+  }
+
+  async getUserById(id: number): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user || undefined;
+  }
+
+  async createWeddingProject(insertProject: InsertWeddingProject): Promise<WeddingProject> {
+    const [project] = await db.insert(weddingProjects).values(insertProject).returning();
+    return project;
+  }
+
+  async getWeddingProjectById(id: number): Promise<WeddingProject | undefined> {
+    const [project] = await db.select().from(weddingProjects).where(eq(weddingProjects.id, id));
+    return project || undefined;
+  }
+
+  async getWeddingProjectsByUserId(userId: number): Promise<WeddingProject[]> {
+    return await db.select().from(weddingProjects).where(eq(weddingProjects.createdBy, userId));
+  }
+
+  async updateWeddingProject(id: number, updates: Partial<InsertWeddingProject>): Promise<WeddingProject | undefined> {
+    const [project] = await db.update(weddingProjects).set(updates).where(eq(weddingProjects.id, id)).returning();
+    return project || undefined;
+  }
+
+  async addCollaborator(insertCollaborator: InsertCollaborator): Promise<Collaborator> {
+    const [collaborator] = await db.insert(collaborators).values(insertCollaborator).returning();
+    return collaborator;
+  }
+
+  async getCollaboratorsByProjectId(projectId: number): Promise<(Collaborator & { user: User })[]> {
+    const result = await db
+      .select({
+        id: collaborators.id,
+        projectId: collaborators.projectId,
+        userId: collaborators.userId,
+        role: collaborators.role,
+        invitedBy: collaborators.invitedBy,
+        joinedAt: collaborators.joinedAt,
+        user: {
+          id: users.id,
+          username: users.username,
+          email: users.email,
+          avatar: users.avatar,
+          password: users.password,
+          createdAt: users.createdAt,
+        }
+      })
+      .from(collaborators)
+      .innerJoin(users, eq(collaborators.userId, users.id))
+      .where(eq(collaborators.projectId, projectId));
+
+    return result.map(row => ({
+      ...row,
+      user: row.user
+    }));
+  }
+
+  async updateCollaboratorRole(id: number, role: string): Promise<Collaborator | undefined> {
+    const [collaborator] = await db.update(collaborators).set({ role }).where(eq(collaborators.id, id)).returning();
+    return collaborator || undefined;
+  }
+
+  async removeCollaborator(id: number): Promise<boolean> {
+    const result = await db.delete(collaborators).where(eq(collaborators.id, id));
+    return result.rowCount > 0;
+  }
+
+  async createTask(insertTask: InsertTask): Promise<Task> {
+    const [task] = await db.insert(tasks).values(insertTask).returning();
+    return task;
+  }
+
+  async getTasksByProjectId(projectId: number): Promise<Task[]> {
+    return await db.select().from(tasks).where(eq(tasks.projectId, projectId));
+  }
+
+  async updateTask(id: number, updates: Partial<InsertTask>): Promise<Task | undefined> {
+    const [task] = await db.update(tasks).set(updates).where(eq(tasks.id, id)).returning();
+    return task || undefined;
+  }
+
+  async deleteTask(id: number): Promise<boolean> {
+    const result = await db.delete(tasks).where(eq(tasks.id, id));
+    return result.rowCount > 0;
+  }
+
+  async completeTask(id: number): Promise<Task | undefined> {
+    const [task] = await db.update(tasks).set({ 
+      status: 'completed', 
+      completedAt: new Date() 
+    }).where(eq(tasks.id, id)).returning();
+    return task || undefined;
+  }
+
+  async createGuest(insertGuest: InsertGuest): Promise<Guest> {
+    const [guest] = await db.insert(guests).values(insertGuest).returning();
+    return guest;
+  }
+
+  async getGuestsByProjectId(projectId: number): Promise<Guest[]> {
+    return await db.select().from(guests).where(eq(guests.projectId, projectId));
+  }
+
+  async updateGuest(id: number, updates: Partial<InsertGuest>): Promise<Guest | undefined> {
+    const [guest] = await db.update(guests).set(updates).where(eq(guests.id, id)).returning();
+    return guest || undefined;
+  }
+
+  async deleteGuest(id: number): Promise<boolean> {
+    const result = await db.delete(guests).where(eq(guests.id, id));
+    return result.rowCount > 0;
+  }
+
+  async updateGuestRsvp(id: number, status: string, mealPreference?: string): Promise<Guest | undefined> {
+    const [guest] = await db.update(guests).set({ 
+      rsvpStatus: status, 
+      ...(mealPreference && { mealPreference }) 
+    }).where(eq(guests.id, id)).returning();
+    return guest || undefined;
+  }
+
+  async createVendor(insertVendor: InsertVendor): Promise<Vendor> {
+    const [vendor] = await db.insert(vendors).values(insertVendor).returning();
+    return vendor;
+  }
+
+  async getVendorsByProjectId(projectId: number): Promise<Vendor[]> {
+    return await db.select().from(vendors).where(eq(vendors.projectId, projectId));
+  }
+
+  async updateVendor(id: number, updates: Partial<InsertVendor>): Promise<Vendor | undefined> {
+    const [vendor] = await db.update(vendors).set(updates).where(eq(vendors.id, id)).returning();
+    return vendor || undefined;
+  }
+
+  async deleteVendor(id: number): Promise<boolean> {
+    const result = await db.delete(vendors).where(eq(vendors.id, id));
+    return result.rowCount > 0;
+  }
+
+  async createBudgetItem(insertItem: InsertBudgetItem): Promise<BudgetItem> {
+    const [item] = await db.insert(budgetItems).values(insertItem).returning();
+    return item;
+  }
+
+  async getBudgetItemsByProjectId(projectId: number): Promise<BudgetItem[]> {
+    return await db.select().from(budgetItems).where(eq(budgetItems.projectId, projectId));
+  }
+
+  async updateBudgetItem(id: number, updates: Partial<InsertBudgetItem>): Promise<BudgetItem | undefined> {
+    const [item] = await db.update(budgetItems).set(updates).where(eq(budgetItems.id, id)).returning();
+    return item || undefined;
+  }
+
+  async deleteBudgetItem(id: number): Promise<boolean> {
+    const result = await db.delete(budgetItems).where(eq(budgetItems.id, id));
+    return result.rowCount > 0;
+  }
+
+  async createTimelineEvent(insertEvent: InsertTimelineEvent): Promise<TimelineEvent> {
+    const [event] = await db.insert(timelineEvents).values(insertEvent).returning();
+    return event;
+  }
+
+  async getTimelineEventsByProjectId(projectId: number): Promise<TimelineEvent[]> {
+    return await db.select().from(timelineEvents).where(eq(timelineEvents.projectId, projectId));
+  }
+
+  async updateTimelineEvent(id: number, updates: Partial<InsertTimelineEvent>): Promise<TimelineEvent | undefined> {
+    const [event] = await db.update(timelineEvents).set(updates).where(eq(timelineEvents.id, id)).returning();
+    return event || undefined;
+  }
+
+  async deleteTimelineEvent(id: number): Promise<boolean> {
+    const result = await db.delete(timelineEvents).where(eq(timelineEvents.id, id));
+    return result.rowCount > 0;
+  }
+
+  async createInspirationItem(insertItem: InsertInspirationItem): Promise<InspirationItem> {
+    const [item] = await db.insert(inspirationItems).values(insertItem).returning();
+    return item;
+  }
+
+  async getInspirationItemsByProjectId(projectId: number): Promise<InspirationItem[]> {
+    return await db.select().from(inspirationItems).where(eq(inspirationItems.projectId, projectId));
+  }
+
+  async updateInspirationItem(id: number, updates: Partial<InsertInspirationItem>): Promise<InspirationItem | undefined> {
+    const [item] = await db.update(inspirationItems).set(updates).where(eq(inspirationItems.id, id)).returning();
+    return item || undefined;
+  }
+
+  async deleteInspirationItem(id: number): Promise<boolean> {
+    const result = await db.delete(inspirationItems).where(eq(inspirationItems.id, id));
+    return result.rowCount > 0;
+  }
+
+  async createActivity(insertActivity: InsertActivity): Promise<Activity> {
+    const [activity] = await db.insert(activities).values(insertActivity).returning();
+    return activity;
+  }
+
+  async getActivitiesByProjectId(projectId: number): Promise<(Activity & { user: User })[]> {
+    const result = await db
+      .select({
+        id: activities.id,
+        projectId: activities.projectId,
+        userId: activities.userId,
+        action: activities.action,
+        target: activities.target,
+        targetId: activities.targetId,
+        details: activities.details,
+        createdAt: activities.createdAt,
+        user: {
+          id: users.id,
+          username: users.username,
+          email: users.email,
+          avatar: users.avatar,
+          password: users.password,
+          createdAt: users.createdAt,
+        }
+      })
+      .from(activities)
+      .innerJoin(users, eq(activities.userId, users.id))
+      .where(eq(activities.projectId, projectId));
+
+    return result.map(row => ({
+      ...row,
+      user: row.user
+    }));
+  }
+}
+
+export const storage = new DatabaseStorage();

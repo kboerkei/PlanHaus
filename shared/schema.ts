@@ -1,4 +1,5 @@
 import { pgTable, text, serial, integer, boolean, timestamp, jsonb, decimal } from "drizzle-orm/pg-core";
+import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -187,6 +188,125 @@ export const insertActivitySchema = createInsertSchema(activities).omit({
 });
 
 // Types
+// Relations
+export const usersRelations = relations(users, ({ many }) => ({
+  weddingProjects: many(weddingProjects),
+  collaborators: many(collaborators),
+  tasks: many(tasks),
+  activities: many(activities),
+}));
+
+export const weddingProjectsRelations = relations(weddingProjects, ({ one, many }) => ({
+  creator: one(users, {
+    fields: [weddingProjects.createdBy],
+    references: [users.id],
+  }),
+  collaborators: many(collaborators),
+  tasks: many(tasks),
+  guests: many(guests),
+  vendors: many(vendors),
+  budgetItems: many(budgetItems),
+  timelineEvents: many(timelineEvents),
+  inspirationItems: many(inspirationItems),
+  activities: many(activities),
+}));
+
+export const collaboratorsRelations = relations(collaborators, ({ one }) => ({
+  project: one(weddingProjects, {
+    fields: [collaborators.projectId],
+    references: [weddingProjects.id],
+  }),
+  user: one(users, {
+    fields: [collaborators.userId],
+    references: [users.id],
+  }),
+  inviter: one(users, {
+    fields: [collaborators.invitedBy],
+    references: [users.id],
+  }),
+}));
+
+export const tasksRelations = relations(tasks, ({ one }) => ({
+  project: one(weddingProjects, {
+    fields: [tasks.projectId],
+    references: [weddingProjects.id],
+  }),
+  creator: one(users, {
+    fields: [tasks.createdBy],
+    references: [users.id],
+  }),
+  assignee: one(users, {
+    fields: [tasks.assignedTo],
+    references: [users.id],
+  }),
+}));
+
+export const guestsRelations = relations(guests, ({ one }) => ({
+  project: one(weddingProjects, {
+    fields: [guests.projectId],
+    references: [weddingProjects.id],
+  }),
+  addedByUser: one(users, {
+    fields: [guests.addedBy],
+    references: [users.id],
+  }),
+}));
+
+export const vendorsRelations = relations(vendors, ({ one }) => ({
+  project: one(weddingProjects, {
+    fields: [vendors.projectId],
+    references: [weddingProjects.id],
+  }),
+  addedByUser: one(users, {
+    fields: [vendors.addedBy],
+    references: [users.id],
+  }),
+}));
+
+export const budgetItemsRelations = relations(budgetItems, ({ one }) => ({
+  project: one(weddingProjects, {
+    fields: [budgetItems.projectId],
+    references: [weddingProjects.id],
+  }),
+  creator: one(users, {
+    fields: [budgetItems.createdBy],
+    references: [users.id],
+  }),
+}));
+
+export const timelineEventsRelations = relations(timelineEvents, ({ one }) => ({
+  project: one(weddingProjects, {
+    fields: [timelineEvents.projectId],
+    references: [weddingProjects.id],
+  }),
+  creator: one(users, {
+    fields: [timelineEvents.createdBy],
+    references: [users.id],
+  }),
+}));
+
+export const inspirationItemsRelations = relations(inspirationItems, ({ one }) => ({
+  project: one(weddingProjects, {
+    fields: [inspirationItems.projectId],
+    references: [weddingProjects.id],
+  }),
+  addedByUser: one(users, {
+    fields: [inspirationItems.addedBy],
+    references: [users.id],
+  }),
+}));
+
+export const activitiesRelations = relations(activities, ({ one }) => ({
+  project: one(weddingProjects, {
+    fields: [activities.projectId],
+    references: [weddingProjects.id],
+  }),
+  user: one(users, {
+    fields: [activities.userId],
+    references: [users.id],
+  }),
+}));
+
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type WeddingProject = typeof weddingProjects.$inferSelect;
