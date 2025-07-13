@@ -11,18 +11,30 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { DollarSign, Plus, TrendingUp, AlertTriangle } from "lucide-react";
+import { DollarSign, Plus, TrendingUp, AlertTriangle, ChevronDown, ChevronRight, Edit2, Trash2, Check, X } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
 export default function Budget() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
+  const [editingItem, setEditingItem] = useState<any>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [budgetForm, setBudgetForm] = useState({
     category: "",
     item: "",
     estimatedCost: "",
     vendor: "",
     notes: ""
+  });
+  const [editForm, setEditForm] = useState({
+    category: "",
+    item: "",
+    estimatedCost: "",
+    actualCost: "",
+    vendor: "",
+    notes: "",
+    isPaid: false
   });
   const { toast } = useToast();
   
@@ -56,6 +68,52 @@ export default function Budget() {
     }
   });
 
+  // Budget edit mutation
+  const editBudgetMutation = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: any }) => 
+      apiRequest(`/api/budget-items/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/budget-items'] });
+      toast({
+        title: "Expense Updated",
+        description: "Your budget item has been updated successfully",
+      });
+      setIsEditDialogOpen(false);
+      setEditingItem(null);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error?.message || "Failed to update expense",
+        variant: "destructive",
+      });
+    }
+  });
+
+  // Budget delete mutation
+  const deleteBudgetMutation = useMutation({
+    mutationFn: (id: number) => apiRequest(`/api/budget-items/${id}`, {
+      method: 'DELETE',
+    }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/budget-items'] });
+      toast({
+        title: "Expense Deleted",
+        description: "Budget item has been removed",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error?.message || "Failed to delete expense",
+        variant: "destructive",
+      });
+    }
+  });
+
   const handleCreateBudgetItem = () => {
     if (!budgetForm.category || !budgetForm.item || !budgetForm.estimatedCost) {
       toast({
@@ -66,6 +124,53 @@ export default function Budget() {
       return;
     }
     createBudgetMutation.mutate(budgetForm);
+  };
+
+  const handleEditItem = (item: any) => {
+    setEditingItem(item);
+    setEditForm({
+      category: item.category || "",
+      item: item.item || "",
+      estimatedCost: item.estimatedCost?.toString() || "",
+      actualCost: item.actualCost?.toString() || "",
+      vendor: item.vendor || "",
+      notes: item.notes || "",
+      isPaid: item.isPaid || false
+    });
+    setIsEditDialogOpen(true);
+  };
+
+  const handleUpdateBudgetItem = () => {
+    if (!editForm.category || !editForm.item || !editForm.estimatedCost) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in category, item name, and estimated cost",
+        variant: "destructive",
+      });
+      return;
+    }
+    editBudgetMutation.mutate({
+      id: editingItem.id,
+      data: {
+        ...editForm,
+        estimatedCost: editForm.estimatedCost,
+        actualCost: editForm.actualCost || null
+      }
+    });
+  };
+
+  const handleDeleteItem = (item: any) => {
+    if (confirm(`Are you sure you want to delete "${item.item}"?`)) {
+      deleteBudgetMutation.mutate(item.id);
+    }
+  };
+
+  const toggleCategory = (category: string) => {
+    setExpandedCategory(expandedCategory === category ? null : category);
+  };
+
+  const getItemsByCategory = (category: string) => {
+    return budgetItems?.filter((item: any) => item.category === category) || [];
   };
 
   // Fetch wedding project data
@@ -285,36 +390,117 @@ export default function Budget() {
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {budgetCategories.map((item) => (
-                      <div key={item.id} className="flex items-center justify-between p-4 border rounded-lg">
-                        <div className="flex-1">
-                          <div className="flex items-center justify-between mb-2">
-                            <h3 className="font-semibold text-gray-800">{item.category}</h3>
-                            <div className="flex items-center space-x-2">
-                              {getStatusIcon(item.status)}
-                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(item.status)}`}>
-                                {item.status}
-                              </span>
+                    {budgetCategories.map((categoryData) => {
+                      const categoryItems = getItemsByCategory(categoryData.category);
+                      const isExpanded = expandedCategory === categoryData.category;
+                      
+                      return (
+                        <div key={categoryData.category} className="border rounded-lg">
+                          {/* Category Header - Clickable */}
+                          <div 
+                            className="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50 transition-colors"
+                            onClick={() => toggleCategory(categoryData.category)}
+                          >
+                            <div className="flex-1">
+                              <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center space-x-2">
+                                  {isExpanded ? (
+                                    <ChevronDown size={16} className="text-gray-500" />
+                                  ) : (
+                                    <ChevronRight size={16} className="text-gray-500" />
+                                  )}
+                                  <h3 className="font-semibold text-gray-800">{categoryData.category}</h3>
+                                  <span className="text-sm text-gray-500">({categoryItems.length} items)</span>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  {getStatusIcon(categoryData.status)}
+                                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(categoryData.status)}`}>
+                                    {categoryData.status}
+                                  </span>
+                                </div>
+                              </div>
+                              
+                              <div className="flex items-center space-x-4 text-sm text-gray-600">
+                                <span>Estimated: ${categoryData.estimated.toLocaleString()}</span>
+                                <span>Actual: ${categoryData.actual.toLocaleString()}</span>
+                                {totalBudget > 0 && categoryData.estimated > 0 && (
+                                  <span>{categoryData.percentage}% of budget</span>
+                                )}
+                              </div>
+                              
+                              {categoryData.estimated > 0 && (
+                                <Progress 
+                                  value={(categoryData.actual / categoryData.estimated) * 100} 
+                                  className="mt-2"
+                                />
+                              )}
                             </div>
                           </div>
-                          
-                          <div className="flex items-center space-x-4 text-sm text-gray-600">
-                            <span>Estimated: ${item.estimated.toLocaleString()}</span>
-                            <span>Actual: ${item.actual.toLocaleString()}</span>
-                            {totalBudget > 0 && item.estimated > 0 && (
-                              <span>{item.percentage}% of budget</span>
-                            )}
-                          </div>
-                          
-                          {item.estimated > 0 && (
-                            <Progress 
-                              value={(item.actual / item.estimated) * 100} 
-                              className="mt-2"
-                            />
+
+                          {/* Expanded Items */}
+                          {isExpanded && (
+                            <div className="border-t bg-gray-50">
+                              <div className="p-4 space-y-3">
+                                {categoryItems.map((item: any) => (
+                                  <div key={item.id} className="flex items-center justify-between p-3 bg-white rounded-lg border">
+                                    <div className="flex-1">
+                                      <div className="flex items-center justify-between mb-1">
+                                        <h4 className="font-medium text-gray-800">{item.item}</h4>
+                                        <div className="flex items-center space-x-2">
+                                          <Button
+                                            size="sm"
+                                            variant="ghost"
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              handleEditItem(item);
+                                            }}
+                                            className="h-8 w-8 p-0"
+                                          >
+                                            <Edit2 size={14} />
+                                          </Button>
+                                          <Button
+                                            size="sm"
+                                            variant="ghost"
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              handleDeleteItem(item);
+                                            }}
+                                            className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
+                                          >
+                                            <Trash2 size={14} />
+                                          </Button>
+                                        </div>
+                                      </div>
+                                      <div className="flex items-center space-x-4 text-sm text-gray-600">
+                                        <span>Est: ${(item.estimatedCost || 0).toLocaleString()}</span>
+                                        <span>Actual: ${(item.actualCost || 0).toLocaleString()}</span>
+                                        {item.isPaid && (
+                                          <span className="flex items-center text-green-600">
+                                            <Check size={14} className="mr-1" />
+                                            Paid
+                                          </span>
+                                        )}
+                                      </div>
+                                      {item.vendor && (
+                                        <div className="text-sm text-gray-500 mt-1">
+                                          Vendor: {item.vendor}
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                ))}
+                                
+                                {categoryItems.length === 0 && (
+                                  <div className="text-center py-4 text-gray-500">
+                                    No items in this category yet
+                                  </div>
+                                )}
+                              </div>
+                            </div>
                           )}
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </CardContent>
