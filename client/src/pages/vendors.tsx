@@ -385,7 +385,7 @@ export default function Vendors() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="">All Categories</SelectItem>
-                      {vendorCategories.map(category => (
+                      {vendorCategories.filter(Boolean).map(category => (
                         <SelectItem key={category} value={category}>{category}</SelectItem>
                       ))}
                     </SelectContent>

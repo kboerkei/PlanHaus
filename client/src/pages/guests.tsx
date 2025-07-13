@@ -166,7 +166,7 @@ export default function Guests() {
   const pendingGuests = (guests || []).filter(g => g.rsvpStatus === "pending").length;
   const totalAttending = (guests || []).filter(g => g.rsvpStatus === "accepted").reduce((sum, g) => sum + (g.plusOne ? 2 : 1), 0);
 
-  const groups = [...new Set((guests || []).map((g: any) => g.group))];
+  const groups = [...new Set((guests || []).map((g: any) => g.group).filter(Boolean))];
 
   if (isLoading) {
     return (

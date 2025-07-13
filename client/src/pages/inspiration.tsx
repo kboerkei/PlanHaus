@@ -88,7 +88,7 @@ export default function Inspiration() {
     return matchesSearch && matchesCategory;
   });
 
-  const categories = [...new Set((inspirationItems || []).map((item: any) => item.category))];
+  const categories = [...new Set((inspirationItems || []).map((item: any) => item.category).filter(Boolean))];
 
   if (isLoading) {
     return (

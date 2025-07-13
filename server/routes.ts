@@ -505,6 +505,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Add generic guests route for client compatibility
+  app.get("/api/guests", requireAuth, async (req, res) => {
+    try {
+      const userId = (req as any).userId;
+      const projects = await storage.getWeddingProjectsByUserId(userId);
+      
+      if (projects.length === 0) {
+        return res.json([]);
+      }
+      
+      const guests = await storage.getGuestsByProjectId(projects[0].id);
+      res.json(guests);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch guests" });
+    }
+  });
+
+  // Add generic guests POST route for client compatibility
+  app.post("/api/guests", requireAuth, async (req, res) => {
+    try {
+      const userId = (req as any).userId;
+      let projects = await storage.getWeddingProjectsByUserId(userId);
+      
+      if (projects.length === 0) {
+        const defaultProject = await storage.createWeddingProject({
+          name: "My Wedding",
+          description: "Wedding planning project",
+          date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+          createdBy: userId
+        });
+        projects = [defaultProject];
+      }
+      
+      const guestData = insertGuestSchema.parse({
+        ...req.body,
+        projectId: projects[0].id,
+        addedBy: userId
+      });
+      
+      const guest = await storage.createGuest(guestData);
+
+      // Create activity
+      await storage.createActivity({
+        projectId: projects[0].id,
+        userId,
+        action: 'added guest',
+        target: 'guest',
+        targetId: guest.id,
+        details: { guestName: guest.name, rsvpStatus: guest.rsvpStatus }
+      });
+
+      websocketService?.notifyGuestUpdate(projects[0].id, guest, 'created', userId);
+
+      res.json(guest);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid guest data" });
+    }
+  });
+
   app.post("/api/projects/:id/guests", requireAuth, async (req, res) => {
     try {
       const projectId = parseInt(req.params.id);
@@ -643,6 +702,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Add generic vendors route for client compatibility
+  app.get("/api/vendors", requireAuth, async (req, res) => {
+    try {
+      const userId = (req as any).userId;
+      const projects = await storage.getWeddingProjectsByUserId(userId);
+      
+      if (projects.length === 0) {
+        return res.json([]);
+      }
+      
+      const vendors = await storage.getVendorsByProjectId(projects[0].id);
+      res.json(vendors);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch vendors" });
+    }
+  });
+
   app.post("/api/projects/:id/vendors", requireAuth, async (req, res) => {
     try {
       const projectId = parseInt(req.params.id);
@@ -767,6 +843,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Add generic budget items route for client compatibility
+  app.get("/api/budget-items", requireAuth, async (req, res) => {
+    try {
+      const userId = (req as any).userId;
+      const projects = await storage.getWeddingProjectsByUserId(userId);
+      
+      if (projects.length === 0) {
+        return res.json([]);
+      }
+      
+      const budgetItems = await storage.getBudgetItemsByProjectId(projects[0].id);
+      res.json(budgetItems);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch budget items" });
+    }
+  });
+
   app.post("/api/projects/:id/budget", requireAuth, async (req, res) => {
     try {
       const projectId = parseInt(req.params.id);
@@ -845,6 +938,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Add generic inspiration route for client compatibility
+  app.get("/api/inspiration", requireAuth, async (req, res) => {
+    try {
+      const userId = (req as any).userId;
+      const projects = await storage.getWeddingProjectsByUserId(userId);
+      
+      if (projects.length === 0) {
+        return res.json([]);
+      }
+      
+      const items = await storage.getInspirationItemsByProjectId(projects[0].id);
+      res.json(items);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch inspiration" });
+    }
+  });
+
   app.post("/api/projects/:id/inspiration", requireAuth, async (req, res) => {
     try {
       const projectId = parseInt(req.params.id);
@@ -860,6 +970,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.createActivity({
         projectId,
         userId: (req as any).userId,
+        action: 'added inspiration',
+        target: 'inspiration',
+        targetId: item.id,
+        details: { title: item.title, category: item.category }
+      });
+
+      res.json(item);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid inspiration data" });
+    }
+  });
+
+  // Add generic inspiration POST route for client compatibility
+  app.post("/api/inspiration", requireAuth, async (req, res) => {
+    try {
+      const userId = (req as any).userId;
+      let projects = await storage.getWeddingProjectsByUserId(userId);
+      
+      if (projects.length === 0) {
+        const defaultProject = await storage.createWeddingProject({
+          name: "My Wedding",
+          description: "Wedding planning project",
+          date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+          createdBy: userId
+        });
+        projects = [defaultProject];
+      }
+      
+      const itemData = insertInspirationItemSchema.parse({
+        ...req.body,
+        projectId: projects[0].id,
+        addedBy: userId
+      });
+      
+      const item = await storage.createInspirationItem(itemData);
+
+      // Create activity
+      await storage.createActivity({
+        projectId: projects[0].id,
+        userId,
         action: 'added inspiration',
         target: 'inspiration',
         targetId: item.id,
@@ -1456,6 +1606,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Inspiration Items API
+  app.get("/api/inspiration", requireAuth, async (req, res) => {
+    try {
+      const userId = (req as any).userId;
+      let projects = await storage.getWeddingProjectsByUserId(userId);
+      
+      if (projects.length === 0) {
+        return res.json([]);
+      }
+      
+      const items = await storage.getInspirationItemsByProjectId(projects[0].id);
+      res.json(items);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch inspiration items" });
+    }
+  });
+
+  app.post("/api/inspiration", requireAuth, async (req, res) => {
+    try {
+      const userId = (req as any).userId;
+      let projects = await storage.getWeddingProjectsByUserId(userId);
+      
+      if (projects.length === 0) {
+        const defaultProject = await storage.createWeddingProject({
+          name: "My Wedding",
+          description: "Wedding planning project",
+          date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+          createdBy: userId
+        });
+        projects = [defaultProject];
+      }
+      
+      const itemData = {
+        ...req.body,
+        projectId: projects[0].id,
+        addedBy: userId
+      };
+      
+      const item = await storage.createInspirationItem(itemData);
+      res.json(item);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create inspiration item" });
+    }
+  });
+
   app.get("/api/inspiration-items", requireAuth, async (req, res) => {
     try {
       const userId = (req as any).userId;
