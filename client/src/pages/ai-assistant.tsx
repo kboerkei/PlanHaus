@@ -23,30 +23,32 @@ export default function AIAssistant() {
       icon: Calendar,
       title: "Generate Timeline",
       description: "Create a custom wedding planning timeline",
-      action: () => {}
+      action: () => setMessage("Can you help me create a detailed wedding planning timeline? My wedding is in 6 months and I need to know what to do when.")
     },
     {
       icon: DollarSign,
       title: "Budget Breakdown",
       description: "Get a detailed budget analysis",
-      action: () => {}
+      action: () => setMessage("I need help creating a realistic budget breakdown for my wedding. My total budget is around $50,000.")
     },
     {
       icon: Users,
       title: "Vendor Suggestions",
       description: "Find recommended vendors in your area",
-      action: () => {}
+      action: () => setMessage("Can you suggest reliable wedding vendors in my area? I need a photographer, florist, and caterer.")
     },
     {
       icon: Sparkles,
       title: "Style Inspiration",
       description: "Get personalized theme and style ideas",
-      action: () => {}
+      action: () => setMessage("I'm looking for wedding theme and style inspiration. I love garden parties and romantic, elegant vibes.")
     }
   ];
 
-  const handleSendMessage = () => {
-    if (!message.trim()) return;
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSendMessage = async () => {
+    if (!message.trim() || isLoading) return;
     
     // Add user message
     const userMessage = {
@@ -57,18 +59,44 @@ export default function AIAssistant() {
     };
     
     setChatHistory(prev => [...prev, userMessage]);
+    const currentMessage = message;
     setMessage("");
+    setIsLoading(true);
     
-    // Simulate AI response
-    setTimeout(() => {
+    try {
+      const response = await fetch('/api/ai/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('sessionId')}`
+        },
+        body: JSON.stringify({ 
+          message: currentMessage,
+          context: 'wedding_planning_assistant'
+        })
+      });
+      
+      const data = await response.json();
+      
       const aiResponse = {
         id: chatHistory.length + 2,
         type: 'ai',
-        message: "I understand you need help with that. Let me analyze your wedding details and provide personalized recommendations. This is a demo response - in the full version, I would provide detailed, AI-generated suggestions based on your specific needs.",
+        message: data.response || "I'm here to help with your wedding planning! Could you tell me more about what you'd like assistance with?",
         timestamp: new Date()
       };
+      
       setChatHistory(prev => [...prev, aiResponse]);
-    }, 1000);
+    } catch (error) {
+      const errorResponse = {
+        id: chatHistory.length + 2,
+        type: 'ai',
+        message: "I'm sorry, I'm having trouble connecting right now. Please try again in a moment.",
+        timestamp: new Date()
+      };
+      setChatHistory(prev => [...prev, errorResponse]);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -94,7 +122,7 @@ export default function AIAssistant() {
               {quickActions.map((action, index) => {
                 const Icon = action.icon;
                 return (
-                  <Card key={index} className="cursor-pointer hover:shadow-md transition-shadow">
+                  <Card key={index} className="cursor-pointer hover:shadow-md transition-shadow" onClick={action.action}>
                     <CardContent className="p-4">
                       <div className="flex items-start space-x-3">
                         <div className="w-10 h-10 gradient-blush-rose rounded-lg flex items-center justify-center">
@@ -120,21 +148,32 @@ export default function AIAssistant() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="h-96 overflow-y-auto mb-4 space-y-4">
+                <div className="h-96 overflow-y-auto mb-4 space-y-4 border rounded-lg p-4 bg-gray-50">
                   {chatHistory.map((chat) => (
                     <div key={chat.id} className={`flex ${chat.type === 'user' ? 'justify-end' : 'justify-start'}`}>
                       <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
                         chat.type === 'user' 
                           ? 'bg-blush text-white' 
-                          : 'bg-gray-100 text-gray-800'
+                          : 'bg-white text-gray-800 border border-gray-200'
                       }`}>
-                        <p className="text-sm">{chat.message}</p>
+                        <p className="text-sm whitespace-pre-wrap">{chat.message}</p>
                         <p className="text-xs mt-1 opacity-70">
                           {chat.timestamp.toLocaleTimeString()}
                         </p>
                       </div>
                     </div>
                   ))}
+                  {isLoading && (
+                    <div className="flex justify-start">
+                      <div className="bg-white text-gray-800 border border-gray-200 px-4 py-2 rounded-lg">
+                        <div className="flex items-center space-x-2">
+                          <div className="w-3 h-3 bg-gray-400 rounded-full animate-bounce"></div>
+                          <div className="w-3 h-3 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                          <div className="w-3 h-3 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
                 
                 <div className="flex space-x-2">
@@ -144,8 +183,16 @@ export default function AIAssistant() {
                     placeholder="Ask me anything about your wedding planning..."
                     onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
                   />
-                  <Button onClick={handleSendMessage} className="gradient-blush-rose text-white">
-                    <Send size={16} />
+                  <Button 
+                    onClick={handleSendMessage}
+                    disabled={isLoading}
+                    className="gradient-blush-rose text-white disabled:opacity-50"
+                  >
+                    {isLoading ? (
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <Send size={16} />
+                    )}
                   </Button>
                 </div>
               </CardContent>

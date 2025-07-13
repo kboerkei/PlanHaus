@@ -1,3 +1,5 @@
+import { useQuery } from "@tanstack/react-query";
+
 interface ProgressRingProps {
   percentage: number;
   color: string;
@@ -45,6 +47,45 @@ function ProgressRing({ percentage, color, label, sublabel }: ProgressRingProps)
 }
 
 export default function ProgressOverview() {
+  const { data: projects } = useQuery({
+    queryKey: ['/api/projects'],
+    enabled: !!localStorage.getItem('sessionId')
+  });
+
+  const { data: tasks } = useQuery({
+    queryKey: ['/api/projects', projects?.[0]?.id, 'tasks'],
+    enabled: !!projects?.[0]?.id
+  });
+
+  const { data: guests } = useQuery({
+    queryKey: ['/api/projects', projects?.[0]?.id, 'guests'],
+    enabled: !!projects?.[0]?.id
+  });
+
+  const { data: vendors } = useQuery({
+    queryKey: ['/api/projects', projects?.[0]?.id, 'vendors'],
+    enabled: !!projects?.[0]?.id
+  });
+
+  const { data: budgetItems } = useQuery({
+    queryKey: ['/api/projects', projects?.[0]?.id, 'budget'],
+    enabled: !!projects?.[0]?.id
+  });
+
+  // Calculate real progress
+  const project = projects?.[0];
+  const completedTasks = tasks?.filter(t => t.status === 'completed') || [];
+  const confirmedGuests = guests?.filter(g => g.rsvpStatus === 'confirmed') || [];
+  const bookedVendors = vendors?.filter(v => v.status === 'booked') || [];
+  const paidBudgetItems = budgetItems?.filter(b => b.isPaid) || [];
+  
+  const taskProgress = tasks?.length ? Math.round((completedTasks.length / tasks.length) * 100) : 0;
+  const guestProgress = project?.guestCount ? Math.round((confirmedGuests.length / project.guestCount) * 100) : 0;
+  const vendorProgress = vendors?.length ? Math.round((bookedVendors.length / vendors.length) * 100) : 0;
+  const budgetProgress = budgetItems?.length ? Math.round((paidBudgetItems.length / budgetItems.length) * 100) : 0;
+  
+  const overallProgress = Math.round((taskProgress + guestProgress + vendorProgress + budgetProgress) / 4);
+
   return (
     <div className="mb-8">
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
@@ -52,35 +93,39 @@ export default function ProgressOverview() {
           <h2 className="font-serif text-xl font-semibold text-gray-800">
             Wedding Planning Progress
           </h2>
-          <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
-            68% Complete
+          <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+            overallProgress >= 75 ? 'bg-green-100 text-green-800' :
+            overallProgress >= 50 ? 'bg-yellow-100 text-yellow-800' :
+            'bg-red-100 text-red-800'
+          }`}>
+            {overallProgress}% Complete
           </span>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <ProgressRing
-            percentage={80}
+            percentage={budgetProgress}
             color="var(--blush)"
             label="Budget"
-            sublabel="$28K of $35K"
+            sublabel={`${paidBudgetItems.length} of ${budgetItems?.length || 0} paid`}
           />
           <ProgressRing
-            percentage={60}
+            percentage={taskProgress}
             color="var(--rose-gold)"
             label="Tasks"
-            sublabel="24 of 40 done"
+            sublabel={`${completedTasks.length} of ${tasks?.length || 0} done`}
           />
           <ProgressRing
-            percentage={75}
+            percentage={guestProgress}
             color="var(--champagne)"
             label="RSVPs"
-            sublabel="90 of 120"
+            sublabel={`${confirmedGuests.length} of ${project?.guestCount || 0}`}
           />
           <ProgressRing
-            percentage={90}
+            percentage={vendorProgress}
             color="#10B981"
             label="Vendors"
-            sublabel="9 of 10 booked"
+            sublabel={`${bookedVendors.length} of ${vendors?.length || 0} booked`}
           />
         </div>
       </div>

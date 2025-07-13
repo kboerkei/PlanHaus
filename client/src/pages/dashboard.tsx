@@ -7,6 +7,9 @@ import QuickActions from "@/components/dashboard/quick-actions";
 import UpcomingTasks from "@/components/dashboard/upcoming-tasks";
 import RecentActivity from "@/components/dashboard/recent-activity";
 import InspirationPreview from "@/components/dashboard/inspiration-preview";
+import MilestoneCelebration from "@/components/dashboard/milestone-celebration";
+import CollaborativeFeatures from "@/components/dashboard/collaborative-features";
+import SmartOnboarding from "@/components/dashboard/smart-onboarding";
 
 export default function Dashboard() {
   return (
@@ -17,6 +20,8 @@ export default function Dashboard() {
         <Header />
         
         <div className="p-6">
+          <MilestoneCelebration />
+          <SmartOnboarding />
           <ProgressOverview />
           
           {/* Main Dashboard Grid */}
@@ -31,6 +36,7 @@ export default function Dashboard() {
             <RecentActivity />
           </div>
 
+          <CollaborativeFeatures />
           <InspirationPreview />
         </div>
       </main>

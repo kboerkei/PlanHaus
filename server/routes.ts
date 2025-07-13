@@ -668,5 +668,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // AI Chat endpoint
+  app.post("/api/ai/chat", requireAuth, async (req, res) => {
+    try {
+      const { message, context } = req.body;
+      
+      if (!message || typeof message !== 'string') {
+        return res.status(400).json({ error: "Message is required" });
+      }
+
+      // Get user's wedding project for context
+      const userProjects = await storage.getWeddingProjectsByUserId(req.userId);
+      const currentProject = userProjects[0]; // Use first project for context
+      
+      let contextPrompt = "You are a helpful AI wedding planning assistant. ";
+      if (currentProject) {
+        contextPrompt += `The user is planning a wedding called "${currentProject.name}" scheduled for ${currentProject.date}. `;
+        if (currentProject.theme) contextPrompt += `The theme is ${currentProject.theme}. `;
+        if (currentProject.venue) contextPrompt += `The venue is ${currentProject.venue}. `;
+        if (currentProject.budget) contextPrompt += `Their budget is $${currentProject.budget}. `;
+        if (currentProject.guestCount) contextPrompt += `They're expecting ${currentProject.guestCount} guests. `;
+      }
+      contextPrompt += "Provide helpful, specific, and actionable wedding planning advice. Keep responses concise but informative.";
+
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o', // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+          messages: [
+            { role: 'system', content: contextPrompt },
+            { role: 'user', content: message }
+          ],
+          max_tokens: 500,
+          temperature: 0.7,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`OpenAI API error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const aiResponse = data.choices[0]?.message?.content || "I'm here to help with your wedding planning!";
+
+      res.json({ response: aiResponse });
+    } catch (error) {
+      console.error('AI Chat error:', error);
+      res.status(500).json({ 
+        error: "Sorry, I'm having trouble right now. Please try again.",
+        response: "I'm here to help with your wedding planning! Could you tell me more about what you'd like assistance with?"
+      });
+    }
+  });
+
   return httpServer;
 }
