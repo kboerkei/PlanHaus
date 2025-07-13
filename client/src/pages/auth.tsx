@@ -35,34 +35,15 @@ export default function Auth({ onAuth }: AuthProps) {
   const [isLogin, setIsLogin] = useState(true);
   const { toast } = useToast();
 
-  const loginForm = useForm<LoginFormData>({
-    resolver: zodResolver(loginSchema),
-    defaultValues: { 
-      email: "", 
-      password: "" 
-    },
-    mode: "onChange"
-  });
-
-  const registerForm = useForm<RegisterFormData>({
-    resolver: zodResolver(registerSchema),
-    defaultValues: { 
-      username: "", 
-      email: "", 
-      password: "", 
-      avatar: "" 
-    },
-    mode: "onChange"
-  });
+  // Simple state for form values
+  const [loginData, setLoginData] = useState({ email: "", password: "" });
+  const [registerData, setRegisterData] = useState({ username: "", email: "", password: "" });
 
   // Reset forms when switching modes to ensure clean state
   const handleModeSwitch = (newIsLogin: boolean) => {
     setIsLogin(newIsLogin);
-    if (newIsLogin) {
-      loginForm.reset();
-    } else {
-      registerForm.reset();
-    }
+    setLoginData({ email: "", password: "" });
+    setRegisterData({ username: "", email: "", password: "" });
   };
 
   // Debug logging
@@ -114,14 +95,42 @@ export default function Auth({ onAuth }: AuthProps) {
     },
   });
 
-  const onLoginSubmit = (data: LoginFormData) => {
-    console.log('Login form submitted:', data);
-    loginMutation.mutate(data);
+  const handleLoginSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Basic validation
+    if (!loginData.email || !loginData.password) {
+      toast({
+        title: "Missing fields",
+        description: "Please fill in all fields.",
+        variant: "destructive",
+      });
+      return;
+    }
+    console.log('Login form submitted:', loginData);
+    loginMutation.mutate(loginData);
   };
 
-  const onRegisterSubmit = (data: RegisterFormData) => {
-    console.log('Register form submitted:', data);
-    registerMutation.mutate(data);
+  const handleRegisterSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Basic validation
+    if (!registerData.username || !registerData.email || !registerData.password) {
+      toast({
+        title: "Missing fields",
+        description: "Please fill in all fields.",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (registerData.password.length < 6) {
+      toast({
+        title: "Password too short",
+        description: "Password must be at least 6 characters.",
+        variant: "destructive",
+      });
+      return;
+    }
+    console.log('Register form submitted:', registerData);
+    registerMutation.mutate({ ...registerData, avatar: "" });
   };
 
   const demoLogin = () => {
@@ -158,154 +167,115 @@ export default function Auth({ onAuth }: AuthProps) {
           
           <CardContent className="space-y-6">
             {isLogin ? (
-              <Form {...loginForm}>
-                <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="space-y-4">
-                  <FormField
-                    control={loginForm.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="flex items-center gap-2">
-                          <Mail size={16} />
-                          Email
-                        </FormLabel>
-                        <FormControl>
-                          <Input 
-                            placeholder="your@email.com" 
-                            {...field}
-                            autoComplete="email"
-                            autoFocus={isLogin}
-                            type="email"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+              <form onSubmit={handleLoginSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2">
+                    <Mail size={16} />
+                    Email
+                  </Label>
+                  <Input 
+                    type="email"
+                    placeholder="your@email.com" 
+                    value={loginData.email}
+                    onChange={(e) => setLoginData(prev => ({ ...prev, email: e.target.value }))}
+                    autoComplete="email"
+                    autoFocus={isLogin}
+                    required
                   />
-                  
-                  <FormField
-                    control={loginForm.control}
-                    name="password"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="flex items-center gap-2">
-                          <Lock size={16} />
-                          Password
-                        </FormLabel>
-                        <FormControl>
-                          <Input 
-                            type="password" 
-                            placeholder="Enter your password" 
-                            {...field}
-                            autoComplete="current-password"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                </div>
+                
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2">
+                    <Lock size={16} />
+                    Password
+                  </Label>
+                  <Input 
+                    type="password" 
+                    placeholder="Enter your password" 
+                    value={loginData.password}
+                    onChange={(e) => setLoginData(prev => ({ ...prev, password: e.target.value }))}
+                    autoComplete="current-password"
+                    required
                   />
+                </div>
 
-                  <Button 
-                    type="submit" 
-                    className="w-full gradient-blush-rose"
-                    disabled={loginMutation.isPending}
-                  >
-                    {loginMutation.isPending ? (
-                      "Signing in..."
-                    ) : (
-                      <>
-                        <LogIn size={16} className="mr-2" />
-                        Sign In
-                      </>
-                    )}
-                  </Button>
-                </form>
-              </Form>
+                <Button 
+                  type="submit" 
+                  className="w-full gradient-blush-rose"
+                  disabled={loginMutation.isPending}
+                >
+                  {loginMutation.isPending ? (
+                    "Signing in..."
+                  ) : (
+                    <>
+                      <LogIn size={16} className="mr-2" />
+                      Sign In
+                    </>
+                  )}
+                </Button>
+              </form>
             ) : (
-              <Form {...registerForm}>
-                <form onSubmit={registerForm.handleSubmit(onRegisterSubmit)} className="space-y-4">
-                  <FormField
-                    control={registerForm.control}
-                    name="username"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="flex items-center gap-2">
-                          <User size={16} />
-                          Username
-                        </FormLabel>
-                        <FormControl>
-                          <Input 
-                            placeholder="Your name" 
-                            {...field}
-                            autoComplete="name"
-                            autoFocus={!isLogin}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+              <form onSubmit={handleRegisterSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2">
+                    <User size={16} />
+                    Username
+                  </Label>
+                  <Input 
+                    placeholder="Your name" 
+                    value={registerData.username}
+                    onChange={(e) => setRegisterData(prev => ({ ...prev, username: e.target.value }))}
+                    autoComplete="name"
+                    autoFocus={!isLogin}
+                    required
                   />
+                </div>
 
-                  <FormField
-                    control={registerForm.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="flex items-center gap-2">
-                          <Mail size={16} />
-                          Email
-                        </FormLabel>
-                        <FormControl>
-                          <Input 
-                            placeholder="your@email.com" 
-                            {...field}
-                            autoComplete="email"
-                            type="email"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2">
+                    <Mail size={16} />
+                    Email
+                  </Label>
+                  <Input 
+                    type="email"
+                    placeholder="your@email.com" 
+                    value={registerData.email}
+                    onChange={(e) => setRegisterData(prev => ({ ...prev, email: e.target.value }))}
+                    autoComplete="email"
+                    required
                   />
-                  
-                  <FormField
-                    control={registerForm.control}
-                    name="password"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="flex items-center gap-2">
-                          <Lock size={16} />
-                          Password
-                        </FormLabel>
-                        <FormControl>
-                          <Input 
-                            type="password" 
-                            placeholder="Choose a secure password" 
-                            {...field}
-                            autoComplete="new-password"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                </div>
+                
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2">
+                    <Lock size={16} />
+                    Password
+                  </Label>
+                  <Input 
+                    type="password" 
+                    placeholder="Choose a secure password" 
+                    value={registerData.password}
+                    onChange={(e) => setRegisterData(prev => ({ ...prev, password: e.target.value }))}
+                    autoComplete="new-password"
+                    required
                   />
+                </div>
 
-                  <Button 
-                    type="submit" 
-                    className="w-full gradient-blush-rose"
-                    disabled={registerMutation.isPending}
-                  >
-                    {registerMutation.isPending ? (
-                      "Creating account..."
-                    ) : (
-                      <>
-                        <UserPlus size={16} className="mr-2" />
-                        Create Account
-                      </>
-                    )}
-                  </Button>
-                </form>
-              </Form>
+                <Button 
+                  type="submit" 
+                  className="w-full gradient-blush-rose"
+                  disabled={registerMutation.isPending}
+                >
+                  {registerMutation.isPending ? (
+                    "Creating account..."
+                  ) : (
+                    <>
+                      <UserPlus size={16} className="mr-2" />
+                      Create Account
+                    </>
+                  )}
+                </Button>
+              </form>
             )}
 
             {/* Demo login button */}
