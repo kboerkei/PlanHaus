@@ -226,7 +226,15 @@ export default function TimelineSimple() {
   });
 
   const onSubmit = (data: TaskFormData) => {
-    createTaskMutation.mutate(data);
+    // Convert form data to match the API schema
+    const taskData = {
+      title: data.title,
+      description: data.description || null,
+      category: data.category || null,
+      priority: data.priority || 'medium',
+      dueDate: data.dueDate || null,
+    };
+    createTaskMutation.mutate(taskData);
   };
 
   const handleToggleComplete = (task: any) => {

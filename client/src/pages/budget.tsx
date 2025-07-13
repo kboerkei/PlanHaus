@@ -123,7 +123,16 @@ export default function Budget() {
       });
       return;
     }
-    createBudgetMutation.mutate(budgetForm);
+    
+    // Convert form data to match the API schema
+    const budgetData = {
+      category: budgetForm.category,
+      item: budgetForm.item,
+      estimatedCost: budgetForm.estimatedCost,
+      vendor: budgetForm.vendor || null,
+      notes: budgetForm.notes || null,
+    };
+    createBudgetMutation.mutate(budgetData);
   };
 
   const handleEditItem = (item: any) => {
