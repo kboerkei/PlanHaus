@@ -1407,14 +1407,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (projects.length === 0) {
         const defaultProject = await storage.createWeddingProject({
-          userId: userId,
           name: "My Wedding",
-          description: "Wedding planning project",
-          weddingDate: null,
-          venue: null,
+          date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+          createdBy: userId,
           budget: null,
           guestCount: null,
-          status: "planning"
+          theme: null,
+          venue: null
         });
         projects = [defaultProject];
       }
@@ -1422,12 +1421,81 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const taskData = {
         ...req.body,
         projectId: projects[0].id,
-        createdBy: userId
+        createdBy: userId,
+        status: 'pending',
+        dueDate: req.body.dueDate ? new Date(req.body.dueDate) : null
       };
       const task = await storage.createTask(taskData);
       res.json(task);
     } catch (error) {
+      console.error('Task creation error:', error);
       res.status(500).json({ message: "Failed to create task" });
+    }
+  });
+
+  // AI Timeline generation (standalone endpoint)
+  app.post("/api/ai/generate-timeline", requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.userId;
+      
+      // Get or create default project for the user
+      let project = await storage.getWeddingProjectByUserId(userId);
+      if (!project) {
+        project = await storage.createWeddingProject({
+          name: "My Wedding",
+          date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+          createdBy: userId,
+          budget: null,
+          guestCount: null,
+          theme: null,
+          venue: null
+        });
+      }
+
+      const { weddingDate, budget, guestCount, venue, theme } = req.body;
+
+      const timeline = await generateWeddingTimeline({
+        budget: parseFloat(budget || project.budget || '50000'),
+        guestCount: guestCount || project.guestCount || 100,
+        date: weddingDate || project.date.toISOString(),
+        venue: venue || project.venue || undefined,
+        theme: theme || project.theme || undefined,
+        style: project.style || undefined,
+        preferences: project.description || undefined
+      });
+
+      // Convert timeline items to tasks
+      const tasks = await Promise.all(timeline.map(async (item) => {
+        const projectDate = new Date(weddingDate || project.date);
+        const dueDate = new Date(projectDate);
+        dueDate.setDate(dueDate.getDate() - (item.week * 7));
+        
+        return await storage.createTask({
+          projectId: project.id,
+          title: item.title,
+          description: item.description,
+          category: item.category,
+          priority: item.priority,
+          status: 'pending',
+          dueDate,
+          createdBy: userId,
+          assignedTo: null
+        });
+      }));
+
+      // Create activity
+      await storage.createActivity({
+        projectId: project.id,
+        userId,
+        action: 'generated AI timeline',
+        target: 'timeline',
+        details: { tasksCreated: tasks.length }
+      });
+
+      res.json({ tasks, timeline });
+    } catch (error) {
+      console.error('AI timeline generation error:', error);
+      res.status(500).json({ message: "Failed to generate timeline" });
     }
   });
 

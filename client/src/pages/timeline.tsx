@@ -1,4 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import Sidebar from "@/components/layout/sidebar";
 import Header from "@/components/layout/header";
 import MobileNav from "@/components/layout/mobile-nav";
@@ -6,9 +7,31 @@ import LoadingSpinner from "@/components/loading-spinner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar, Clock, Plus, CheckCircle, AlertTriangle } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+
+const taskSchema = z.object({
+  title: z.string().min(1, "Title is required"),
+  description: z.string().optional(),
+  category: z.string().optional(),
+  priority: z.enum(["low", "medium", "high"]).default("medium"),
+  dueDate: z.string().optional(),
+});
+
+type TaskFormData = z.infer<typeof taskSchema>;
 
 export default function Timeline() {
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const { toast } = useToast();
   // Fetch wedding project data
   const { data: weddingProjects, isLoading: projectsLoading } = useQuery({
     queryKey: ['/api/wedding-projects'],
@@ -51,6 +74,45 @@ export default function Timeline() {
 
   const stats = getStats();
 
+  const form = useForm<TaskFormData>({
+    resolver: zodResolver(taskSchema),
+    defaultValues: {
+      title: "",
+      description: "",
+      category: "",
+      priority: "medium",
+      dueDate: "",
+    },
+  });
+
+  const createTaskMutation = useMutation({
+    mutationFn: (data: TaskFormData) => apiRequest('/api/tasks', {
+      method: 'POST',
+      body: JSON.stringify(data),
+      headers: { 'Content-Type': 'application/json' }
+    }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/tasks'] });
+      toast({
+        title: "Success",
+        description: "Timeline task added successfully",
+      });
+      setIsAddDialogOpen(false);
+      form.reset();
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to add timeline task",
+        variant: "destructive",
+      });
+    }
+  });
+
+  const onSubmit = (data: TaskFormData) => {
+    createTaskMutation.mutate(data);
+  };
+
   if (projectsLoading || tasksLoading) {
     return (
       <div className="flex min-h-screen bg-cream">
@@ -68,11 +130,6 @@ export default function Timeline() {
     );
   }
 
-  // Allow timeline management even without a formal project
-  if (!currentProject) {
-    timelineEvents = [];
-  }
-
   // Show empty state if no tasks exist
   if (timelineItems.length === 0) {
     return (
@@ -82,37 +139,45 @@ export default function Timeline() {
           <Header />
           <div className="p-6">
             <div className="max-w-6xl mx-auto">
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <h1 className="font-serif text-3xl font-semibold text-gray-800 mb-2">
-                    Wedding Timeline
-                  </h1>
-                  <p className="text-gray-600">
-                    Stay organized with your wedding planning schedule
-                  </p>
-                </div>
-                <Button className="gradient-blush-rose text-white">
-                  <Plus size={16} className="mr-2" />
-                  Generate AI Timeline
-                </Button>
-              </div>
 
               <div className="text-center py-12">
                 <Calendar className="h-16 w-16 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-xl font-semibold text-gray-800 mb-2">No Timeline Created Yet</h3>
                 <p className="text-gray-600 mb-6">Let our AI assistant create a personalized wedding planning timeline based on your intake form.</p>
                 <Button 
-                  onClick={() => {
-                    // Generate AI timeline
-                    if (currentProject?.id) {
-                      fetch(`/api/projects/${currentProject.id}/ai/generate-timeline`, {
+                  onClick={async () => {
+                    try {
+                      const sessionId = localStorage.getItem('sessionId');
+                      if (!sessionId) {
+                        alert('Please log in to generate timeline');
+                        return;
+                      }
+                      
+                      // Generate AI timeline by making a request to the general timeline endpoint
+                      const response = await fetch('/api/ai/generate-timeline', {
                         method: 'POST',
                         headers: {
-                          'Authorization': `Bearer ${localStorage.getItem('sessionId')}`
-                        }
-                      }).then(() => {
-                        window.location.reload();
+                          'Authorization': `Bearer ${sessionId}`,
+                          'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                          weddingDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+                          budget: 50000,
+                          guestCount: 100,
+                          venue: 'TBD',
+                          theme: 'Classic'
+                        })
                       });
+                      
+                      if (response.ok) {
+                        window.location.reload();
+                      } else {
+                        console.error('Failed to generate timeline');
+                        alert('Failed to generate timeline. Please try again.');
+                      }
+                    } catch (error) {
+                      console.error('Error generating timeline:', error);
+                      alert('Error generating timeline. Please try again.');
                     }
                   }}
                   className="gradient-blush-rose text-white"
@@ -136,19 +201,116 @@ export default function Timeline() {
         <Header />
         <div className="p-6">
           <div className="max-w-6xl mx-auto">
+
+            {/* Add Task Dialog */}
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h1 className="font-serif text-3xl font-semibold text-gray-800 mb-2">
+                <h1 className="font-serif text-2xl font-semibold text-gray-800 mb-1">
                   Wedding Timeline
                 </h1>
                 <p className="text-gray-600">
                   Stay organized with your wedding planning schedule
                 </p>
               </div>
-              <Button className="gradient-blush-rose text-white">
-                <Plus size={16} className="mr-2" />
-                Add Task
-              </Button>
+              <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button className="gradient-blush-rose text-white">
+                    <Plus size={16} className="mr-2" />
+                    Add Task
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Add Timeline Task</DialogTitle>
+                  </DialogHeader>
+                  <Form {...form}>
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                      <FormField
+                        control={form.control}
+                        name="title"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Task Title</FormLabel>
+                            <FormControl>
+                              <Input placeholder="e.g., Book wedding venue" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="description"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Description</FormLabel>
+                            <FormControl>
+                              <Textarea placeholder="Task details..." {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="category"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Category</FormLabel>
+                            <FormControl>
+                              <Input placeholder="e.g., Venue, Photography, Catering" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="priority"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Priority</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select priority" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="low">Low</SelectItem>
+                                <SelectItem value="medium">Medium</SelectItem>
+                                <SelectItem value="high">High</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="dueDate"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Due Date</FormLabel>
+                            <FormControl>
+                              <Input type="date" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <div className="flex justify-end space-x-2">
+                        <Button type="button" variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+                          Cancel
+                        </Button>
+                        <Button type="submit" disabled={createTaskMutation.isPending} className="gradient-blush-rose text-white">
+                          {createTaskMutation.isPending ? "Adding..." : "Add Task"}
+                        </Button>
+                      </div>
+                    </form>
+                  </Form>
+                </DialogContent>
+              </Dialog>
             </div>
 
             {/* Stats Cards */}
