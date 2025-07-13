@@ -17,7 +17,6 @@ export default function Timeline() {
   // Fetch tasks/timeline data
   const { data: tasks, isLoading: tasksLoading } = useQuery({
     queryKey: ['/api/tasks'],
-    enabled: !!weddingProjects && weddingProjects.length > 0,
   });
 
   const currentProject = weddingProjects?.[0];
@@ -69,27 +68,9 @@ export default function Timeline() {
     );
   }
 
-  // Show empty state if no wedding project exists
+  // Allow timeline management even without a formal project
   if (!currentProject) {
-    return (
-      <div className="flex min-h-screen bg-cream">
-        <Sidebar />
-        <main className="flex-1 overflow-y-auto">
-          <Header />
-          <div className="p-6">
-            <div className="text-center py-12">
-              <Calendar className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-gray-800 mb-2">No Wedding Project Found</h3>
-              <p className="text-gray-600 mb-6">Complete your wedding intake form to start planning your timeline.</p>
-              <Button onClick={() => window.location.href = '/intake'} className="gradient-blush-rose text-white">
-                Complete Intake Form
-              </Button>
-            </div>
-          </div>
-        </main>
-        <MobileNav />
-      </div>
-    );
+    timelineEvents = [];
   }
 
   // Show empty state if no tasks exist

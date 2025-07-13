@@ -23,23 +23,7 @@ import Header from "@/components/layout/header";
 import MobileNav from "@/components/layout/mobile-nav";
 
 function Router({ user, onLogout, isNewUser, onIntakeComplete }: { user: any; onLogout: () => void; isNewUser: boolean; onIntakeComplete: () => void }) {
-  // If user is new and hasn't completed intake, redirect them to intake form
-  if (isNewUser && !user.hasCompletedIntake) {
-    return (
-      <Switch>
-        <Route path="/intake">
-          <Intake onComplete={onIntakeComplete} />
-        </Route>
-        <Route>
-          {() => {
-            // Redirect any other route to intake for new users only
-            window.location.href = '/intake';
-            return null;
-          }}
-        </Route>
-      </Switch>
-    );
-  }
+  // Allow users to access all sections even without completing intake
 
   return (
     <div className="flex h-screen bg-gray-50">

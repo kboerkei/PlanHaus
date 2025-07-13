@@ -17,7 +17,6 @@ export default function Budget() {
   // Fetch budget items
   const { data: budgetItems, isLoading: budgetLoading } = useQuery({
     queryKey: ['/api/budget-items'],
-    enabled: !!weddingProjects && weddingProjects.length > 0,
   });
 
   const currentProject = weddingProjects?.[0];
@@ -87,30 +86,7 @@ export default function Budget() {
     );
   }
 
-  // Show empty state if no wedding project exists
-  if (!currentProject) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-rose-50 to-pink-50">
-        <div className="flex">
-          <Sidebar />
-          <div className="flex-1 flex flex-col lg:ml-64">
-            <Header />
-            <main className="flex-1 p-6">
-              <div className="text-center py-12">
-                <DollarSign className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-gray-800 mb-2">No Wedding Project Found</h3>
-                <p className="text-gray-600 mb-6">Complete your wedding intake form to start planning your budget.</p>
-                <Button onClick={() => window.location.href = '/intake'} className="gradient-blush-rose text-white">
-                  Complete Intake Form
-                </Button>
-              </div>
-            </main>
-          </div>
-        </div>
-        <MobileNav />
-      </div>
-    );
-  }
+
 
   return (
     <div className="flex min-h-screen bg-cream">

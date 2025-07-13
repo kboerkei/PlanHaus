@@ -882,68 +882,117 @@ export async function registerRoutes(app: Express): Promise<Server> {
         project = await storage.createWeddingProject(projectData);
       }
       
-      // Add key people to guest list
-      const keyPeople: Array<{name: string, role: string}> = [
-        ...(intake.vips || []),
-        ...(intake.weddingParty || [])
-      ];
-      
-      for (const person of keyPeople) {
-        if (person.name && person.name.trim()) {
-          try {
-            const guestData = {
-              projectId: project.id,
-              firstName: person.name.split(' ')[0] || person.name,
-              lastName: person.name.split(' ').slice(1).join(' ') || '',
-              email: '',
-              phone: '',
-              address: '',
-              rsvpStatus: 'pending' as const,
-              guestType: person.role === 'Maid of Honor' || person.role === 'Best Man' || 
-                         person.role === 'Bridesmaid' || person.role === 'Groomsman' ? 'wedding_party' as const : 'vip' as const,
-              dietaryRestrictions: '',
-              notes: `Role: ${person.role}`,
-              plusOneAllowed: false,
-              hotelInfo: '',
-              addedBy: userId
-            };
-            await storage.createGuest(guestData);
-          } catch (guestError) {
-            console.error('Error adding guest:', guestError);
+      // Add VIP guests and wedding party to guest list (only these specific people)
+      if (intake.vips && Array.isArray(intake.vips)) {
+        for (const vip of intake.vips) {
+          if (vip.name && vip.name.trim()) {
+            try {
+              const guestData = {
+                projectId: project.id,
+                firstName: vip.name.split(' ')[0] || vip.name,
+                lastName: vip.name.split(' ').slice(1).join(' ') || '',
+                email: '',
+                phone: '',
+                address: '',
+                rsvpStatus: 'pending' as const,
+                guestType: 'vip' as const,
+                dietaryRestrictions: '',
+                notes: `VIP Guest - ${vip.role || 'Important person'}`,
+                plusOneAllowed: false,
+                hotelInfo: '',
+                addedBy: userId
+              };
+              await storage.createGuest(guestData);
+            } catch (guestError) {
+              console.error('Error adding VIP guest:', guestError);
+            }
           }
         }
       }
 
-      // Create initial budget breakdown if budget provided
-      if (intake.totalBudget && parseFloat(intake.totalBudget) > 0) {
-        const totalBudget = parseFloat(intake.totalBudget);
-        const budgetCategories = [
-          { category: 'Venue', percentage: 40 },
-          { category: 'Catering', percentage: 30 },
-          { category: 'Photography', percentage: 10 },
-          { category: 'Music/Entertainment', percentage: 8 },
-          { category: 'Flowers & Decor', percentage: 8 },
-          { category: 'Attire', percentage: 4 }
-        ];
-
-        for (const budgetCategory of budgetCategories) {
-          try {
-            const budgetData = {
-              projectId: project.id,
-              category: budgetCategory.category,
-              item: `${budgetCategory.category} Budget`,
-              estimatedCost: Math.round(totalBudget * (budgetCategory.percentage / 100)),
-              actualCost: null,
-              vendor: '',
-              notes: `Auto-generated from intake (${budgetCategory.percentage}% of total budget)`,
-              isPaid: false,
-              dueDate: intake.weddingDate,
-              createdBy: userId
-            };
-            await storage.createBudgetItem(budgetData);
-          } catch (budgetError) {
-            console.error('Error creating budget item:', budgetError);
+      if (intake.weddingParty && Array.isArray(intake.weddingParty)) {
+        for (const member of intake.weddingParty) {
+          if (member.name && member.name.trim()) {
+            try {
+              const guestData = {
+                projectId: project.id,
+                firstName: member.name.split(' ')[0] || member.name,
+                lastName: member.name.split(' ').slice(1).join(' ') || '',
+                email: '',
+                phone: '',
+                address: '',
+                rsvpStatus: 'confirmed' as const,
+                guestType: 'wedding_party' as const,
+                dietaryRestrictions: '',
+                notes: `Wedding Party - ${member.role || 'Wedding party member'}`,
+                plusOneAllowed: false,
+                hotelInfo: '',
+                addedBy: userId
+              };
+              await storage.createGuest(guestData);
+            } catch (guestError) {
+              console.error('Error adding wedding party guest:', guestError);
+            }
           }
+        }
+      }
+
+      // Add inspiration items from style vision (colors, vibe, Pinterest boards)
+      const inspirationItems = [];
+      
+      if (intake.overallVibe && intake.overallVibe.trim()) {
+        inspirationItems.push({
+          type: 'text',
+          title: 'Overall Wedding Vibe',
+          description: intake.overallVibe,
+          imageUrl: null,
+          sourceUrl: null,
+          notes: 'From intake form - overall vision and style preference'
+        });
+      }
+
+      if (intake.colorPalette && intake.colorPalette.trim()) {
+        inspirationItems.push({
+          type: 'text',
+          title: 'Color Palette',
+          description: intake.colorPalette,
+          imageUrl: null,
+          sourceUrl: null,
+          notes: 'From intake form - preferred wedding colors'
+        });
+      }
+
+      if (intake.pinterestBoards && Array.isArray(intake.pinterestBoards)) {
+        for (const boardUrl of intake.pinterestBoards) {
+          if (boardUrl && boardUrl.trim()) {
+            inspirationItems.push({
+              type: 'pinterest',
+              title: 'Pinterest Inspiration Board',
+              description: 'Inspiration board shared during intake',
+              imageUrl: null,
+              sourceUrl: boardUrl,
+              notes: 'Pinterest board from intake form'
+            });
+          }
+        }
+      }
+
+      // Create inspiration items
+      for (const item of inspirationItems) {
+        try {
+          const inspirationData = {
+            projectId: project.id,
+            type: item.type,
+            title: item.title,
+            description: item.description,
+            imageUrl: item.imageUrl,
+            sourceUrl: item.sourceUrl,
+            notes: item.notes,
+            createdBy: userId
+          };
+          await storage.createInspirationItem(inspirationData);
+        } catch (inspirationError) {
+          console.error('Error creating inspiration item:', inspirationError);
         }
       }
 
@@ -1011,10 +1060,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
               projectId: project.id,
               title: task.title,
               description: task.description,
-              dueDate: dueDate,
-              category: 'Planning',
-              priority: task.priority,
-              isCompleted: false,
+              date: dueDate,
+              type: 'milestone',
               createdBy: userId
             };
             await storage.createTimelineEvent(timelineData);
@@ -1094,10 +1141,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/budget-items", requireAuth, async (req, res) => {
     try {
       const userId = (req as any).userId;
-      const projects = await storage.getWeddingProjectsByUserId(userId);
+      let projects = await storage.getWeddingProjectsByUserId(userId);
       
+      // Create a default project if none exists
       if (projects.length === 0) {
-        return res.json([]);
+        const defaultProject = await storage.createWeddingProject({
+          userId: userId,
+          name: "My Wedding",
+          description: "Wedding planning project",
+          weddingDate: null,
+          venue: null,
+          budget: null,
+          guestCount: null,
+          status: "planning"
+        });
+        projects = [defaultProject];
       }
       
       const budgetItems = await storage.getBudgetItemsByProjectId(projects[0].id);
@@ -1111,10 +1169,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/tasks", requireAuth, async (req, res) => {
     try {
       const userId = (req as any).userId;
-      const projects = await storage.getWeddingProjectsByUserId(userId);
+      let projects = await storage.getWeddingProjectsByUserId(userId);
       
+      // Create a default project if none exists
       if (projects.length === 0) {
-        return res.json([]);
+        const defaultProject = await storage.createWeddingProject({
+          userId: userId,
+          name: "My Wedding",
+          description: "Wedding planning project", 
+          weddingDate: null,
+          venue: null,
+          budget: null,
+          guestCount: null,
+          status: "planning"
+        });
+        projects = [defaultProject];
       }
       
       const tasks = await storage.getTasksByProjectId(projects[0].id);
