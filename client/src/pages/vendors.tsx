@@ -158,8 +158,8 @@ export default function Vendors() {
   const filteredVendors = (vendors || []).filter(vendor => {
     const matchesSearch = vendor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          vendor.category.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = !filterCategory || vendor.category === filterCategory;
-    const matchesStatus = !filterStatus || vendor.status === filterStatus;
+    const matchesCategory = !filterCategory || filterCategory === 'all' || vendor.category === filterCategory;
+    const matchesStatus = !filterStatus || filterStatus === 'all' || vendor.status === filterStatus;
     return matchesSearch && matchesCategory && matchesStatus;
   });
 
@@ -384,7 +384,7 @@ export default function Vendors() {
                       <SelectValue placeholder="All Categories" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All Categories</SelectItem>
+                      <SelectItem value="all">All Categories</SelectItem>
                       {vendorCategories.filter(Boolean).map(category => (
                         <SelectItem key={category} value={category}>{category}</SelectItem>
                       ))}
@@ -395,7 +395,7 @@ export default function Vendors() {
                       <SelectValue placeholder="All Status" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All Status</SelectItem>
+                      <SelectItem value="all">All Status</SelectItem>
                       <SelectItem value="booked">Booked</SelectItem>
                       <SelectItem value="contacted">Contacted</SelectItem>
                       <SelectItem value="pending">Pending</SelectItem>

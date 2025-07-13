@@ -37,7 +37,7 @@ export default function SearchFilterBar({
 
   const clearAllFilters = () => {
     onSearchChange("");
-    filters.forEach(filter => filter.onChange(""));
+    filters.forEach(filter => filter.onChange("all"));
   };
 
   return (
@@ -108,8 +108,8 @@ export default function SearchFilterBar({
                   <SelectValue placeholder={`Select ${filter.label.toLowerCase()}`} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All {filter.label}s</SelectItem>
-                  {filter.options.filter(opt => opt.value).map((option) => (
+                  <SelectItem value="all">All {filter.label}s</SelectItem>
+                  {filter.options.filter(opt => opt.value && opt.value.trim() !== '').map((option) => (
                     <SelectItem key={option.value} value={option.value}>
                       {option.label}
                     </SelectItem>

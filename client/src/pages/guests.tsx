@@ -133,8 +133,8 @@ export default function Guests() {
   const filteredGuests = (guests || []).filter((guest: any) => {
     const matchesSearch = guest.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          (guest.email && guest.email.toLowerCase().includes(searchTerm.toLowerCase()));
-    const matchesGroup = !filterGroup || guest.group === filterGroup;
-    const matchesRsvp = !filterRsvp || guest.rsvpStatus === filterRsvp;
+    const matchesGroup = !filterGroup || filterGroup === 'all' || guest.group === filterGroup;
+    const matchesRsvp = !filterRsvp || filterRsvp === 'all' || guest.rsvpStatus === filterRsvp;
     return matchesSearch && matchesGroup && matchesRsvp;
   });
 
@@ -171,8 +171,8 @@ export default function Guests() {
       label: 'All Guests',
       value: 'all',
       count: totalGuests,
-      active: !filterRsvp,
-      onClick: () => setFilterRsvp('')
+      active: !filterRsvp || filterRsvp === 'all',
+      onClick: () => setFilterRsvp('all')
     },
     {
       label: 'Accepted',
@@ -619,7 +619,7 @@ export default function Guests() {
                       <SelectValue placeholder="All Groups" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All Groups</SelectItem>
+                      <SelectItem value="all">All Groups</SelectItem>
                       {groups.map(group => (
                         <SelectItem key={group} value={group}>{group}</SelectItem>
                       ))}
@@ -630,7 +630,7 @@ export default function Guests() {
                       <SelectValue placeholder="All RSVPs" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All RSVPs</SelectItem>
+                      <SelectItem value="all">All RSVPs</SelectItem>
                       <SelectItem value="accepted">Accepted</SelectItem>
                       <SelectItem value="pending">Pending</SelectItem>
                       <SelectItem value="declined">Declined</SelectItem>
