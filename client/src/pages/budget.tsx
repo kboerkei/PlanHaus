@@ -589,6 +589,104 @@ export default function Budget() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Edit Budget Item Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Edit Budget Item</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-category">Category</Label>
+              <Select value={editForm.category} onValueChange={(value) => setEditForm({ ...editForm, category: value })}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="venue">Venue</SelectItem>
+                  <SelectItem value="catering">Catering</SelectItem>
+                  <SelectItem value="photography">Photography</SelectItem>
+                  <SelectItem value="music">Music & Entertainment</SelectItem>
+                  <SelectItem value="flowers">Flowers & Decorations</SelectItem>
+                  <SelectItem value="attire">Attire</SelectItem>
+                  <SelectItem value="transportation">Transportation</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-item">Item Name</Label>
+              <Input
+                id="edit-item"
+                placeholder="e.g., Wedding venue deposit"
+                value={editForm.item}
+                onChange={(e) => setEditForm({ ...editForm, item: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-estimated-cost">Estimated Cost</Label>
+              <Input
+                id="edit-estimated-cost"
+                type="number"
+                placeholder="2500.00"
+                value={editForm.estimatedCost}
+                onChange={(e) => setEditForm({ ...editForm, estimatedCost: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-actual-cost">Actual Cost</Label>
+              <Input
+                id="edit-actual-cost"
+                type="number"
+                placeholder="2500.00"
+                value={editForm.actualCost}
+                onChange={(e) => setEditForm({ ...editForm, actualCost: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-vendor">Vendor (Optional)</Label>
+              <Input
+                id="edit-vendor"
+                placeholder="e.g., Austin Wedding Venues"
+                value={editForm.vendor}
+                onChange={(e) => setEditForm({ ...editForm, vendor: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-notes">Notes (Optional)</Label>
+              <Input
+                id="edit-notes"
+                placeholder="Additional notes"
+                value={editForm.notes}
+                onChange={(e) => setEditForm({ ...editForm, notes: e.target.value })}
+              />
+            </div>
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="edit-paid"
+                checked={editForm.isPaid}
+                onChange={(e) => setEditForm({ ...editForm, isPaid: e.target.checked })}
+                className="rounded border-gray-300"
+              />
+              <Label htmlFor="edit-paid">Mark as paid</Label>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleUpdateBudgetItem}
+              disabled={!editForm.item || !editForm.estimatedCost || editBudgetMutation.isPending}
+              className="gradient-blush-rose text-white"
+            >
+              {editBudgetMutation.isPending ? "Updating..." : "Update Item"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
