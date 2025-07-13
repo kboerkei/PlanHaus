@@ -43,7 +43,7 @@ function Router({ user, onLogout, isNewUser, onIntakeComplete }: { user: any; on
     <div className="flex h-screen">
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
-        <Header user={user} onLogout={handleLogout} />
+        <Header user={user} onLogout={onLogout} />
         <main className="flex-1 overflow-auto">
           <Switch>
             <Route path="/" component={Dashboard} />
@@ -80,15 +80,11 @@ function App() {
     const storedSessionId = localStorage.getItem('sessionId');
     const storedUser = localStorage.getItem('user');
     
-    console.log('App useEffect - storedSessionId:', storedSessionId);
-    console.log('App useEffect - storedUser:', storedUser);
-    
     if (storedSessionId && storedUser) {
       try {
         const userData = JSON.parse(storedUser);
         setSessionId(storedSessionId);
         setUser(userData);
-        console.log('App useEffect - Setting user:', userData);
       } catch (error) {
         console.error('Error parsing stored user data:', error);
         localStorage.removeItem('sessionId');
@@ -108,7 +104,6 @@ function App() {
   };
 
   const handleLogout = () => {
-    console.log('Logging out user');
     setUser(null);
     setSessionId(null);
     setIsNewUser(false);
@@ -118,7 +113,6 @@ function App() {
 
   // Force clear session for testing
   const handleForceClear = () => {
-    console.log('Force clearing session');
     localStorage.clear();
     setUser(null);
     setSessionId(null);
@@ -159,21 +153,16 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <div className="min-h-screen bg-gray-50">
-          {(() => {
-            console.log('App render - user:', user);
-            console.log('App render - sessionId:', sessionId);
-            console.log('App render - showing auth?', !user || !sessionId);
-            return user && sessionId ? (
-              <Router 
-                user={user} 
-                onLogout={handleLogout} 
-                isNewUser={isNewUser}
-                onIntakeComplete={handleIntakeComplete}
-              />
-            ) : (
-              <Auth onAuth={handleAuth} />
-            );
-          })()}
+          {user && sessionId ? (
+            <Router 
+              user={user} 
+              onLogout={handleLogout} 
+              isNewUser={isNewUser}
+              onIntakeComplete={handleIntakeComplete}
+            />
+          ) : (
+            <Auth onAuth={handleAuth} />
+          )}
         </div>
         <Toaster />
       </TooltipProvider>
