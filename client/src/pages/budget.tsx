@@ -147,8 +147,13 @@ export default function Budget() {
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold text-gray-800">
-                    ${totalBudget.toLocaleString()}
+                    {totalBudget > 0 ? `$${totalBudget.toLocaleString()}` : 'Not Set'}
                   </div>
+                  {totalBudget === 0 && (
+                    <div className="text-sm text-gray-500 mt-1">
+                      Complete your intake form to set budget
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 
@@ -163,10 +168,12 @@ export default function Budget() {
                   <div className="text-2xl font-bold text-gray-800">
                     ${totalSpent.toLocaleString()}
                   </div>
-                  <Progress 
-                    value={totalBudget > 0 ? (totalSpent / totalBudget) * 100 : 0} 
-                    className="mt-2"
-                  />
+                  {totalBudget > 0 && (
+                    <Progress 
+                      value={(totalSpent / totalBudget) * 100} 
+                      className="mt-2"
+                    />
+                  )}
                 </CardContent>
               </Card>
 
@@ -181,9 +188,11 @@ export default function Budget() {
                   <div className="text-2xl font-bold text-gray-800">
                     ${remaining.toLocaleString()}
                   </div>
-                  <div className="text-sm text-gray-600 mt-1">
-                    {totalBudget > 0 ? Math.round(((totalBudget - totalSpent) / totalBudget) * 100) : 0}% of budget
-                  </div>
+                  {totalBudget > 0 && (
+                    <div className="text-sm text-gray-600 mt-1">
+                      {Math.round(((totalBudget - totalSpent) / totalBudget) * 100)}% of budget
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </div>
@@ -222,13 +231,17 @@ export default function Budget() {
                           <div className="flex items-center space-x-4 text-sm text-gray-600">
                             <span>Estimated: ${item.estimated.toLocaleString()}</span>
                             <span>Actual: ${item.actual.toLocaleString()}</span>
-                            <span>{item.percentage}% of budget</span>
+                            {totalBudget > 0 && item.estimated > 0 && (
+                              <span>{item.percentage}% of budget</span>
+                            )}
                           </div>
                           
-                          <Progress 
-                            value={item.estimated > 0 ? (item.actual / item.estimated) * 100 : 0} 
-                            className="mt-2"
-                          />
+                          {item.estimated > 0 && (
+                            <Progress 
+                              value={(item.actual / item.estimated) * 100} 
+                              className="mt-2"
+                            />
+                          )}
                         </div>
                       </div>
                     ))}
