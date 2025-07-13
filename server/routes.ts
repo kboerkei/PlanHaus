@@ -593,6 +593,77 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update guest endpoint
+  app.patch("/api/guests/:id", requireAuth, async (req, res) => {
+    try {
+      const guestId = parseInt(req.params.id);
+      const userId = (req as any).userId;
+      
+      // Validate partial guest data
+      const updateData = {
+        ...req.body,
+        // Convert date strings to Date objects if provided
+        ...(req.body.checkInDate && { checkInDate: new Date(req.body.checkInDate) }),
+        ...(req.body.checkOutDate && { checkOutDate: new Date(req.body.checkOutDate) })
+      };
+      
+      const updatedGuest = await storage.updateGuest(guestId, updateData);
+      
+      if (!updatedGuest) {
+        return res.status(404).json({ message: "Guest not found" });
+      }
+
+      // Create activity
+      await storage.createActivity({
+        projectId: updatedGuest.projectId,
+        userId,
+        action: 'updated guest',
+        target: 'guest',
+        targetId: updatedGuest.id,
+        details: { guestName: updatedGuest.name }
+      });
+
+      websocketService?.notifyGuestUpdate(updatedGuest.projectId, updatedGuest, 'updated', userId);
+
+      res.json(updatedGuest);
+    } catch (error) {
+      console.error('Error updating guest:', error);
+      res.status(400).json({ message: "Failed to update guest" });
+    }
+  });
+
+  // Update guest RSVP status endpoint
+  app.patch("/api/guests/:id/rsvp", requireAuth, async (req, res) => {
+    try {
+      const guestId = parseInt(req.params.id);
+      const { rsvpStatus } = req.body;
+      const userId = (req as any).userId;
+      
+      const updatedGuest = await storage.updateGuestRsvp(guestId, rsvpStatus);
+      
+      if (!updatedGuest) {
+        return res.status(404).json({ message: "Guest not found" });
+      }
+
+      // Create activity
+      await storage.createActivity({
+        projectId: updatedGuest.projectId,
+        userId,
+        action: 'updated RSVP',
+        target: 'guest',
+        targetId: updatedGuest.id,
+        details: { guestName: updatedGuest.name, rsvpStatus }
+      });
+
+      websocketService?.notifyGuestUpdate(updatedGuest.projectId, updatedGuest, 'updated', userId);
+
+      res.json(updatedGuest);
+    } catch (error) {
+      console.error('Error updating RSVP:', error);
+      res.status(400).json({ message: "Failed to update RSVP status" });
+    }
+  });
+
   // Guest import endpoint
   app.post("/api/guests/import", requireAuth, upload.single('file'), async (req, res) => {
     try {
@@ -1614,14 +1685,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Quick actions endpoint
+  // Quick actions endpoint (smart actions)
   app.get("/api/dashboard/quick-actions", requireAuth, async (req, res) => {
     try {
       const userId = (req as any).userId;
       const projects = await storage.getWeddingProjectsByUserId(userId);
       
       if (projects.length === 0) {
-        return res.json([]);
+        return res.json([
+          {
+            id: 'get-started',
+            title: 'Start Planning',
+            description: 'Complete your wedding intake form to get personalized recommendations',
+            category: 'getting_started',
+            urgent: false,
+            icon: 'sparkles',
+            color: 'bg-blush/10 text-blush',
+            action: '/intake'
+          }
+        ]);
       }
 
       const projectId = projects[0].id;
@@ -1634,99 +1716,166 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const budgetItems = await storage.getBudgetItemsByProjectId(projectId);
 
       const actions = [];
+      const now = new Date();
+      const oneWeekFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
 
       // Check for overdue tasks
       const overdueTasks = tasks.filter(t => {
         if (!t.dueDate || t.status === 'completed') return false;
         const dueDate = new Date(t.dueDate);
-        const today = new Date();
-        return dueDate < today;
+        return dueDate < now;
       });
 
       if (overdueTasks.length > 0) {
         actions.push({
           id: 'overdue-tasks',
           title: 'Review Overdue Tasks',
-          description: `${overdueTasks.length} tasks are overdue`,
+          description: `${overdueTasks.length} task${overdueTasks.length > 1 ? 's are' : ' is'} overdue`,
           category: 'urgent',
           urgent: true,
-          icon: 'calendar',
-          color: 'bg-red-100 text-red-600'
+          icon: 'alert-triangle',
+          color: 'bg-red-100 text-red-600',
+          action: '/timeline'
         });
       }
 
-      // Check budget usage
-      const budgetSpent = budgetItems.reduce((sum, item) => sum + (parseFloat(item.actualCost || '0')), 0);
-      const budgetTotal = parseFloat(project.budget || '0');
-      if (budgetTotal > 0 && (budgetSpent / budgetTotal) > 0.8) {
+      // Check for upcoming deadlines
+      const upcomingTasks = tasks.filter(t => {
+        if (!t.dueDate || t.status === 'completed') return false;
+        const dueDate = new Date(t.dueDate);
+        return dueDate >= now && dueDate <= oneWeekFromNow;
+      });
+
+      if (upcomingTasks.length > 0) {
+        actions.push({
+          id: 'upcoming-deadlines',
+          title: 'Upcoming Deadlines',
+          description: `${upcomingTasks.length} task${upcomingTasks.length > 1 ? 's' : ''} due this week`,
+          category: 'important',
+          urgent: false,
+          icon: 'clock',
+          color: 'bg-amber-100 text-amber-600',
+          action: '/timeline'
+        });
+      }
+
+      // Check budget status
+      const totalBudget = parseFloat(project.budget || '0');
+      const totalSpent = budgetItems.reduce((sum, item) => sum + parseFloat(item.actualCost || '0'), 0);
+      const budgetUsage = totalBudget > 0 ? (totalSpent / totalBudget) * 100 : 0;
+
+      if (budgetUsage > 90) {
         actions.push({
           id: 'budget-warning',
-          title: 'Budget Review Needed',
-          description: 'You\'ve used 80%+ of your budget',
-          category: 'budget',
+          title: 'Budget Alert',
+          description: `${budgetUsage.toFixed(1)}% of budget used`,
+          category: 'urgent',
           urgent: true,
-          icon: 'dollar',
-          color: 'bg-orange-100 text-orange-600'
+          icon: 'dollar-sign',
+          color: 'bg-red-100 text-red-600',
+          action: '/budget'
         });
-      }
-
-      // Check for pending RSVPs
-      const pendingRsvps = guests.filter(g => g.rsvpStatus === 'pending');
-      if (pendingRsvps.length > 0) {
+      } else if (budgetUsage > 75) {
         actions.push({
-          id: 'follow-up-rsvps',
-          title: 'Follow Up on RSVPs',
-          description: `${pendingRsvps.length} guests haven't responded`,
-          category: 'guests',
-          icon: 'users',
-          color: 'bg-blue-100 text-blue-600'
+          id: 'budget-check',
+          title: 'Budget Check',
+          description: `${budgetUsage.toFixed(1)}% of budget used - monitor spending`,
+          category: 'important',
+          urgent: false,
+          icon: 'trending-up',
+          color: 'bg-amber-100 text-amber-600',
+          action: '/budget'
         });
       }
 
-      // Suggest vendor bookings
-      const unbookedVendors = vendors.filter(v => v.status !== 'booked');
-      if (unbookedVendors.length > 0) {
+      // Check vendor status
+      const pendingVendors = vendors.filter(v => v.status === 'pending');
+      if (pendingVendors.length > 0) {
         actions.push({
-          id: 'book-vendors',
-          title: 'Book Vendors',
-          description: `${unbookedVendors.length} vendors need booking`,
-          category: 'vendors',
-          icon: 'building',
-          color: 'bg-purple-100 text-purple-600'
+          id: 'vendor-followup',
+          title: 'Vendor Follow-up',
+          description: `${pendingVendors.length} vendor${pendingVendors.length > 1 ? 's' : ''} pending response`,
+          category: 'recommended',
+          urgent: false,
+          icon: 'users',
+          color: 'bg-blue-100 text-blue-600',
+          action: '/vendors'
         });
       }
 
-      // Always available actions
-      actions.push(
-        {
-          id: 'add-guest',
-          title: 'Add Guest',
-          description: 'Add someone to your guest list',
-          category: 'guests',
-          icon: 'users',
-          color: 'bg-green-100 text-green-600'
-        },
-        {
-          id: 'add-vendor',
-          title: 'Add Vendor',
-          description: 'Find a new vendor',
-          category: 'vendors',
-          icon: 'building',
-          color: 'bg-indigo-100 text-indigo-600'
-        },
-        {
-          id: 'add-task',
-          title: 'Add Task',
-          description: 'Create a new to-do item',
-          category: 'planning',
-          icon: 'calendar',
-          color: 'bg-yellow-100 text-yellow-600'
+      // Check RSVP status
+      const pendingRSVPs = guests.filter(g => g.rsvpStatus === 'pending');
+      if (pendingRSVPs.length > 5) {
+        actions.push({
+          id: 'rsvp-reminder',
+          title: 'RSVP Reminders',
+          description: `${pendingRSVPs.length} guests haven't responded`,
+          category: 'recommended',
+          urgent: false,
+          icon: 'mail',
+          color: 'bg-purple-100 text-purple-600',
+          action: '/guests'
+        });
+      }
+
+      // Smart suggestions based on wedding timeline
+      const daysUntilWedding = project.date ? Math.ceil((new Date(project.date).getTime() - now.getTime()) / (1000 * 60 * 60 * 24)) : null;
+      
+      if (daysUntilWedding && daysUntilWedding < 30) {
+        actions.push({
+          id: 'final-month',
+          title: 'Final Month Tasks',
+          description: 'Wedding is less than 30 days away - finalize everything',
+          category: 'urgent',
+          urgent: true,
+          icon: 'star',
+          color: 'bg-pink-100 text-pink-600',
+          action: '/timeline'
+        });
+      } else if (daysUntilWedding && daysUntilWedding < 90) {
+        actions.push({
+          id: 'three-month-prep',
+          title: '3-Month Preparation',
+          description: 'Start finalizing vendor details and timeline',
+          category: 'important',
+          urgent: false,
+          icon: 'calendar-days',
+          color: 'bg-indigo-100 text-indigo-600',
+          action: '/timeline'
+        });
+      }
+
+      // If no urgent actions, suggest productive next steps
+      if (actions.length === 0) {
+        if (tasks.filter(t => t.status === 'completed').length === 0) {
+          actions.push({
+            id: 'first-task',
+            title: 'Get Started',
+            description: 'Complete your first wedding planning task',
+            category: 'getting_started',
+            urgent: false,
+            icon: 'play',
+            color: 'bg-green-100 text-green-600',
+            action: '/timeline'
+          });
+        } else {
+          actions.push({
+            id: 'all-good',
+            title: 'Great Progress!',
+            description: 'Everything looks on track - keep up the good work',
+            category: 'success',
+            urgent: false,
+            icon: 'check-circle',
+            color: 'bg-green-100 text-green-600',
+            action: '/dashboard'
+          });
         }
-      );
+      }
 
-      res.json(actions);
+      res.json(actions.slice(0, 6)); // Limit to 6 actions
     } catch (error) {
-      res.status(500).json({ message: "Failed to fetch quick actions" });
+      console.error('Quick actions error:', error);
+      res.status(500).json({ message: 'Failed to fetch quick actions' });
     }
   });
 

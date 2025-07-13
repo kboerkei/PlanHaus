@@ -45,10 +45,12 @@ export const tasks = pgTable("tasks", {
   priority: text("priority"), // 'high', 'medium', 'low'
   status: text("status").notNull().default('pending'), // 'pending', 'in_progress', 'completed'
   dueDate: timestamp("due_date"),
-  assignedTo: integer("assigned_to"),
+  assignedTo: text("assigned_to"), // Name of person assigned to task
+  notes: text("notes"), // General notes about the task
   createdBy: integer("created_by").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   completedAt: timestamp("completed_at"),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
 export const guests = pgTable("guests", {
@@ -131,6 +133,17 @@ export const timelineEvents = pgTable("timeline_events", {
   vendorId: integer("vendor_id"),
   createdBy: integer("created_by").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const taskNotes = pgTable("task_notes", {
+  id: serial("id").primaryKey(),
+  taskId: integer("task_id").references(() => tasks.id).notNull(),
+  projectId: integer("project_id").notNull(),
+  content: text("content").notNull(),
+  authorId: integer("author_id").notNull(),
+  authorName: text("author_name").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
 export const inspirationItems = pgTable("inspiration_items", {
@@ -243,6 +256,13 @@ export const insertTaskSchema = createInsertSchema(tasks).omit({
   id: true,
   createdAt: true,
   completedAt: true,
+  updatedAt: true,
+});
+
+export const insertTaskNoteSchema = createInsertSchema(taskNotes).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
 });
 
 export const insertGuestSchema = createInsertSchema(guests).omit({
