@@ -22,6 +22,7 @@ export interface IStorage {
   createWeddingProject(project: InsertWeddingProject): Promise<WeddingProject>;
   getWeddingProjectById(id: number): Promise<WeddingProject | undefined>;
   getWeddingProjectsByUserId(userId: number): Promise<WeddingProject[]>;
+  getWeddingProjectByUserId(userId: number): Promise<WeddingProject | undefined>;
   updateWeddingProject(id: number, updates: Partial<InsertWeddingProject>): Promise<WeddingProject | undefined>;
 
   // Collaborators
@@ -547,6 +548,11 @@ export class DatabaseStorage implements IStorage {
 
   async getWeddingProjectsByUserId(userId: number): Promise<WeddingProject[]> {
     return await db.select().from(weddingProjects).where(eq(weddingProjects.createdBy, userId));
+  }
+
+  async getWeddingProjectByUserId(userId: number): Promise<WeddingProject | undefined> {
+    const [project] = await db.select().from(weddingProjects).where(eq(weddingProjects.createdBy, userId));
+    return project || undefined;
   }
 
   async updateWeddingProject(id: number, updates: Partial<InsertWeddingProject>): Promise<WeddingProject | undefined> {

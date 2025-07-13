@@ -843,6 +843,122 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Mark user as having completed intake
       await storage.markUserIntakeComplete(userId);
       
+      // Create default wedding project for the user
+      let project = await storage.getWeddingProjectByUserId(userId);
+      if (!project) {
+        const projectData = {
+          name: `${intake.partner1FirstName || 'Our'} Wedding`,
+          weddingDate: intake.weddingDate,
+          createdBy: userId,
+          budget: intake.totalBudget ? parseFloat(intake.totalBudget) : null,
+          guestCount: intake.estimatedGuests || null,
+          theme: intake.overallVibe || null,
+          venue: intake.ceremonyLocation || null,
+        };
+        project = await storage.createWeddingProject(projectData);
+      }
+      
+      // Add key people to guest list
+      const keyPeople: Array<{name: string, role: string}> = [
+        ...(intake.vips || []),
+        ...(intake.weddingParty || [])
+      ];
+      
+      for (const person of keyPeople) {
+        if (person.name && person.name.trim()) {
+          try {
+            const guestData = {
+              projectId: project.id,
+              firstName: person.name.split(' ')[0] || person.name,
+              lastName: person.name.split(' ').slice(1).join(' ') || '',
+              email: '',
+              phone: '',
+              address: '',
+              rsvpStatus: 'pending' as const,
+              guestType: person.role === 'Maid of Honor' || person.role === 'Best Man' || 
+                         person.role === 'Bridesmaid' || person.role === 'Groomsman' ? 'wedding_party' as const : 'vip' as const,
+              dietaryRestrictions: '',
+              notes: `Role: ${person.role}`,
+              plusOneAllowed: false,
+              hotelInfo: '',
+              addedBy: userId
+            };
+            await storage.createGuest(guestData);
+          } catch (guestError) {
+            console.error('Error adding guest:', guestError);
+          }
+        }
+      }
+
+      // Create initial budget breakdown if budget provided
+      if (intake.totalBudget && parseFloat(intake.totalBudget) > 0) {
+        const totalBudget = parseFloat(intake.totalBudget);
+        const budgetCategories = [
+          { category: 'Venue', percentage: 40 },
+          { category: 'Catering', percentage: 30 },
+          { category: 'Photography', percentage: 10 },
+          { category: 'Music/Entertainment', percentage: 8 },
+          { category: 'Flowers & Decor', percentage: 8 },
+          { category: 'Attire', percentage: 4 }
+        ];
+
+        for (const budgetCategory of budgetCategories) {
+          try {
+            const budgetData = {
+              projectId: project.id,
+              category: budgetCategory.category,
+              item: `${budgetCategory.category} Budget`,
+              estimatedCost: Math.round(totalBudget * (budgetCategory.percentage / 100)),
+              actualCost: null,
+              vendor: '',
+              notes: `Auto-generated from intake (${budgetCategory.percentage}% of total budget)`,
+              isPaid: false,
+              dueDate: intake.weddingDate,
+              createdBy: userId
+            };
+            await storage.createBudgetItem(budgetData);
+          } catch (budgetError) {
+            console.error('Error creating budget item:', budgetError);
+          }
+        }
+      }
+
+      // Create initial timeline milestones if wedding date provided
+      if (intake.weddingDate) {
+        const weddingDate = new Date(intake.weddingDate);
+        const timelineTasks = [
+          { title: 'Book Ceremony Venue', weeksBeforeWedding: 52, priority: 'high' as const },
+          { title: 'Book Reception Venue', weeksBeforeWedding: 52, priority: 'high' as const },
+          { title: 'Send Save the Dates', weeksBeforeWedding: 24, priority: 'medium' as const },
+          { title: 'Order Wedding Dress', weeksBeforeWedding: 20, priority: 'high' as const },
+          { title: 'Book Photographer', weeksBeforeWedding: 16, priority: 'high' as const },
+          { title: 'Send Wedding Invitations', weeksBeforeWedding: 8, priority: 'high' as const },
+          { title: 'Final Guest Count', weeksBeforeWedding: 2, priority: 'high' as const },
+          { title: 'Wedding Rehearsal', weeksBeforeWedding: 0, priority: 'high' as const }
+        ];
+
+        for (const task of timelineTasks) {
+          try {
+            const dueDate = new Date(weddingDate);
+            dueDate.setDate(dueDate.getDate() - (task.weeksBeforeWedding * 7));
+            
+            const timelineData = {
+              projectId: project.id,
+              title: task.title,
+              description: `Important milestone for your ${intake.overallVibe || 'dream'} wedding`,
+              dueDate: dueDate,
+              category: 'Planning',
+              priority: task.priority,
+              isCompleted: false,
+              createdBy: userId
+            };
+            await storage.createTimelineEvent(timelineData);
+          } catch (timelineError) {
+            console.error('Error creating timeline event:', timelineError);
+          }
+        }
+      }
+      
       res.json(intake);
     } catch (error) {
       console.error("Error saving intake data:", error);

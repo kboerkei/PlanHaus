@@ -130,6 +130,7 @@ export default function Intake({ onComplete }: IntakeProps) {
 
   const [newMustHave, setNewMustHave] = useState("");
   const [newPinterestBoard, setNewPinterestBoard] = useState("");
+  const [newColorPalette, setNewColorPalette] = useState("");
 
   const submitIntakeMutation = useMutation({
     mutationFn: (data: IntakeFormData) => {
@@ -145,11 +146,11 @@ export default function Intake({ onComplete }: IntakeProps) {
         partner2Email: data.coupleInfo.partner2.email,
         partner2Role: data.coupleInfo.partner2.role,
         hasWeddingPlanner: data.coupleInfo.hasWeddingPlanner,
-        weddingDate: data.weddingBasics.weddingDate,
+        weddingDate: data.weddingBasics.weddingDate ? new Date(data.weddingBasics.weddingDate) : null,
         ceremonyLocation: data.weddingBasics.ceremonyLocation,
         receptionLocation: data.weddingBasics.receptionLocation,
         estimatedGuests: data.weddingBasics.estimatedGuests,
-        totalBudget: data.weddingBasics.totalBudget,
+        totalBudget: data.weddingBasics.totalBudget.toString(),
         overallVibe: data.styleVision.overallVibe,
         colorPalette: data.styleVision.colorPalette,
         mustHaveElements: data.styleVision.mustHaveElements,
@@ -207,6 +208,23 @@ export default function Intake({ onComplete }: IntakeProps) {
     }
 
     submitIntakeMutation.mutate(formData);
+  };
+
+  const addColorPalette = () => {
+    if (newColorPalette.trim()) {
+      setFormData(prev => ({
+        ...prev,
+        styleVision: { ...prev.styleVision, colorPalette: newColorPalette.trim() }
+      }));
+      setNewColorPalette("");
+    }
+  };
+
+  const clearColorPalette = () => {
+    setFormData(prev => ({
+      ...prev,
+      styleVision: { ...prev.styleVision, colorPalette: "" }
+    }));
   };
 
   const addMustHaveElement = () => {
@@ -656,16 +674,33 @@ export default function Intake({ onComplete }: IntakeProps) {
 
             {/* Color Palette */}
             <div>
-              <Label htmlFor="color-palette">Color Palette</Label>
-              <Input
-                id="color-palette"
-                placeholder="e.g., Blush pink, sage green, gold accents"
-                value={formData.styleVision.colorPalette}
-                onChange={(e) => setFormData(prev => ({
-                  ...prev,
-                  styleVision: { ...prev.styleVision, colorPalette: e.target.value }
-                }))}
-              />
+              <Label>Color Palette</Label>
+              <div className="flex gap-2 mb-2">
+                <Input
+                  placeholder="e.g., Blush pink, sage green, gold accents"
+                  value={newColorPalette}
+                  onChange={(e) => setNewColorPalette(e.target.value)}
+                />
+                <Button type="button" onClick={addColorPalette}>
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
+              {formData.styleVision.colorPalette && (
+                <div className="bg-gradient-to-r from-blush/10 to-rose/10 p-3 rounded-lg border border-blush/20">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">{formData.styleVision.colorPalette}</span>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      onClick={clearColorPalette}
+                      className="h-6 w-6 p-0"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Must-Have Elements */}
