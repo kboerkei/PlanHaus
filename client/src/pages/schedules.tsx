@@ -69,7 +69,7 @@ export default function Schedules() {
   });
 
   const { data: schedules = [], isLoading, error } = useQuery({
-    queryKey: ['/api/schedules']
+    queryKey: ['/api/projects', '1', 'schedules']
   });
 
   const { data: events = [] } = useQuery({

@@ -1879,6 +1879,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Schedules API
+  app.get("/api/schedules", requireAuth, async (req, res) => {
+    try {
+      const userId = (req as any).userId;
+      let projects = await storage.getWeddingProjectsByUserId(userId);
+      
+      if (projects.length === 0) {
+        return res.json([]);
+      }
+      
+      const schedules = await storage.getSchedulesByProjectId(projects[0].id);
+      res.json(schedules);
+    } catch (error) {
+      console.error('Get schedules error:', error);
+      res.status(500).json({ message: 'Failed to get schedules' });
+    }
+  });
+
+  app.post("/api/schedules", requireAuth, async (req, res) => {
+    try {
+      const userId = (req as any).userId;
+      let projects = await storage.getWeddingProjectsByUserId(userId);
+      
+      if (projects.length === 0) {
+        const newProject = await storage.createWeddingProject({
+          name: "My Wedding",
+          date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+          createdBy: userId,
+        });
+        projects = [newProject];
+      }
+      
+      const scheduleData = {
+        ...req.body,
+        projectId: projects[0].id,
+        createdBy: userId
+      };
+      
+      const schedule = await storage.createSchedule(scheduleData);
+      res.json(schedule);
+    } catch (error) {
+      console.error('Create schedule error:', error);
+      res.status(500).json({ message: 'Failed to create schedule' });
+    }
+  });
+
   // Budget items API
   app.get("/api/budget-items", requireAuth, async (req, res) => {
     try {
