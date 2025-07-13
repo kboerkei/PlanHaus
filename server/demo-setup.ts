@@ -13,15 +13,26 @@ export async function setupDemoData() {
       avatar: null,
     });
   } else {
-    // Demo user exists, demo data already set up - skip
-    return;
+    // Demo user exists - check if we need to update to Austin farmhouse demo
+    console.log("Demo user exists, checking for Austin farmhouse wedding project...");
   }
 
-  // Check if demo project already exists
+  // Force creation of Austin farmhouse wedding if it doesn't exist
+
+  // Check if Austin farmhouse demo project exists
   const existingProjects = await storage.getWeddingProjectsByUserId(demoUser.id);
   let demoProject = existingProjects.find(p => p.name === "Emma & Jake's Wedding");
   
+  console.log(`Found ${existingProjects.length} existing projects for demo user`);
+  console.log(`Austin farmhouse project exists: ${!!demoProject}`);
+  
   if (!demoProject) {
+    // Check if we have old demo projects to replace
+    const hasOldProjects = existingProjects.length > 0;
+    if (hasOldProjects) {
+      console.log(`Found ${existingProjects.length} old demo projects. Creating Austin farmhouse wedding...`);
+    }
+    
     // Create Austin farmhouse wedding demo project
     demoProject = await storage.createWeddingProject({
       name: "Emma & Jake's Wedding",
@@ -154,7 +165,7 @@ export async function setupDemoData() {
       dietaryRestrictions: "Vegetarian",
       plusOne: true,
       notes: "Emma's college roommate and best friend",
-      createdBy: demoUser.id,
+      addedBy: demoUser.id,
       projectId: demoProject.id,
     });
 
@@ -167,7 +178,7 @@ export async function setupDemoData() {
       rsvpStatus: "confirmed",
       plusOne: true,
       notes: "Jake's brother and groomsman",
-      createdBy: demoUser.id,
+      addedBy: demoUser.id,
       projectId: demoProject.id,
     });
 
@@ -180,7 +191,7 @@ export async function setupDemoData() {
       role: "Parents of Bride",
       rsvpStatus: "confirmed",
       notes: "Emma's parents - hosting rehearsal dinner",
-      createdBy: demoUser.id,
+      addedBy: demoUser.id,
       projectId: demoProject.id,
     });
 
@@ -192,7 +203,7 @@ export async function setupDemoData() {
       role: "Parents of Groom", 
       rsvpStatus: "confirmed",
       notes: "Jake's parents",
-      createdBy: demoUser.id,
+      addedBy: demoUser.id,
       projectId: demoProject.id,
     });
 
@@ -206,7 +217,7 @@ export async function setupDemoData() {
       dietaryRestrictions: "Vegan",
       plusOne: true,
       notes: "College sorority sister",
-      createdBy: demoUser.id,
+      addedBy: demoUser.id,
       projectId: demoProject.id,
     });
 
@@ -217,7 +228,7 @@ export async function setupDemoData() {
       group: "friends", 
       rsvpStatus: "confirmed",
       notes: "College friends - married couple",
-      createdBy: demoUser.id,
+      addedBy: demoUser.id,
       projectId: demoProject.id,
     });
 
@@ -230,7 +241,7 @@ export async function setupDemoData() {
       rsvpStatus: "confirmed",
       hotelInfo: "Staying at Hampton Inn Austin",
       notes: "Coming from Houston",
-      createdBy: demoUser.id,
+      addedBy: demoUser.id,
       projectId: demoProject.id,
     });
   }
