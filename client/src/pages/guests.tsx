@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import Sidebar from "@/components/layout/sidebar";
 import Header from "@/components/layout/header";
 import MobileNav from "@/components/layout/mobile-nav";
@@ -15,6 +16,8 @@ import { Users, Plus, Mail, Phone, MapPin, Search, Download, Filter } from "luci
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 const guestSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -33,64 +36,7 @@ const guestSchema = z.object({
 
 type GuestFormData = z.infer<typeof guestSchema>;
 
-// Mock data - in real app this would come from API
-const mockGuests = [
-  {
-    id: 1,
-    name: "Emily Johnson",
-    email: "emily.johnson@email.com",
-    phone: "(555) 123-4567",
-    group: "Family",
-    rsvpStatus: "accepted",
-    mealPreference: "Vegetarian",
-    plusOne: true,
-    address: "123 Main St, City, State 12345"
-  },
-  {
-    id: 2,
-    name: "Michael Brown",
-    email: "michael.brown@email.com",
-    phone: "(555) 987-6543",
-    group: "Friends",
-    rsvpStatus: "pending",
-    mealPreference: null,
-    plusOne: false,
-    address: "456 Oak Ave, City, State 12345"
-  },
-  {
-    id: 3,
-    name: "Sarah Wilson",
-    email: "sarah.wilson@email.com",
-    phone: "(555) 456-7890",
-    group: "Work",
-    rsvpStatus: "accepted",
-    mealPreference: "Chicken",
-    plusOne: true,
-    address: "789 Pine St, City, State 12345"
-  },
-  {
-    id: 4,
-    name: "David Martinez",
-    email: "david.martinez@email.com",
-    phone: "(555) 321-6547",
-    group: "Family",
-    rsvpStatus: "declined",
-    mealPreference: null,
-    plusOne: false,
-    address: "321 Elm St, City, State 12345"
-  },
-  {
-    id: 5,
-    name: "Jennifer Davis",
-    email: "jennifer.davis@email.com",
-    phone: "(555) 654-3210",
-    group: "Friends",
-    rsvpStatus: "accepted",
-    mealPreference: "Fish",
-    plusOne: true,
-    address: "654 Maple Dr, City, State 12345"
-  }
-];
+
 
 const rsvpStatusColors = {
   accepted: "bg-green-100 text-green-800",
@@ -99,11 +45,21 @@ const rsvpStatusColors = {
 };
 
 export default function Guests() {
-  const [guests, setGuests] = useState(mockGuests);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterGroup, setFilterGroup] = useState("");
   const [filterRsvp, setFilterRsvp] = useState("");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const { toast } = useToast();
+
+  const { data: projects } = useQuery({
+    queryKey: ['/api/projects'],
+    enabled: !!localStorage.getItem('sessionId')
+  });
+
+  const { data: guests = [] } = useQuery({
+    queryKey: ['/api/projects', projects?.[0]?.id, 'guests'],
+    enabled: !!projects?.[0]?.id
+  });
 
   const form = useForm<GuestFormData>({
     resolver: zodResolver(guestSchema),
@@ -131,15 +87,22 @@ export default function Guests() {
     return matchesSearch && matchesGroup && matchesRsvp;
   });
 
+  const createGuestMutation = useMutation({
+    mutationFn: (data: GuestFormData) => apiRequest(`/api/projects/${projects[0].id}/guests`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+      headers: { 'Content-Type': 'application/json' }
+    }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/projects', projects[0].id, 'guests'] });
+      form.reset();
+      setIsAddDialogOpen(false);
+      toast({ title: "Guest added successfully!" });
+    }
+  });
+
   const onSubmit = (data: GuestFormData) => {
-    const newGuest = {
-      id: guests.length + 1,
-      ...data,
-      rsvpStatus: "pending" as const,
-    };
-    setGuests([...guests, newGuest]);
-    form.reset();
-    setIsAddDialogOpen(false);
+    createGuestMutation.mutate(data);
   };
 
   const totalGuests = guests.length;
@@ -348,8 +311,12 @@ export default function Guests() {
                           <Button type="button" variant="outline" onClick={() => setIsAddDialogOpen(false)}>
                             Cancel
                           </Button>
-                          <Button type="submit" className="gradient-blush-rose text-white">
-                            Add Guest
+                          <Button 
+                            type="submit" 
+                            className="gradient-blush-rose text-white"
+                            disabled={createGuestMutation.isPending}
+                          >
+                            {createGuestMutation.isPending ? "Adding..." : "Add Guest"}
                           </Button>
                         </div>
                       </form>

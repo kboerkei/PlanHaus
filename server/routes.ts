@@ -802,11 +802,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const scheduleId = parseInt(req.params.id);
       
+      // Get the schedule to find the projectId
+      const currentSchedule = await storage.getScheduleById(scheduleId);
+      
+      if (!currentSchedule) {
+        return res.status(404).json({ message: "Schedule not found" });
+      }
+      
       // Parse dates properly for schedule events
       const eventData = {
         ...req.body,
         scheduleId,
-        projectId: req.body.projectId || 1, // This should come from the request
+        projectId: currentSchedule.projectId,
         createdBy: req.userId,
         startTime: new Date(`2000-01-01T${req.body.startTime}:00`),
         endTime: req.body.endTime ? new Date(`2000-01-01T${req.body.endTime}:00`) : null,

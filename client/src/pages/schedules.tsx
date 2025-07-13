@@ -120,7 +120,10 @@ export default function Schedules() {
   const createEventMutation = useMutation({
     mutationFn: (data: EventFormData) => apiRequest(`/api/schedules/${selectedSchedule.id}/events`, {
       method: 'POST',
-      body: JSON.stringify(data),
+      body: JSON.stringify({
+        ...data,
+        projectId: projects[0].id
+      }),
       headers: { 'Content-Type': 'application/json' }
     }),
     onSuccess: () => {

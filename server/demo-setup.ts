@@ -38,6 +38,7 @@ export async function setupDemoData() {
   const existingGuests = await storage.getGuestsByProjectId(demoProject.id);
   const existingVendors = await storage.getVendorsByProjectId(demoProject.id);
   const existingBudgetItems = await storage.getBudgetItemsByProjectId(demoProject.id);
+  const existingSchedules = await storage.getSchedulesByProjectId(demoProject.id);
 
   // Add demo tasks only if none exist
   if (existingTasks.length === 0) {
@@ -116,6 +117,96 @@ export async function setupDemoData() {
       estimatedCost: "3000",
       createdBy: demoUser.id,
       projectId: demoProject.id,
+    });
+  }
+
+  // Add demo schedules only if none exist
+  if (existingSchedules.length === 0) {
+    const weddingDaySchedule = await storage.createSchedule({
+      name: "Wedding Day",
+      date: demoProject.date,
+      type: "wedding-day",
+      description: "The main wedding ceremony and reception",
+      location: "Rose Garden Estate",
+      projectId: demoProject.id,
+      createdBy: demoUser.id
+    });
+
+    const rehearsalSchedule = await storage.createSchedule({
+      name: "Rehearsal Dinner",
+      date: new Date(demoProject.date.getTime() - 1 * 24 * 60 * 60 * 1000), // 1 day before wedding
+      type: "rehearsal",
+      description: "Rehearsal dinner with close family and friends",
+      location: "Sunset Terrace Restaurant",
+      projectId: demoProject.id,
+      createdBy: demoUser.id
+    });
+
+    // Add events to wedding day schedule
+    await storage.createScheduleEvent({
+      title: "Hair & Makeup",
+      description: "Bridal party getting ready",
+      startTime: new Date(`2000-01-01T08:00:00`),
+      endTime: new Date(`2000-01-01T11:00:00`),
+      location: "Bridal Suite",
+      type: "preparation",
+      notes: "Professional makeup artist and hair stylist",
+      scheduleId: weddingDaySchedule.id,
+      projectId: demoProject.id,
+      createdBy: demoUser.id
+    });
+
+    await storage.createScheduleEvent({
+      title: "Ceremony",
+      description: "Wedding ceremony in the garden",
+      startTime: new Date(`2000-01-01T16:00:00`),
+      endTime: new Date(`2000-01-01T17:00:00`),
+      location: "Rose Garden",
+      type: "ceremony",
+      notes: "Outdoor ceremony weather permitting",
+      scheduleId: weddingDaySchedule.id,
+      projectId: demoProject.id,
+      createdBy: demoUser.id
+    });
+
+    await storage.createScheduleEvent({
+      title: "Reception",
+      description: "Wedding reception with dinner and dancing",
+      startTime: new Date(`2000-01-01T18:00:00`),
+      endTime: new Date(`2000-01-01T23:00:00`),
+      location: "Grand Ballroom",
+      type: "reception",
+      notes: "Cocktail hour followed by dinner and dancing",
+      scheduleId: weddingDaySchedule.id,
+      projectId: demoProject.id,
+      createdBy: demoUser.id
+    });
+
+    // Add events to rehearsal schedule
+    await storage.createScheduleEvent({
+      title: "Rehearsal",
+      description: "Wedding ceremony rehearsal",
+      startTime: new Date(`2000-01-01T17:00:00`),
+      endTime: new Date(`2000-01-01T18:00:00`),
+      location: "Rose Garden",
+      type: "ceremony",
+      notes: "Practice ceremony with wedding party",
+      scheduleId: rehearsalSchedule.id,
+      projectId: demoProject.id,
+      createdBy: demoUser.id
+    });
+
+    await storage.createScheduleEvent({
+      title: "Rehearsal Dinner",
+      description: "Dinner with close family and friends",
+      startTime: new Date(`2000-01-01T19:00:00`),
+      endTime: new Date(`2000-01-01T22:00:00`),
+      location: "Sunset Terrace Restaurant",
+      type: "reception",
+      notes: "Casual dinner and toasts",
+      scheduleId: rehearsalSchedule.id,
+      projectId: demoProject.id,
+      createdBy: demoUser.id
     });
   }
 

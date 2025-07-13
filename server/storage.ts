@@ -88,6 +88,7 @@ export interface IStorage {
   // Schedules
   createSchedule(schedule: InsertSchedule): Promise<Schedule>;
   getSchedulesByProjectId(projectId: number): Promise<Schedule[]>;
+  getScheduleById(id: number): Promise<Schedule | undefined>;
   updateSchedule(id: number, updates: Partial<InsertSchedule>): Promise<Schedule | undefined>;
   deleteSchedule(id: number): Promise<boolean>;
 
@@ -814,6 +815,11 @@ export class DatabaseStorage implements IStorage {
 
   async getSchedulesByProjectId(projectId: number): Promise<Schedule[]> {
     return await db.select().from(schedules).where(eq(schedules.projectId, projectId));
+  }
+
+  async getScheduleById(id: number): Promise<Schedule | undefined> {
+    const [schedule] = await db.select().from(schedules).where(eq(schedules.id, id));
+    return schedule || undefined;
   }
 
   async updateSchedule(id: number, updates: Partial<InsertSchedule>): Promise<Schedule | undefined> {
