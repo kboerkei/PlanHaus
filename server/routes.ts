@@ -1027,5 +1027,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Wedding projects API
+  app.get("/api/wedding-projects", requireAuth, async (req, res) => {
+    try {
+      const userId = (req as any).userId;
+      const projects = await storage.getWeddingProjectsByUserId(userId);
+      res.json(projects);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch wedding projects" });
+    }
+  });
+
+  // Budget items API
+  app.get("/api/budget-items", requireAuth, async (req, res) => {
+    try {
+      const userId = (req as any).userId;
+      const projects = await storage.getWeddingProjectsByUserId(userId);
+      
+      if (projects.length === 0) {
+        return res.json([]);
+      }
+      
+      const budgetItems = await storage.getBudgetItemsByProjectId(projects[0].id);
+      res.json(budgetItems);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch budget items" });
+    }
+  });
+
   return httpServer;
 }

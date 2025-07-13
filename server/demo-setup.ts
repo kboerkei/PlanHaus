@@ -1,7 +1,8 @@
 import { storage } from "./storage";
 
 export async function setupDemoData() {
-  // Check if demo user already exists
+  // Only create demo data for the specific demo user account
+  // Don't create demo data for all users
   let demoUser = await storage.getUserByEmail("demo@example.com");
   
   if (!demoUser) {
@@ -12,6 +13,9 @@ export async function setupDemoData() {
       password: "demo123",
       avatar: null,
     });
+  } else {
+    // Demo user exists, demo data already set up - skip
+    return;
   }
 
   // Check if demo project already exists

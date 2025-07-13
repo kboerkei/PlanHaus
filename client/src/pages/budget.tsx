@@ -1,3 +1,4 @@
+import { useQuery } from "@tanstack/react-query";
 import Sidebar from "@/components/layout/sidebar";
 import Header from "@/components/layout/header";
 import MobileNav from "@/components/layout/mobile-nav";
@@ -6,78 +7,44 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { DollarSign, Plus, TrendingUp, AlertTriangle } from "lucide-react";
 
-const budgetCategories = [
-  {
-    id: 1,
-    category: "Venue",
-    estimated: 12000,
-    actual: 11500,
-    percentage: 34,
-    status: "under"
-  },
-  {
-    id: 2,
-    category: "Catering",
-    estimated: 8000,
-    actual: 8500,
-    percentage: 24,
-    status: "over"
-  },
-  {
-    id: 3,
-    category: "Photography",
-    estimated: 3500,
-    actual: 3200,
-    percentage: 10,
-    status: "under"
-  },
-  {
-    id: 4,
-    category: "Flowers",
-    estimated: 2000,
-    actual: 0,
-    percentage: 6,
-    status: "pending"
-  },
-  {
-    id: 5,
-    category: "Music/DJ",
-    estimated: 1500,
-    actual: 1500,
-    percentage: 4,
-    status: "exact"
-  },
-  {
-    id: 6,
-    category: "Attire",
-    estimated: 2500,
-    actual: 2200,
-    percentage: 7,
-    status: "under"
-  },
-  {
-    id: 7,
-    category: "Transportation",
-    estimated: 800,
-    actual: 0,
-    percentage: 2,
-    status: "pending"
-  },
-  {
-    id: 8,
-    category: "Miscellaneous",
-    estimated: 4700,
-    actual: 1100,
-    percentage: 13,
-    status: "under"
-  }
-];
-
-const totalBudget = 35000;
-const totalSpent = budgetCategories.reduce((sum, cat) => sum + cat.actual, 0);
-const remaining = totalBudget - totalSpent;
-
 export default function Budget() {
+  // Fetch wedding project data
+  const { data: weddingProjects, isLoading: projectsLoading } = useQuery({
+    queryKey: ['/api/wedding-projects'],
+  });
+
+  // Fetch budget items
+  const { data: budgetItems, isLoading: budgetLoading } = useQuery({
+    queryKey: ['/api/budget-items'],
+    enabled: !!weddingProjects && weddingProjects.length > 0,
+  });
+
+  const currentProject = weddingProjects?.[0];
+  const totalBudget = currentProject?.budget ? parseFloat(currentProject.budget) : 0;
+  const totalSpent = budgetItems?.reduce((sum: number, item: any) => sum + (item.actualCost || 0), 0) || 0;
+  const remaining = totalBudget - totalSpent;
+
+  // Group budget items by category
+  const budgetCategories = budgetItems ? 
+    budgetItems.reduce((acc: any[], item: any) => {
+      const existingCategory = acc.find(cat => cat.category === item.category);
+      if (existingCategory) {
+        existingCategory.estimated += item.estimatedCost || 0;
+        existingCategory.actual += item.actualCost || 0;
+      } else {
+        acc.push({
+          id: item.id,
+          category: item.category,
+          estimated: item.estimatedCost || 0,
+          actual: item.actualCost || 0,
+          percentage: totalBudget > 0 ? Math.round(((item.estimatedCost || 0) / totalBudget) * 100) : 0,
+          status: (item.actualCost || 0) === 0 ? 'pending' : 
+                  (item.actualCost || 0) > (item.estimatedCost || 0) ? 'over' : 'under'
+        });
+      }
+      return acc;
+    }, []) : [];
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'over':
@@ -101,6 +68,50 @@ export default function Budget() {
         return null;
     }
   };
+
+  if (projectsLoading || budgetLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-rose-50 to-pink-50">
+        <div className="flex">
+          <Sidebar />
+          <div className="flex-1 flex flex-col lg:ml-64">
+            <Header />
+            <main className="flex-1 p-6">
+              <div className="text-center py-12">
+                <div className="text-lg text-gray-600">Loading your budget information...</div>
+              </div>
+            </main>
+          </div>
+        </div>
+        <MobileNav />
+      </div>
+    );
+  }
+
+  // Show empty state if no wedding project exists
+  if (!currentProject) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-rose-50 to-pink-50">
+        <div className="flex">
+          <Sidebar />
+          <div className="flex-1 flex flex-col lg:ml-64">
+            <Header />
+            <main className="flex-1 p-6">
+              <div className="text-center py-12">
+                <DollarSign className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-gray-800 mb-2">No Wedding Project Found</h3>
+                <p className="text-gray-600 mb-6">Complete your wedding intake form to start planning your budget.</p>
+                <Button onClick={() => window.location.href = '/intake'} className="gradient-blush-rose text-white">
+                  Complete Intake Form
+                </Button>
+              </div>
+            </main>
+          </div>
+        </div>
+        <MobileNav />
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen bg-cream">
@@ -154,7 +165,7 @@ export default function Budget() {
                     ${totalSpent.toLocaleString()}
                   </div>
                   <Progress 
-                    value={(totalSpent / totalBudget) * 100} 
+                    value={totalBudget > 0 ? (totalSpent / totalBudget) * 100 : 0} 
                     className="mt-2"
                   />
                 </CardContent>
@@ -172,7 +183,7 @@ export default function Budget() {
                     ${remaining.toLocaleString()}
                   </div>
                   <div className="text-sm text-gray-600 mt-1">
-                    {Math.round(((totalBudget - totalSpent) / totalBudget) * 100)}% of budget
+                    {totalBudget > 0 ? Math.round(((totalBudget - totalSpent) / totalBudget) * 100) : 0}% of budget
                   </div>
                 </CardContent>
               </Card>
@@ -184,34 +195,46 @@ export default function Budget() {
                 <CardTitle>Budget Breakdown</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {budgetCategories.map((item) => (
-                    <div key={item.id} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between mb-2">
-                          <h3 className="font-semibold text-gray-800">{item.category}</h3>
-                          <div className="flex items-center space-x-2">
-                            {getStatusIcon(item.status)}
-                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(item.status)}`}>
-                              {item.status}
-                            </span>
+                {budgetCategories.length === 0 ? (
+                  <div className="text-center py-8">
+                    <DollarSign className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold text-gray-700 mb-2">No Budget Items Yet</h3>
+                    <p className="text-gray-500 mb-4">Your budget breakdown will appear here once you add expense categories.</p>
+                    <Button className="gradient-blush-rose text-white">
+                      <Plus size={16} className="mr-2" />
+                      Add Your First Expense
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {budgetCategories.map((item) => (
+                      <div key={item.id} className="flex items-center justify-between p-4 border rounded-lg">
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between mb-2">
+                            <h3 className="font-semibold text-gray-800">{item.category}</h3>
+                            <div className="flex items-center space-x-2">
+                              {getStatusIcon(item.status)}
+                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(item.status)}`}>
+                                {item.status}
+                              </span>
+                            </div>
                           </div>
+                          
+                          <div className="flex items-center space-x-4 text-sm text-gray-600">
+                            <span>Estimated: ${item.estimated.toLocaleString()}</span>
+                            <span>Actual: ${item.actual.toLocaleString()}</span>
+                            <span>{item.percentage}% of budget</span>
+                          </div>
+                          
+                          <Progress 
+                            value={item.estimated > 0 ? (item.actual / item.estimated) * 100 : 0} 
+                            className="mt-2"
+                          />
                         </div>
-                        
-                        <div className="flex items-center space-x-4 text-sm text-gray-600">
-                          <span>Estimated: ${item.estimated.toLocaleString()}</span>
-                          <span>Actual: ${item.actual.toLocaleString()}</span>
-                          <span>{item.percentage}% of budget</span>
-                        </div>
-                        
-                        <Progress 
-                          value={(item.actual / item.estimated) * 100} 
-                          className="mt-2"
-                        />
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>

@@ -336,9 +336,15 @@ export default function Intake({ onComplete }: IntakeProps) {
 
   const addPinterestBoard = () => {
     if (newPinterestBoard.trim()) {
-      // Validate Pinterest URL
-      const pinterestRegex = /^https:\/\/(www\.)?pinterest\.(com|ca|co\.uk|fr|de|it|es|pt|dk|no|se|fi|pl|ru|jp|kr|au)\/[a-zA-Z0-9_-]+\/[a-zA-Z0-9_-]+\/?$/;
-      if (!pinterestRegex.test(newPinterestBoard.trim())) {
+      // Validate Pinterest URL - Accept various Pinterest URL formats
+      const url = newPinterestBoard.trim();
+      const pinterestRegex = /^https?:\/\/(www\.)?pinterest\.[a-z.]+\/[a-zA-Z0-9_.-]+\/[a-zA-Z0-9_.-]+/;
+      
+      // Also accept pin URLs and other Pinterest formats
+      const isValidPinterest = pinterestRegex.test(url) || 
+                              url.includes('pinterest.') && (url.includes('/pin/') || url.includes('/board/'));
+      
+      if (!isValidPinterest) {
         toast({
           title: "Invalid Pinterest URL",
           description: "Please enter a valid Pinterest board URL.",
@@ -351,7 +357,7 @@ export default function Intake({ onComplete }: IntakeProps) {
         ...prev,
         styleVision: {
           ...prev.styleVision,
-          pinterestBoards: [...prev.styleVision.pinterestBoards, newPinterestBoard.trim()]
+          pinterestBoards: [...prev.styleVision.pinterestBoards, url]
         }
       }));
       setNewPinterestBoard("");
@@ -833,7 +839,7 @@ export default function Intake({ onComplete }: IntakeProps) {
               <Label>Pinterest Inspiration Boards</Label>
               <div className="flex gap-2 mb-2">
                 <Input
-                  placeholder="https://pinterest.com/username/board-name"
+                  placeholder="Pinterest board URL (e.g., https://pinterest.com/username/board-name)"
                   value={newPinterestBoard}
                   onChange={(e) => setNewPinterestBoard(e.target.value)}
                 />
