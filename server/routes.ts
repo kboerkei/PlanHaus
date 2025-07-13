@@ -1033,6 +1033,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         projects = [defaultProject];
       }
       
+      console.log('Budget request body:', req.body);
+      console.log('Project ID:', projects[0].id);
+      console.log('User ID:', userId);
+      
       const budgetData = insertBudgetItemSchema.parse({
         ...req.body,
         projectId: projects[0].id,
