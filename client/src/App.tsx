@@ -17,15 +17,17 @@ import Inspiration from "@/pages/inspiration";
 import Schedules from "@/pages/schedules";
 import Intake from "@/pages/intake";
 
-function Router({ user, onLogout, needsIntake }: { user: any; onLogout: () => void; needsIntake: boolean }) {
-  // If user needs to complete intake, redirect them to intake form
-  if (needsIntake) {
+function Router({ user, onLogout, isNewUser, onIntakeComplete }: { user: any; onLogout: () => void; isNewUser: boolean; onIntakeComplete: () => void }) {
+  // If user is new and hasn't completed intake, redirect them to intake form
+  if (isNewUser && !user.hasCompletedIntake) {
     return (
       <Switch>
-        <Route path="/intake" component={Intake} />
+        <Route path="/intake">
+          <Intake onComplete={onIntakeComplete} />
+        </Route>
         <Route>
           {() => {
-            // Redirect any other route to intake
+            // Redirect any other route to intake for new users only
             window.location.href = '/intake';
             return null;
           }}
@@ -37,7 +39,9 @@ function Router({ user, onLogout, needsIntake }: { user: any; onLogout: () => vo
   return (
     <Switch>
       <Route path="/" component={Dashboard} />
-      <Route path="/intake" component={Intake} />
+      <Route path="/intake">
+        <Intake onComplete={onIntakeComplete} />
+      </Route>
       <Route path="/ai-assistant" component={AIAssistant} />
       <Route path="/timeline" component={Timeline} />
       <Route path="/budget" component={Budget} />
@@ -57,6 +61,7 @@ function App() {
   const [user, setUser] = useState<any>(null);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isNewUser, setIsNewUser] = useState(false);
 
   useEffect(() => {
     // Check for existing session
@@ -71,9 +76,10 @@ function App() {
     setIsLoading(false);
   }, []);
 
-  const handleAuth = (userData: any, newSessionId: string) => {
+  const handleAuth = (userData: any, newSessionId: string, isRegistration = false) => {
     setUser(userData);
     setSessionId(newSessionId);
+    setIsNewUser(isRegistration && !userData.hasCompletedIntake);
     localStorage.setItem('sessionId', newSessionId);
     localStorage.setItem('user', JSON.stringify(userData));
   };
@@ -81,8 +87,19 @@ function App() {
   const handleLogout = () => {
     setUser(null);
     setSessionId(null);
+    setIsNewUser(false);
     localStorage.removeItem('sessionId');
     localStorage.removeItem('user');
+  };
+
+  const handleIntakeComplete = () => {
+    setIsNewUser(false);
+    // Update user object to reflect completed intake
+    if (user) {
+      const updatedUser = { ...user, hasCompletedIntake: true };
+      setUser(updatedUser);
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+    }
   };
 
   if (isLoading) {
@@ -106,7 +123,8 @@ function App() {
           <Router 
             user={user} 
             onLogout={handleLogout} 
-            needsIntake={!user.hasCompletedIntake}
+            isNewUser={isNewUser}
+            onIntakeComplete={handleIntakeComplete}
           />
         ) : (
           <Auth onAuth={handleAuth} />

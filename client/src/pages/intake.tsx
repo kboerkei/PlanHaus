@@ -90,7 +90,11 @@ const priorityOptions = [
   "Guest Experience", "Honeymoon"
 ];
 
-export default function Intake() {
+interface IntakeProps {
+  onComplete?: () => void;
+}
+
+export default function Intake({ onComplete }: IntakeProps) {
   const [, navigate] = useLocation();
   const { toast } = useToast();
   
@@ -164,21 +168,20 @@ export default function Intake() {
       });
     },
     onSuccess: () => {
-      // Update local storage to reflect completed intake
-      const storedUser = localStorage.getItem('user');
-      if (storedUser) {
-        const user = JSON.parse(storedUser);
-        user.hasCompletedIntake = true;
-        localStorage.setItem('user', JSON.stringify(user));
-      }
-      
       toast({
         title: "Wedding intake completed!",
         description: "Your information has been saved. Let's start planning your perfect day!",
       });
       
-      // Force a page reload to update the router with new user state
-      window.location.href = "/";
+      // Call the completion callback to update the app state
+      if (onComplete) {
+        onComplete();
+      }
+      
+      // Navigate to dashboard
+      setTimeout(() => {
+        window.location.href = "/";
+      }, 1000);
     },
     onError: (error: any) => {
       console.error('Intake submission error:', error);

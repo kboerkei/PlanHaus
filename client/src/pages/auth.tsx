@@ -28,7 +28,7 @@ type LoginFormData = z.infer<typeof loginSchema>;
 type RegisterFormData = z.infer<typeof registerSchema>;
 
 interface AuthProps {
-  onAuth: (user: any, sessionId: string) => void;
+  onAuth: (user: any, sessionId: string, isRegistration?: boolean) => void;
 }
 
 export default function Auth({ onAuth }: AuthProps) {
@@ -57,7 +57,7 @@ export default function Auth({ onAuth }: AuthProps) {
         headers: { "Content-Type": "application/json" },
       }),
     onSuccess: (data) => {
-      onAuth(data.user, data.sessionId);
+      onAuth(data.user, data.sessionId, false);
       toast({
         title: "Welcome back!",
         description: "You've been successfully logged in.",
@@ -80,7 +80,7 @@ export default function Auth({ onAuth }: AuthProps) {
         headers: { "Content-Type": "application/json" },
       }),
     onSuccess: (data) => {
-      onAuth(data.user, data.sessionId);
+      onAuth(data.user, data.sessionId, true);
       toast({
         title: "Account created!",
         description: "Welcome to Gatherly. Let's start planning your perfect wedding.",
