@@ -11,7 +11,13 @@ function getCoupleNames(partner1FirstName?: string, partner2FirstName?: string):
   if (partner1FirstName && partner2FirstName) {
     return `${partner1FirstName} & ${partner2FirstName}`;
   }
-  return 'Your Wedding';
+  if (partner1FirstName) {
+    return partner1FirstName;
+  }
+  if (partner2FirstName) {
+    return partner2FirstName;
+  }
+  return '';
 }
 
 function calculateDaysUntilWedding(weddingDate?: string): number | null {
@@ -38,12 +44,14 @@ export default function Header() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-serif text-2xl font-semibold text-gray-800">
-            Welcome back, {coupleNames}!
+            {coupleNames ? `Welcome back, ${coupleNames}!` : 'Welcome to Gatherly!'}
           </h1>
           <p className="text-gray-600 mt-1">
             {daysUntilWedding 
               ? `${daysUntilWedding} days until your special day`
-              : 'Let\'s plan your dream wedding!'
+              : coupleNames 
+                ? 'Let\'s plan your dream wedding!'
+                : 'Complete your intake form to get started'
             }
           </p>
         </div>
