@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import Sidebar from "@/components/layout/sidebar";
 import Header from "@/components/layout/header";
 import MobileNav from "@/components/layout/mobile-nav";
+import LoadingSpinner from "@/components/loading-spinner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -71,18 +72,16 @@ export default function Budget() {
 
   if (projectsLoading || budgetLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-rose-50 to-pink-50">
-        <div className="flex">
-          <Sidebar />
-          <div className="flex-1 flex flex-col lg:ml-64">
-            <Header />
-            <main className="flex-1 p-6">
-              <div className="text-center py-12">
-                <div className="text-lg text-gray-600">Loading your budget information...</div>
-              </div>
-            </main>
+      <div className="flex min-h-screen bg-cream">
+        <Sidebar />
+        <main className="flex-1 overflow-y-auto">
+          <Header />
+          <div className="p-6">
+            <div className="text-center py-12">
+              <LoadingSpinner size="lg" text="Loading your budget information..." />
+            </div>
           </div>
-        </div>
+        </main>
         <MobileNav />
       </div>
     );

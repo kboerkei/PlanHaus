@@ -1055,5 +1055,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Tasks API
+  app.get("/api/tasks", requireAuth, async (req, res) => {
+    try {
+      const userId = (req as any).userId;
+      const projects = await storage.getWeddingProjectsByUserId(userId);
+      
+      if (projects.length === 0) {
+        return res.json([]);
+      }
+      
+      const tasks = await storage.getTasksByProjectId(projects[0].id);
+      res.json(tasks);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch tasks" });
+    }
+  });
+
   return httpServer;
 }

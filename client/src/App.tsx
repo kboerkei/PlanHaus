@@ -4,6 +4,8 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { ErrorBoundary } from "@/components/error-boundary";
+import LoadingSpinner from "@/components/loading-spinner";
 import Auth from "@/pages/auth";
 import Profile from "@/pages/profile";
 import NotFound from "@/pages/not-found";
@@ -40,11 +42,11 @@ function Router({ user, onLogout, isNewUser, onIntakeComplete }: { user: any; on
   }
 
   return (
-    <div className="flex h-screen">
+    <div className="flex h-screen bg-gray-50">
       <Sidebar />
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col overflow-hidden lg:ml-64">
         <Header user={user} onLogout={onLogout} />
-        <main className="flex-1 overflow-auto">
+        <main className="flex-1 overflow-auto pb-16 lg:pb-0">
           <Switch>
             <Route path="/" component={Dashboard} />
             <Route path="/intake">
@@ -156,13 +158,10 @@ function App() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-16 h-16 gradient-blush-rose rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-          </div>
-          <p className="text-gray-600">Loading Gatherly...</p>
+          <LoadingSpinner size="lg" text="Loading Gatherly..." />
           <button 
             onClick={handleForceClear}
-            className="mt-4 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+            className="mt-6 px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 text-sm"
           >
             Clear Cache
           </button>
@@ -172,23 +171,25 @@ function App() {
   }
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <div className="min-h-screen bg-gray-50">
-          {user && sessionId ? (
-            <Router 
-              user={user} 
-              onLogout={handleLogout} 
-              isNewUser={isNewUser}
-              onIntakeComplete={handleIntakeComplete}
-            />
-          ) : (
-            <Auth onAuth={handleAuth} />
-          )}
-        </div>
-        <Toaster />
-      </TooltipProvider>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <div className="min-h-screen bg-gray-50">
+            {user && sessionId ? (
+              <Router 
+                user={user} 
+                onLogout={handleLogout} 
+                isNewUser={isNewUser}
+                onIntakeComplete={handleIntakeComplete}
+              />
+            ) : (
+              <Auth onAuth={handleAuth} />
+            )}
+          </div>
+          <Toaster />
+        </TooltipProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
 

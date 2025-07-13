@@ -21,7 +21,7 @@ export default function Sidebar() {
   const [location] = useLocation();
 
   return (
-    <aside className="w-64 bg-white shadow-lg border-r border-gray-100 hidden md:block">
+    <aside className="fixed left-0 top-0 h-full w-64 bg-white shadow-lg border-r border-gray-100 hidden lg:block z-40">
       <div className="p-6 border-b border-gray-100">
         <div className="flex items-center space-x-3">
           <div className="w-10 h-10 gradient-blush-rose rounded-xl flex items-center justify-center">
@@ -45,10 +45,10 @@ export default function Sidebar() {
                 <Link 
                   href={item.href}
                   className={cn(
-                    "flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors font-medium",
+                    "flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors font-medium focus:outline-none focus:ring-2 focus:ring-blush focus:ring-offset-2",
                     isActive 
                       ? "gradient-blush-rose text-white" 
-                      : "text-gray-600 hover:bg-gray-50"
+                      : "text-gray-600 hover:bg-gray-50 hover:text-gray-800"
                   )}
                 >
                   <Icon size={16} />
@@ -72,10 +72,10 @@ export default function Sidebar() {
                     <Link 
                       href={item.href}
                       className={cn(
-                        "flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors font-medium",
+                        "flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors font-medium focus:outline-none focus:ring-2 focus:ring-blush focus:ring-offset-2",
                         isActive 
                           ? "gradient-blush-rose text-white" 
-                          : "text-gray-600 hover:bg-gray-50"
+                          : "text-gray-600 hover:bg-gray-50 hover:text-gray-800"
                       )}
                     >
                       <Icon size={16} />

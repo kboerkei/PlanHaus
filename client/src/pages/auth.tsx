@@ -46,8 +46,7 @@ export default function Auth({ onAuth }: AuthProps) {
     setRegisterData({ username: "", email: "", password: "" });
   };
 
-  // Debug logging
-  console.log('Auth component rendered, isLogin:', isLogin);
+
 
   const loginMutation = useMutation({
     mutationFn: (data: LoginFormData) => 
@@ -106,7 +105,7 @@ export default function Auth({ onAuth }: AuthProps) {
       });
       return;
     }
-    console.log('Login form submitted:', loginData);
+
     loginMutation.mutate(loginData);
   };
 
@@ -129,7 +128,7 @@ export default function Auth({ onAuth }: AuthProps) {
       });
       return;
     }
-    console.log('Register form submitted:', registerData);
+
     registerMutation.mutate({ ...registerData, avatar: "" });
   };
 
