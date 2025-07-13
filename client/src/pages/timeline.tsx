@@ -120,9 +120,24 @@ export default function Timeline() {
                 <Calendar className="h-16 w-16 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-xl font-semibold text-gray-800 mb-2">No Timeline Created Yet</h3>
                 <p className="text-gray-600 mb-6">Let our AI assistant create a personalized wedding planning timeline based on your intake form.</p>
-                <Button className="gradient-blush-rose text-white">
+                <Button 
+                  onClick={() => {
+                    // Generate AI timeline
+                    if (currentProject?.id) {
+                      fetch(`/api/projects/${currentProject.id}/ai/generate-timeline`, {
+                        method: 'POST',
+                        headers: {
+                          'Authorization': `Bearer ${localStorage.getItem('sessionId')}`
+                        }
+                      }).then(() => {
+                        window.location.reload();
+                      });
+                    }
+                  }}
+                  className="gradient-blush-rose text-white"
+                >
                   <Plus size={16} className="mr-2" />
-                  Generate Timeline
+                  Generate AI Timeline
                 </Button>
               </div>
             </div>

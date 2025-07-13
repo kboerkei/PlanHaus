@@ -46,40 +46,40 @@ export default function MilestoneCelebration() {
 
   const milestones: Milestone[] = [
     {
-      id: 'first_task',
-      title: 'First Task Complete!',
-      description: 'You completed your first wedding planning task',
+      id: 'intake_complete',
+      title: 'Wedding Planning Started!',
+      description: 'You completed your wedding intake and timeline setup',
       icon: Star,
-      progress: completedTasks.length,
-      completed: completedTasks.length >= 1,
-      celebrationMessage: "Amazing start! Every journey begins with a single step. 🌟"
+      progress: project ? 1 : 0,
+      completed: !!project && !!project.date,
+      celebrationMessage: "Congratulations! Your wedding planning timeline is ready. Let's make your dream wedding happen!"
     },
     {
-      id: 'five_tasks',
-      title: 'Getting Organized',
-      description: 'Complete 5 wedding tasks',
+      id: 'venue_milestone',
+      title: 'Major Venue Progress',
+      description: 'Complete venue-related planning tasks',
       icon: Calendar,
-      progress: completedTasks.length,
-      completed: completedTasks.length >= 5,
-      celebrationMessage: "You're on fire! 5 tasks down, wedding planning pro status loading... 🔥"
+      progress: completedTasks.filter(t => t.title.toLowerCase().includes('venue')).length,
+      completed: completedTasks.filter(t => t.title.toLowerCase().includes('venue')).length >= 1,
+      celebrationMessage: "Fantastic! Your venue planning is moving forward. The foundation of your special day is taking shape!"
     },
     {
       id: 'first_vendor',
-      title: 'First Vendor Booked',
+      title: 'Dream Team Building',
       description: 'Book your first wedding vendor',
       icon: Heart,
       progress: bookedVendors.length,
       completed: bookedVendors.length >= 1,
-      celebrationMessage: "Your dream team is coming together! First vendor secured! 💫"
+      celebrationMessage: "Your wedding dream team is coming together! First vendor secured and many more exciting partnerships ahead!"
     },
     {
-      id: 'guest_list_started',
-      title: 'Guest List Growing',
-      description: 'Get 10 guest RSVPs',
+      id: 'guest_responses',
+      title: 'Guest List Success',
+      description: 'Get your first guest RSVPs',
       icon: Gift,
       progress: confirmedGuests.length,
-      completed: confirmedGuests.length >= 10,
-      celebrationMessage: "The party is getting real! 10 confirmed guests and counting! 🎉"
+      completed: confirmedGuests.length >= 5,
+      celebrationMessage: "The celebration is taking shape! Your guests are excited to join your special day!"
     }
   ];
 
@@ -201,10 +201,10 @@ export default function MilestoneCelebration() {
 
 function getProgressTarget(milestoneId: string): number {
   switch (milestoneId) {
-    case 'first_task': return 1;
-    case 'five_tasks': return 5;
+    case 'intake_complete': return 1;
+    case 'venue_milestone': return 1;
     case 'first_vendor': return 1;
-    case 'guest_list_started': return 10;
+    case 'guest_responses': return 5;
     default: return 1;
   }
 }

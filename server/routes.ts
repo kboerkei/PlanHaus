@@ -954,14 +954,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (intake.weddingDate) {
         const weddingDate = new Date(intake.weddingDate);
         const timelineTasks = [
-          { title: 'Book Ceremony Venue', weeksBeforeWedding: 52, priority: 'high' as const },
-          { title: 'Book Reception Venue', weeksBeforeWedding: 52, priority: 'high' as const },
-          { title: 'Send Save the Dates', weeksBeforeWedding: 24, priority: 'medium' as const },
-          { title: 'Order Wedding Dress', weeksBeforeWedding: 20, priority: 'high' as const },
-          { title: 'Book Photographer', weeksBeforeWedding: 16, priority: 'high' as const },
-          { title: 'Send Wedding Invitations', weeksBeforeWedding: 8, priority: 'high' as const },
-          { title: 'Final Guest Count', weeksBeforeWedding: 2, priority: 'high' as const },
-          { title: 'Wedding Rehearsal', weeksBeforeWedding: 0, priority: 'high' as const }
+          { 
+            title: 'Book Ceremony Venue', 
+            description: 'Research and secure the venue for your wedding ceremony. Consider capacity, location, and availability.',
+            weeksBeforeWedding: 52, 
+            priority: 'high' as const 
+          },
+          { 
+            title: 'Book Reception Venue', 
+            description: 'Find and reserve the perfect location for your wedding reception. Ensure it matches your guest count and style.',
+            weeksBeforeWedding: 52, 
+            priority: 'high' as const 
+          },
+          { 
+            title: 'Send Save the Dates', 
+            description: 'Design and mail save the date cards to give guests advance notice of your wedding date.',
+            weeksBeforeWedding: 24, 
+            priority: 'medium' as const 
+          },
+          { 
+            title: 'Order Wedding Dress', 
+            description: 'Shop for and order your wedding dress, allowing time for alterations and any needed adjustments.',
+            weeksBeforeWedding: 20, 
+            priority: 'high' as const 
+          },
+          { 
+            title: 'Book Photographer', 
+            description: 'Research and hire a photographer to capture your special day. Review portfolios and meet with potential photographers.',
+            weeksBeforeWedding: 16, 
+            priority: 'high' as const 
+          },
+          { 
+            title: 'Send Wedding Invitations', 
+            description: 'Design, print, and mail your wedding invitations with RSVP details to all guests.',
+            weeksBeforeWedding: 8, 
+            priority: 'high' as const 
+          },
+          { 
+            title: 'Confirm Final Guest Count', 
+            description: 'Collect all RSVPs and provide final headcount to caterer and venue for seating arrangements.',
+            weeksBeforeWedding: 2, 
+            priority: 'high' as const 
+          },
+          { 
+            title: 'Wedding Rehearsal', 
+            description: 'Conduct rehearsal with wedding party to practice ceremony timing and positioning.',
+            weeksBeforeWedding: 0, 
+            priority: 'high' as const 
+          }
         ];
 
         for (const task of timelineTasks) {
@@ -969,10 +1009,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const dueDate = new Date(weddingDate);
             dueDate.setDate(dueDate.getDate() - (task.weeksBeforeWedding * 7));
             
+            // Create timeline event
             const timelineData = {
               projectId: project.id,
               title: task.title,
-              description: `Important milestone for your ${intake.overallVibe || 'dream'} wedding`,
+              description: task.description,
               dueDate: dueDate,
               category: 'Planning',
               priority: task.priority,
@@ -980,6 +1021,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
               createdBy: userId
             };
             await storage.createTimelineEvent(timelineData);
+
+            // Also create corresponding task
+            const taskData = {
+              projectId: project.id,
+              title: task.title,
+              description: task.description,
+              category: 'Planning',
+              priority: task.priority,
+              status: 'pending' as const,
+              dueDate: dueDate,
+              createdBy: userId,
+              assignedTo: null
+            };
+            await storage.createTask(taskData);
           } catch (timelineError) {
             console.error('Error creating timeline event:', timelineError);
           }
