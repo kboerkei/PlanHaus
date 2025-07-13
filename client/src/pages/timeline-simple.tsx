@@ -42,6 +42,114 @@ const taskCategories = [
   "Attire", "Invitations", "Decorations", "Beauty", "Legal", "Other"
 ];
 
+// Enhanced Task Card Component
+function TaskCard({ task, onToggle }: { task: any; onToggle: (task: any) => void }) {
+  const dueDateInfo = getDaysUntilDue(task?.dueDate);
+  
+  return (
+    <div className="p-4 bg-white rounded-xl border border-gray-200 hover:shadow-lg transition-all duration-300 group">
+      <div className="flex items-start justify-between">
+        <div className="flex items-start space-x-4 flex-1">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onToggle(task)}
+            className={`p-2 rounded-full transition-all duration-200 ${
+              task?.status === 'completed' 
+                ? 'text-green-600 bg-green-50 hover:bg-green-100' 
+                : 'text-gray-400 hover:text-green-500 hover:bg-green-50'
+            }`}
+          >
+            <CheckCircle2 size={20} />
+          </Button>
+          
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center space-x-2 mb-2">
+              <h4 className={`font-semibold text-lg leading-tight ${
+                task?.status === 'completed' 
+                  ? 'line-through text-gray-500' 
+                  : 'text-gray-900 group-hover:text-gray-700'
+              }`}>
+                {task?.title || 'Untitled Task'}
+              </h4>
+              {dueDateInfo.urgent && (
+                <AlertTriangle className="h-4 w-4 text-red-500 flex-shrink-0" />
+              )}
+            </div>
+            
+            {task?.description && (
+              <p className="text-sm text-gray-600 mb-3 leading-relaxed">
+                {task.description}
+              </p>
+            )}
+            
+            <div className="flex items-center flex-wrap gap-2">
+              {task?.priority && (
+                <Badge className={`${priorityColors[task.priority as keyof typeof priorityColors]} font-medium`}>
+                  {task.priority}
+                </Badge>
+              )}
+              {task?.category && (
+                <Badge variant="outline" className="text-xs border-gray-300">
+                  {task.category}
+                </Badge>
+              )}
+              {task?.dueDate && (
+                <div className={`px-3 py-1 rounded-full text-xs font-medium ${dueDateInfo.color} flex items-center space-x-1`}>
+                  <Clock size={12} />
+                  <span>{dueDateInfo.text}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Function to calculate days until due date
+const getDaysUntilDue = (dueDate: string | null): { text: string; color: string; urgent: boolean } => {
+  if (!dueDate) return { text: "", color: "", urgent: false };
+  
+  const due = new Date(dueDate);
+  const today = new Date();
+  const diffTime = due.getTime() - today.getTime();
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  
+  if (diffDays < 0) {
+    return { 
+      text: `${Math.abs(diffDays)} days overdue`, 
+      color: "text-red-600 bg-red-50", 
+      urgent: true 
+    };
+  } else if (diffDays === 0) {
+    return { 
+      text: "Due today", 
+      color: "text-orange-600 bg-orange-50", 
+      urgent: true 
+    };
+  } else if (diffDays === 1) {
+    return { 
+      text: "Due tomorrow", 
+      color: "text-orange-600 bg-orange-50", 
+      urgent: true 
+    };
+  } else if (diffDays <= 7) {
+    return { 
+      text: `Due in ${diffDays} days`, 
+      color: "text-yellow-600 bg-yellow-50", 
+      urgent: false 
+    };
+  } else {
+    return { 
+      text: `Due in ${diffDays} days`, 
+      color: "text-gray-600 bg-gray-50", 
+      urgent: false 
+    };
+  }
+};
+
 export default function TimelineSimple() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const { toast } = useToast();
@@ -135,12 +243,63 @@ export default function TimelineSimple() {
   // Prioritize Austin farmhouse wedding demo
   const currentProject = safeWeddingProjects.find(p => p.name === "Emma & Jake's Wedding") || safeWeddingProjects[0];
   
+  // Function to group tasks by timeline milestones
+  const groupTasksByMilestone = (tasks: any[]) => {
+    const today = new Date();
+    const weddingDate = currentProject?.date ? new Date(currentProject.date) : null;
+    
+    const groups = {
+      overdue: [] as any[],
+      thisWeek: [] as any[],
+      thisMonth: [] as any[],
+      next3Months: [] as any[],
+      beforeWedding: [] as any[],
+      noDueDate: [] as any[]
+    };
+
+    // Sort tasks by due date first
+    const sortedTasks = [...tasks].sort((a, b) => {
+      if (!a.dueDate && !b.dueDate) return 0;
+      if (!a.dueDate) return 1;
+      if (!b.dueDate) return -1;
+      return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+    });
+
+    sortedTasks.forEach(task => {
+      if (!task.dueDate) {
+        groups.noDueDate.push(task);
+        return;
+      }
+
+      const dueDate = new Date(task.dueDate);
+      const diffTime = dueDate.getTime() - today.getTime();
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+      if (diffDays < 0) {
+        groups.overdue.push(task);
+      } else if (diffDays <= 7) {
+        groups.thisWeek.push(task);
+      } else if (diffDays <= 30) {
+        groups.thisMonth.push(task);
+      } else if (diffDays <= 90) {
+        groups.next3Months.push(task);
+      } else {
+        groups.beforeWedding.push(task);
+      }
+    });
+
+    return groups;
+  };
+
+  const taskGroups = groupTasksByMilestone(safeTasks);
+  
   // Safe stats calculation
   const getSimpleStats = () => {
     const total = safeTasks.length;
     const completed = safeTasks.filter((task: any) => task?.status === 'completed').length;
     const pending = safeTasks.filter((task: any) => task?.status === 'pending').length;
-    return { total, completed, pending };
+    const overdue = taskGroups.overdue.length;
+    return { total, completed, pending, overdue };
   };
 
   const stats = getSimpleStats();
@@ -317,67 +476,138 @@ export default function TimelineSimple() {
               </Card>
             </div>
 
-            {/* Tasks List */}
-            <Card className="border-0 bg-white/60 backdrop-blur-sm shadow-lg">
-              <CardHeader>
-                <CardTitle className="text-2xl font-semibold">Wedding Tasks</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {safeTasks.length === 0 ? (
-                  <div className="text-center py-16">
-                    <Calendar className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-xl font-semibold text-gray-600 mb-2">No tasks yet</h3>
-                    <p className="text-gray-500 mb-6">Start planning your wedding by adding your first task.</p>
-                    <Button 
-                      onClick={() => setIsAddDialogOpen(true)}
-                      className="gradient-blush-rose text-white"
-                    >
-                      <Plus className="mr-2" size={16} />
-                      Add Your First Task
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {safeTasks.map((task: any) => (
-                      <div key={task?.id} className="p-4 bg-white rounded-lg border border-gray-200 hover:shadow-md transition-all duration-200">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-4">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleToggleComplete(task)}
-                              className={`p-2 rounded-full ${task?.status === 'completed' ? 'text-green-600' : 'text-gray-400'}`}
-                            >
-                              <CheckCircle2 size={20} />
-                            </Button>
-                            <div>
-                              <h4 className={`font-semibold ${task?.status === 'completed' ? 'line-through text-gray-500' : 'text-gray-900'}`}>
-                                {task?.title || 'Untitled Task'}
-                              </h4>
-                              {task?.description && (
-                                <p className="text-sm text-gray-600 mt-1">{task.description}</p>
-                              )}
-                              <div className="flex items-center space-x-2 mt-2">
-                                {task?.priority && (
-                                  <Badge className={priorityColors[task.priority as keyof typeof priorityColors]}>
-                                    {task.priority}
-                                  </Badge>
-                                )}
-                                {task?.category && (
-                                  <Badge variant="outline" className="text-xs">
-                                    {task.category}
-                                  </Badge>
-                                )}
-                              </div>
-                            </div>
-                          </div>
+            {/* Timeline Tasks by Milestone */}
+            <div className="space-y-6">
+              {safeTasks.length === 0 ? (
+                <Card className="border-0 bg-white/60 backdrop-blur-sm shadow-lg">
+                  <CardContent className="p-16">
+                    <div className="text-center">
+                      <Calendar className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                      <h3 className="text-xl font-semibold text-gray-600 mb-2">No tasks yet</h3>
+                      <p className="text-gray-500 mb-6">Start planning your wedding by adding your first task.</p>
+                      <Button 
+                        onClick={() => setIsAddDialogOpen(true)}
+                        className="gradient-blush-rose text-white"
+                      >
+                        <Plus className="mr-2" size={16} />
+                        Add Your First Task
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ) : (
+                <>
+                  {/* Render each milestone section */}
+                  {taskGroups.overdue.length > 0 && (
+                    <Card className="border-l-4 border-l-red-500 bg-red-50/80 backdrop-blur-sm shadow-lg">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-xl font-semibold text-red-700 flex items-center space-x-2">
+                          <AlertTriangle className="h-5 w-5" />
+                          <span>Overdue ({taskGroups.overdue.length})</span>
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-3">
+                          {taskGroups.overdue.map((task: any) => (
+                            <TaskCard key={task.id} task={task} onToggle={handleToggleComplete} />
+                          ))}
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {taskGroups.thisWeek.length > 0 && (
+                    <Card className="border-l-4 border-l-orange-500 bg-orange-50/80 backdrop-blur-sm shadow-lg">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-xl font-semibold text-orange-700 flex items-center space-x-2">
+                          <CalendarDays className="h-5 w-5" />
+                          <span>This Week ({taskGroups.thisWeek.length})</span>
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-3">
+                          {taskGroups.thisWeek.map((task: any) => (
+                            <TaskCard key={task.id} task={task} onToggle={handleToggleComplete} />
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {taskGroups.thisMonth.length > 0 && (
+                    <Card className="border-l-4 border-l-blue-500 bg-blue-50/80 backdrop-blur-sm shadow-lg">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-xl font-semibold text-blue-700 flex items-center space-x-2">
+                          <Calendar className="h-5 w-5" />
+                          <span>This Month ({taskGroups.thisMonth.length})</span>
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-3">
+                          {taskGroups.thisMonth.map((task: any) => (
+                            <TaskCard key={task.id} task={task} onToggle={handleToggleComplete} />
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {taskGroups.next3Months.length > 0 && (
+                    <Card className="border-l-4 border-l-purple-500 bg-purple-50/80 backdrop-blur-sm shadow-lg">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-xl font-semibold text-purple-700 flex items-center space-x-2">
+                          <TrendingUp className="h-5 w-5" />
+                          <span>Next 3 Months ({taskGroups.next3Months.length})</span>
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-3">
+                          {taskGroups.next3Months.map((task: any) => (
+                            <TaskCard key={task.id} task={task} onToggle={handleToggleComplete} />
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {taskGroups.beforeWedding.length > 0 && (
+                    <Card className="border-l-4 border-l-pink-500 bg-pink-50/80 backdrop-blur-sm shadow-lg">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-xl font-semibold text-pink-700 flex items-center space-x-2">
+                          <Users className="h-5 w-5" />
+                          <span>Before Wedding ({taskGroups.beforeWedding.length})</span>
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-3">
+                          {taskGroups.beforeWedding.map((task: any) => (
+                            <TaskCard key={task.id} task={task} onToggle={handleToggleComplete} />
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {taskGroups.noDueDate.length > 0 && (
+                    <Card className="border-l-4 border-l-gray-500 bg-gray-50/80 backdrop-blur-sm shadow-lg">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-xl font-semibold text-gray-700 flex items-center space-x-2">
+                          <Clock className="h-5 w-5" />
+                          <span>No Due Date ({taskGroups.noDueDate.length})</span>
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-3">
+                          {taskGroups.noDueDate.map((task: any) => (
+                            <TaskCard key={task.id} task={task} onToggle={handleToggleComplete} />
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+                </>
+              )}
+            </div>
           </div>
         </div>
       </main>
@@ -415,6 +645,20 @@ export default function TimelineSimple() {
                     <FormLabel>Description</FormLabel>
                     <FormControl>
                       <Textarea placeholder="Add details about this task..." {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="dueDate"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Due Date (Optional)</FormLabel>
+                    <FormControl>
+                      <Input type="date" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

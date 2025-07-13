@@ -1,4 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import Sidebar from "@/components/layout/sidebar";
 import Header from "@/components/layout/header";
 import MobileNav from "@/components/layout/mobile-nav";
@@ -6,9 +7,67 @@ import LoadingSpinner from "@/components/loading-spinner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { DollarSign, Plus, TrendingUp, AlertTriangle } from "lucide-react";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Budget() {
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [budgetForm, setBudgetForm] = useState({
+    category: "",
+    item: "",
+    estimatedCost: "",
+    vendor: "",
+    notes: ""
+  });
+  const { toast } = useToast();
+  
+  // Budget creation mutation
+  const createBudgetMutation = useMutation({
+    mutationFn: (data: any) => apiRequest('/api/budget-items', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/budget-items'] });
+      toast({
+        title: "Expense Added",
+        description: "Your budget item has been added successfully",
+      });
+      setBudgetForm({
+        category: "",
+        item: "",
+        estimatedCost: "",
+        vendor: "",
+        notes: ""
+      });
+      setIsAddDialogOpen(false);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error?.message || "Failed to add expense",
+        variant: "destructive",
+      });
+    }
+  });
+
+  const handleCreateBudgetItem = () => {
+    if (!budgetForm.category || !budgetForm.item || !budgetForm.estimatedCost) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in category, item name, and estimated cost",
+        variant: "destructive",
+      });
+      return;
+    }
+    createBudgetMutation.mutate(budgetForm);
+  };
+
   // Fetch wedding project data
   const { data: weddingProjects, isLoading: projectsLoading } = useQuery({
     queryKey: ['/api/wedding-projects'],
@@ -37,7 +96,10 @@ export default function Budget() {
                 <DollarSign className="h-16 w-16 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-xl font-semibold text-gray-800 mb-2">Welcome to Budget Management</h3>
                 <p className="text-gray-600 mb-6">Start tracking your wedding expenses and stay within budget.</p>
-                <Button className="gradient-blush-rose text-white">
+                <Button 
+                  onClick={() => setIsAddDialogOpen(true)}
+                  className="gradient-blush-rose text-white"
+                >
                   <Plus size={16} className="mr-2" />
                   Add First Budget Item
                 </Button>
@@ -132,7 +194,10 @@ export default function Budget() {
                   Track your spending and stay on budget
                 </p>
               </div>
-              <Button className="gradient-blush-rose text-white">
+              <Button 
+                onClick={() => setIsAddDialogOpen(true)}
+                className="gradient-blush-rose text-white"
+              >
                 <Plus size={16} className="mr-2" />
                 Add Expense
               </Button>
@@ -210,7 +275,10 @@ export default function Budget() {
                     <DollarSign className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                     <h3 className="text-lg font-semibold text-gray-700 mb-2">No Budget Items Yet</h3>
                     <p className="text-gray-500 mb-4">Your budget breakdown will appear here once you add expense categories.</p>
-                    <Button className="gradient-blush-rose text-white">
+                    <Button 
+                      onClick={() => setIsAddDialogOpen(true)}
+                      className="gradient-blush-rose text-white"
+                    >
                       <Plus size={16} className="mr-2" />
                       Add Your First Expense
                     </Button>
@@ -256,6 +324,75 @@ export default function Budget() {
       </main>
       
       <MobileNav />
+
+      {/* Add Budget Item Dialog */}
+      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Add Budget Item</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="budget-category">Category</Label>
+              <Select value={budgetForm.category} onValueChange={(value) => setBudgetForm({ ...budgetForm, category: value })}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="venue">Venue</SelectItem>
+                  <SelectItem value="catering">Catering</SelectItem>
+                  <SelectItem value="photography">Photography</SelectItem>
+                  <SelectItem value="music">Music & Entertainment</SelectItem>
+                  <SelectItem value="flowers">Flowers & Decorations</SelectItem>
+                  <SelectItem value="attire">Attire</SelectItem>
+                  <SelectItem value="transportation">Transportation</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="budget-item">Item Name</Label>
+              <Input
+                id="budget-item"
+                placeholder="e.g., Wedding venue deposit"
+                value={budgetForm.item}
+                onChange={(e) => setBudgetForm({ ...budgetForm, item: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="budget-cost">Estimated Cost</Label>
+              <Input
+                id="budget-cost"
+                type="number"
+                placeholder="2500.00"
+                value={budgetForm.estimatedCost}
+                onChange={(e) => setBudgetForm({ ...budgetForm, estimatedCost: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="budget-vendor">Vendor (Optional)</Label>
+              <Input
+                id="budget-vendor"
+                placeholder="e.g., Austin Wedding Venues"
+                value={budgetForm.vendor}
+                onChange={(e) => setBudgetForm({ ...budgetForm, vendor: e.target.value })}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleCreateBudgetItem}
+              disabled={!budgetForm.item || !budgetForm.estimatedCost || createBudgetMutation.isPending}
+              className="gradient-blush-rose text-white"
+            >
+              {createBudgetMutation.isPending ? "Adding..." : "Add Item"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
