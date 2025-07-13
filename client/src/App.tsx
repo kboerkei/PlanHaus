@@ -130,17 +130,19 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
+        <div className="min-h-screen bg-gray-50">
+          {user && sessionId ? (
+            <Router 
+              user={user} 
+              onLogout={handleLogout} 
+              isNewUser={isNewUser}
+              onIntakeComplete={handleIntakeComplete}
+            />
+          ) : (
+            <Auth onAuth={handleAuth} />
+          )}
+        </div>
         <Toaster />
-        {user && sessionId ? (
-          <Router 
-            user={user} 
-            onLogout={handleLogout} 
-            isNewUser={isNewUser}
-            onIntakeComplete={handleIntakeComplete}
-          />
-        ) : (
-          <Auth onAuth={handleAuth} />
-        )}
       </TooltipProvider>
     </QueryClientProvider>
   );
