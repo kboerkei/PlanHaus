@@ -397,7 +397,7 @@ export default function Schedules() {
                       </div>
                       <div className="flex items-center text-xs text-gray-500">
                         <Calendar size={12} className="mr-1" />
-                        {format(new Date(schedule.date), 'MMM dd, yyyy')}
+                        {schedule.date ? format(new Date(schedule.date), 'MMM dd, yyyy') : 'Date not set'}
                       </div>
                       {schedule.location && (
                         <div className="flex items-center text-xs text-gray-500 mt-1">
@@ -424,7 +424,7 @@ export default function Schedules() {
                             <div className="flex items-center space-x-4 text-sm text-gray-600 mt-2">
                               <div className="flex items-center">
                                 <Calendar size={16} className="mr-1" />
-                                {format(new Date(schedule.date), 'EEEE, MMMM dd, yyyy')}
+                                {schedule.date ? format(new Date(schedule.date), 'EEEE, MMMM dd, yyyy') : 'Date not set'}
                               </div>
                               {schedule.location && (
                                 <div className="flex items-center">
