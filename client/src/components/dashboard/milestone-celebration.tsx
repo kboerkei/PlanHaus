@@ -154,49 +154,134 @@ export default function MilestoneCelebration() {
     const timeDiff = weddingDate.getTime() - today.getTime();
     const daysUntil = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
     
+    // Calculate time breakdown
+    const months = Math.floor(daysUntil / 30);
+    const weeks = Math.floor((daysUntil % 30) / 7);
+    const days = daysUntil % 7;
+    
     return (
-      <Card className="mb-8 overflow-hidden relative">
-        <div className="absolute inset-0 bg-gradient-to-br from-blush/10 via-rose/5 to-cream opacity-50" />
-        <div className="absolute -top-20 -right-20 w-64 h-64 bg-gradient-to-br from-blush/20 to-rose/30 rounded-full blur-3xl" />
+      <Card className="mb-8 overflow-hidden relative border-0 shadow-2xl">
+        {/* Enhanced background layers */}
+        <div className="absolute inset-0 bg-gradient-to-br from-pearl via-cream to-blush/20" />
+        <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-rose/5 to-transparent" />
         
-        <CardContent className="relative p-8 text-center">
-          <div className="mb-4">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blush to-rose rounded-full mb-4 shadow-lg">
-              <Heart className="text-white" size={32} />
+        {/* Floating decorative elements */}
+        <div className="absolute -top-32 -right-32 w-80 h-80 bg-gradient-to-br from-blush/30 to-rose/40 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute -bottom-20 -left-20 w-60 h-60 bg-gradient-to-tr from-purple/20 to-blush/30 rounded-full blur-2xl animate-float" />
+        <div className="absolute top-10 right-20 w-8 h-8 bg-blush/40 rounded-full animate-ping" />
+        <div className="absolute bottom-20 left-16 w-4 h-4 bg-rose/60 rounded-full animate-pulse delay-1000" />
+        <div className="absolute top-1/3 left-1/4 w-6 h-6 bg-purple/30 rounded-full animate-bounce delay-500" />
+        
+        {/* Sparkling effects */}
+        {[...Array(12)].map((_, i) => (
+          <div
+            key={i}
+            className="absolute w-1 h-1 bg-gradient-to-r from-blush to-rose rounded-full animate-ping opacity-70"
+            style={{
+              left: `${10 + (i * 8)}%`,
+              top: `${15 + (i % 3) * 25}%`,
+              animationDelay: `${i * 0.3}s`,
+              animationDuration: '2s'
+            }}
+          />
+        ))}
+        
+        <CardContent className="relative p-12 text-center">
+          {/* Enhanced heart icon */}
+          <div className="mb-8">
+            <div className="relative inline-block">
+              <div className="absolute inset-0 bg-gradient-to-br from-blush to-rose rounded-full blur-xl opacity-60 animate-pulse" />
+              <div className="relative w-28 h-28 bg-gradient-to-br from-blush via-rose to-purple rounded-full flex items-center justify-center shadow-2xl border-4 border-white/50 backdrop-blur-sm">
+                <Heart className="text-white drop-shadow-lg animate-pulse" size={40} />
+              </div>
+              {/* Floating hearts */}
+              <div className="absolute -top-2 -right-2 text-blush animate-bounce delay-300">💖</div>
+              <div className="absolute -bottom-2 -left-2 text-rose animate-bounce delay-700">💕</div>
             </div>
           </div>
           
-          <h2 className="text-3xl sm:text-4xl font-serif font-bold text-gray-800 mb-2">
-            {daysUntil > 0 ? `${daysUntil} Days to Go!` : daysUntil === 0 ? "Today's the Day!" : "Congratulations!"}
-          </h2>
+          {/* Enhanced title with gradient text */}
+          <div className="mb-6">
+            <h2 className="text-5xl sm:text-6xl font-serif font-bold bg-gradient-to-r from-gray-800 via-blush to-rose bg-clip-text text-transparent mb-3 leading-tight">
+              {daysUntil > 0 ? `${daysUntil}` : daysUntil === 0 ? "0" : "∞"}
+            </h2>
+            <p className="text-2xl font-serif text-gray-700 mb-2">
+              {daysUntil > 0 ? "Days Until Forever" : daysUntil === 0 ? "Today's the Day!" : "Happily Ever After"}
+            </p>
+          </div>
           
-          <p className="text-lg text-gray-600 mb-4">
-            {project.name} • {weddingDate.toLocaleDateString('en-US', { 
-              weekday: 'long', 
-              year: 'numeric', 
-              month: 'long', 
-              day: 'numeric' 
-            })}
-          </p>
+          {/* Wedding details with enhanced styling */}
+          <div className="mb-8">
+            <h3 className="text-2xl font-serif font-semibold text-gray-800 mb-2">{project.name}</h3>
+            <p className="text-lg text-gray-600 font-medium">
+              {weddingDate.toLocaleDateString('en-US', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+              })}
+            </p>
+          </div>
           
+          {/* Enhanced countdown grid */}
           {daysUntil > 0 && (
-            <div className="bg-white/60 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-              <div className="grid grid-cols-4 gap-4 text-center">
-                <div>
-                  <div className="text-2xl font-bold text-gray-800">{Math.floor(daysUntil / 30)}</div>
-                  <div className="text-xs text-gray-600">Months</div>
+            <div className="relative">
+              <div className="absolute inset-0 bg-white/40 backdrop-blur-md rounded-2xl border border-white/30 shadow-inner" />
+              <div className="relative p-8">
+                <div className="grid grid-cols-4 gap-6">
+                  <div className="group">
+                    <div className="relative">
+                      <div className="absolute inset-0 bg-gradient-to-br from-blush/20 to-rose/30 rounded-xl blur opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                      <div className="relative bg-white/60 backdrop-blur-sm rounded-xl p-4 border border-white/40 hover:border-blush/40 transition-all duration-300 hover:scale-105">
+                        <div className="text-3xl font-bold text-gray-800 mb-1">{months}</div>
+                        <div className="text-sm font-medium text-gray-600 uppercase tracking-wide">Months</div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="group">
+                    <div className="relative">
+                      <div className="absolute inset-0 bg-gradient-to-br from-rose/20 to-purple/30 rounded-xl blur opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                      <div className="relative bg-white/60 backdrop-blur-sm rounded-xl p-4 border border-white/40 hover:border-rose/40 transition-all duration-300 hover:scale-105">
+                        <div className="text-3xl font-bold text-gray-800 mb-1">{weeks}</div>
+                        <div className="text-sm font-medium text-gray-600 uppercase tracking-wide">Weeks</div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="group">
+                    <div className="relative">
+                      <div className="absolute inset-0 bg-gradient-to-br from-purple/20 to-blush/30 rounded-xl blur opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                      <div className="relative bg-white/60 backdrop-blur-sm rounded-xl p-4 border border-white/40 hover:border-purple/40 transition-all duration-300 hover:scale-105">
+                        <div className="text-3xl font-bold text-gray-800 mb-1">{days}</div>
+                        <div className="text-sm font-medium text-gray-600 uppercase tracking-wide">Days</div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="group">
+                    <div className="relative">
+                      <div className="absolute inset-0 bg-gradient-to-br from-blush/30 to-rose/40 rounded-xl blur opacity-50 group-hover:opacity-80 transition-opacity duration-300" />
+                      <div className="relative bg-white/60 backdrop-blur-sm rounded-xl p-4 border border-white/40 hover:border-blush/50 transition-all duration-300 hover:scale-105">
+                        <div className="text-3xl font-bold text-blush mb-1 animate-pulse">∞</div>
+                        <div className="text-sm font-medium text-gray-600 uppercase tracking-wide">Forever</div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <div className="text-2xl font-bold text-gray-800">{Math.floor((daysUntil % 30) / 7)}</div>
-                  <div className="text-xs text-gray-600">Weeks</div>
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-gray-800">{daysUntil % 7}</div>
-                  <div className="text-xs text-gray-600">Days</div>
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-blush">❤️</div>
-                  <div className="text-xs text-gray-600">Forever</div>
+                
+                {/* Progress bar */}
+                <div className="mt-8 pt-6 border-t border-white/30">
+                  <div className="text-sm font-medium text-gray-600 mb-2 uppercase tracking-wide">Wedding Journey</div>
+                  <div className="w-full bg-white/40 rounded-full h-3 shadow-inner">
+                    <div 
+                      className="bg-gradient-to-r from-blush via-rose to-purple h-3 rounded-full transition-all duration-1000 shadow-sm"
+                      style={{ width: `${Math.min(100, ((365 - daysUntil) / 365) * 100)}%` }}
+                    />
+                  </div>
+                  <div className="text-xs text-gray-500 mt-2 font-medium">
+                    {Math.round(((365 - daysUntil) / 365) * 100)}% of your planning journey complete
+                  </div>
                 </div>
               </div>
             </div>
