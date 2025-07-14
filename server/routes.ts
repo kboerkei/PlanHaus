@@ -2426,6 +2426,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.patch("/api/vendors/:id", requireAuth, async (req, res) => {
+    try {
+      const vendorId = parseInt(req.params.id);
+      const vendorData = req.body;
+      
+      const vendor = await storage.updateVendor(vendorId, vendorData);
+      
+      if (!vendor) {
+        return res.status(404).json({ message: "Vendor not found" });
+      }
+
+      res.json(vendor);
+    } catch (error) {
+      console.error('Vendor update error:', error);
+      res.status(400).json({ message: "Invalid vendor data" });
+    }
+  });
+
+  app.delete("/api/vendors/:id", requireAuth, async (req, res) => {
+    try {
+      const vendorId = parseInt(req.params.id);
+      const success = await storage.deleteVendor(vendorId);
+      
+      if (!success) {
+        return res.status(404).json({ message: "Vendor not found" });
+      }
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Vendor deletion error:', error);
+      res.status(500).json({ message: "Failed to delete vendor" });
+    }
+  });
+
   // Budget Items API (POST endpoint)
   app.post("/api/budget-items", requireAuth, async (req, res) => {
     try {
