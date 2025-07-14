@@ -271,18 +271,7 @@ export default function MilestoneCelebration() {
                 </div>
                 
                 {/* Progress bar */}
-                <div className="mt-8 pt-6 border-t border-white/30">
-                  <div className="text-sm font-medium text-gray-600 mb-2 uppercase tracking-wide">Wedding Journey</div>
-                  <div className="w-full bg-white/40 rounded-full h-3 shadow-inner">
-                    <div 
-                      className="bg-gradient-to-r from-blush via-rose to-purple h-3 rounded-full transition-all duration-1000 shadow-sm"
-                      style={{ width: `${Math.min(100, ((365 - daysUntil) / 365) * 100)}%` }}
-                    />
-                  </div>
-                  <div className="text-xs text-gray-500 mt-2 font-medium">
-                    {Math.round(((365 - daysUntil) / 365) * 100)}% of your planning journey complete
-                  </div>
-                </div>
+      
               </div>
             </div>
           )}
