@@ -1,8 +1,5 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import Sidebar from "@/components/layout/sidebar";
-import Header from "@/components/layout/header";
-import MobileNav from "@/components/layout/mobile-nav";
 import LoadingSpinner from "@/components/loading-spinner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -348,65 +345,45 @@ export default function TimelineModern() {
 
   if (tasksLoading || projectsLoading) {
     return (
-      <div className="flex min-h-screen bg-gradient-to-br from-cream via-white to-blush/5">
-        <Sidebar />
-        <main className="flex-1 overflow-y-auto">
-          <Header />
-          <div className="p-6">
-            <div className="flex items-center justify-center h-64">
-              <LoadingSpinner size="lg" />
-            </div>
-          </div>
-        </main>
-        <MobileNav />
+      <div className="p-6">
+        <div className="flex items-center justify-center h-64">
+          <LoadingSpinner size="lg" />
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="flex min-h-screen bg-gradient-to-br from-cream via-white to-blush/5">
-        <Sidebar />
-        <main className="flex-1 overflow-y-auto">
-          <Header />
-          <div className="p-6">
-            <div className="max-w-6xl mx-auto">
-              <div className="text-center py-16">
-                <div className="relative">
-                  <div className="absolute inset-0 bg-gradient-to-r from-blush/20 to-rose/20 rounded-full blur-3xl"></div>
-                  <Calendar className="relative h-20 w-20 text-blush mx-auto mb-6" />
-                </div>
-                <h3 className="text-2xl font-semibold text-gray-800 mb-3">Welcome to Your Wedding Timeline</h3>
-                <p className="text-gray-600 mb-8 max-w-md mx-auto">
-                  Plan your perfect wedding with our intelligent task management system. 
-                  Stay organized and never miss a milestone.
-                </p>
-                <Button 
-                  onClick={() => setIsAddDialogOpen(true)}
-                  className="gradient-blush-rose text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
-                  size="lg"
-                >
-                  <Sparkles className="mr-2" size={20} />
-                  Create Your First Task
-                </Button>
-              </div>
+      <div className="p-6">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center py-16">
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-r from-blush/20 to-rose/20 rounded-full blur-3xl"></div>
+              <Calendar className="relative h-20 w-20 text-blush mx-auto mb-6" />
             </div>
+            <h3 className="text-2xl font-semibold text-gray-800 mb-3">Welcome to Your Wedding Timeline</h3>
+            <p className="text-gray-600 mb-8 max-w-md mx-auto">
+              Plan your perfect wedding with our intelligent task management system. 
+              Stay organized and never miss a milestone.
+            </p>
+            <Button 
+              onClick={() => setIsAddDialogOpen(true)}
+              className="gradient-blush-rose text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
+              size="lg"
+            >
+              <Sparkles className="mr-2" size={20} />
+              Create Your First Task
+            </Button>
           </div>
-        </main>
-        <MobileNav />
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-cream via-white to-blush/5">
-      <Sidebar />
-      
-      <main className="flex-1 overflow-y-auto">
-        <Header />
-        
-        <div className="p-6">
-          <div className="max-w-7xl mx-auto">
+    <div className="p-6">
+      <div className="max-w-7xl mx-auto">
             {/* Modern Header Section */}
             <div className="relative mb-8">
               <div className="absolute inset-0 bg-gradient-to-r from-blush/10 to-rose/10 rounded-3xl blur-3xl"></div>
@@ -1328,8 +1305,6 @@ export default function TimelineModern() {
           </Form>
         </DialogContent>
       </Dialog>
-      
-      <MobileNav />
     </div>
   );
 }

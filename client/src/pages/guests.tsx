@@ -1,8 +1,5 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import Sidebar from "@/components/layout/sidebar";
-import Header from "@/components/layout/header";
-import MobileNav from "@/components/layout/mobile-nav";
 import SearchFilterBar from "@/components/ui/search-filter-bar";
 import ExportOptions from "@/components/ui/export-options";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -319,28 +316,17 @@ export default function Guests() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen bg-cream">
-        <Sidebar />
-        <main className="flex-1 overflow-y-auto">
-          <Header />
-          <div className="p-6">
-            <div className="text-center py-12">
-              <div className="text-lg">Loading guests...</div>
-            </div>
-          </div>
-        </main>
-        <MobileNav />
+      <div className="p-6">
+        <div className="text-center py-12">
+          <div className="text-lg">Loading guests...</div>
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="flex min-h-screen bg-cream">
-        <Sidebar />
-        <main className="flex-1 overflow-y-auto">
-          <Header />
-          <div className="p-6">
+      <div className="p-6">
             <div className="max-w-6xl mx-auto">
               <div className="text-center py-12">
                 <Users className="h-16 w-16 text-gray-400 mx-auto mb-4" />
@@ -423,20 +409,11 @@ export default function Guests() {
               </div>
             </div>
           </div>
-        </main>
-        <MobileNav />
-      </div>
     );
   }
 
   return (
-    <div className="flex min-h-screen bg-cream">
-      <Sidebar />
-      
-      <main className="flex-1 overflow-y-auto">
-        <Header />
-        
-        <div className="p-6">
+    <div className="p-6">
           <div className="max-w-6xl mx-auto">
             <div className="flex items-center justify-between mb-6">
               <div>
@@ -847,11 +824,7 @@ export default function Guests() {
               </CardContent>
             </Card>
           </div>
-        </div>
-      </main>
-      
-      <MobileNav />
-
+        
       {/* Edit Guest Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">

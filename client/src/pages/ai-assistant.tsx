@@ -1,7 +1,4 @@
 import { useState } from "react";
-import Sidebar from "@/components/layout/sidebar";
-import Header from "@/components/layout/header";
-import MobileNav from "@/components/layout/mobile-nav";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -121,13 +118,7 @@ export default function AIAssistant() {
   };
 
   return (
-    <div className="flex min-h-screen bg-cream">
-      <Sidebar />
-      
-      <main className="flex-1 overflow-y-auto">
-        <Header />
-        
-        <div className="p-6">
+    <div className="p-6">
           <div className="max-w-4xl mx-auto">
             <div className="mb-6">
               <h1 className="font-serif text-3xl font-semibold text-gray-800 mb-2">
@@ -219,10 +210,6 @@ export default function AIAssistant() {
               </CardContent>
             </Card>
           </div>
-        </div>
-      </main>
-      
-      <MobileNav />
     </div>
   );
 }

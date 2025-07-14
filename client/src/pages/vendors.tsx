@@ -1,8 +1,5 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import Sidebar from "@/components/layout/sidebar";
-import Header from "@/components/layout/header";
-import MobileNav from "@/components/layout/mobile-nav";
 import LoadingSpinner from "@/components/loading-spinner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -294,54 +291,34 @@ export default function VendorsEnhanced() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen bg-cream">
-        <Sidebar />
-        <main className="flex-1 overflow-y-auto">
-          <Header />
-          <div className="p-6">
-            <div className="flex items-center justify-center h-64">
-              <LoadingSpinner size="lg" />
-            </div>
-          </div>
-        </main>
-        <MobileNav />
+      <div className="p-6">
+        <div className="flex items-center justify-center h-64">
+          <LoadingSpinner size="lg" />
+        </div>
       </div>
     );
   }
 
   if (error || vendors === null) {
     return (
-      <div className="flex min-h-screen bg-cream">
-        <Sidebar />
-        <main className="flex-1 overflow-y-auto">
-          <Header />
-          <div className="p-6">
-            <div className="max-w-6xl mx-auto">
-              <div className="text-center py-12">
-                <Building className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-gray-800 mb-2">Welcome to Vendor Management</h3>
-                <p className="text-gray-600 mb-6">Keep track of all your wedding vendors in one place.</p>
-                <Button className="gradient-blush-rose text-white">
-                  <Plus size={16} className="mr-2" />
-                  Add Your First Vendor
-                </Button>
-              </div>
-            </div>
+      <div className="p-6">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center py-12">
+            <Building className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-gray-800 mb-2">Welcome to Vendor Management</h3>
+            <p className="text-gray-600 mb-6">Keep track of all your wedding vendors in one place.</p>
+            <Button className="gradient-blush-rose text-white">
+              <Plus size={16} className="mr-2" />
+              Add Your First Vendor
+            </Button>
           </div>
-        </main>
-        <MobileNav />
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-screen bg-cream">
-      <Sidebar />
-      
-      <main className="flex-1 overflow-y-auto">
-        <Header />
-        
-        <div className="p-6">
+    <div className="p-6">
           <div className="max-w-7xl mx-auto">
             {/* Header Section */}
             <div className="flex items-center justify-between mb-8">
@@ -1040,9 +1017,7 @@ export default function VendorsEnhanced() {
               </CardContent>
             </Card>
           </div>
-        </div>
-      </main>
-      
+        
       {/* Edit Vendor Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="sm:max-w-md max-h-[80vh] overflow-y-auto">
@@ -1182,8 +1157,6 @@ export default function VendorsEnhanced() {
           </Form>
         </DialogContent>
       </Dialog>
-      
-      <MobileNav />
     </div>
   );
 }

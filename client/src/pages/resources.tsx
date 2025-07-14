@@ -1,7 +1,4 @@
 import { useState } from "react";
-import Header from "@/components/layout/header";
-import Sidebar from "@/components/layout/sidebar";
-import MobileNav from "@/components/layout/mobile-nav";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -159,13 +156,7 @@ export default function Resources() {
   };
 
   return (
-    <div className="flex min-h-screen bg-cream">
-      <Sidebar />
-      
-      <main className="flex-1 overflow-y-auto">
-        <Header />
-        
-        <div className="p-6">
+    <div className="p-6">
           <div className="max-w-7xl mx-auto">
             <div className="mb-8">
               <div className="flex items-center space-x-3 mb-4">
@@ -280,10 +271,6 @@ export default function Resources() {
               </div>
             </div>
           </div>
-        </div>
-      </main>
-      
-      <MobileNav />
     </div>
   );
 }

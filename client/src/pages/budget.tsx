@@ -289,17 +289,10 @@ export default function Budget() {
 
   if (projectsLoading || budgetLoading) {
     return (
-      <div className="flex min-h-screen bg-cream">
-        <Sidebar />
-        <main className="flex-1 overflow-y-auto">
-          <Header />
-          <div className="p-6">
-            <div className="text-center py-12">
-              <LoadingSpinner size="lg" text="Loading your budget information..." />
-            </div>
-          </div>
-        </main>
-        <MobileNav />
+      <div className="p-6">
+        <div className="text-center py-12">
+          <LoadingSpinner size="lg" text="Loading your budget information..." />
+        </div>
       </div>
     );
   }

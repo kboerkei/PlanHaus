@@ -1,8 +1,5 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import Sidebar from "@/components/layout/sidebar";
-import Header from "@/components/layout/header";
-import MobileNav from "@/components/layout/mobile-nav";
 import LoadingSpinner from "@/components/loading-spinner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -371,62 +368,42 @@ export default function TimelineSimple() {
 
   if (tasksLoading || projectsLoading) {
     return (
-      <div className="flex min-h-screen bg-gradient-to-br from-cream via-white to-blush/5">
-        <Sidebar />
-        <main className="flex-1 overflow-y-auto">
-          <Header />
-          <div className="p-6">
-            <div className="flex items-center justify-center h-64">
-              <LoadingSpinner size="lg" />
-            </div>
-          </div>
-        </main>
-        <MobileNav />
+      <div className="p-6">
+        <div className="flex items-center justify-center h-64">
+          <LoadingSpinner size="lg" />
+        </div>
       </div>
     );
   }
 
   if (tasksError) {
     return (
-      <div className="flex min-h-screen bg-gradient-to-br from-cream via-white to-blush/5">
-        <Sidebar />
-        <main className="flex-1 overflow-y-auto">
-          <Header />
-          <div className="p-6">
-            <div className="max-w-6xl mx-auto">
-              <div className="text-center py-16">
-                <Calendar className="h-20 w-20 text-blush mx-auto mb-6" />
-                <h3 className="text-2xl font-semibold text-gray-800 mb-3">Welcome to Your Wedding Timeline</h3>
-                <p className="text-gray-600 mb-8 max-w-md mx-auto">
-                  Plan your perfect wedding with our intelligent task management system. 
-                  Stay organized and never miss a milestone.
-                </p>
-                <Button 
-                  onClick={() => setIsAddDialogOpen(true)}
-                  className="gradient-blush-rose text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
-                  size="lg"
-                >
-                  <Plus className="mr-2" size={20} />
-                  Create Your First Task
-                </Button>
-              </div>
-            </div>
+      <div className="p-6">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center py-16">
+            <Calendar className="h-20 w-20 text-blush mx-auto mb-6" />
+            <h3 className="text-2xl font-semibold text-gray-800 mb-3">Welcome to Your Wedding Timeline</h3>
+            <p className="text-gray-600 mb-8 max-w-md mx-auto">
+              Plan your perfect wedding with our intelligent task management system. 
+              Stay organized and never miss a milestone.
+            </p>
+            <Button 
+              onClick={() => setIsAddDialogOpen(true)}
+              className="gradient-blush-rose text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
+              size="lg"
+            >
+              <Plus className="mr-2" size={20} />
+              Create Your First Task
+            </Button>
           </div>
-        </main>
-        <MobileNav />
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-cream via-white to-blush/5">
-      <Sidebar />
-      
-      <main className="flex-1 overflow-y-auto">
-        <Header />
-        
-        <div className="p-6">
-          <div className="max-w-7xl mx-auto">
+    <div className="p-6">
+      <div className="max-w-7xl mx-auto">
             {/* Header Section */}
             <div className="relative mb-8">
               <div className="relative bg-white/80 backdrop-blur-sm rounded-3xl p-8 border border-white/50 shadow-xl">
@@ -674,9 +651,7 @@ export default function TimelineSimple() {
             </div>
           </div>
         </div>
-      </main>
-      
-      <MobileNav />
+      </div>
 
       {/* Add Task Dialog */}
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
