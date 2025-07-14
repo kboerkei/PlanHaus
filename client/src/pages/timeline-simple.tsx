@@ -315,7 +315,8 @@ export default function TimelineSimple() {
       thisMonth: [] as any[],
       next3Months: [] as any[],
       beforeWedding: [] as any[],
-      noDueDate: [] as any[]
+      noDueDate: [] as any[],
+      completed: [] as any[]
     };
 
     // Sort tasks by due date first
@@ -327,6 +328,13 @@ export default function TimelineSimple() {
     });
 
     sortedTasks.forEach(task => {
+      // First check if task is completed - if so, put it in completed section
+      if (task.status === 'completed') {
+        groups.completed.push(task);
+        return;
+      }
+
+      // Only organize pending tasks by timeline
       if (!task.dueDate) {
         groups.noDueDate.push(task);
         return;
@@ -640,6 +648,25 @@ export default function TimelineSimple() {
                       <CardContent>
                         <div className="space-y-3">
                           {taskGroups.noDueDate.map((task: any) => (
+                            <TaskCard key={task.id} task={task} onToggle={handleToggleComplete} onEdit={handleEditTask} />
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {/* Completed Tasks Section */}
+                  {taskGroups.completed.length > 0 && (
+                    <Card className="border-l-4 border-l-green-500 bg-green-50/80 backdrop-blur-sm shadow-lg">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-xl font-semibold text-green-700 flex items-center space-x-2">
+                          <CheckCircle2 className="h-5 w-5" />
+                          <span>Completed ({taskGroups.completed.length})</span>
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-3">
+                          {taskGroups.completed.map((task: any) => (
                             <TaskCard key={task.id} task={task} onToggle={handleToggleComplete} onEdit={handleEditTask} />
                           ))}
                         </div>
