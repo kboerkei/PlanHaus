@@ -34,6 +34,7 @@ const vendorSchema = z.object({
   address: z.string().optional(),
   quote: z.string().optional(),
   notes: z.string().optional(),
+  status: z.string().optional(),
   contractSigned: z.boolean().optional(),
 });
 
@@ -43,6 +44,10 @@ const vendorCategories = [
   "Venue", "Catering", "Photography", "Videography", "Florist", "Music/DJ", 
   "Transportation", "Bakery", "Dress/Attire", "Hair & Makeup", "Decoration", 
   "Entertainment", "Stationery", "Jewelry", "Other"
+];
+
+const vendorStatuses = [
+  "pending", "contacted", "quoted", "booked", "rejected"
 ];
 
 const statusColors = {
@@ -94,6 +99,7 @@ export default function VendorsEnhanced() {
       address: "",
       quote: "",
       notes: "",
+      status: "pending",
     },
   });
 
@@ -108,6 +114,7 @@ export default function VendorsEnhanced() {
       address: "",
       quote: "",
       notes: "",
+      status: "pending",
     },
   });
 
@@ -234,6 +241,7 @@ export default function VendorsEnhanced() {
       address: vendor.address || "",
       quote: vendor.quote || "",
       notes: vendor.notes || "",
+      status: vendor.status || "pending",
     });
     setIsEditDialogOpen(true);
   };
@@ -1064,6 +1072,30 @@ export default function VendorsEnhanced() {
                       <SelectContent>
                         {vendorCategories.map(category => (
                           <SelectItem key={category} value={category}>{category}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={editForm.control}
+                name="status"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Status</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select vendor status" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {vendorStatuses.map(status => (
+                          <SelectItem key={status} value={status}>
+                            {status.charAt(0).toUpperCase() + status.slice(1)}
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
