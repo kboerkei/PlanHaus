@@ -351,15 +351,15 @@ export default function Guests() {
                     Add Guest
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="sm:max-w-md">
+                <DialogContent className="sm:max-w-sm">
                   <DialogHeader>
                     <DialogTitle>Add New Guest</DialogTitle>
                     <DialogDescription>
-                      Add guests to your wedding list with contact details and RSVP tracking.
+                      Add essential guest details (more details can be added later).
                     </DialogDescription>
                   </DialogHeader>
                   <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
                       <FormField
                         control={form.control}
                         name="name"
@@ -388,19 +388,6 @@ export default function Guests() {
                       />
                       <FormField
                         control={form.control}
-                        name="phone"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Phone</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Enter phone number" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
                         name="group"
                         render={({ field }) => (
                           <FormItem>
@@ -422,87 +409,7 @@ export default function Guests() {
                           </FormItem>
                         )}
                       />
-                      <FormField
-                        control={form.control}
-                        name="address"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Address</FormLabel>
-                            <FormControl>
-                              <Textarea placeholder="Enter address" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="hotel"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Hotel</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Hotel name" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="hotelAddress"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Hotel Address</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Hotel address" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <div className="grid grid-cols-2 gap-4">
-                        <FormField
-                          control={form.control}
-                          name="checkInDate"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Check-in Date</FormLabel>
-                              <FormControl>
-                                <Input type="date" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="checkOutDate"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Check-out Date</FormLabel>
-                              <FormControl>
-                                <Input type="date" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                      <FormField
-                        control={form.control}
-                        name="notes"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Notes</FormLabel>
-                            <FormControl>
-                              <Textarea placeholder="Any special notes or requirements..." {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <div className="flex justify-end space-x-2">
+                      <div className="flex justify-end space-x-2 pt-2">
                         <Button type="button" variant="outline" onClick={() => setIsAddDialogOpen(false)}>
                           Cancel
                         </Button>
@@ -712,13 +619,13 @@ export default function Guests() {
       
       {/* Edit Guest Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Guest</DialogTitle>
           </DialogHeader>
           <Form {...editForm}>
-            <form onSubmit={editForm.handleSubmit(onEditSubmit)} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <form onSubmit={editForm.handleSubmit(onEditSubmit)} className="space-y-3">
+              <div className="space-y-3">
                 <FormField
                   control={editForm.control}
                   name="name"

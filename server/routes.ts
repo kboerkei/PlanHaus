@@ -2460,6 +2460,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // AI Vendor Search endpoint
+  app.post("/api/vendors/ai-search", requireAuth, async (req, res) => {
+    try {
+      const { location, category } = req.body;
+      
+      if (!location || !category) {
+        return res.status(400).json({ 
+          message: "Location and category are required",
+          vendors: []
+        });
+      }
+
+      // Since OpenAI API may be quota limited, return helpful placeholder vendors
+      const placeholderVendors = [
+        {
+          name: `${category} Expert in ${location}`,
+          category: category,
+          location: location,
+          rating: 4.5,
+          description: `Professional ${category.toLowerCase()} service provider in ${location}`,
+          contact: {
+            phone: "(555) 123-4567",
+            email: "contact@vendor.com",
+            website: "www.vendor.com"
+          }
+        },
+        {
+          name: `Premium ${category} Services`,
+          category: category,
+          location: location,
+          rating: 4.8,
+          description: `High-quality ${category.toLowerCase()} services with excellent reviews`,
+          contact: {
+            phone: "(555) 234-5678",
+            email: "info@premium.com",
+            website: "www.premium.com"
+          }
+        }
+      ];
+
+      res.json({ 
+        vendors: placeholderVendors,
+        message: "AI vendor search is currently using sample data. Use these as inspiration to find real vendors in your area."
+      });
+
+    } catch (error) {
+      console.error('Vendor search error:', error);
+      res.status(500).json({ 
+        message: "Failed to search for vendors",
+        vendors: []
+      });
+    }
+  });
+
   // Budget Items API (POST endpoint)
   app.post("/api/budget-items", requireAuth, async (req, res) => {
     try {
