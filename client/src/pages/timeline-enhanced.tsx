@@ -306,6 +306,7 @@ export default function Timeline() {
   const [activeTab, setActiveTab] = useState("timeline");
   const [filterCategory, setFilterCategory] = useState("all");
   const [filterPriority, setFilterPriority] = useState("all");
+  const [filterStatus, setFilterStatus] = useState("all");
   const { toast } = useToast();
 
   // Fetch data with proper error handling
@@ -462,9 +463,38 @@ export default function Timeline() {
     return safeTasks.filter((task: any) => {
       const categoryMatch = filterCategory === "all" || task.category === filterCategory;
       const priorityMatch = filterPriority === "all" || task.priority === filterPriority;
-      return categoryMatch && priorityMatch;
+      
+      // Status filtering logic
+      let statusMatch = true;
+      if (filterStatus === "completed") {
+        statusMatch = task.status === "completed";
+      } else if (filterStatus === "pending") {
+        statusMatch = task.status === "pending";
+      } else if (filterStatus === "overdue") {
+        // Check if task is overdue
+        if (task.dueDate && task.status !== "completed") {
+          const dueDate = new Date(task.dueDate);
+          const today = new Date();
+          statusMatch = dueDate < today;
+        } else {
+          statusMatch = false;
+        }
+      } else if (filterStatus === "thisWeek") {
+        // Check if task is due this week
+        if (task.dueDate) {
+          const dueDate = new Date(task.dueDate);
+          const today = new Date();
+          const diffTime = dueDate.getTime() - today.getTime();
+          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+          statusMatch = diffDays >= 0 && diffDays <= 7;
+        } else {
+          statusMatch = false;
+        }
+      }
+      
+      return categoryMatch && priorityMatch && statusMatch;
     });
-  }, [safeTasks, filterCategory, filterPriority]);
+  }, [safeTasks, filterCategory, filterPriority, filterStatus]);
 
   // Function to group tasks by timeline milestones
   const groupTasksByMilestone = (tasks: any[]) => {
@@ -667,8 +697,15 @@ export default function Timeline() {
             {/* Enhanced Stats Grid */}
             <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-8">
               <Card 
-                className="border-0 bg-white/60 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-105"
-                onClick={() => setFilterCategory("all")}
+                className={`border-0 bg-white/60 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-105 ${
+                  filterStatus === "all" ? "ring-2 ring-blue-500 bg-blue-50" : ""
+                }`}
+                onClick={() => {
+                  setFilterStatus("all");
+                  setFilterCategory("all");
+                  setFilterPriority("all");
+                  setActiveTab("timeline");
+                }}
               >
                 <CardContent className="p-4">
                   <div className="text-center">
@@ -679,16 +716,12 @@ export default function Timeline() {
               </Card>
               
               <Card 
-                className="border-0 bg-white/60 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-105"
+                className={`border-0 bg-white/60 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-105 ${
+                  filterStatus === "completed" ? "ring-2 ring-green-500 bg-green-50" : ""
+                }`}
                 onClick={() => {
+                  setFilterStatus("completed");
                   setActiveTab("timeline");
-                  // Scroll to completed tasks section
-                  setTimeout(() => {
-                    const completedSection = document.querySelector('[data-section="completed"]');
-                    if (completedSection) {
-                      completedSection.scrollIntoView({ behavior: 'smooth' });
-                    }
-                  }, 100);
                 }}
               >
                 <CardContent className="p-4">
@@ -700,16 +733,12 @@ export default function Timeline() {
               </Card>
               
               <Card 
-                className="border-0 bg-white/60 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-105"
+                className={`border-0 bg-white/60 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-105 ${
+                  filterStatus === "pending" ? "ring-2 ring-yellow-500 bg-yellow-50" : ""
+                }`}
                 onClick={() => {
+                  setFilterStatus("pending");
                   setActiveTab("timeline");
-                  // Scroll to pending tasks
-                  setTimeout(() => {
-                    const pendingSection = document.querySelector('[data-section="pending"]');
-                    if (pendingSection) {
-                      pendingSection.scrollIntoView({ behavior: 'smooth' });
-                    }
-                  }, 100);
                 }}
               >
                 <CardContent className="p-4">
@@ -721,16 +750,12 @@ export default function Timeline() {
               </Card>
               
               <Card 
-                className="border-0 bg-white/60 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-105"
+                className={`border-0 bg-white/60 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-105 ${
+                  filterStatus === "overdue" ? "ring-2 ring-red-500 bg-red-50" : ""
+                }`}
                 onClick={() => {
+                  setFilterStatus("overdue");
                   setActiveTab("timeline");
-                  // Scroll to overdue tasks
-                  setTimeout(() => {
-                    const overdueSection = document.querySelector('[data-section="overdue"]');
-                    if (overdueSection) {
-                      overdueSection.scrollIntoView({ behavior: 'smooth' });
-                    }
-                  }, 100);
                 }}
               >
                 <CardContent className="p-4">
@@ -742,9 +767,12 @@ export default function Timeline() {
               </Card>
               
               <Card 
-                className="border-0 bg-white/60 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-105"
+                className={`border-0 bg-white/60 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-105 ${
+                  filterPriority === "high" ? "ring-2 ring-purple-500 bg-purple-50" : ""
+                }`}
                 onClick={() => {
                   setFilterPriority("high");
+                  setFilterStatus("all");
                   setActiveTab("timeline");
                 }}
               >
@@ -757,16 +785,12 @@ export default function Timeline() {
               </Card>
               
               <Card 
-                className="border-0 bg-white/60 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-105"
+                className={`border-0 bg-white/60 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-105 ${
+                  filterStatus === "thisWeek" ? "ring-2 ring-orange-500 bg-orange-50" : ""
+                }`}
                 onClick={() => {
+                  setFilterStatus("thisWeek");
                   setActiveTab("timeline");
-                  // Scroll to this week tasks
-                  setTimeout(() => {
-                    const thisWeekSection = document.querySelector('[data-section="thisWeek"]');
-                    if (thisWeekSection) {
-                      thisWeekSection.scrollIntoView({ behavior: 'smooth' });
-                    }
-                  }, 100);
                 }}
               >
                 <CardContent className="p-4">
