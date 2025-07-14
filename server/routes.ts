@@ -1394,6 +1394,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/schedule-events/:scheduleId", requireAuth, async (req: any, res) => {
+    try {
+      const scheduleId = parseInt(req.params.scheduleId);
+      const events = await storage.getScheduleEventsByScheduleId(scheduleId);
+      res.json(events);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch schedule events" });
+    }
+  });
+
+  app.post("/api/schedule-events", requireAuth, async (req: any, res) => {
+    try {
+      const eventData = {
+        ...req.body,
+        createdBy: req.userId
+      };
+      
+      console.log('Creating schedule event:', eventData);
+      
+      const event = await storage.createScheduleEvent(eventData);
+      res.json(event);
+    } catch (error) {
+      console.error('Schedule event creation error:', error);
+      res.status(500).json({ message: "Failed to create schedule event" });
+    }
+  });
+
   app.post("/api/schedules/:id/events", requireAuth, async (req: any, res) => {
     try {
       const scheduleId = parseInt(req.params.id);

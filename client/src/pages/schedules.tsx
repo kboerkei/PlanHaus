@@ -128,33 +128,54 @@ export default function Schedules() {
   }
 
   const createScheduleMutation = useMutation({
-    mutationFn: (data: ScheduleFormData) => apiRequest(`/api/projects/${projects[0].id}/schedules`, {
+    mutationFn: (data: ScheduleFormData) => apiRequest(`/api/projects/${projects?.[0]?.id}/schedules`, {
       method: 'POST',
       body: JSON.stringify(data),
       headers: { 'Content-Type': 'application/json' }
     }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/projects', projects[0].id, 'schedules'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/projects', '1', 'schedules'] });
       scheduleForm.reset();
       setIsScheduleDialogOpen(false);
       toast({ title: "Schedule created successfully!" });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error?.message || "Failed to create schedule",
+        variant: "destructive",
+      });
     }
   });
 
   const createEventMutation = useMutation({
-    mutationFn: (data: EventFormData) => apiRequest(`/api/schedules/${selectedSchedule.id}/events`, {
-      method: 'POST',
-      body: JSON.stringify({
-        ...data,
-        projectId: projects[0].id
-      }),
-      headers: { 'Content-Type': 'application/json' }
-    }),
+    mutationFn: (data: EventFormData) => {
+      if (!selectedSchedule?.id) {
+        throw new Error("No schedule selected");
+      }
+      return apiRequest(`/api/schedule-events`, {
+        method: 'POST',
+        body: JSON.stringify({
+          ...data,
+          scheduleId: selectedSchedule.id,
+          projectId: projects?.[0]?.id || 1,
+          createdBy: 1 // Demo user
+        }),
+        headers: { 'Content-Type': 'application/json' }
+      });
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/schedules', selectedSchedule.id, 'events'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/schedule-events', selectedSchedule?.id] });
       eventForm.reset();
       setIsEventDialogOpen(false);
       toast({ title: "Event added successfully!" });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error?.message || "Failed to add event",
+        variant: "destructive",
+      });
     }
   });
 

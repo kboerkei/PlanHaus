@@ -147,32 +147,60 @@ export default function MilestoneCelebration() {
     );
   }
 
-  // Show next milestone progress
-  if (nextMilestone && tasks && guests && vendors) {
-    const Icon = nextMilestone.icon;
-    const progressPercent = Math.min(100, (nextMilestone.progress / getProgressTarget(nextMilestone.id)) * 100);
+  // Show wedding countdown instead of milestone progress
+  if (project?.date) {
+    const weddingDate = new Date(project.date);
+    const today = new Date();
+    const timeDiff = weddingDate.getTime() - today.getTime();
+    const daysUntil = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
     
     return (
-      <Card className="mb-6 bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
-        <CardContent className="p-4">
-          <div className="flex items-center space-x-4">
-            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center">
-              <Icon className="text-white" size={20} />
-            </div>
-            <div className="flex-1">
-              <h4 className="font-semibold text-gray-800">{nextMilestone.title}</h4>
-              <p className="text-sm text-gray-600">{nextMilestone.description}</p>
-              <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
-                <div 
-                  className="bg-gradient-to-r from-blue-500 to-indigo-500 h-2 rounded-full transition-all duration-500"
-                  style={{ width: `${progressPercent}%` }}
-                />
-              </div>
-              <p className="text-xs text-gray-500 mt-1">
-                {nextMilestone.progress} / {getProgressTarget(nextMilestone.id)} completed
-              </p>
+      <Card className="mb-8 overflow-hidden relative">
+        <div className="absolute inset-0 bg-gradient-to-br from-blush/10 via-rose/5 to-cream opacity-50" />
+        <div className="absolute -top-20 -right-20 w-64 h-64 bg-gradient-to-br from-blush/20 to-rose/30 rounded-full blur-3xl" />
+        
+        <CardContent className="relative p-8 text-center">
+          <div className="mb-4">
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blush to-rose rounded-full mb-4 shadow-lg">
+              <Heart className="text-white" size={32} />
             </div>
           </div>
+          
+          <h2 className="text-3xl sm:text-4xl font-serif font-bold text-gray-800 mb-2">
+            {daysUntil > 0 ? `${daysUntil} Days to Go!` : daysUntil === 0 ? "Today's the Day!" : "Congratulations!"}
+          </h2>
+          
+          <p className="text-lg text-gray-600 mb-4">
+            {project.name} • {weddingDate.toLocaleDateString('en-US', { 
+              weekday: 'long', 
+              year: 'numeric', 
+              month: 'long', 
+              day: 'numeric' 
+            })}
+          </p>
+          
+          {daysUntil > 0 && (
+            <div className="bg-white/60 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+              <div className="grid grid-cols-4 gap-4 text-center">
+                <div>
+                  <div className="text-2xl font-bold text-gray-800">{Math.floor(daysUntil / 30)}</div>
+                  <div className="text-xs text-gray-600">Months</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-gray-800">{Math.floor((daysUntil % 30) / 7)}</div>
+                  <div className="text-xs text-gray-600">Weeks</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-gray-800">{daysUntil % 7}</div>
+                  <div className="text-xs text-gray-600">Days</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-blush">❤️</div>
+                  <div className="text-xs text-gray-600">Forever</div>
+                </div>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
     );
