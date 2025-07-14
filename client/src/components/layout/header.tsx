@@ -1,7 +1,21 @@
-import { Heart } from "lucide-react";
-import { Link } from "wouter";
+import { Heart, Calendar, Users, DollarSign, Camera, Sparkles, Settings, Home } from "lucide-react";
+import { Link, useLocation } from "wouter";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+
+const navigationItems = [
+  { href: "/", label: "Dashboard", icon: Home },
+  { href: "/timeline", label: "Timeline", icon: Calendar },
+  { href: "/budget", label: "Budget", icon: DollarSign },
+  { href: "/guests", label: "Guests", icon: Users },
+  { href: "/vendors", label: "Vendors", icon: Settings },
+  { href: "/inspiration", label: "Inspiration", icon: Camera },
+  { href: "/ai-assistant", label: "AI Assistant", icon: Sparkles },
+];
 
 export default function Header() {
+  const [location] = useLocation();
+
   return (
     <header className="nav-elegant sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -18,8 +32,34 @@ export default function Header() {
             <span className="logo">Gatherly</span>
           </Link>
 
-          {/* Navigation could go here if needed */}
-          <div className="hidden md:flex items-center space-x-6">
+          {/* Desktop Navigation */}
+          <div className="hidden lg:flex items-center space-x-1">
+            {navigationItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = location === item.href;
+              
+              return (
+                <Link key={item.href} href={item.href}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className={cn(
+                      "flex items-center space-x-2 px-3 py-2 rounded-lg transition-all duration-200",
+                      isActive 
+                        ? "bg-rose-100 text-rose-600 font-medium" 
+                        : "text-gray-600 hover:text-rose-500 hover:bg-rose-50"
+                    )}
+                  >
+                    <Icon className="h-4 w-4" />
+                    <span className="text-sm">{item.label}</span>
+                  </Button>
+                </Link>
+              );
+            })}
+          </div>
+
+          {/* Mobile Navigation Indicator */}
+          <div className="lg:hidden">
             <span className="text-sm text-gray-600 font-medium">
               Your Wedding Planning Journey
             </span>
