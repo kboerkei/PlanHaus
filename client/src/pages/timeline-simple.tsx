@@ -531,33 +531,20 @@ export default function TimelineSimple() {
                     </div>
                   </div>
                   
-                  {/* Wedding Countdown */}
+                  {/* Wedding Countdown - Simple Single Line */}
                   {currentProject?.date && (() => {
                     const weddingDate = new Date(currentProject.date);
                     const today = new Date();
                     const diffTime = weddingDate.getTime() - today.getTime();
                     const totalDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                    const months = Math.floor(totalDays / 30);
-                    const weeks = Math.floor((totalDays % 30) / 7);
-                    const days = totalDays % 7;
                     
                     return (
-                      <div className="flex items-center justify-center space-x-2 md:space-x-3 max-w-xs mx-auto">
-                        <div className="text-center min-w-0 flex-1">
-                          <div className="text-base md:text-2xl font-bold text-gray-800">{months}</div>
-                          <div className="text-xs text-gray-600 truncate">MON</div>
+                      <div className="text-center">
+                        <div className="text-2xl md:text-3xl font-bold text-pink-600 mb-1">
+                          {totalDays}
                         </div>
-                        <div className="text-center min-w-0 flex-1">
-                          <div className="text-base md:text-2xl font-bold text-gray-800">{weeks}</div>
-                          <div className="text-xs text-gray-600 truncate">WEK</div>
-                        </div>
-                        <div className="text-center min-w-0 flex-1">
-                          <div className="text-base md:text-2xl font-bold text-gray-800">{days}</div>
-                          <div className="text-xs text-gray-600 truncate">DAY</div>
-                        </div>
-                        <div className="text-center min-w-0 flex-1">
-                          <div className="text-base md:text-2xl font-bold text-pink-600">∞</div>
-                          <div className="text-xs text-gray-600 truncate">4EVR</div>
+                        <div className="text-sm text-gray-600">
+                          Days Until Wedding
                         </div>
                       </div>
                     );
