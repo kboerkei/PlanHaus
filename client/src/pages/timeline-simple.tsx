@@ -474,10 +474,10 @@ export default function TimelineSimple() {
                       <Calendar className="h-6 w-6 md:h-8 md:w-8 text-white" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <h1 className="font-serif text-2xl md:text-4xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent truncate">
+                      <h1 className="font-serif text-xl md:text-4xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
                         Timeline
                       </h1>
-                      <p className="text-gray-600 text-sm md:text-lg mt-1 truncate">
+                      <p className="text-gray-600 text-xs md:text-lg mt-1 truncate">
                         {currentProject?.name || "Emma & Jake's Wedding"}
                       </p>
                     </div>

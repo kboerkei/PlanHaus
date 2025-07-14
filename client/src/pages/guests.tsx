@@ -415,28 +415,37 @@ export default function Guests() {
   return (
     <div className="p-6">
           <div className="max-w-6xl mx-auto">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h1 className="font-serif text-3xl font-semibold text-gray-800 mb-2">
-                  Guest List
-                </h1>
-                <p className="text-gray-600">
-                  Manage your wedding guests and track RSVPs
-                </p>
-              </div>
-              <div className="flex space-x-3">
-                <ExportOptions 
-                  data={filteredGuests}
-                  filename="wedding-guest-list"
-                  type="guests"
-                />
-                <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button className="gradient-blush-rose text-white">
-                      <Plus size={16} className="mr-2" />
-                      Add Guest
-                    </Button>
-                  </DialogTrigger>
+            {/* Enhanced Header Section */}
+            <div className="relative mb-8">
+              <div className="relative bg-white/80 backdrop-blur-sm rounded-3xl p-4 md:p-8 border border-white/50 shadow-xl">
+                <div className="flex flex-col md:flex-row md:items-start md:justify-between mb-6 space-y-4 md:space-y-0">
+                  <div className="flex items-center space-x-3 md:space-x-4">
+                    <div className="p-2 md:p-3 bg-gradient-to-r from-blush to-rose rounded-2xl shadow-lg">
+                      <Users className="h-6 w-6 md:h-8 md:w-8 text-white" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <h1 className="font-serif text-xl md:text-4xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
+                        Guest List
+                      </h1>
+                      <p className="text-gray-600 text-xs md:text-lg mt-1">
+                        Manage your wedding guests and track RSVPs
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex space-x-2 md:space-x-3 w-full md:w-auto">
+                    <ExportOptions 
+                      data={filteredGuests}
+                      filename="wedding-guest-list"
+                      type="guests"
+                    />
+                    <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+                      <DialogTrigger asChild>
+                        <Button className="gradient-blush-rose text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 flex-1 md:flex-none">
+                          <Plus size={16} className="mr-2" />
+                          Add Guest
+                        </Button>
+                      </DialogTrigger>
                   <DialogContent className="sm:max-w-md">
                     <DialogHeader>
                       <DialogTitle>Add New Guest</DialogTitle>
@@ -618,6 +627,8 @@ export default function Guests() {
                     </Form>
                   </DialogContent>
                 </Dialog>
+                  </div>
+                </div>
               </div>
             </div>
 

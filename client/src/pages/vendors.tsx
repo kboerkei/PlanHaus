@@ -320,24 +320,32 @@ export default function VendorsEnhanced() {
   return (
     <div className="p-6">
           <div className="max-w-7xl mx-auto">
-            {/* Header Section */}
-            <div className="flex items-center justify-between mb-8">
-              <div>
-                <h1 className="font-serif text-3xl font-semibold text-gray-800 mb-2">
-                  Vendor Management
-                </h1>
-                <p className="text-gray-600">
-                  Organize your wedding vendors and track progress
-                </p>
-              </div>
-              <div className="flex items-center space-x-3">
-                <Dialog open={isSearchDialogOpen} onOpenChange={setIsSearchDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button variant="outline" className="border-blush text-blush hover:bg-blush hover:text-white">
-                      <Sparkles size={16} className="mr-2" />
-                      Find Vendors
-                    </Button>
-                  </DialogTrigger>
+            {/* Enhanced Header Section */}
+            <div className="relative mb-8">
+              <div className="relative bg-white/80 backdrop-blur-sm rounded-3xl p-4 md:p-8 border border-white/50 shadow-xl">
+                <div className="flex flex-col md:flex-row md:items-start md:justify-between mb-6 space-y-4 md:space-y-0">
+                  <div className="flex items-center space-x-3 md:space-x-4">
+                    <div className="p-2 md:p-3 bg-gradient-to-r from-blush to-rose rounded-2xl shadow-lg">
+                      <Store className="h-6 w-6 md:h-8 md:w-8 text-white" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <h1 className="font-serif text-xl md:text-4xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
+                        Vendor Management
+                      </h1>
+                      <p className="text-gray-600 text-xs md:text-lg mt-1">
+                        Organize your wedding vendors and track progress
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center space-x-2 md:space-x-3 w-full md:w-auto">
+                    <Dialog open={isSearchDialogOpen} onOpenChange={setIsSearchDialogOpen}>
+                      <DialogTrigger asChild>
+                        <Button variant="outline" className="border-blush text-blush hover:bg-blush hover:text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 flex-1 md:flex-none">
+                          <Sparkles size={16} className="mr-2" />
+                          Find Vendors
+                        </Button>
+                      </DialogTrigger>
                   <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
                     <DialogHeader>
                       <DialogTitle className="flex items-center space-x-2">
@@ -609,6 +617,8 @@ export default function VendorsEnhanced() {
                     </Form>
                   </DialogContent>
                 </Dialog>
+                  </div>
+                </div>
               </div>
             </div>
 

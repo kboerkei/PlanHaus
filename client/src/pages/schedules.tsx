@@ -377,7 +377,13 @@ export default function Schedules() {
                       </div>
                       <div className="flex items-center text-xs text-gray-500">
                         <Calendar size={12} className="mr-1" />
-                        {schedule.date ? format(new Date(schedule.date), 'MMM dd, yyyy') : 'Date not set'}
+                        {schedule.date ? (() => {
+                          try {
+                            return format(new Date(schedule.date), 'MMM dd, yyyy');
+                          } catch {
+                            return 'Invalid date';
+                          }
+                        })() : 'Date not set'}
                       </div>
                       {schedule.location && (
                         <div className="flex items-center text-xs text-gray-500 mt-1">
@@ -404,7 +410,13 @@ export default function Schedules() {
                             <div className="flex items-center space-x-4 text-sm text-gray-600 mt-2">
                               <div className="flex items-center">
                                 <Calendar size={16} className="mr-1" />
-                                {schedule.date ? format(new Date(schedule.date), 'EEEE, MMMM dd, yyyy') : 'Date not set'}
+                                {schedule.date ? (() => {
+                                  try {
+                                    return format(new Date(schedule.date), 'EEEE, MMMM dd, yyyy');
+                                  } catch {
+                                    return 'Invalid date';
+                                  }
+                                })() : 'Date not set'}
                               </div>
                               {schedule.location && (
                                 <div className="flex items-center">
@@ -556,7 +568,13 @@ export default function Schedules() {
                         ) : (
                           <div className="space-y-4">
                             {events
-                              .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())
+                              .sort((a, b) => {
+                                try {
+                                  return new Date(`2000-01-01T${a.startTime}`).getTime() - new Date(`2000-01-01T${b.startTime}`).getTime();
+                                } catch {
+                                  return 0;
+                                }
+                              })
                               .map((event) => (
                               <div key={event.id} className="flex items-start space-x-4 p-4 border border-gray-200 rounded-lg">
                                 <div className="flex-shrink-0">
@@ -577,9 +595,21 @@ export default function Schedules() {
                                   <div className="flex items-center space-x-4 text-sm text-gray-600 mb-2">
                                     <div className="flex items-center">
                                       <Clock size={14} className="mr-1" />
-                                      {format(new Date(`2000-01-01T${event.startTime}`), 'h:mm a')}
+                                      {(() => {
+                                        try {
+                                          return format(new Date(`2000-01-01T${event.startTime}`), 'h:mm a');
+                                        } catch {
+                                          return event.startTime;
+                                        }
+                                      })()}
                                       {event.endTime && (
-                                        <span> - {format(new Date(`2000-01-01T${event.endTime}`), 'h:mm a')}</span>
+                                        <span> - {(() => {
+                                          try {
+                                            return format(new Date(`2000-01-01T${event.endTime}`), 'h:mm a');
+                                          } catch {
+                                            return event.endTime;
+                                          }
+                                        })()}</span>
                                       )}
                                     </div>
                                     {event.location && (
