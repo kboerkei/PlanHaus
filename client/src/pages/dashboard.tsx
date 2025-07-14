@@ -47,7 +47,42 @@ export default function Dashboard() {
           <MilestoneCelebration />
           <SmartOnboarding />
 
-          {/* Quick Navigation Section */}
+          {/* Enhanced Progress Overview */}
+          <div className="mb-8">
+            <ProgressOverview />
+          </div>
+          
+          {/* Main Dashboard Grid with Enhanced Cards */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+            <div className="lg:col-span-2">
+              <AIAssistantCard />
+            </div>
+            <div>
+              <EnhancedQuickActions />
+            </div>
+          </div>
+
+          {/* Enhanced Tasks and Activity Section */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <div className="card-wedding p-6 hover-lift">
+              <UpcomingTasks />
+            </div>
+            <div className="card-wedding p-6 hover-lift">
+              <RecentActivity />
+            </div>
+          </div>
+
+          {/* Enhanced Features Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <div className="card-wedding p-6 hover-lift">
+              <CollaborativeFeatures />
+            </div>
+            <div className="card-wedding p-6 hover-lift">
+              <InspirationPreview />
+            </div>
+          </div>
+
+          {/* Planning Tools Section - Moved to Bottom */}
           <div className="mb-8 animate-fade-in-up">
             <div className="text-center mb-8">
               <h2 className="font-heading text-3xl font-bold text-foreground mb-2">Planning Tools</h2>
@@ -93,41 +128,6 @@ export default function Dashboard() {
                   </CardContent>
                 </Card>
               ))}
-            </div>
-          </div>
-          
-          {/* Enhanced Progress Overview */}
-          <div className="mb-8">
-            <ProgressOverview />
-          </div>
-          
-          {/* Main Dashboard Grid with Enhanced Cards */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-            <div className="lg:col-span-2">
-              <AIAssistantCard />
-            </div>
-            <div>
-              <EnhancedQuickActions />
-            </div>
-          </div>
-
-          {/* Enhanced Tasks and Activity Section */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-            <div className="card-wedding p-6 hover-lift">
-              <UpcomingTasks />
-            </div>
-            <div className="card-wedding p-6 hover-lift">
-              <RecentActivity />
-            </div>
-          </div>
-
-          {/* Enhanced Features Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div className="card-wedding p-6 hover-lift">
-              <CollaborativeFeatures />
-            </div>
-            <div className="card-wedding p-6 hover-lift">
-              <InspirationPreview />
             </div>
           </div>
         </div>
