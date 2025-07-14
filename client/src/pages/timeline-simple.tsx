@@ -43,17 +43,23 @@ const taskCategories = [
 ];
 
 // Enhanced Task Card Component
-function TaskCard({ task, onToggle }: { task: any; onToggle: (task: any) => void }) {
+function TaskCard({ task, onToggle, onEdit }: { task: any; onToggle: (task: any) => void; onEdit: (task: any) => void }) {
   const dueDateInfo = getDaysUntilDue(task?.dueDate);
   
   return (
-    <div className="p-4 bg-white rounded-xl border border-gray-200 hover:shadow-lg transition-all duration-300 group">
+    <div 
+      className="p-4 bg-white rounded-xl border border-gray-200 hover:shadow-lg transition-all duration-300 group cursor-pointer"
+      onClick={() => onEdit(task)}
+    >
       <div className="flex items-start justify-between">
         <div className="flex items-start space-x-4 flex-1">
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => onToggle(task)}
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggle(task);
+            }}
             className={`p-2 rounded-full transition-all duration-200 ${
               task?.status === 'completed' 
                 ? 'text-green-600 bg-green-50 hover:bg-green-100' 
@@ -68,7 +74,7 @@ function TaskCard({ task, onToggle }: { task: any; onToggle: (task: any) => void
               <h4 className={`font-semibold text-lg leading-tight ${
                 task?.status === 'completed' 
                   ? 'line-through text-gray-500' 
-                  : 'text-gray-900 group-hover:text-gray-700'
+                  : 'text-gray-900 group-hover:text-blue-600'
               }`}>
                 {task?.title || 'Untitled Task'}
               </h4>
@@ -152,6 +158,8 @@ const getDaysUntilDue = (dueDate: string | null): { text: string; color: string;
 
 export default function TimelineSimple() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingTask, setEditingTask] = useState<any>(null);
   const { toast } = useToast();
 
   // Fetch data with proper error handling
@@ -225,6 +233,30 @@ export default function TimelineSimple() {
     }
   });
 
+  const updateTaskMutation = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: TaskFormData }) =>
+      apiRequest(`/api/tasks/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/tasks'] });
+      toast({
+        title: "Task Updated",
+        description: "Task details updated successfully",
+      });
+      setIsEditDialogOpen(false);
+      setEditingTask(null);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error?.message || "Failed to update task",
+        variant: "destructive",
+      });
+    }
+  });
+
   const onSubmit = (data: TaskFormData) => {
     // Convert form data to match the API schema
     const taskData = {
@@ -243,6 +275,30 @@ export default function TimelineSimple() {
       id: task?.id, 
       data: { status: newStatus } 
     });
+  };
+
+  const handleEditTask = (task: any) => {
+    setEditingTask(task);
+    form.reset({
+      title: task.title || "",
+      description: task.description || "",
+      category: task.category || "",
+      priority: task.priority || "medium",
+      dueDate: task.dueDate || "",
+    });
+    setIsEditDialogOpen(true);
+  };
+
+  const onEditSubmit = (data: TaskFormData) => {
+    if (!editingTask) return;
+    const taskData = {
+      title: data.title,
+      description: data.description || null,
+      category: data.category || null,
+      priority: data.priority || 'medium',
+      dueDate: data.dueDate || null,
+    };
+    updateTaskMutation.mutate({ id: editingTask.id, data: taskData });
   };
 
   // Safe data access
@@ -517,7 +573,7 @@ export default function TimelineSimple() {
                       <CardContent>
                         <div className="space-y-3">
                           {taskGroups.overdue.map((task: any) => (
-                            <TaskCard key={task.id} task={task} onToggle={handleToggleComplete} />
+                            <TaskCard key={task.id} task={task} onToggle={handleToggleComplete} onEdit={handleEditTask} />
                           ))}
                         </div>
                       </CardContent>
@@ -535,7 +591,7 @@ export default function TimelineSimple() {
                       <CardContent>
                         <div className="space-y-3">
                           {taskGroups.thisWeek.map((task: any) => (
-                            <TaskCard key={task.id} task={task} onToggle={handleToggleComplete} />
+                            <TaskCard key={task.id} task={task} onToggle={handleToggleComplete} onEdit={handleEditTask} />
                           ))}
                         </div>
                       </CardContent>
@@ -553,7 +609,7 @@ export default function TimelineSimple() {
                       <CardContent>
                         <div className="space-y-3">
                           {taskGroups.thisMonth.map((task: any) => (
-                            <TaskCard key={task.id} task={task} onToggle={handleToggleComplete} />
+                            <TaskCard key={task.id} task={task} onToggle={handleToggleComplete} onEdit={handleEditTask} />
                           ))}
                         </div>
                       </CardContent>
@@ -571,7 +627,7 @@ export default function TimelineSimple() {
                       <CardContent>
                         <div className="space-y-3">
                           {taskGroups.next3Months.map((task: any) => (
-                            <TaskCard key={task.id} task={task} onToggle={handleToggleComplete} />
+                            <TaskCard key={task.id} task={task} onToggle={handleToggleComplete} onEdit={handleEditTask} />
                           ))}
                         </div>
                       </CardContent>
@@ -589,7 +645,7 @@ export default function TimelineSimple() {
                       <CardContent>
                         <div className="space-y-3">
                           {taskGroups.beforeWedding.map((task: any) => (
-                            <TaskCard key={task.id} task={task} onToggle={handleToggleComplete} />
+                            <TaskCard key={task.id} task={task} onToggle={handleToggleComplete} onEdit={handleEditTask} />
                           ))}
                         </div>
                       </CardContent>
@@ -607,7 +663,7 @@ export default function TimelineSimple() {
                       <CardContent>
                         <div className="space-y-3">
                           {taskGroups.noDueDate.map((task: any) => (
-                            <TaskCard key={task.id} task={task} onToggle={handleToggleComplete} />
+                            <TaskCard key={task.id} task={task} onToggle={handleToggleComplete} onEdit={handleEditTask} />
                           ))}
                         </div>
                       </CardContent>
@@ -733,6 +789,131 @@ export default function TimelineSimple() {
                   disabled={createTaskMutation.isPending}
                 >
                   {createTaskMutation.isPending ? "Adding..." : "Add Task"}
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Task Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-semibold">Edit Task</DialogTitle>
+          </DialogHeader>
+          
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onEditSubmit)} className="space-y-6">
+              <FormField
+                control={form.control}
+                name="title"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Task Title</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g., Book wedding venue" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Description</FormLabel>
+                    <FormControl>
+                      <Textarea placeholder="Add details about this task..." {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="dueDate"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Due Date (Optional)</FormLabel>
+                    <FormControl>
+                      <Input type="date" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="category"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Category</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select category" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {taskCategories.map((category) => (
+                            <SelectItem key={category} value={category}>
+                              {category}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="priority"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Priority</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select priority" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="low">Low Priority</SelectItem>
+                          <SelectItem value="medium">Medium Priority</SelectItem>
+                          <SelectItem value="high">High Priority</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <DialogFooter>
+                <Button 
+                  type="button" 
+                  variant="outline"
+                  onClick={() => {
+                    setIsEditDialogOpen(false);
+                    setEditingTask(null);
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  type="submit" 
+                  className="gradient-blush-rose text-white"
+                  disabled={updateTaskMutation.isPending}
+                >
+                  {updateTaskMutation.isPending ? 'Updating...' : 'Update Task'}
                 </Button>
               </DialogFooter>
             </form>
