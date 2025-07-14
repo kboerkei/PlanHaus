@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
@@ -966,6 +966,9 @@ export default function Timeline() {
               <Plus className="h-6 w-6 text-blush" />
               <span>Add New Wedding Task</span>
             </DialogTitle>
+            <DialogDescription>
+              Create tasks to track your wedding planning progress with categories, priorities, and due dates.
+            </DialogDescription>
           </DialogHeader>
           
           <Form {...form}>

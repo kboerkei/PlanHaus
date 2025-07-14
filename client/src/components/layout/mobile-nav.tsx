@@ -25,7 +25,6 @@ export default function MobileNav() {
   const [isMoreOpen, setIsMoreOpen] = useState(false);
 
   const handleNavClick = (href: string) => {
-    console.log('Mobile nav clicked:', href);
     // Force navigation with page reload if needed
     window.location.href = href;
   };

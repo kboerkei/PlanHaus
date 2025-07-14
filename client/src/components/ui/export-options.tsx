@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Download, FileText, FileSpreadsheet, Mail, Share2, Printer } from "lucide-react";
@@ -167,6 +167,9 @@ export default function ExportOptions({ data, filename, type }: ExportOptionsPro
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>Export {filename}</DialogTitle>
+          <DialogDescription>
+            Choose how you want to export your wedding data for sharing or backup.
+          </DialogDescription>
         </DialogHeader>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

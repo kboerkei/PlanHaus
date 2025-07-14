@@ -186,11 +186,10 @@ export default function Intake({ onComplete }: IntakeProps) {
               officiantStatus: existingData.officiantStatus || ""
             }
           });
-          console.log('Loaded existing intake data:', existingData);
+          // Data loaded successfully
         }
       } catch (error) {
         // No existing data or error loading - continue with empty form
-        console.log('No existing intake data found or error loading:', error);
       } finally {
         setIsLoadingExisting(false);
       }

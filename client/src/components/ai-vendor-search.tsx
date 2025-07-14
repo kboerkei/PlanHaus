@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Search, Sparkles, X } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -176,6 +176,9 @@ export default function AIVendorSearch({ isOpen, onClose, projectId }: AIVendorS
             <Sparkles className="h-6 w-6 text-pink-500" />
             <span>AI-Powered Vendor Search</span>
           </DialogTitle>
+          <DialogDescription>
+            Search for local wedding vendors based on your location and needs.
+          </DialogDescription>
           <Button
             variant="ghost"
             size="sm"

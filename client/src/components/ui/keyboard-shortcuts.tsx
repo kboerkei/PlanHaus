@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Command } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 
 interface Shortcut {
@@ -16,7 +16,11 @@ export default function KeyboardShortcuts() {
     {
       key: "Ctrl+K",
       description: "Quick search",
-      action: () => console.log("Search triggered")
+      action: () => {
+        // Focus search input if available
+        const searchInput = document.querySelector('input[type="search"], input[placeholder*="search" i]') as HTMLInputElement;
+        if (searchInput) searchInput.focus();
+      }
     },
     {
       key: "Ctrl+N",
@@ -77,6 +81,9 @@ export default function KeyboardShortcuts() {
             <Command size={20} />
             <span>Keyboard Shortcuts</span>
           </DialogTitle>
+          <DialogDescription>
+            Use these keyboard shortcuts to navigate your wedding planning faster.
+          </DialogDescription>
         </DialogHeader>
         
         <div className="space-y-3">

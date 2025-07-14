@@ -24,7 +24,10 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('Error caught by boundary:', error, errorInfo);
+    // Only log in development
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Error caught by boundary:', error, errorInfo);
+    }
   }
 
   render() {
@@ -85,7 +88,9 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
 // Hook for error handling in functional components
 export function useErrorHandler() {
   return (error: Error, errorInfo?: any) => {
-    console.error('Error caught:', error, errorInfo);
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Error caught:', error, errorInfo);
+    }
     // You could also send to error reporting service here
   };
 }

@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, Clock, MapPin, Plus, Edit, Trash2, Users, Camera } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -246,6 +246,9 @@ export default function Schedules() {
                 <DialogContent className="sm:max-w-md">
                   <DialogHeader>
                     <DialogTitle>Create New Schedule</DialogTitle>
+                    <DialogDescription>
+                      Create a timeline for wedding events like rehearsal dinner, ceremony, or reception.
+                    </DialogDescription>
                   </DialogHeader>
                   <Form {...scheduleForm}>
                     <form onSubmit={scheduleForm.handleSubmit(onScheduleSubmit)} className="space-y-4">
