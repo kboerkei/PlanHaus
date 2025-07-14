@@ -1,4 +1,4 @@
-import { Heart, Calendar, Users, DollarSign, Camera, Sparkles, Settings, Home } from "lucide-react";
+import { Heart, Calendar, Users, DollarSign, Camera, Sparkles, Settings, Home, Clock, User } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -9,8 +9,10 @@ const navigationItems = [
   { href: "/budget", label: "Budget", icon: DollarSign },
   { href: "/guests", label: "Guests", icon: Users },
   { href: "/vendors", label: "Vendors", icon: Settings },
+  { href: "/schedules", label: "Schedules", icon: Clock },
   { href: "/inspiration", label: "Inspiration", icon: Camera },
   { href: "/ai-assistant", label: "AI Assistant", icon: Sparkles },
+  { href: "/profile", label: "Profile", icon: User },
 ];
 
 export default function Header() {
