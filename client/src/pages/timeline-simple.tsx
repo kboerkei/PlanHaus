@@ -493,12 +493,12 @@ export default function TimelineSimple() {
                   </Button>
                 </div>
 
-                {/* Progress and countdown in a clean row */}
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-8">
+                {/* Progress and countdown - mobile responsive */}
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
+                  <div className="flex items-center justify-center md:justify-start space-x-4 md:space-x-8">
                     <div className="flex items-center space-x-3">
-                      <div className="relative w-16 h-16">
-                        <svg className="w-16 h-16 transform -rotate-90" viewBox="0 0 36 36">
+                      <div className="relative w-12 h-12 md:w-16 md:h-16">
+                        <svg className="w-12 h-12 md:w-16 md:h-16 transform -rotate-90" viewBox="0 0 36 36">
                           <path
                             className="text-gray-200"
                             stroke="currentColor"
@@ -521,29 +521,47 @@ export default function TimelineSimple() {
                           />
                         </svg>
                         <div className="absolute inset-0 flex items-center justify-center">
-                          <span className="text-lg font-bold text-gray-800">{completionPercentage}%</span>
+                          <span className="text-sm md:text-lg font-bold text-gray-800">{completionPercentage}%</span>
                         </div>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-500 font-medium">Progress</p>
-                        <p className="text-lg font-semibold text-gray-800">{stats.completed} of {stats.total} tasks</p>
+                        <p className="text-xs md:text-sm text-gray-500 font-medium">Progress</p>
+                        <p className="text-sm md:text-lg font-semibold text-gray-800">{stats.completed} of {stats.total} tasks</p>
                       </div>
                     </div>
+                  </div>
+                  
+                  {/* Wedding Countdown */}
+                  {currentProject?.date && (() => {
+                    const weddingDate = new Date(currentProject.date);
+                    const today = new Date();
+                    const diffTime = weddingDate.getTime() - today.getTime();
+                    const totalDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    const months = Math.floor(totalDays / 30);
+                    const weeks = Math.floor((totalDays % 30) / 7);
+                    const days = totalDays % 7;
                     
-                    {currentProject?.date && (
-                      <div className="flex items-center space-x-3">
-                        <div className="p-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl">
-                          <Calendar className="h-6 w-6 text-white" />
+                    return (
+                      <div className="flex items-center justify-center space-x-1 md:space-x-3">
+                        <div className="text-center">
+                          <div className="text-lg md:text-2xl font-bold text-gray-800">{months}</div>
+                          <div className="text-xs text-gray-600">Months</div>
                         </div>
-                        <div>
-                          <p className="text-sm text-gray-500 font-medium">Days Remaining</p>
-                          <p className="text-lg font-semibold text-gray-800">
-                            {Math.ceil((new Date(currentProject.date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))} days
-                          </p>
+                        <div className="text-center">
+                          <div className="text-lg md:text-2xl font-bold text-gray-800">{weeks}</div>
+                          <div className="text-xs text-gray-600">Weeks</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-lg md:text-2xl font-bold text-gray-800">{days}</div>
+                          <div className="text-xs text-gray-600">Days</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-lg md:text-2xl font-bold text-pink-600">∞</div>
+                          <div className="text-xs text-gray-600">Forever</div>
                         </div>
                       </div>
-                    )}
-                  </div>
+                    );
+                  })()}
                 </div>
 
                 {/* Filter Buttons */}
