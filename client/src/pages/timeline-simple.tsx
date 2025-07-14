@@ -542,22 +542,22 @@ export default function TimelineSimple() {
                     const days = totalDays % 7;
                     
                     return (
-                      <div className="flex items-center justify-center space-x-1 md:space-x-3">
-                        <div className="text-center">
-                          <div className="text-lg md:text-2xl font-bold text-gray-800">{months}</div>
-                          <div className="text-xs text-gray-600">Months</div>
+                      <div className="flex items-center justify-center space-x-2 md:space-x-3 max-w-xs mx-auto">
+                        <div className="text-center min-w-0 flex-1">
+                          <div className="text-base md:text-2xl font-bold text-gray-800">{months}</div>
+                          <div className="text-xs text-gray-600 truncate">MON</div>
                         </div>
-                        <div className="text-center">
-                          <div className="text-lg md:text-2xl font-bold text-gray-800">{weeks}</div>
-                          <div className="text-xs text-gray-600">Weeks</div>
+                        <div className="text-center min-w-0 flex-1">
+                          <div className="text-base md:text-2xl font-bold text-gray-800">{weeks}</div>
+                          <div className="text-xs text-gray-600 truncate">WEK</div>
                         </div>
-                        <div className="text-center">
-                          <div className="text-lg md:text-2xl font-bold text-gray-800">{days}</div>
-                          <div className="text-xs text-gray-600">Days</div>
+                        <div className="text-center min-w-0 flex-1">
+                          <div className="text-base md:text-2xl font-bold text-gray-800">{days}</div>
+                          <div className="text-xs text-gray-600 truncate">DAY</div>
                         </div>
-                        <div className="text-center">
-                          <div className="text-lg md:text-2xl font-bold text-pink-600">∞</div>
-                          <div className="text-xs text-gray-600">Forever</div>
+                        <div className="text-center min-w-0 flex-1">
+                          <div className="text-base md:text-2xl font-bold text-pink-600">∞</div>
+                          <div className="text-xs text-gray-600 truncate">4EVR</div>
                         </div>
                       </div>
                     );
