@@ -382,9 +382,10 @@ export default function TimelineModern() {
   }
 
   return (
-    <div className="p-6">
-      <div className="max-w-7xl mx-auto">
-            {/* Simple Header Section */}
+    <>
+      <div className="p-6">
+        <div className="max-w-7xl mx-auto">
+          {/* Simple Header Section */}
             <div className="mb-8">
               <div className="flex flex-col md:flex-row md:items-start md:justify-between mb-6 space-y-4 md:space-y-0">
                 <div className="flex items-center space-x-3 md:space-x-4">
@@ -904,7 +905,7 @@ export default function TimelineModern() {
             </Card>
           </div>
         </div>
-      </main>
+      </div>
 
       {/* Add Task Dialog */}
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
@@ -1269,6 +1270,6 @@ export default function TimelineModern() {
           </Form>
         </DialogContent>
       </Dialog>
-    </div>
+    </>
   );
 }
