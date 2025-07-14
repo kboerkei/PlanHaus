@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import EnhancedDashboardStats from "@/components/enhanced-dashboard-stats";
 
 interface ProgressRingProps {
   percentage: number;

@@ -1,4 +1,6 @@
 import { Bell, Menu, X, Home, Bot, Calendar, DollarSign, Users, Store, Clock, Palette, User, Globe } from "lucide-react";
+import SmartNotifications from "@/components/ui/smart-notifications";
+import KeyboardShortcuts from "@/components/ui/keyboard-shortcuts";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useLocation } from "wouter";
 import { useState } from "react";
@@ -146,10 +148,7 @@ export default function Header({ user, onLogout }: HeaderProps) {
           
           {user && (
             <div className="flex items-center space-x-3">
-              <button className="relative p-2 text-gray-600 hover:text-gray-800 transition-colors rounded-lg hover:bg-gray-50">
-                <Bell size={20} />
-                <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
-              </button>
+              <SmartNotifications />
               {onLogout && (
                 <button 
                   onClick={onLogout}

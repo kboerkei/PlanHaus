@@ -24,6 +24,7 @@ export default function Budget() {
     category: "",
     item: "",
     estimatedCost: "",
+    actualCost: "",
     vendor: "",
     notes: ""
   });
@@ -54,6 +55,7 @@ export default function Budget() {
         category: "",
         item: "",
         estimatedCost: "",
+        actualCost: "",
         vendor: "",
         notes: ""
       });
@@ -348,12 +350,15 @@ export default function Budget() {
                 <CardHeader className="pb-3">
                   <CardTitle className="text-lg flex items-center space-x-2">
                     <TrendingUp className="text-green-600" size={20} />
-                    <span>Spent</span>
+                    <span>Actually Spent</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold text-gray-800">
                     ${totalSpent.toLocaleString()}
+                  </div>
+                  <div className="text-sm text-gray-500 mt-1">
+                    Based on actual amounts only
                   </div>
                   {totalBudget > 0 && (
                     <Progress 
@@ -459,7 +464,7 @@ export default function Budget() {
                                 {categoryItems.map((item: any) => (
                                   <div key={item.id} className="flex items-center justify-between p-3 bg-white rounded-lg border">
                                     <div className="flex-1">
-                                      <div className="flex items-center justify-between mb-1">
+                                      <div className="flex items-center justify-between mb-2">
                                         <h4 className="font-medium text-gray-800">{item.item}</h4>
                                         <div className="flex items-center space-x-2">
                                           <Button
@@ -486,21 +491,77 @@ export default function Budget() {
                                           </Button>
                                         </div>
                                       </div>
-                                      <div className="flex items-center space-x-4 text-sm text-gray-600">
-                                        <span>Est: ${(item.estimatedCost || 0).toLocaleString()}</span>
-                                        <span>Actual: ${(item.actualCost || 0).toLocaleString()}</span>
-                                        {item.isPaid && (
-                                          <span className="flex items-center text-green-600">
-                                            <Check size={14} className="mr-1" />
-                                            Paid
-                                          </span>
-                                        )}
+                                      {/* Enhanced Estimated vs Actual Display */}
+                                      <div className="grid grid-cols-2 gap-4 mb-3">
+                                        <div className="bg-blue-50 p-3 rounded-lg">
+                                          <div className="text-xs font-medium text-blue-600 mb-1">ESTIMATED AMOUNT</div>
+                                          <div className="text-lg font-bold text-blue-800">
+                                            ${parseFloat(item.estimatedCost || 0).toLocaleString()}
+                                          </div>
+                                        </div>
+                                        <div className="bg-green-50 p-3 rounded-lg">
+                                          <div className="text-xs font-medium text-green-600 mb-1">ACTUAL AMOUNT</div>
+                                          <div className="text-lg font-bold text-green-800">
+                                            {item.actualCost ? `$${parseFloat(item.actualCost).toLocaleString()}` : 'Not set'}
+                                          </div>
+                                        </div>
                                       </div>
-                                      {item.vendor && (
-                                        <div className="text-sm text-gray-500 mt-1">
-                                          Vendor: {item.vendor}
+
+                                      {/* Variance Indicator */}
+                                      {item.actualCost && item.estimatedCost && (
+                                        <div className="mb-3">
+                                          {(() => {
+                                            const estimated = parseFloat(item.estimatedCost);
+                                            const actual = parseFloat(item.actualCost);
+                                            const variance = actual - estimated;
+                                            const percentageVariance = estimated > 0 ? ((variance / estimated) * 100) : 0;
+                                            
+                                            if (Math.abs(variance) < 1) {
+                                              return (
+                                                <div className="flex items-center space-x-2 text-sm text-green-600">
+                                                  <Check size={16} />
+                                                  <span>On budget</span>
+                                                </div>
+                                              );
+                                            } else if (variance > 0) {
+                                              return (
+                                                <div className="flex items-center space-x-2 text-sm text-red-600">
+                                                  <AlertTriangle size={16} />
+                                                  <span>Over by ${variance.toLocaleString()} ({percentageVariance.toFixed(1)}%)</span>
+                                                </div>
+                                              );
+                                            } else {
+                                              return (
+                                                <div className="flex items-center space-x-2 text-sm text-green-600">
+                                                  <TrendingUp size={16} />
+                                                  <span>Under by ${Math.abs(variance).toLocaleString()} ({Math.abs(percentageVariance).toFixed(1)}%)</span>
+                                                </div>
+                                              );
+                                            }
+                                          })()}
                                         </div>
                                       )}
+
+                                      <div className="text-sm text-gray-600 space-y-1">
+                                        {item.vendor && (
+                                          <div>
+                                            <span className="font-medium">Vendor: </span>
+                                            {item.vendor}
+                                          </div>
+                                        )}
+                                        {item.notes && (
+                                          <div>
+                                            <span className="font-medium">Notes: </span>
+                                            {item.notes}
+                                          </div>
+                                        )}
+                                        {item.isPaid && (
+                                          <div className="flex items-center space-x-1 text-green-600">
+                                            <Check size={14} />
+                                            <span className="font-medium">Paid</span>
+                                          </div>
+                                        )}
+                                      </div>
                                     </div>
                                   </div>
                                 ))}
@@ -560,15 +621,44 @@ export default function Budget() {
                 onChange={(e) => setBudgetForm({ ...budgetForm, item: e.target.value })}
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="budget-cost">Estimated Cost</Label>
-              <Input
-                id="budget-cost"
-                type="number"
-                placeholder="2500.00"
-                value={budgetForm.estimatedCost}
-                onChange={(e) => setBudgetForm({ ...budgetForm, estimatedCost: e.target.value })}
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="budget-estimated-cost" className="text-blue-700 font-medium">
+                  Estimated Amount
+                </Label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">$</span>
+                  <Input
+                    id="budget-estimated-cost"
+                    type="number"
+                    step="0.01"
+                    placeholder="0.00"
+                    className="pl-8 border-blue-300 focus:border-blue-500"
+                    value={budgetForm.estimatedCost}
+                    onChange={(e) => setBudgetForm({ ...budgetForm, estimatedCost: e.target.value })}
+                  />
+                </div>
+                <p className="text-xs text-blue-600">How much you expect to spend</p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="budget-actual-cost" className="text-green-700 font-medium">
+                  Actual Amount
+                </Label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">$</span>
+                  <Input
+                    id="budget-actual-cost"
+                    type="number"
+                    step="0.01"
+                    placeholder="0.00"
+                    className="pl-8 border-green-300 focus:border-green-500"
+                    value={budgetForm.actualCost || ""}
+                    onChange={(e) => setBudgetForm({ ...budgetForm, actualCost: e.target.value })}
+                  />
+                </div>
+                <p className="text-xs text-green-600">How much you actually spent (optional)</p>
+              </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="budget-vendor">Vendor (Optional)</Label>
@@ -629,25 +719,44 @@ export default function Budget() {
                 onChange={(e) => setEditForm({ ...editForm, item: e.target.value })}
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="edit-estimated-cost">Estimated Cost</Label>
-              <Input
-                id="edit-estimated-cost"
-                type="number"
-                placeholder="2500.00"
-                value={editForm.estimatedCost}
-                onChange={(e) => setEditForm({ ...editForm, estimatedCost: e.target.value })}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="edit-actual-cost">Actual Cost</Label>
-              <Input
-                id="edit-actual-cost"
-                type="number"
-                placeholder="2500.00"
-                value={editForm.actualCost}
-                onChange={(e) => setEditForm({ ...editForm, actualCost: e.target.value })}
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-estimated-cost" className="text-blue-700 font-medium">
+                  Estimated Amount
+                </Label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">$</span>
+                  <Input
+                    id="edit-estimated-cost"
+                    type="number"
+                    step="0.01"
+                    placeholder="0.00"
+                    className="pl-8 border-blue-300 focus:border-blue-500"
+                    value={editForm.estimatedCost}
+                    onChange={(e) => setEditForm({ ...editForm, estimatedCost: e.target.value })}
+                  />
+                </div>
+                <p className="text-xs text-blue-600">Expected cost</p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="edit-actual-cost" className="text-green-700 font-medium">
+                  Actual Amount
+                </Label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">$</span>
+                  <Input
+                    id="edit-actual-cost"
+                    type="number"
+                    step="0.01"
+                    placeholder="0.00"
+                    className="pl-8 border-green-300 focus:border-green-500"
+                    value={editForm.actualCost}
+                    onChange={(e) => setEditForm({ ...editForm, actualCost: e.target.value })}
+                  />
+                </div>
+                <p className="text-xs text-green-600">What you actually spent</p>
+              </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="edit-vendor">Vendor (Optional)</Label>

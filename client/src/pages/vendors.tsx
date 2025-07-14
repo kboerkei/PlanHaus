@@ -21,6 +21,7 @@ import {
   AlertCircle, Clock, BookOpen, Filter, SortAsc, Grid, List, Users, TrendingUp,
   Upload, Download, File
 } from "lucide-react";
+import FileUploadZone from "@/components/file-upload-zone";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
