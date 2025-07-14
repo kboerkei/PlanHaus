@@ -493,59 +493,41 @@ export default function TimelineSimple() {
                   </Button>
                 </div>
 
-                {/* Progress and countdown - mobile responsive */}
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
-                  <div className="flex items-center justify-center md:justify-start space-x-4 md:space-x-8">
-                    <div className="flex items-center space-x-3">
-                      <div className="relative w-12 h-12 md:w-16 md:h-16">
-                        <svg className="w-12 h-12 md:w-16 md:h-16 transform -rotate-90" viewBox="0 0 36 36">
-                          <path
-                            className="text-gray-200"
-                            stroke="currentColor"
-                            strokeWidth="3"
-                            fill="none"
-                            d="M18 2.0845
-                              a 15.9155 15.9155 0 0 1 0 31.831
-                              a 15.9155 15.9155 0 0 1 0 -31.831"
-                          />
-                          <path
-                            className="text-blush"
-                            stroke="currentColor"
-                            strokeWidth="3"
-                            strokeDasharray={`${completionPercentage}, 100`}
-                            strokeLinecap="round"
-                            fill="none"
-                            d="M18 2.0845
-                              a 15.9155 15.9155 0 0 1 0 31.831
-                              a 15.9155 15.9155 0 0 1 0 -31.831"
-                          />
-                        </svg>
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <span className="text-sm md:text-lg font-bold text-gray-800">{completionPercentage}%</span>
-                        </div>
-                      </div>
-                      <div>
-                        <p className="text-xs md:text-sm text-gray-500 font-medium">Progress</p>
-                        <p className="text-sm md:text-lg font-semibold text-gray-800">{stats.completed} of {stats.total} tasks</p>
+                {/* Progress Summary */}
+                <div className="flex items-center justify-center md:justify-start">
+                  <div className="flex items-center space-x-3">
+                    <div className="relative w-12 h-12 md:w-16 md:h-16">
+                      <svg className="w-12 h-12 md:w-16 md:h-16 transform -rotate-90" viewBox="0 0 36 36">
+                        <path
+                          className="text-gray-200"
+                          stroke="currentColor"
+                          strokeWidth="3"
+                          fill="none"
+                          d="M18 2.0845
+                            a 15.9155 15.9155 0 0 1 0 31.831
+                            a 15.9155 15.9155 0 0 1 0 -31.831"
+                        />
+                        <path
+                          className="text-blush"
+                          stroke="currentColor"
+                          strokeWidth="3"
+                          strokeDasharray={`${completionPercentage}, 100`}
+                          strokeLinecap="round"
+                          fill="none"
+                          d="M18 2.0845
+                            a 15.9155 15.9155 0 0 1 0 31.831
+                            a 15.9155 15.9155 0 0 1 0 -31.831"
+                        />
+                      </svg>
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <span className="text-sm md:text-lg font-bold text-gray-800">{completionPercentage}%</span>
                       </div>
                     </div>
+                    <div>
+                      <p className="text-xs md:text-sm text-gray-500 font-medium">Progress</p>
+                      <p className="text-sm md:text-lg font-semibold text-gray-800">{stats.completed} of {stats.total} tasks complete</p>
+                    </div>
                   </div>
-                  
-                  {/* Wedding Countdown - Badge Style */}
-                  {currentProject?.date && (() => {
-                    const weddingDate = new Date(currentProject.date);
-                    const today = new Date();
-                    const diffTime = weddingDate.getTime() - today.getTime();
-                    const totalDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                    
-                    return (
-                      <div className="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-4 py-3 rounded-full text-center">
-                        <span className="text-lg md:text-xl font-bold">
-                          {totalDays} Days to Go!
-                        </span>
-                      </div>
-                    );
-                  })()}
                 </div>
 
                 {/* Filter Buttons */}

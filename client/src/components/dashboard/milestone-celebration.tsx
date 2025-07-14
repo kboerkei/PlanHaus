@@ -147,17 +147,12 @@ export default function MilestoneCelebration() {
     );
   }
 
-  // Show wedding countdown instead of milestone progress
+  // Show simple wedding progress instead of milestone progress
   if (project?.date) {
     const weddingDate = new Date(project.date);
     const today = new Date();
     const timeDiff = weddingDate.getTime() - today.getTime();
     const daysUntil = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
-    
-    // Calculate time breakdown
-    const months = Math.floor(daysUntil / 30);
-    const weeks = Math.floor((daysUntil % 30) / 7);
-    const days = daysUntil % 7;
     
     return (
       <Card className="mb-8 overflow-hidden relative border-0 shadow-2xl">
@@ -223,54 +218,24 @@ export default function MilestoneCelebration() {
             </p>
           </div>
           
-          {/* Enhanced countdown grid */}
+          {/* Simple progress bar */}
           {daysUntil > 0 && (
             <div className="relative">
               <div className="absolute inset-0 bg-white/40 backdrop-blur-md rounded-2xl border border-white/30 shadow-inner" />
               <div className="relative p-8">
-                <div className="grid grid-cols-4 gap-6">
-                  <div className="group">
-                    <div className="relative">
-                      <div className="absolute inset-0 bg-gradient-to-br from-blush/20 to-rose/30 rounded-xl blur opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                      <div className="relative bg-white/60 backdrop-blur-sm rounded-xl p-4 border border-white/40 hover:border-blush/40 transition-all duration-300 hover:scale-105">
-                        <div className="text-3xl font-bold text-gray-800 mb-1">{months}</div>
-                        <div className="text-sm font-medium text-gray-600 uppercase tracking-wide">Months</div>
-                      </div>
-                    </div>
+                <div className="text-center">
+                  <div className="text-lg text-gray-600 mb-4">Wedding Planning Progress</div>
+                  <div className="bg-white/30 rounded-full h-4 overflow-hidden mb-4">
+                    <div 
+                      className="h-full bg-gradient-to-r from-blush to-rose transition-all duration-1000 ease-out"
+                      style={{ width: `${Math.max(5, Math.min(95, 100 - (daysUntil / 365) * 100))}%` }}
+                    />
                   </div>
-                  
-                  <div className="group">
-                    <div className="relative">
-                      <div className="absolute inset-0 bg-gradient-to-br from-rose/20 to-purple/30 rounded-xl blur opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                      <div className="relative bg-white/60 backdrop-blur-sm rounded-xl p-4 border border-white/40 hover:border-rose/40 transition-all duration-300 hover:scale-105">
-                        <div className="text-3xl font-bold text-gray-800 mb-1">{weeks}</div>
-                        <div className="text-sm font-medium text-gray-600 uppercase tracking-wide">Weeks</div>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="group">
-                    <div className="relative">
-                      <div className="absolute inset-0 bg-gradient-to-br from-purple/20 to-blush/30 rounded-xl blur opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                      <div className="relative bg-white/60 backdrop-blur-sm rounded-xl p-4 border border-white/40 hover:border-purple/40 transition-all duration-300 hover:scale-105">
-                        <div className="text-3xl font-bold text-gray-800 mb-1">{days}</div>
-                        <div className="text-sm font-medium text-gray-600 uppercase tracking-wide">Days</div>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="group">
-                    <div className="relative">
-                      <div className="absolute inset-0 bg-gradient-to-br from-blush/30 to-rose/40 rounded-xl blur opacity-50 group-hover:opacity-80 transition-opacity duration-300" />
-                      <div className="relative bg-white/60 backdrop-blur-sm rounded-xl p-4 border border-white/40 hover:border-blush/50 transition-all duration-300 hover:scale-105">
-                        <div className="text-3xl font-bold text-blush mb-1 animate-pulse">∞</div>
-                        <div className="text-sm font-medium text-gray-600 uppercase tracking-wide">Forever</div>
-                      </div>
-                    </div>
+                  <div className="flex justify-between text-sm text-gray-600">
+                    <span>Engagement</span>
+                    <span>Wedding Day</span>
                   </div>
                 </div>
-                
-                {/* Progress bar */}
       
               </div>
             </div>
