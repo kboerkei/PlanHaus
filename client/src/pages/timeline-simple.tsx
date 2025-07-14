@@ -157,6 +157,7 @@ export default function TimelineSimple() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<any>(null);
+  const [activeFilter, setActiveFilter] = useState<string | null>(null);
   const { toast } = useToast();
 
   // Fetch data with proper error handling
@@ -362,6 +363,56 @@ export default function TimelineSimple() {
 
   const taskGroups = groupTasksByMilestone(safeTasks);
   
+  // Filter tasks based on active filter
+  const getFilteredTasks = () => {
+    if (!activeFilter) return taskGroups;
+    
+    const filteredGroups = {
+      overdue: [] as any[],
+      thisWeek: [] as any[],
+      thisMonth: [] as any[],
+      next3Months: [] as any[],
+      beforeWedding: [] as any[],
+      noDueDate: [] as any[],
+      completed: [] as any[]
+    };
+    
+    switch(activeFilter) {
+      case 'completed':
+        filteredGroups.completed = taskGroups.completed;
+        break;
+      case 'pending':
+        filteredGroups.overdue = taskGroups.overdue;
+        filteredGroups.thisWeek = taskGroups.thisWeek;
+        filteredGroups.thisMonth = taskGroups.thisMonth;
+        filteredGroups.next3Months = taskGroups.next3Months;
+        filteredGroups.beforeWedding = taskGroups.beforeWedding;
+        filteredGroups.noDueDate = taskGroups.noDueDate;
+        break;
+      case 'overdue':
+        filteredGroups.overdue = taskGroups.overdue;
+        break;
+      case 'thisweek':
+        filteredGroups.thisWeek = taskGroups.thisWeek;
+        break;
+      case 'high':
+        // Filter high priority tasks across all groups
+        Object.keys(taskGroups).forEach(key => {
+          const highPriorityTasks = taskGroups[key as keyof typeof taskGroups].filter((task: any) => task.priority === 'high');
+          if (highPriorityTasks.length > 0) {
+            filteredGroups[key as keyof typeof filteredGroups] = highPriorityTasks;
+          }
+        });
+        break;
+      default:
+        return taskGroups;
+    }
+    
+    return filteredGroups;
+  };
+  
+  const displayedTaskGroups = getFilteredTasks();
+  
   // Safe stats calculation
   const getSimpleStats = () => {
     const total = safeTasks.length;
@@ -373,6 +424,8 @@ export default function TimelineSimple() {
 
   const stats = getSimpleStats();
   const completionPercentage = stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0;
+  const highPriorityCount = safeTasks.filter((task: any) => task.priority === 'high').length;
+  const thisWeekCount = taskGroups.thisWeek.length;
 
   if (tasksLoading || projectsLoading) {
     return (
@@ -492,6 +545,81 @@ export default function TimelineSimple() {
                     )}
                   </div>
                 </div>
+
+                {/* Filter Buttons */}
+                <div className="grid grid-cols-3 md:flex md:flex-wrap gap-2 md:gap-3 mt-6 pt-6 border-t border-gray-200">
+                  <button
+                    onClick={() => setActiveFilter(activeFilter === null ? 'all' : null)}
+                    className={`px-2 md:px-4 py-2 rounded-lg text-xs md:text-sm font-medium transition-all text-center ${
+                      activeFilter === null 
+                        ? 'bg-gray-800 text-white shadow-lg' 
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    <span className="text-base md:text-lg font-bold block">{stats.total}</span>
+                    <div className="text-xs leading-tight">Total</div>
+                  </button>
+                  
+                  <button
+                    onClick={() => setActiveFilter(activeFilter === 'completed' ? null : 'completed')}
+                    className={`px-2 md:px-4 py-2 rounded-lg text-xs md:text-sm font-medium transition-all text-center ${
+                      activeFilter === 'completed' 
+                        ? 'bg-green-600 text-white shadow-lg' 
+                        : 'bg-green-50 text-green-700 hover:bg-green-100'
+                    }`}
+                  >
+                    <span className="text-base md:text-lg font-bold block">{stats.completed}</span>
+                    <div className="text-xs leading-tight">Done</div>
+                  </button>
+                  
+                  <button
+                    onClick={() => setActiveFilter(activeFilter === 'pending' ? null : 'pending')}
+                    className={`px-2 md:px-4 py-2 rounded-lg text-xs md:text-sm font-medium transition-all text-center ${
+                      activeFilter === 'pending' 
+                        ? 'bg-amber-600 text-white shadow-lg' 
+                        : 'bg-amber-50 text-amber-700 hover:bg-amber-100'
+                    }`}
+                  >
+                    <span className="text-base md:text-lg font-bold block">{stats.pending}</span>
+                    <div className="text-xs leading-tight">Pending</div>
+                  </button>
+                  
+                  <button
+                    onClick={() => setActiveFilter(activeFilter === 'overdue' ? null : 'overdue')}
+                    className={`px-2 md:px-4 py-2 rounded-lg text-xs md:text-sm font-medium transition-all text-center ${
+                      activeFilter === 'overdue' 
+                        ? 'bg-red-600 text-white shadow-lg' 
+                        : 'bg-red-50 text-red-700 hover:bg-red-100'
+                    }`}
+                  >
+                    <span className="text-base md:text-lg font-bold block">{taskGroups.overdue.length}</span>
+                    <div className="text-xs leading-tight">Overdue</div>
+                  </button>
+                  
+                  <button
+                    onClick={() => setActiveFilter(activeFilter === 'high' ? null : 'high')}
+                    className={`px-2 md:px-4 py-2 rounded-lg text-xs md:text-sm font-medium transition-all text-center ${
+                      activeFilter === 'high' 
+                        ? 'bg-purple-600 text-white shadow-lg' 
+                        : 'bg-purple-50 text-purple-700 hover:bg-purple-100'
+                    }`}
+                  >
+                    <span className="text-base md:text-lg font-bold block">{highPriorityCount}</span>
+                    <div className="text-xs leading-tight">High</div>
+                  </button>
+                  
+                  <button
+                    onClick={() => setActiveFilter(activeFilter === 'thisweek' ? null : 'thisweek')}
+                    className={`px-2 md:px-4 py-2 rounded-lg text-xs md:text-sm font-medium transition-all text-center ${
+                      activeFilter === 'thisweek' 
+                        ? 'bg-orange-600 text-white shadow-lg' 
+                        : 'bg-orange-50 text-orange-700 hover:bg-orange-100'
+                    }`}
+                  >
+                    <span className="text-base md:text-lg font-bold block">{thisWeekCount}</span>
+                    <div className="text-xs leading-tight">This Week</div>
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -516,8 +644,32 @@ export default function TimelineSimple() {
                 </Card>
               ) : (
                 <>
+                  {/* Show filter status */}
+                  {activeFilter && (
+                    <div className="mb-4">
+                      <div className="flex items-center justify-between bg-blue-50 rounded-lg p-4">
+                        <div className="flex items-center space-x-2">
+                          <span className="text-blue-800 font-medium">
+                            Showing: {activeFilter === 'pending' ? 'Pending Tasks' : 
+                                     activeFilter === 'completed' ? 'Completed Tasks' :
+                                     activeFilter === 'overdue' ? 'Overdue Tasks' :
+                                     activeFilter === 'high' ? 'High Priority Tasks' :
+                                     activeFilter === 'thisweek' ? 'This Week Tasks' :
+                                     'All Tasks'}
+                          </span>
+                        </div>
+                        <button
+                          onClick={() => setActiveFilter(null)}
+                          className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                        >
+                          Clear Filter
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Render each milestone section */}
-                  {taskGroups.overdue.length > 0 && (
+                  {displayedTaskGroups.overdue.length > 0 && (
                     <Card className="border-l-4 border-l-red-500 bg-red-50/80 backdrop-blur-sm shadow-lg">
                       <CardHeader className="pb-3">
                         <CardTitle className="text-xl font-semibold text-red-700 flex items-center space-x-2">
@@ -527,7 +679,7 @@ export default function TimelineSimple() {
                       </CardHeader>
                       <CardContent>
                         <div className="space-y-3">
-                          {taskGroups.overdue.map((task: any) => (
+                          {displayedTaskGroups.overdue.map((task: any) => (
                             <TaskCard key={task.id} task={task} onToggle={handleToggleComplete} onEdit={handleEditTask} />
                           ))}
                         </div>
@@ -535,17 +687,17 @@ export default function TimelineSimple() {
                     </Card>
                   )}
 
-                  {taskGroups.thisWeek.length > 0 && (
+                  {displayedTaskGroups.thisWeek.length > 0 && (
                     <Card className="border-l-4 border-l-orange-500 bg-orange-50/80 backdrop-blur-sm shadow-lg">
                       <CardHeader className="pb-3">
                         <CardTitle className="text-xl font-semibold text-orange-700 flex items-center space-x-2">
                           <CalendarDays className="h-5 w-5" />
-                          <span>This Week ({taskGroups.thisWeek.length})</span>
+                          <span>This Week ({displayedTaskGroups.thisWeek.length})</span>
                         </CardTitle>
                       </CardHeader>
                       <CardContent>
                         <div className="space-y-3">
-                          {taskGroups.thisWeek.map((task: any) => (
+                          {displayedTaskGroups.thisWeek.map((task: any) => (
                             <TaskCard key={task.id} task={task} onToggle={handleToggleComplete} onEdit={handleEditTask} />
                           ))}
                         </div>
@@ -553,17 +705,17 @@ export default function TimelineSimple() {
                     </Card>
                   )}
 
-                  {taskGroups.thisMonth.length > 0 && (
+                  {displayedTaskGroups.thisMonth.length > 0 && (
                     <Card className="border-l-4 border-l-blue-500 bg-blue-50/80 backdrop-blur-sm shadow-lg">
                       <CardHeader className="pb-3">
                         <CardTitle className="text-xl font-semibold text-blue-700 flex items-center space-x-2">
                           <Calendar className="h-5 w-5" />
-                          <span>This Month ({taskGroups.thisMonth.length})</span>
+                          <span>This Month ({displayedTaskGroups.thisMonth.length})</span>
                         </CardTitle>
                       </CardHeader>
                       <CardContent>
                         <div className="space-y-3">
-                          {taskGroups.thisMonth.map((task: any) => (
+                          {displayedTaskGroups.thisMonth.map((task: any) => (
                             <TaskCard key={task.id} task={task} onToggle={handleToggleComplete} onEdit={handleEditTask} />
                           ))}
                         </div>
@@ -571,17 +723,17 @@ export default function TimelineSimple() {
                     </Card>
                   )}
 
-                  {taskGroups.next3Months.length > 0 && (
+                  {displayedTaskGroups.next3Months.length > 0 && (
                     <Card className="border-l-4 border-l-purple-500 bg-purple-50/80 backdrop-blur-sm shadow-lg">
                       <CardHeader className="pb-3">
                         <CardTitle className="text-xl font-semibold text-purple-700 flex items-center space-x-2">
                           <TrendingUp className="h-5 w-5" />
-                          <span>Next 3 Months ({taskGroups.next3Months.length})</span>
+                          <span>Next 3 Months ({displayedTaskGroups.next3Months.length})</span>
                         </CardTitle>
                       </CardHeader>
                       <CardContent>
                         <div className="space-y-3">
-                          {taskGroups.next3Months.map((task: any) => (
+                          {displayedTaskGroups.next3Months.map((task: any) => (
                             <TaskCard key={task.id} task={task} onToggle={handleToggleComplete} onEdit={handleEditTask} />
                           ))}
                         </div>
@@ -589,17 +741,17 @@ export default function TimelineSimple() {
                     </Card>
                   )}
 
-                  {taskGroups.beforeWedding.length > 0 && (
+                  {displayedTaskGroups.beforeWedding.length > 0 && (
                     <Card className="border-l-4 border-l-pink-500 bg-pink-50/80 backdrop-blur-sm shadow-lg">
                       <CardHeader className="pb-3">
                         <CardTitle className="text-xl font-semibold text-pink-700 flex items-center space-x-2">
                           <Users className="h-5 w-5" />
-                          <span>Before Wedding ({taskGroups.beforeWedding.length})</span>
+                          <span>Before Wedding ({displayedTaskGroups.beforeWedding.length})</span>
                         </CardTitle>
                       </CardHeader>
                       <CardContent>
                         <div className="space-y-3">
-                          {taskGroups.beforeWedding.map((task: any) => (
+                          {displayedTaskGroups.beforeWedding.map((task: any) => (
                             <TaskCard key={task.id} task={task} onToggle={handleToggleComplete} onEdit={handleEditTask} />
                           ))}
                         </div>
@@ -607,17 +759,17 @@ export default function TimelineSimple() {
                     </Card>
                   )}
 
-                  {taskGroups.noDueDate.length > 0 && (
+                  {displayedTaskGroups.noDueDate.length > 0 && (
                     <Card className="border-l-4 border-l-gray-500 bg-gray-50/80 backdrop-blur-sm shadow-lg">
                       <CardHeader className="pb-3">
                         <CardTitle className="text-xl font-semibold text-gray-700 flex items-center space-x-2">
                           <Clock className="h-5 w-5" />
-                          <span>No Due Date ({taskGroups.noDueDate.length})</span>
+                          <span>No Due Date ({displayedTaskGroups.noDueDate.length})</span>
                         </CardTitle>
                       </CardHeader>
                       <CardContent>
                         <div className="space-y-3">
-                          {taskGroups.noDueDate.map((task: any) => (
+                          {displayedTaskGroups.noDueDate.map((task: any) => (
                             <TaskCard key={task.id} task={task} onToggle={handleToggleComplete} onEdit={handleEditTask} />
                           ))}
                         </div>
@@ -626,17 +778,17 @@ export default function TimelineSimple() {
                   )}
 
                   {/* Completed Tasks Section */}
-                  {taskGroups.completed.length > 0 && (
+                  {displayedTaskGroups.completed.length > 0 && (
                     <Card className="border-l-4 border-l-green-500 bg-green-50/80 backdrop-blur-sm shadow-lg">
                       <CardHeader className="pb-3">
                         <CardTitle className="text-xl font-semibold text-green-700 flex items-center space-x-2">
                           <CheckCircle2 className="h-5 w-5" />
-                          <span>Completed ({taskGroups.completed.length})</span>
+                          <span>Completed ({displayedTaskGroups.completed.length})</span>
                         </CardTitle>
                       </CardHeader>
                       <CardContent>
                         <div className="space-y-3">
-                          {taskGroups.completed.map((task: any) => (
+                          {displayedTaskGroups.completed.map((task: any) => (
                             <TaskCard key={task.id} task={task} onToggle={handleToggleComplete} onEdit={handleEditTask} />
                           ))}
                         </div>
