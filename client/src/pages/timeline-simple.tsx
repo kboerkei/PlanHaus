@@ -495,28 +495,6 @@ export default function TimelineSimple() {
               </div>
             </div>
 
-            {/* Quick Stats - Simplified inline version */}
-            <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 mb-8 shadow-lg">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-gray-900">{stats.total}</div>
-                  <div className="text-sm text-gray-600">Total Tasks</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-green-600">{stats.completed}</div>
-                  <div className="text-sm text-gray-600">Completed</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-amber-600">{stats.pending}</div>
-                  <div className="text-sm text-gray-600">In Progress</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-red-600">{taskGroups.overdue.length}</div>
-                  <div className="text-sm text-gray-600">Overdue</div>
-                </div>
-              </div>
-            </div>
-
             {/* Timeline Tasks by Milestone */}
             <div className="space-y-6">
               {safeTasks.length === 0 ? (
