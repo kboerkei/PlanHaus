@@ -467,17 +467,17 @@ export default function TimelineSimple() {
       <div className="max-w-7xl mx-auto">
             {/* Header Section */}
             <div className="relative mb-8">
-              <div className="relative bg-white/80 backdrop-blur-sm rounded-3xl p-8 border border-white/50 shadow-xl">
-                <div className="flex items-start justify-between mb-6">
-                  <div className="flex items-center space-x-4">
-                    <div className="p-3 bg-gradient-to-r from-blush to-rose rounded-2xl shadow-lg">
-                      <Calendar className="h-8 w-8 text-white" />
+              <div className="relative bg-white/80 backdrop-blur-sm rounded-3xl p-4 md:p-8 border border-white/50 shadow-xl">
+                <div className="flex flex-col md:flex-row md:items-start md:justify-between mb-6 space-y-4 md:space-y-0">
+                  <div className="flex items-center space-x-3 md:space-x-4">
+                    <div className="p-2 md:p-3 bg-gradient-to-r from-blush to-rose rounded-2xl shadow-lg">
+                      <Calendar className="h-6 w-6 md:h-8 md:w-8 text-white" />
                     </div>
-                    <div>
-                      <h1 className="font-serif text-4xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
-                        Wedding Timeline
+                    <div className="min-w-0 flex-1">
+                      <h1 className="font-serif text-2xl md:text-4xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent truncate">
+                        Timeline
                       </h1>
-                      <p className="text-gray-600 text-lg mt-1">
+                      <p className="text-gray-600 text-sm md:text-lg mt-1 truncate">
                         {currentProject?.name || "Emma & Jake's Wedding"}
                       </p>
                     </div>
@@ -485,7 +485,7 @@ export default function TimelineSimple() {
                   
                   <Button 
                     onClick={() => setIsAddDialogOpen(true)}
-                    className="gradient-blush-rose text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
+                    className="gradient-blush-rose text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 w-full md:w-auto"
                     size="lg"
                   >
                     <Plus className="mr-2" size={20} />
@@ -531,7 +531,7 @@ export default function TimelineSimple() {
                     </div>
                   </div>
                   
-                  {/* Wedding Countdown - Simple Single Line */}
+                  {/* Wedding Countdown - Badge Style */}
                   {currentProject?.date && (() => {
                     const weddingDate = new Date(currentProject.date);
                     const today = new Date();
@@ -539,13 +539,10 @@ export default function TimelineSimple() {
                     const totalDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
                     
                     return (
-                      <div className="text-center">
-                        <div className="text-2xl md:text-3xl font-bold text-pink-600 mb-1">
-                          {totalDays}
-                        </div>
-                        <div className="text-sm text-gray-600">
-                          Days Until Wedding
-                        </div>
+                      <div className="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-4 py-3 rounded-full text-center">
+                        <span className="text-lg md:text-xl font-bold">
+                          {totalDays} Days to Go!
+                        </span>
                       </div>
                     );
                   })()}
