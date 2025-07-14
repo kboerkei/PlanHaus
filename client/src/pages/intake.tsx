@@ -10,7 +10,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, Heart, Users, Palette, ListChecks, UserPlus, Plus, Trash2 } from "lucide-react";
+import { CalendarIcon, Heart, Users, Palette, ListChecks, UserPlus, Plus, Trash2, ArrowLeft, Sparkles } from "lucide-react";
+import ProgressBar from "@/components/ui/progress-bar";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -439,16 +440,50 @@ export default function Intake({ onComplete }: IntakeProps) {
     }));
   };
 
-  return (
-    <div className="container mx-auto p-6 max-w-4xl">
-      <div className="mb-8 text-center">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Wedding Planning Intake</h1>
-        <p className="text-gray-600">Let's gather the essential information to create your perfect wedding plan</p>
-      </div>
+  const getStepLabel = () => {
+    const steps = ["Couple Info", "Wedding Basics", "Style Vision", "Priorities", "Key People"];
+    const totalSteps = 5;
+    const currentSection = Math.floor((Object.keys(formData).filter(key => {
+      const section = formData[key as keyof IntakeFormData];
+      return typeof section === 'object' && Object.values(section).some(val => 
+        val !== "" && val !== 0 && val !== false && (!Array.isArray(val) || val.length > 0)
+      );
+    }).length * totalSteps) / Object.keys(formData).length);
+    
+    return `${steps[Math.min(currentSection, totalSteps - 1)]} (${Math.min(currentSection + 1, totalSteps)} of ${totalSteps})`;
+  };
 
-      <form onSubmit={handleSubmit} className="space-y-8">
+  return (
+    <div className="min-h-screen bg-background">
+      <div className="container mx-auto px-6 py-8 max-w-4xl">
+        {/* Enhanced Header */}
+        <div className="text-center mb-8 animate-fade-in-up">
+          <Heart className="h-16 w-16 text-rose-400 mx-auto mb-6" fill="currentColor" />
+          <h1 className="font-heading text-4xl md:text-5xl font-bold text-foreground mb-4">
+            Wedding Planning Intake
+          </h1>
+          <p className="text-muted-foreground text-lg leading-relaxed max-w-2xl mx-auto">
+            Let's gather the essential information to create your perfect wedding plan
+          </p>
+        </div>
+
+        {/* Progress Bar */}
+        <div className="mb-8 animate-fade-in-up animate-delay-100">
+          <ProgressBar 
+            currentStep={Object.keys(formData).filter(key => {
+              const section = formData[key as keyof IntakeFormData];
+              return typeof section === 'object' && Object.values(section).some(val => 
+                val !== "" && val !== 0 && val !== false && (!Array.isArray(val) || val.length > 0)
+              );
+            }).length + 1} 
+            totalSteps={5}
+            stepLabel={getStepLabel()}
+          />
+        </div>
+
+      <form onSubmit={handleSubmit} className="space-elegant animate-fade-in-up animate-delay-200">
         {/* Couple Information */}
-        <Card>
+        <Card className="card-elegant">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Heart className="h-5 w-5 text-blush" />
@@ -623,7 +658,7 @@ export default function Intake({ onComplete }: IntakeProps) {
         </Card>
 
         {/* Wedding Basics */}
-        <Card>
+        <Card className="card-elegant animate-slide-in-right animate-delay-300">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <CalendarIcon className="h-5 w-5 text-blush" />
@@ -866,7 +901,7 @@ export default function Intake({ onComplete }: IntakeProps) {
         </Card>
 
         {/* Priorities */}
-        <Card>
+        <Card className="card-elegant animate-slide-in-right animate-delay-400">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <ListChecks className="h-5 w-5 text-blush" />
@@ -919,7 +954,7 @@ export default function Intake({ onComplete }: IntakeProps) {
         </Card>
 
         {/* Key People */}
-        <Card>
+        <Card className="card-elegant animate-slide-in-right animate-delay-500">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Users className="h-5 w-5 text-blush" />
@@ -1059,20 +1094,27 @@ export default function Intake({ onComplete }: IntakeProps) {
         </Card>
 
         {/* Submit Button */}
-        <div className="flex justify-center">
+        <div className="flex justify-center pt-8 animate-fade-in-up animate-delay-600">
           <Button 
             type="submit" 
-            className="gradient-blush-rose px-8 py-3 text-lg"
+            className="btn-elegant px-12 py-4 text-lg font-semibold shadow-elegant hover:shadow-elegant-hover transform hover:scale-105 transition-all duration-300"
             disabled={submitIntakeMutation.isPending}
           >
             {submitIntakeMutation.isPending ? (
-              "Saving your information..."
+              <div className="flex items-center space-x-2">
+                <div className="loading-elegant"></div>
+                <span>Saving your information...</span>
+              </div>
             ) : (
-              "Complete Intake & Start Planning"
+              <div className="flex items-center space-x-2">
+                <Sparkles className="h-5 w-5" />
+                <span>Complete Intake & Start Planning</span>
+              </div>
             )}
           </Button>
         </div>
       </form>
+      </div>
     </div>
   );
 }

@@ -22,6 +22,7 @@ import Schedules from "@/pages/schedules";
 import Intake from "@/pages/intake";
 import Sidebar from "@/components/layout/sidebar-enhanced";
 import Header from "@/components/layout/header";
+import Footer from "@/components/layout/footer";
 import MobileNav from "@/components/layout/mobile-nav-enhanced";
 import FloatingActions from "@/components/layout/floating-actions";
 
@@ -29,29 +30,34 @@ function Router({ user, onLogout, isNewUser, onIntakeComplete }: { user: any; on
   // Allow users to access all sections even without completing intake
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-background">
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden lg:ml-64">
-        <Header user={user} onLogout={onLogout} />
+        <Header />
         <main className="flex-1 overflow-auto pb-16 lg:pb-0 safe-area-pb">
-          <Switch>
-            <Route path="/" component={Dashboard} />
-            <Route path="/intake">
-              <Intake onComplete={onIntakeComplete} />
-            </Route>
-            <Route path="/ai-assistant" component={AIAssistant} />
-            <Route path="/timeline" component={Timeline} />
-            <Route path="/budget" component={Budget} />
-            <Route path="/guests" component={Guests} />
-            <Route path="/vendors" component={Vendors} />
-            <Route path="/inspiration" component={Inspiration} />
-            <Route path="/resources" component={Resources} />
-            <Route path="/schedules" component={Schedules} />
-            <Route path="/profile">
-              <Profile user={user} onLogout={onLogout} />
-            </Route>
-            <Route component={NotFound} />
-          </Switch>
+          <div className="min-h-full flex flex-col">
+            <div className="flex-1">
+              <Switch>
+                <Route path="/" component={Dashboard} />
+                <Route path="/intake">
+                  <Intake onComplete={onIntakeComplete} />
+                </Route>
+                <Route path="/ai-assistant" component={AIAssistant} />
+                <Route path="/timeline" component={Timeline} />
+                <Route path="/budget" component={Budget} />
+                <Route path="/guests" component={Guests} />
+                <Route path="/vendors" component={Vendors} />
+                <Route path="/inspiration" component={Inspiration} />
+                <Route path="/resources" component={Resources} />
+                <Route path="/schedules" component={Schedules} />
+                <Route path="/profile">
+                  <Profile user={user} onLogout={onLogout} />
+                </Route>
+                <Route component={NotFound} />
+              </Switch>
+            </div>
+            <Footer />
+          </div>
         </main>
       </div>
       <MobileNav />
