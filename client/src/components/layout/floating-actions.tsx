@@ -39,7 +39,7 @@ export default function FloatingActions() {
   ];
 
   return (
-    <div className="fixed bottom-20 right-6 lg:bottom-8 lg:right-8 z-40">
+    <div className="fixed bottom-20 right-4 sm:right-6 lg:bottom-8 lg:right-8 z-40">
       {/* Action buttons */}
       <div className={cn(
         "flex flex-col space-y-3 mb-4 transition-all duration-300",

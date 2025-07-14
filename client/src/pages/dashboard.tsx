@@ -10,7 +10,7 @@ import SmartOnboarding from "@/components/dashboard/smart-onboarding";
 
 export default function Dashboard() {
   return (
-    <div className="p-6 bg-cream min-h-full">
+    <div className="p-4 sm:p-6 bg-cream min-h-full mobile-padding">
       <MilestoneCelebration />
       <SmartOnboarding />
       <ProgressOverview />

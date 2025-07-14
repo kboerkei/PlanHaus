@@ -205,7 +205,7 @@ export default function Budget() {
         <Sidebar />
         <main className="flex-1 overflow-y-auto">
           <Header />
-          <div className="p-6">
+          <div className="p-4 sm:p-6 mobile-padding">
             <div className="max-w-6xl mx-auto">
               <div className="text-center py-12">
                 <DollarSign className="h-16 w-16 text-gray-400 mx-auto mb-4" />
@@ -213,7 +213,7 @@ export default function Budget() {
                 <p className="text-gray-600 mb-6">Start tracking your wedding expenses and stay within budget.</p>
                 <Button 
                   onClick={() => setIsAddDialogOpen(true)}
-                  className="gradient-blush-rose text-white"
+                  className="gradient-blush-rose text-white touch-manipulation"
                 >
                   <Plus size={16} className="mr-2" />
                   Add First Budget Item

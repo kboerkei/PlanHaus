@@ -204,8 +204,39 @@
     }
     
     /* Fix input zoom on iOS */
-    input[type="text"], input[type="email"], input[type="password"], textarea, select {
+    input[type="text"], input[type="email"], input[type="password"], input[type="number"], textarea, select {
       font-size: 16px;
+    }
+    
+    /* Prevent horizontal scrolling on mobile */
+    body {
+      overflow-x: hidden;
+    }
+    
+    /* Improve text readability on mobile */
+    h1, h2, h3 {
+      word-break: break-word;
+      hyphens: auto;
+    }
+    
+    /* Better mobile spacing */
+    .mobile-padding {
+      padding-left: 1rem;
+      padding-right: 1rem;
+    }
+  }
+
+  /* Desktop improvements */
+  @media (min-width: 1024px) {
+    /* Smoother scrolling on desktop */
+    html {
+      scroll-behavior: smooth;
+    }
+    
+    /* Better focus states */
+    button:focus, a:focus, input:focus, textarea:focus, select:focus {
+      outline: 2px solid #f4a5b9;
+      outline-offset: 2px;
     }
   }
 }

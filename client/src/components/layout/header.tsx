@@ -94,7 +94,7 @@ export default function Header({ user, onLogout }: HeaderProps) {
 
   return (
     <>
-      <header className="bg-white border-b border-gray-100 px-6 py-4 relative">
+      <header className="bg-white border-b border-gray-100 px-4 sm:px-6 py-3 sm:py-4 relative">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             {/* Mobile/Desktop Menu Button */}
@@ -129,11 +129,11 @@ export default function Header({ user, onLogout }: HeaderProps) {
               })}
             </div>
             
-            <div className="flex-1">
-              <h1 className="font-serif text-xl lg:text-2xl font-semibold text-gray-800">
+            <div className="flex-1 min-w-0">
+              <h1 className="font-serif text-lg sm:text-xl lg:text-2xl font-semibold text-gray-800 truncate">
                 {coupleNames ? `Welcome back, ${coupleNames}!` : 'Welcome to Gatherly!'}
               </h1>
-              <p className="text-gray-600 mt-1 text-sm">
+              <p className="text-gray-600 mt-1 text-xs sm:text-sm truncate">
                 {daysUntilWedding 
                   ? `${daysUntilWedding} days until your special day`
                   : coupleNames 
