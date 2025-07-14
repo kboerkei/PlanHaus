@@ -34,19 +34,16 @@ export default function Sidebar() {
   ];
 
   return (
-    <aside className="fixed left-0 top-0 h-full w-64 glass-wedding backdrop-blur-xl border-r border-white/30 shadow-wedding-lg hidden lg:block z-30">
-      {/* Enhanced Logo Section */}
-      <div className="p-6 border-b border-white/20">
-        <div className="flex items-center space-x-4">
-          <div className="relative">
-            <div className="absolute inset-0 bg-gradient-to-r from-rose-400 to-pink-600 rounded-2xl blur-lg opacity-50 animate-pulse" />
-            <div className="relative w-12 h-12 bg-gradient-to-br from-rose-400 via-pink-500 to-purple-600 rounded-2xl shadow-xl flex items-center justify-center hover-lift">
-              <Heart className="h-6 w-6 text-white" />
-            </div>
+    <aside className="fixed left-0 top-0 h-full w-64 bg-white border-r border-gray-100 shadow-sm hidden lg:block z-30">
+      {/* Clean Logo Section */}
+      <div className="p-6 border-b border-gray-100">
+        <div className="flex items-center space-x-3">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-rose-400 to-pink-500 flex items-center justify-center shadow-sm">
+            <Heart className="h-5 w-5 text-white" />
           </div>
           <div>
-            <h2 className="font-serif text-2xl font-bold text-gradient-wedding">Gatherly</h2>
-            <p className="text-xs text-gray-600 font-medium">AI Wedding Planning</p>
+            <h2 className="text-lg font-bold text-gray-800 tracking-tight">Gatherly</h2>
+            <p className="text-xs text-gray-500 font-medium">Wedding Planning</p>
           </div>
         </div>
       </div>
