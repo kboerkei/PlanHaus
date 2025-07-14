@@ -34,30 +34,9 @@ export default function Header() {
             <span className="logo">Gatherly</span>
           </Link>
 
-          {/* Desktop Navigation */}
+          {/* Desktop Navigation - Removed since sidebar handles navigation */}
           <div className="hidden lg:flex items-center space-x-1">
-            {navigationItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = location === item.href;
-              
-              return (
-                <Link key={item.href} href={item.href}>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className={cn(
-                      "flex items-center space-x-2 px-3 py-2 rounded-lg transition-all duration-200",
-                      isActive 
-                        ? "bg-rose-100 text-rose-600 font-medium" 
-                        : "text-gray-600 hover:text-rose-500 hover:bg-rose-50"
-                    )}
-                  >
-                    <Icon className="h-4 w-4" />
-                    <span className="text-sm">{item.label}</span>
-                  </Button>
-                </Link>
-              );
-            })}
+            {/* Navigation moved to sidebar for cleaner design */}
           </div>
 
           {/* Mobile Navigation Indicator */}
