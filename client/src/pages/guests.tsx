@@ -35,8 +35,6 @@ const guestSchema = z.object({
 
 type GuestFormData = z.infer<typeof guestSchema>;
 
-
-
 const rsvpStatusColors = {
   attending: "bg-green-100 text-green-800",
   pending: "bg-yellow-100 text-yellow-800", 
@@ -63,54 +61,6 @@ export default function Guests() {
   const { data: guests = [], isLoading, error } = useQuery({
     queryKey: ['/api/guests']
   });
-
-  const importGuestsMutation = useMutation({
-    mutationFn: async (formData: FormData) => {
-      const response = await fetch('/api/guests/import', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('sessionId')}`
-        },
-        body: formData
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to import guests');
-      }
-      
-      return response.json();
-    },
-    onSuccess: (data) => {
-      toast({
-        title: "Import successful",
-        description: `Successfully imported ${data.imported} guests.`
-      });
-      queryClient.invalidateQueries({ queryKey: ['/api/guests'] });
-      setIsImportDialogOpen(false);
-      setImportFile(null);
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Import failed",
-        description: error.message,
-        variant: "destructive"
-      });
-    }
-  });
-
-  const handleFileImport = async () => {
-    if (!importFile) return;
-    
-    setIsImporting(true);
-    const formData = new FormData();
-    formData.append('file', importFile);
-    
-    try {
-      await importGuestsMutation.mutateAsync(formData);
-    } finally {
-      setIsImporting(false);
-    }
-  };
 
   const form = useForm<GuestFormData>({
     resolver: zodResolver(guestSchema),
@@ -159,57 +109,10 @@ export default function Guests() {
   const groups = [...new Set((guests || []).map((guest: any) => guest.group))].filter(Boolean);
   const totalGuests = guests?.length || 0;
   const attendingGuests = guests?.filter((guest: any) => guest.rsvpStatus === 'confirmed' || guest.rsvpStatus === 'attending').length || 0;
-  const acceptedGuests = attendingGuests; // Fixed: add missing acceptedGuests variable
+  const acceptedGuests = attendingGuests;
   const pendingGuests = guests?.filter((guest: any) => guest.rsvpStatus === 'pending').length || 0;
   const declinedGuests = guests?.filter((guest: any) => guest.rsvpStatus === 'declined').length || 0;
   const noResponseGuests = guests?.filter((guest: any) => guest.rsvpStatus === 'no_response').length || 0;
-
-  // Configure search and filter options
-  const filterOptions = [
-    {
-      key: 'group',
-      label: 'Group',
-      value: filterGroup,
-      options: groups.map(group => ({ value: group, label: group })),
-      onChange: setFilterGroup
-    },
-    {
-      key: 'rsvp',
-      label: 'RSVP Status',
-      value: filterRsvp,
-      options: [
-        { value: 'attending', label: 'Attending' },
-        { value: 'pending', label: 'Pending' },
-        { value: 'declined', label: 'Declined' },
-        { value: 'no_response', label: 'No Response' }
-      ],
-      onChange: setFilterRsvp
-    }
-  ];
-
-  const quickFilters = [
-    {
-      label: 'All Guests',
-      value: 'all',
-      count: totalGuests,
-      active: !filterRsvp || filterRsvp === 'all',
-      onClick: () => setFilterRsvp('all')
-    },
-    {
-      label: 'Accepted',
-      value: 'accepted',
-      count: acceptedGuests,
-      active: filterRsvp === 'accepted',
-      onClick: () => setFilterRsvp('accepted')
-    },
-    {
-      label: 'Pending',
-      value: 'pending',
-      count: pendingGuests,
-      active: filterRsvp === 'pending',
-      onClick: () => setFilterRsvp('pending')
-    }
-  ];
 
   const createGuestMutation = useMutation({
     mutationFn: (data: GuestFormData) => apiRequest('/api/guests', {
@@ -327,521 +230,484 @@ export default function Guests() {
   if (error) {
     return (
       <div className="p-6">
-            <div className="max-w-6xl mx-auto">
-              <div className="text-center py-12">
-                <Users className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-gray-800 mb-2">Welcome to Guest Management</h3>
-                <p className="text-gray-600 mb-6">Start building your guest list for your special day.</p>
-                <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button className="gradient-blush-rose text-white">
-                      <Plus size={16} className="mr-2" />
-                      Add First Guest
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-md">
-                    <DialogHeader>
-                      <DialogTitle>Add New Guest</DialogTitle>
-                      <DialogDescription>
-                        Add guests to your wedding list with contact details and RSVP tracking.
-                      </DialogDescription>
-                    </DialogHeader>
-                    <Form {...form}>
-                      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                        <FormField
-                          control={form.control}
-                          name="name"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Name *</FormLabel>
-                              <FormControl>
-                                <Input placeholder="Enter guest name" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="email"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Email</FormLabel>
-                              <FormControl>
-                                <Input placeholder="Enter email address" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="group"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Group *</FormLabel>
-                              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Select group" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  <SelectItem value="Family">Family</SelectItem>
-                                  <SelectItem value="Friends">Friends</SelectItem>
-                                  <SelectItem value="Work">Work</SelectItem>
-                                  <SelectItem value="Other">Other</SelectItem>
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <div className="flex justify-end space-x-2">
-                          <Button type="button" variant="outline" onClick={() => setIsAddDialogOpen(false)}>
-                            Cancel
-                          </Button>
-                          <Button type="submit" disabled={createGuestMutation.isPending} className="gradient-blush-rose text-white">
-                            {createGuestMutation.isPending ? "Adding..." : "Add Guest"}
-                          </Button>
-                        </div>
-                      </form>
-                    </Form>
-                  </DialogContent>
-                </Dialog>
-              </div>
-            </div>
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center py-12">
+            <Users className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-gray-800 mb-2">Welcome to Guest Management</h3>
+            <p className="text-gray-600 mb-6">Start building your guest list for your special day.</p>
+            <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="gradient-blush-rose text-white">
+                  <Plus size={16} className="mr-2" />
+                  Add First Guest
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Add New Guest</DialogTitle>
+                  <DialogDescription>
+                    Add guests to your wedding list with contact details and RSVP tracking.
+                  </DialogDescription>
+                </DialogHeader>
+                <Form {...form}>
+                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="name"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Name *</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Enter guest name" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="email"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Email</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Enter email address" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="group"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Group *</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select group" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="Family">Family</SelectItem>
+                              <SelectItem value="Friends">Friends</SelectItem>
+                              <SelectItem value="Work">Work</SelectItem>
+                              <SelectItem value="Other">Other</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <div className="flex justify-end space-x-2">
+                      <Button type="button" variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+                        Cancel
+                      </Button>
+                      <Button type="submit" disabled={createGuestMutation.isPending} className="gradient-blush-rose text-white">
+                        {createGuestMutation.isPending ? "Adding..." : "Add Guest"}
+                      </Button>
+                    </div>
+                  </form>
+                </Form>
+              </DialogContent>
+            </Dialog>
           </div>
+        </div>
+      </div>
     );
   }
 
   return (
-    <>
-      <div className="p-6">
-        <div className="max-w-6xl mx-auto">
-          {/* Simple Header Section */}
-            <div className="mb-8">
-              <div className="flex flex-col md:flex-row md:items-start md:justify-between mb-6 space-y-4 md:space-y-0">
-                <div className="flex items-center space-x-3 md:space-x-4">
-                  <div className="p-2 md:p-3 bg-rose-500 rounded-lg">
-                    <Users className="h-6 w-6 md:h-8 md:w-8 text-white" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <h1 className="text-xl md:text-4xl font-semibold text-gray-900 tracking-tight">
-                      Guest List
-                    </h1>
-                    <p className="text-gray-600 text-xs md:text-lg mt-1">
-                      Manage your wedding guests and track RSVPs
-                    </p>
-                  </div>
-                </div>
-                  
-                  <div className="flex space-x-2 md:space-x-3 w-full md:w-auto">
-                    <ExportOptions 
-                      data={filteredGuests}
-                      filename="wedding-guest-list"
-                      type="guests"
-                    />
-                    <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-                      <DialogTrigger asChild>
-                        <Button className="gradient-blush-rose text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 flex-1 md:flex-none">
-                          <Plus size={16} className="mr-2" />
-                          Add Guest
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent className="sm:max-w-md">
-                    <DialogHeader>
-                      <DialogTitle>Add New Guest</DialogTitle>
-                      <DialogDescription>
-                        Add guests to your wedding list with contact details and RSVP tracking.
-                      </DialogDescription>
-                    </DialogHeader>
-                    <Form {...form}>
-                      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                        <FormField
-                          control={form.control}
-                          name="name"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Name *</FormLabel>
-                              <FormControl>
-                                <Input placeholder="Enter guest name" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="email"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Email</FormLabel>
-                              <FormControl>
-                                <Input placeholder="Enter email address" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="phone"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Phone</FormLabel>
-                              <FormControl>
-                                <Input placeholder="Enter phone number" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="group"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Group *</FormLabel>
-                              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Select group" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  <SelectItem value="Family">Family</SelectItem>
-                                  <SelectItem value="Friends">Friends</SelectItem>
-                                  <SelectItem value="Work">Work</SelectItem>
-                                  <SelectItem value="Other">Other</SelectItem>
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="plusOne"
-                          render={({ field }) => (
-                            <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                              <FormControl>
-                                <Checkbox
-                                  checked={field.value}
-                                  onCheckedChange={field.onChange}
-                                />
-                              </FormControl>
-                              <div className="space-y-1 leading-none">
-                                <FormLabel>Plus One</FormLabel>
-                              </div>
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="address"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Address</FormLabel>
-                              <FormControl>
-                                <Textarea placeholder="Enter address" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="hotel"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Hotel</FormLabel>
-                              <FormControl>
-                                <Input placeholder="Hotel name" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="hotelAddress"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Hotel Address</FormLabel>
-                              <FormControl>
-                                <Input placeholder="Hotel address" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <div className="grid grid-cols-2 gap-4">
-                          <FormField
-                            control={form.control}
-                            name="checkInDate"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Check-in Date</FormLabel>
-                                <FormControl>
-                                  <Input type="date" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={form.control}
-                            name="checkOutDate"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Check-out Date</FormLabel>
-                                <FormControl>
-                                  <Input type="date" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
-                        <FormField
-                          control={form.control}
-                          name="notes"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Notes</FormLabel>
-                              <FormControl>
-                                <Textarea placeholder="Any special notes or requirements..." {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <div className="flex justify-end space-x-2">
-                          <Button type="button" variant="outline" onClick={() => setIsAddDialogOpen(false)}>
-                            Cancel
-                          </Button>
-                          <Button 
-                            type="submit" 
-                            className="gradient-blush-rose text-white"
-                            disabled={createGuestMutation.isPending}
-                          >
-                            {createGuestMutation.isPending ? "Adding..." : "Add Guest"}
-                          </Button>
-                        </div>
-                      </form>
-                    </Form>
-                  </DialogContent>
-                </Dialog>
-                  </div>
-                </div>
+    <div className="p-6">
+      <div className="max-w-6xl mx-auto">
+        {/* Header Section */}
+        <div className="mb-8">
+          <div className="flex flex-col md:flex-row md:items-start md:justify-between mb-6 space-y-4 md:space-y-0">
+            <div className="flex items-center space-x-3 md:space-x-4">
+              <div className="p-2 md:p-3 bg-rose-500 rounded-lg">
+                <Users className="h-6 w-6 md:h-8 md:w-8 text-white" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <h1 className="text-xl md:text-4xl font-semibold text-gray-900 tracking-tight">
+                  Guest List
+                </h1>
+                <p className="text-gray-600 text-xs md:text-lg mt-1">
+                  Manage your wedding guests and track RSVPs
+                </p>
               </div>
             </div>
-
-            {/* Guest Statistics */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-lg flex items-center space-x-2">
-                    <Users className="text-blush" size={20} />
-                    <span>Total Guests</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-gray-800">{totalGuests}</div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-lg flex items-center space-x-2">
-                    <Users className="text-blue-600" size={20} />
-                    <span>Attending</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-gray-800">{totalAttending}</div>
-                  <div className="text-sm text-gray-600">Including plus ones</div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-lg flex items-center space-x-2">
-                    <Users className="text-red-600" size={20} />
-                    <span>Declined</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-gray-800">{declinedGuests}</div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-lg flex items-center space-x-2">
-                    <Users className="text-gray-600" size={20} />
-                    <span>No Response</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-gray-800">{noResponseGuests}</div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Search and Filters */}
-            <Card className="mb-6">
-              <CardContent className="pt-6">
-                <div className="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4">
-                  <div className="flex-1">
-                    <div className="relative">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-                      <Input
-                        placeholder="Search guests by name or email..."
-                        className="pl-10"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
+            
+            <div className="flex space-x-2 md:space-x-3 w-full md:w-auto">
+              <ExportOptions 
+                data={filteredGuests}
+                filename="wedding-guest-list"
+                type="guests"
+              />
+              <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button className="gradient-blush-rose text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 flex-1 md:flex-none">
+                    <Plus size={16} className="mr-2" />
+                    Add Guest
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>Add New Guest</DialogTitle>
+                    <DialogDescription>
+                      Add guests to your wedding list with contact details and RSVP tracking.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <Form {...form}>
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                      <FormField
+                        control={form.control}
+                        name="name"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Name *</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Enter guest name" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
                       />
-                    </div>
-                  </div>
-                  <Select value={filterGroup} onValueChange={setFilterGroup}>
-                    <SelectTrigger className="w-40">
-                      <SelectValue placeholder="All Groups" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Groups</SelectItem>
-                      {groups.map(group => (
-                        <SelectItem key={group} value={group}>{group}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Select value={filterRsvp} onValueChange={setFilterRsvp}>
-                    <SelectTrigger className="w-40">
-                      <SelectValue placeholder="All RSVPs" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All RSVPs</SelectItem>
-                      <SelectItem value="attending">Attending</SelectItem>
-                      <SelectItem value="pending">Pending</SelectItem>
-                      <SelectItem value="declined">Declined</SelectItem>
-                      <SelectItem value="no_response">No Response</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </CardContent>
-            </Card>
+                      <FormField
+                        control={form.control}
+                        name="email"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Email</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Enter email address" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="phone"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Phone</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Enter phone number" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="group"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Group *</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select group" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="Family">Family</SelectItem>
+                                <SelectItem value="Friends">Friends</SelectItem>
+                                <SelectItem value="Work">Work</SelectItem>
+                                <SelectItem value="Other">Other</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="address"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Address</FormLabel>
+                            <FormControl>
+                              <Textarea placeholder="Enter address" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="hotel"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Hotel</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Hotel name" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="hotelAddress"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Hotel Address</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Hotel address" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <div className="grid grid-cols-2 gap-4">
+                        <FormField
+                          control={form.control}
+                          name="checkInDate"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Check-in Date</FormLabel>
+                              <FormControl>
+                                <Input type="date" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="checkOutDate"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Check-out Date</FormLabel>
+                              <FormControl>
+                                <Input type="date" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                      <FormField
+                        control={form.control}
+                        name="notes"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Notes</FormLabel>
+                            <FormControl>
+                              <Textarea placeholder="Any special notes or requirements..." {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <div className="flex justify-end space-x-2">
+                        <Button type="button" variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+                          Cancel
+                        </Button>
+                        <Button 
+                          type="submit" 
+                          className="gradient-blush-rose text-white"
+                          disabled={createGuestMutation.isPending}
+                        >
+                          {createGuestMutation.isPending ? "Adding..." : "Add Guest"}
+                        </Button>
+                      </div>
+                    </form>
+                  </Form>
+                </DialogContent>
+              </Dialog>
+            </div>
+          </div>
+        </div>
 
-            {/* Guest List */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Guest List ({filteredGuests.length})</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {filteredGuests.length === 0 ? (
-                    <div className="text-center py-8">
-                      <Users className="mx-auto h-12 w-12 text-gray-400" />
-                      <h3 className="mt-2 text-sm font-medium text-gray-900">No guests found</h3>
-                      <p className="mt-1 text-sm text-gray-500">
-                        {searchTerm || filterGroup || filterRsvp 
-                          ? "Try adjusting your search or filters" 
-                          : "Get started by adding your first guest"}
-                      </p>
-                    </div>
-                  ) : (
-                    filteredGuests.map((guest) => (
-                      <div key={guest.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-3 mb-2">
-                            <h3 className="font-semibold text-gray-800">{guest.name}</h3>
-                            <Badge className={rsvpStatusColors[guest.rsvpStatus as keyof typeof rsvpStatusColors]}>
-                              {guest.rsvpStatus}
-                            </Badge>
-                            <Badge variant="outline">{guest.group}</Badge>
-                            {guest.plusOne && (
-                              <Badge variant="secondary">+1</Badge>
-                            )}
-                          </div>
-                          
-                          <div className="flex flex-col md:flex-row md:items-center space-y-1 md:space-y-0 md:space-x-6 text-sm text-gray-600">
-                            {guest.email && (
-                              <div className="flex items-center space-x-1">
-                                <Mail size={14} />
-                                <span>{guest.email}</span>
-                              </div>
-                            )}
-                            {guest.phone && (
-                              <div className="flex items-center space-x-1">
-                                <Phone size={14} />
-                                <span>{guest.phone}</span>
-                              </div>
-                            )}
-                            {guest.mealPreference && (
-                              <div className="text-sm">
-                                <span className="font-medium">Meal:</span> {guest.mealPreference}
-                              </div>
-                            )}
-                          </div>
-                          
-                          {(guest.hotel || guest.notes) && (
-                            <div className="mt-3 pt-3 border-t border-gray-100">
-                              {guest.hotel && (
-                                <div className="flex items-center space-x-1 text-sm text-gray-600 mb-1">
-                                  <MapPin size={14} />
-                                  <span className="font-medium">Hotel:</span>
-                                  <span>{guest.hotel}</span>
-                                  {guest.hotelAddress && <span className="text-gray-500">• {guest.hotelAddress}</span>}
-                                </div>
-                              )}
-                              {(guest.checkInDate || guest.checkOutDate) && (
-                                <div className="text-sm text-gray-600 mb-1">
-                                  <span className="font-medium">Stay:</span>
-                                  {guest.checkInDate && <span> Check-in: {new Date(guest.checkInDate).toLocaleDateString()}</span>}
-                                  {guest.checkOutDate && <span> • Check-out: {new Date(guest.checkOutDate).toLocaleDateString()}</span>}
-                                </div>
-                              )}
-                              {guest.notes && (
-                                <div className="text-sm text-gray-600">
-                                  <span className="font-medium">Notes:</span>
-                                  <span className="ml-1">{guest.notes}</span>
-                                </div>
-                              )}
+        {/* Guest Statistics */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg flex items-center space-x-2">
+                <Users className="text-blush" size={20} />
+                <span>Total Guests</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-gray-800">{totalGuests}</div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg flex items-center space-x-2">
+                <Users className="text-blue-600" size={20} />
+                <span>Attending</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-gray-800">{totalAttending}</div>
+              <div className="text-sm text-gray-600">Including plus ones</div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg flex items-center space-x-2">
+                <Users className="text-red-600" size={20} />
+                <span>Declined</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-gray-800">{declinedGuests}</div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg flex items-center space-x-2">
+                <Users className="text-gray-600" size={20} />
+                <span>No Response</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-gray-800">{noResponseGuests}</div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Search and Filter */}
+        <Card className="mb-6">
+          <CardContent className="pt-6">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
+              <div className="flex-1 max-w-md">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                  <Input
+                    placeholder="Search guests by name or email..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+              <div className="flex space-x-4">
+                <Select value={filterGroup} onValueChange={setFilterGroup}>
+                  <SelectTrigger className="w-40">
+                    <SelectValue placeholder="Filter by group" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Groups</SelectItem>
+                    {groups.map(group => (
+                      <SelectItem key={group} value={group}>{group}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select value={filterRsvp} onValueChange={setFilterRsvp}>
+                  <SelectTrigger className="w-40">
+                    <SelectValue placeholder="Filter by RSVP" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Status</SelectItem>
+                    <SelectItem value="attending">Attending</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="declined">Declined</SelectItem>
+                    <SelectItem value="no_response">No Response</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Guest List */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Guest List ({filteredGuests.length})</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {filteredGuests.length === 0 ? (
+                <div className="text-center py-8">
+                  <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-600">No guests found matching your criteria.</p>
+                </div>
+              ) : (
+                filteredGuests.map((guest: any) => (
+                  <div key={guest.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-3 mb-2">
+                          <h3 className="font-medium text-gray-900">{guest.name}</h3>
+                          <Badge className={rsvpStatusColors[guest.rsvpStatus] || rsvpStatusColors.no_response}>
+                            {guest.rsvpStatus === 'no_response' ? 'No Response' : 
+                             guest.rsvpStatus === 'attending' ? 'Attending' :
+                             guest.rsvpStatus}
+                          </Badge>
+                          <Badge variant="outline">{guest.group}</Badge>
+                          {guest.plusOne && <Badge variant="secondary">+1</Badge>}
+                        </div>
+                        <div className="flex items-center space-x-4 text-sm text-gray-600">
+                          {guest.email && (
+                            <div className="flex items-center space-x-1">
+                              <Mail size={16} />
+                              <span>{guest.email}</span>
+                            </div>
+                          )}
+                          {guest.phone && (
+                            <div className="flex items-center space-x-1">
+                              <Phone size={16} />
+                              <span>{guest.phone}</span>
                             </div>
                           )}
                         </div>
-                        
-                        <div className="flex items-center space-x-2">
-                          <Select 
-                            value={guest.rsvpStatus || "no_response"} 
-                            onValueChange={(value) => updateRsvpStatus(guest.id, value)}
-                          >
-                            <SelectTrigger className="w-32">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="attending">Attending</SelectItem>
-                              <SelectItem value="pending">Pending</SelectItem>
-                              <SelectItem value="declined">Declined</SelectItem>
-                              <SelectItem value="no_response">No Response</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => handleEditGuest(guest)}
-                          >
-                            Edit
-                          </Button>
-                        </div>
+                        {(guest.hotel || guest.notes) && (
+                          <div className="mt-2 text-sm text-gray-600">
+                            {guest.hotel && (
+                              <div className="text-sm text-gray-600">
+                                <span className="font-medium">Hotel:</span>
+                                <span className="ml-1">{guest.hotel}</span>
+                                {guest.hotelAddress && <span className="ml-1">({guest.hotelAddress})</span>}
+                              </div>
+                            )}
+                            {guest.notes && (
+                              <div className="text-sm text-gray-600">
+                                <span className="font-medium">Notes:</span>
+                                <span className="ml-1">{guest.notes}</span>
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
-                    ))
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
+                      
+                      <div className="flex items-center space-x-2">
+                        <Select 
+                          value={guest.rsvpStatus || "no_response"} 
+                          onValueChange={(value) => updateRsvpStatus(guest.id, value)}
+                        >
+                          <SelectTrigger className="w-32">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="attending">Attending</SelectItem>
+                            <SelectItem value="pending">Pending</SelectItem>
+                            <SelectItem value="declined">Declined</SelectItem>
+                            <SelectItem value="no_response">No Response</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleEditGuest(guest)}
+                        >
+                          Edit
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </CardContent>
+        </Card>
       </div>
       
       {/* Edit Guest Dialog */}
@@ -905,12 +771,10 @@ export default function Guests() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="family">Family</SelectItem>
-                          <SelectItem value="friends">Friends</SelectItem>
-                          <SelectItem value="work">Work</SelectItem>
-                          <SelectItem value="wedding_party">Wedding Party</SelectItem>
-                          <SelectItem value="plus_ones">Plus Ones</SelectItem>
-                          <SelectItem value="other">Other</SelectItem>
+                          <SelectItem value="Family">Family</SelectItem>
+                          <SelectItem value="Friends">Friends</SelectItem>
+                          <SelectItem value="Work">Work</SelectItem>
+                          <SelectItem value="Other">Other</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -926,61 +790,12 @@ export default function Guests() {
                   <FormItem>
                     <FormLabel>Address</FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter address" {...field} />
+                      <Textarea placeholder="Enter address" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={editForm.control}
-                  name="mealPreference"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Meal Preference</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select meal preference" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="chicken">Chicken</SelectItem>
-                          <SelectItem value="beef">Beef</SelectItem>
-                          <SelectItem value="fish">Fish</SelectItem>
-                          <SelectItem value="vegetarian">Vegetarian</SelectItem>
-                          <SelectItem value="vegan">Vegan</SelectItem>
-                          <SelectItem value="kosher">Kosher</SelectItem>
-                          <SelectItem value="halal">Halal</SelectItem>
-                          <SelectItem value="other">Other</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={editForm.control}
-                  name="plusOne"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                      <div className="space-y-1 leading-none">
-                        <FormLabel>
-                          Plus One
-                        </FormLabel>
-                      </div>
-                    </FormItem>
-                  )}
-                />
-              </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
@@ -1083,6 +898,6 @@ export default function Guests() {
           </Form>
         </DialogContent>
       </Dialog>
-    </>
+    </div>
   );
 }

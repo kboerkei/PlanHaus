@@ -330,7 +330,7 @@ export default function VendorsEnhanced() {
       <div className="p-6">
         <div className="max-w-7xl mx-auto">
           {/* Simple Header Section */}
-            <div className="mb-8">
+          <div className="mb-8">
               <div className="flex flex-col md:flex-row md:items-start md:justify-between mb-6 space-y-4 md:space-y-0">
                 <div className="flex items-center space-x-3 md:space-x-4">
                   <div className="p-2 md:p-3 bg-rose-500 rounded-lg">
@@ -1035,8 +1035,6 @@ export default function VendorsEnhanced() {
               </CardContent>
             </Card>
           </div>
-        </div>
-      </div>
         
       {/* Edit Vendor Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
