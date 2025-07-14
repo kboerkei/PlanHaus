@@ -209,6 +209,12 @@ h1, h2, h3, h4, h5, h6 {
   margin-top: 3rem;
 }
 
+/* Navigation Styles */
+.nav-elegant {
+  @apply bg-white/95 backdrop-blur-md border-b border-gray-100;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
 /* Mobile Optimizations */
 @media (max-width: 768px) {
   body {
@@ -255,6 +261,16 @@ h1, h2, h3, h4, h5, h6 {
 
 .shadow-elegant-hover {
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12);
+}
+
+/* Gradient Utilities */
+.gradient-blush-rose {
+  background: linear-gradient(135deg, hsl(var(--dusty-rose)) 0%, hsl(var(--rose-gold)) 100%);
+  color: white;
+}
+
+.gradient-blush-rose:hover {
+  background: linear-gradient(135deg, hsl(var(--dusty-rose)) 0%, hsl(var(--rose-gold)) 80%);
 }
 
 /* Footer Styles */
