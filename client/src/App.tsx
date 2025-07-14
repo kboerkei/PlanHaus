@@ -22,6 +22,7 @@ import Intake from "@/pages/intake";
 import Sidebar from "@/components/layout/sidebar";
 import Header from "@/components/layout/header";
 import MobileNav from "@/components/layout/mobile-nav";
+import FloatingActions from "@/components/layout/floating-actions";
 
 function Router({ user, onLogout, isNewUser, onIntakeComplete }: { user: any; onLogout: () => void; isNewUser: boolean; onIntakeComplete: () => void }) {
   // Allow users to access all sections even without completing intake
@@ -53,6 +54,7 @@ function Router({ user, onLogout, isNewUser, onIntakeComplete }: { user: any; on
         </main>
       </div>
       <MobileNav />
+      <FloatingActions />
     </div>
   );
 }
