@@ -415,30 +415,37 @@ export default function TimelineSimple() {
             {/* Header Section */}
             <div className="relative mb-8">
               <div className="relative bg-white/80 backdrop-blur-sm rounded-3xl p-8 border border-white/50 shadow-xl">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="flex items-center space-x-3 mb-3">
-                      <div className="p-3 bg-gradient-to-r from-blush to-rose rounded-2xl shadow-lg">
-                        <Calendar className="h-8 w-8 text-white" />
-                      </div>
-                      <div>
-                        <h1 className="font-serif text-4xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
-                          Wedding Timeline
-                        </h1>
-                        <p className="text-gray-600 text-lg">
-                          {currentProject?.date 
-                            ? `${Math.ceil((new Date(currentProject.date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))} days until your big day`
-                            : "Organize your perfect wedding journey"
-                          }
-                        </p>
-                      </div>
+                <div className="flex items-start justify-between mb-6">
+                  <div className="flex items-center space-x-4">
+                    <div className="p-3 bg-gradient-to-r from-blush to-rose rounded-2xl shadow-lg">
+                      <Calendar className="h-8 w-8 text-white" />
+                    </div>
+                    <div>
+                      <h1 className="font-serif text-4xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
+                        Wedding Timeline
+                      </h1>
+                      <p className="text-gray-600 text-lg mt-1">
+                        {currentProject?.name || "Emma & Jake's Wedding"}
+                      </p>
                     </div>
                   </div>
                   
-                  <div className="flex items-center space-x-4">
-                    <div className="text-center">
-                      <div className="relative w-20 h-20 mb-2">
-                        <svg className="w-20 h-20 transform -rotate-90" viewBox="0 0 36 36">
+                  <Button 
+                    onClick={() => setIsAddDialogOpen(true)}
+                    className="gradient-blush-rose text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
+                    size="lg"
+                  >
+                    <Plus className="mr-2" size={20} />
+                    Add Task
+                  </Button>
+                </div>
+
+                {/* Progress and countdown in a clean row */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-8">
+                    <div className="flex items-center space-x-3">
+                      <div className="relative w-16 h-16">
+                        <svg className="w-16 h-16 transform -rotate-90" viewBox="0 0 36 36">
                           <path
                             className="text-gray-200"
                             stroke="currentColor"
@@ -461,68 +468,53 @@ export default function TimelineSimple() {
                           />
                         </svg>
                         <div className="absolute inset-0 flex items-center justify-center">
-                          <span className="text-2xl font-bold text-gray-800">{completionPercentage}%</span>
+                          <span className="text-lg font-bold text-gray-800">{completionPercentage}%</span>
                         </div>
                       </div>
-                      <p className="text-sm text-gray-600 font-medium">Complete</p>
+                      <div>
+                        <p className="text-sm text-gray-500 font-medium">Progress</p>
+                        <p className="text-lg font-semibold text-gray-800">{stats.completed} of {stats.total} tasks</p>
+                      </div>
                     </div>
                     
-                    <Button 
-                      onClick={() => setIsAddDialogOpen(true)}
-                      className="gradient-blush-rose text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
-                      size="lg"
-                    >
-                      <Plus className="mr-2" size={20} />
-                      Add Task
-                    </Button>
+                    {currentProject?.date && (
+                      <div className="flex items-center space-x-3">
+                        <div className="p-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl">
+                          <Calendar className="h-6 w-6 text-white" />
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500 font-medium">Days Remaining</p>
+                          <p className="text-lg font-semibold text-gray-800">
+                            {Math.ceil((new Date(currentProject.date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))} days
+                          </p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              <Card className="border-0 bg-white/60 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300">
-                <CardContent className="p-6">
-                  <div className="flex items-center space-x-4">
-                    <div className="p-3 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl shadow-lg">
-                      <Target className="h-6 w-6 text-white" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-600">Total Tasks</p>
-                      <p className="text-3xl font-bold text-gray-900">{stats.total}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="border-0 bg-white/60 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300">
-                <CardContent className="p-6">
-                  <div className="flex items-center space-x-4">
-                    <div className="p-3 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl shadow-lg">
-                      <CheckCircle2 className="h-6 w-6 text-white" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-600">Completed</p>
-                      <p className="text-3xl font-bold text-gray-900">{stats.completed}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="border-0 bg-white/60 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300">
-                <CardContent className="p-6">
-                  <div className="flex items-center space-x-4">
-                    <div className="p-3 bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl shadow-lg">
-                      <Clock className="h-6 w-6 text-white" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-600">In Progress</p>
-                      <p className="text-3xl font-bold text-gray-900">{stats.pending}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+            {/* Quick Stats - Simplified inline version */}
+            <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 mb-8 shadow-lg">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-gray-900">{stats.total}</div>
+                  <div className="text-sm text-gray-600">Total Tasks</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-green-600">{stats.completed}</div>
+                  <div className="text-sm text-gray-600">Completed</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-amber-600">{stats.pending}</div>
+                  <div className="text-sm text-gray-600">In Progress</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-red-600">{taskGroups.overdue.length}</div>
+                  <div className="text-sm text-gray-600">Overdue</div>
+                </div>
+              </div>
             </div>
 
             {/* Timeline Tasks by Milestone */}
