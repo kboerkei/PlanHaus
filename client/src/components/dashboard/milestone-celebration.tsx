@@ -218,28 +218,7 @@ export default function MilestoneCelebration() {
             </p>
           </div>
           
-          {/* Simple progress bar */}
-          {daysUntil > 0 && (
-            <div className="relative">
-              <div className="absolute inset-0 bg-white/40 backdrop-blur-md rounded-2xl border border-white/30 shadow-inner" />
-              <div className="relative p-8">
-                <div className="text-center">
-                  <div className="text-lg text-gray-600 mb-4">Wedding Planning Progress</div>
-                  <div className="bg-white/30 rounded-full h-4 overflow-hidden mb-4">
-                    <div 
-                      className="h-full bg-gradient-to-r from-blush to-rose transition-all duration-1000 ease-out"
-                      style={{ width: `${Math.max(5, Math.min(95, 100 - (daysUntil / 365) * 100))}%` }}
-                    />
-                  </div>
-                  <div className="flex justify-between text-sm text-gray-600">
-                    <span>Engagement</span>
-                    <span>Wedding Day</span>
-                  </div>
-                </div>
-      
-              </div>
-            </div>
-          )}
+
         </CardContent>
       </Card>
     );

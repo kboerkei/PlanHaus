@@ -305,6 +305,8 @@ The application uses a comprehensive schema covering:
 - Improved task organization with separate completed section for better planning workflow
 - Resolved mobile responsiveness with truncate classes and responsive padding
 - Made Add Task button full-width on mobile for better usability
+- Removed problematic months/weeks/days/forever countdown grid that caused mobile text cutoff
+- Eliminated white progress box from milestone celebration for cleaner design
 
 ### Comprehensive Austin Farmhouse Wedding Demo (January 13, 2025)
 - Built detailed 75% complete wedding demo for "Emma & Jake's Wedding" 
