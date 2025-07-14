@@ -310,7 +310,7 @@ export default function Timeline() {
 
   // Fetch data with proper error handling
   const { data: weddingProjects, isLoading: projectsLoading } = useQuery({
-    queryKey: ['/api/wedding-projects'],
+    queryKey: ['/api/projects'],
   });
 
   const { data: tasks, isLoading: tasksLoading, error: tasksError } = useQuery({
@@ -666,7 +666,10 @@ export default function Timeline() {
 
             {/* Enhanced Stats Grid */}
             <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-8">
-              <Card className="border-0 bg-white/60 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300">
+              <Card 
+                className="border-0 bg-white/60 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-105"
+                onClick={() => setFilterCategory("all")}
+              >
                 <CardContent className="p-4">
                   <div className="text-center">
                     <div className="text-2xl font-bold text-gray-900">{stats.total}</div>
@@ -675,7 +678,19 @@ export default function Timeline() {
                 </CardContent>
               </Card>
               
-              <Card className="border-0 bg-white/60 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300">
+              <Card 
+                className="border-0 bg-white/60 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-105"
+                onClick={() => {
+                  setActiveTab("timeline");
+                  // Scroll to completed tasks section
+                  setTimeout(() => {
+                    const completedSection = document.querySelector('[data-section="completed"]');
+                    if (completedSection) {
+                      completedSection.scrollIntoView({ behavior: 'smooth' });
+                    }
+                  }, 100);
+                }}
+              >
                 <CardContent className="p-4">
                   <div className="text-center">
                     <div className="text-2xl font-bold text-green-600">{stats.completed}</div>
@@ -684,7 +699,19 @@ export default function Timeline() {
                 </CardContent>
               </Card>
               
-              <Card className="border-0 bg-white/60 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300">
+              <Card 
+                className="border-0 bg-white/60 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-105"
+                onClick={() => {
+                  setActiveTab("timeline");
+                  // Scroll to pending tasks
+                  setTimeout(() => {
+                    const pendingSection = document.querySelector('[data-section="pending"]');
+                    if (pendingSection) {
+                      pendingSection.scrollIntoView({ behavior: 'smooth' });
+                    }
+                  }, 100);
+                }}
+              >
                 <CardContent className="p-4">
                   <div className="text-center">
                     <div className="text-2xl font-bold text-yellow-600">{stats.pending}</div>
@@ -693,7 +720,19 @@ export default function Timeline() {
                 </CardContent>
               </Card>
               
-              <Card className="border-0 bg-white/60 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300">
+              <Card 
+                className="border-0 bg-white/60 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-105"
+                onClick={() => {
+                  setActiveTab("timeline");
+                  // Scroll to overdue tasks
+                  setTimeout(() => {
+                    const overdueSection = document.querySelector('[data-section="overdue"]');
+                    if (overdueSection) {
+                      overdueSection.scrollIntoView({ behavior: 'smooth' });
+                    }
+                  }, 100);
+                }}
+              >
                 <CardContent className="p-4">
                   <div className="text-center">
                     <div className="text-2xl font-bold text-red-600">{stats.overdue}</div>
@@ -702,7 +741,13 @@ export default function Timeline() {
                 </CardContent>
               </Card>
               
-              <Card className="border-0 bg-white/60 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300">
+              <Card 
+                className="border-0 bg-white/60 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-105"
+                onClick={() => {
+                  setFilterPriority("high");
+                  setActiveTab("timeline");
+                }}
+              >
                 <CardContent className="p-4">
                   <div className="text-center">
                     <div className="text-2xl font-bold text-purple-600">{stats.highPriority}</div>
@@ -711,7 +756,19 @@ export default function Timeline() {
                 </CardContent>
               </Card>
               
-              <Card className="border-0 bg-white/60 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300">
+              <Card 
+                className="border-0 bg-white/60 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-105"
+                onClick={() => {
+                  setActiveTab("timeline");
+                  // Scroll to this week tasks
+                  setTimeout(() => {
+                    const thisWeekSection = document.querySelector('[data-section="thisWeek"]');
+                    if (thisWeekSection) {
+                      thisWeekSection.scrollIntoView({ behavior: 'smooth' });
+                    }
+                  }, 100);
+                }}
+              >
                 <CardContent className="p-4">
                   <div className="text-center">
                     <div className="text-2xl font-bold text-orange-600">{stats.thisWeek}</div>
@@ -787,7 +844,7 @@ export default function Timeline() {
                   <>
                     {/* Render each timeline section */}
                     {taskGroups.overdue.length > 0 && (
-                      <Card className="border-l-4 border-l-red-500 bg-red-50/80 backdrop-blur-sm shadow-lg">
+                      <Card className="border-l-4 border-l-red-500 bg-red-50/80 backdrop-blur-sm shadow-lg" data-section="overdue">
                         <CardHeader className="pb-4">
                           <CardTitle className="text-xl font-semibold text-red-700 flex items-center space-x-2">
                             <AlertTriangle className="h-6 w-6" />
@@ -812,7 +869,7 @@ export default function Timeline() {
                     )}
 
                     {taskGroups.thisWeek.length > 0 && (
-                      <Card className="border-l-4 border-l-orange-500 bg-orange-50/80 backdrop-blur-sm shadow-lg">
+                      <Card className="border-l-4 border-l-orange-500 bg-orange-50/80 backdrop-blur-sm shadow-lg" data-section="thisWeek">
                         <CardHeader className="pb-4">
                           <CardTitle className="text-xl font-semibold text-orange-700 flex items-center space-x-2">
                             <CalendarDays className="h-6 w-6" />

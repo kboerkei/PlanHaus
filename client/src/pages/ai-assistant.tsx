@@ -134,7 +134,7 @@ export default function AIAssistant() {
               {quickActions.map((action, index) => {
                 const Icon = action.icon;
                 return (
-                  <Card key={index} className="cursor-pointer hover:shadow-md transition-shadow" onClick={action.action}>
+                  <Card key={index} className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => handleQuickAction(action.message)}>
                     <CardContent className="p-4">
                       <div className="flex items-start space-x-3">
                         <div className="w-10 h-10 gradient-blush-rose rounded-lg flex items-center justify-center">

@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import EnhancedDashboardStats from "@/components/enhanced-dashboard-stats";
 
 interface ProgressRingProps {
@@ -6,15 +7,19 @@ interface ProgressRingProps {
   color: string;
   label: string;
   sublabel: string;
+  onClick?: () => void;
 }
 
-function ProgressRing({ percentage, color, label, sublabel }: ProgressRingProps) {
+function ProgressRing({ percentage, color, label, sublabel, onClick }: ProgressRingProps) {
   const radius = 28;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (percentage / 100) * circumference;
 
   return (
-    <div className="text-center">
+    <div 
+      className={`text-center transition-all duration-200 ${onClick ? 'cursor-pointer hover:scale-105 hover:shadow-lg rounded-lg p-2 hover:bg-gray-50' : ''}`}
+      onClick={onClick}
+    >
       <div className="relative w-16 h-16 mx-auto mb-3">
         <svg className="w-16 h-16 transform -rotate-90" viewBox="0 0 64 64">
           <circle
@@ -48,6 +53,8 @@ function ProgressRing({ percentage, color, label, sublabel }: ProgressRingProps)
 }
 
 export default function ProgressOverview() {
+  const [, setLocation] = useLocation();
+  
   const { data: projects } = useQuery({
     queryKey: ['/api/projects'],
     enabled: !!localStorage.getItem('sessionId')
@@ -112,24 +119,28 @@ export default function ProgressOverview() {
             color="var(--blush)"
             label="Budget"
             sublabel={`${paidBudgetItems.length} of ${budgetItems?.length || 0} paid`}
+            onClick={() => setLocation('/budget')}
           />
           <ProgressRing
             percentage={taskProgress}
             color="var(--rose-gold)"
             label="Tasks"
             sublabel={`${completedTasks.length} of ${tasks?.length || 0} done`}
+            onClick={() => setLocation('/timeline')}
           />
           <ProgressRing
             percentage={guestProgress}
             color="var(--champagne)"
             label="RSVPs"
             sublabel={`${confirmedGuests.length} of ${project?.guestCount || 0}`}
+            onClick={() => setLocation('/guests')}
           />
           <ProgressRing
             percentage={vendorProgress}
             color="#10B981"
             label="Vendors"
             sublabel={`${bookedVendors.length} of ${vendors?.length || 0} booked`}
+            onClick={() => setLocation('/vendors')}
           />
         </div>
       </div>

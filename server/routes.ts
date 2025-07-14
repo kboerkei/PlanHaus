@@ -1350,6 +1350,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ response: aiResponse });
     } catch (error) {
       console.error('AI Chat error:', error);
+      
+      // Handle OpenAI rate limit (429) or quota exceeded
+      if (error.message && error.message.includes('429')) {
+        return res.json({ 
+          response: "I'm currently experiencing high demand and have reached my usage limits for OpenAI services. However, I can still help you with wedding planning advice! Here are some general recommendations based on typical wedding timelines:\n\n• **12 months before**: Book your venue and start vendor research\n• **9 months before**: Send save-the-dates and book photographer\n• **6 months before**: Order invitations and finalize guest list\n• **3 months before**: Final fittings and confirm all details\n\nWhat specific aspect of your wedding planning would you like guidance on?"
+        });
+      }
+      
       res.status(500).json({ 
         error: "Sorry, I'm having trouble right now. Please try again.",
         response: "I'm here to help with your wedding planning! Could you tell me more about what you'd like assistance with?"
@@ -2169,8 +2177,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const project = projects[0];
+      // Convert dueDate string to Date object if provided
+      const requestData = { ...req.body };
+      if (requestData.dueDate && typeof requestData.dueDate === 'string') {
+        requestData.dueDate = new Date(requestData.dueDate);
+      }
+      
       const taskData = insertTaskSchema.parse({
-        ...req.body,
+        ...requestData,
         projectId: project.id,
         createdBy: userId
       });
