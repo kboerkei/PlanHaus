@@ -27,7 +27,7 @@ type InspirationFormData = z.infer<typeof inspirationSchema>;
 
 export default function Inspiration() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterCategory, setFilterCategory] = useState("");
+  const [filterCategory, setFilterCategory] = useState("all");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const { toast } = useToast();
 
@@ -81,7 +81,7 @@ export default function Inspiration() {
   const filteredItems = (inspirationItems || []).filter((item: any) => {
     const matchesSearch = item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          (item.notes && item.notes.toLowerCase().includes(searchTerm.toLowerCase()));
-    const matchesCategory = !filterCategory || item.category === filterCategory;
+    const matchesCategory = filterCategory === "all" || !filterCategory || item.category === filterCategory;
     return matchesSearch && matchesCategory;
   });
 
@@ -149,7 +149,7 @@ export default function Inspiration() {
               <SelectValue placeholder="All categories" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All categories</SelectItem>
+              <SelectItem value="all">All categories</SelectItem>
               {categories.map((category) => (
                 <SelectItem key={category} value={category}>
                   {category}

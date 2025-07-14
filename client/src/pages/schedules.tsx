@@ -597,7 +597,20 @@ export default function Schedules() {
                                       <Clock size={14} className="mr-1" />
                                       {(() => {
                                         try {
-                                          return format(new Date(`2000-01-01T${event.startTime}`), 'h:mm a');
+                                          // Handle both time strings and ISO date strings
+                                          let timeStr = event.startTime;
+                                          if (timeStr.includes('T')) {
+                                            // Extract time from ISO string like "2000-01-01T08:00:00.000Z"
+                                            const timeMatch = timeStr.match(/T(\d{2}):(\d{2})/);
+                                            if (timeMatch) {
+                                              const hours = parseInt(timeMatch[1]);
+                                              const minutes = timeMatch[2];
+                                              const period = hours >= 12 ? 'PM' : 'AM';
+                                              const displayHours = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
+                                              return `${displayHours}:${minutes} ${period}`;
+                                            }
+                                          }
+                                          return format(new Date(`2000-01-01T${timeStr}`), 'h:mm a');
                                         } catch {
                                           return event.startTime;
                                         }
@@ -605,7 +618,20 @@ export default function Schedules() {
                                       {event.endTime && (
                                         <span> - {(() => {
                                           try {
-                                            return format(new Date(`2000-01-01T${event.endTime}`), 'h:mm a');
+                                            // Handle both time strings and ISO date strings
+                                            let timeStr = event.endTime;
+                                            if (timeStr.includes('T')) {
+                                              // Extract time from ISO string like "2000-01-01T17:00:00.000Z"
+                                              const timeMatch = timeStr.match(/T(\d{2}):(\d{2})/);
+                                              if (timeMatch) {
+                                                const hours = parseInt(timeMatch[1]);
+                                                const minutes = timeMatch[2];
+                                                const period = hours >= 12 ? 'PM' : 'AM';
+                                                const displayHours = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
+                                                return `${displayHours}:${minutes} ${period}`;
+                                              }
+                                            }
+                                            return format(new Date(`2000-01-01T${timeStr}`), 'h:mm a');
                                           } catch {
                                             return event.endTime;
                                           }
