@@ -547,77 +547,77 @@ export default function TimelineSimple() {
                 </div>
 
                 {/* Filter Buttons */}
-                <div className="grid grid-cols-3 md:flex md:flex-wrap gap-2 md:gap-3 mt-6 pt-6 border-t border-gray-200">
+                <div className="grid grid-cols-6 md:flex md:flex-wrap gap-1 md:gap-3 mt-6 pt-6 border-t border-gray-200">
                   <button
                     onClick={() => setActiveFilter(activeFilter === null ? 'all' : null)}
-                    className={`px-2 md:px-4 py-2 rounded-lg text-xs md:text-sm font-medium transition-all text-center ${
+                    className={`px-1 md:px-4 py-2 rounded-lg text-xs font-medium transition-all text-center min-w-0 ${
                       activeFilter === null 
                         ? 'bg-gray-800 text-white shadow-lg' 
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
                   >
-                    <span className="text-base md:text-lg font-bold block">{stats.total}</span>
-                    <div className="text-xs leading-tight">Total</div>
+                    <span className="text-sm md:text-lg font-bold block">{stats.total}</span>
+                    <div className="text-xs leading-tight truncate">All</div>
                   </button>
                   
                   <button
                     onClick={() => setActiveFilter(activeFilter === 'completed' ? null : 'completed')}
-                    className={`px-2 md:px-4 py-2 rounded-lg text-xs md:text-sm font-medium transition-all text-center ${
+                    className={`px-1 md:px-4 py-2 rounded-lg text-xs font-medium transition-all text-center min-w-0 ${
                       activeFilter === 'completed' 
                         ? 'bg-green-600 text-white shadow-lg' 
                         : 'bg-green-50 text-green-700 hover:bg-green-100'
                     }`}
                   >
-                    <span className="text-base md:text-lg font-bold block">{stats.completed}</span>
-                    <div className="text-xs leading-tight">Done</div>
+                    <span className="text-sm md:text-lg font-bold block">{stats.completed}</span>
+                    <div className="text-xs leading-tight truncate">Done</div>
                   </button>
                   
                   <button
                     onClick={() => setActiveFilter(activeFilter === 'pending' ? null : 'pending')}
-                    className={`px-2 md:px-4 py-2 rounded-lg text-xs md:text-sm font-medium transition-all text-center ${
+                    className={`px-1 md:px-4 py-2 rounded-lg text-xs font-medium transition-all text-center min-w-0 ${
                       activeFilter === 'pending' 
                         ? 'bg-amber-600 text-white shadow-lg' 
                         : 'bg-amber-50 text-amber-700 hover:bg-amber-100'
                     }`}
                   >
-                    <span className="text-base md:text-lg font-bold block">{stats.pending}</span>
-                    <div className="text-xs leading-tight">Pending</div>
+                    <span className="text-sm md:text-lg font-bold block">{stats.pending}</span>
+                    <div className="text-xs leading-tight truncate">Todo</div>
                   </button>
                   
                   <button
                     onClick={() => setActiveFilter(activeFilter === 'overdue' ? null : 'overdue')}
-                    className={`px-2 md:px-4 py-2 rounded-lg text-xs md:text-sm font-medium transition-all text-center ${
+                    className={`px-1 md:px-4 py-2 rounded-lg text-xs font-medium transition-all text-center min-w-0 ${
                       activeFilter === 'overdue' 
                         ? 'bg-red-600 text-white shadow-lg' 
                         : 'bg-red-50 text-red-700 hover:bg-red-100'
                     }`}
                   >
-                    <span className="text-base md:text-lg font-bold block">{taskGroups.overdue.length}</span>
-                    <div className="text-xs leading-tight">Overdue</div>
+                    <span className="text-sm md:text-lg font-bold block">{taskGroups.overdue.length}</span>
+                    <div className="text-xs leading-tight truncate">Late</div>
                   </button>
                   
                   <button
                     onClick={() => setActiveFilter(activeFilter === 'high' ? null : 'high')}
-                    className={`px-2 md:px-4 py-2 rounded-lg text-xs md:text-sm font-medium transition-all text-center ${
+                    className={`px-1 md:px-4 py-2 rounded-lg text-xs font-medium transition-all text-center min-w-0 ${
                       activeFilter === 'high' 
                         ? 'bg-purple-600 text-white shadow-lg' 
                         : 'bg-purple-50 text-purple-700 hover:bg-purple-100'
                     }`}
                   >
-                    <span className="text-base md:text-lg font-bold block">{highPriorityCount}</span>
-                    <div className="text-xs leading-tight">High</div>
+                    <span className="text-sm md:text-lg font-bold block">{highPriorityCount}</span>
+                    <div className="text-xs leading-tight truncate">High</div>
                   </button>
                   
                   <button
                     onClick={() => setActiveFilter(activeFilter === 'thisweek' ? null : 'thisweek')}
-                    className={`px-2 md:px-4 py-2 rounded-lg text-xs md:text-sm font-medium transition-all text-center ${
+                    className={`px-1 md:px-4 py-2 rounded-lg text-xs font-medium transition-all text-center min-w-0 ${
                       activeFilter === 'thisweek' 
                         ? 'bg-orange-600 text-white shadow-lg' 
                         : 'bg-orange-50 text-orange-700 hover:bg-orange-100'
                     }`}
                   >
-                    <span className="text-base md:text-lg font-bold block">{thisWeekCount}</span>
-                    <div className="text-xs leading-tight">This Week</div>
+                    <span className="text-sm md:text-lg font-bold block">{thisWeekCount}</span>
+                    <div className="text-xs leading-tight truncate">Week</div>
                   </button>
                 </div>
               </div>
