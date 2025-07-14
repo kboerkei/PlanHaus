@@ -384,29 +384,27 @@ export default function TimelineModern() {
   return (
     <div className="p-6">
       <div className="max-w-7xl mx-auto">
-            {/* Modern Header Section */}
-            <div className="relative mb-8">
-              <div className="absolute inset-0 bg-gradient-to-r from-blush/10 to-rose/10 rounded-3xl blur-3xl"></div>
-              <div className="relative bg-white/80 backdrop-blur-sm rounded-3xl p-8 border border-white/50 shadow-xl">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="flex items-center space-x-3 mb-3">
-                      <div className="p-3 bg-gradient-to-r from-blush to-rose rounded-2xl shadow-lg">
-                        <Calendar className="h-8 w-8 text-white" />
-                      </div>
-                      <div>
-                        <h1 className="font-serif text-4xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
-                          Wedding Timeline
-                        </h1>
-                        <p className="text-gray-600 text-lg">
-                          {currentProject?.date 
-                            ? `${Math.ceil((new Date(currentProject.date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))} days until your big day`
-                            : "Organize your perfect wedding journey"
-                          }
-                        </p>
-                      </div>
+            {/* Simple Header Section */}
+            <div className="mb-8">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="flex items-center space-x-3 mb-3">
+                    <div className="p-3 bg-rose-500 rounded-lg">
+                      <Calendar className="h-8 w-8 text-white" />
+                    </div>
+                    <div>
+                      <h1 className="text-4xl font-semibold text-gray-900 tracking-tight">
+                        Wedding Timeline
+                      </h1>
+                      <p className="text-gray-600 text-lg">
+                        {currentProject?.date 
+                          ? `${Math.ceil((new Date(currentProject.date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))} days until your big day`
+                          : "Organize your perfect wedding journey"
+                        }
+                      </p>
                     </div>
                   </div>
+                </div>
                   
                   <div className="flex items-center space-x-4">
                     <div className="text-center">

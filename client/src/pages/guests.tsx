@@ -416,25 +416,25 @@ export default function Guests() {
   }
 
   return (
-    <div className="p-6">
-          <div className="max-w-6xl mx-auto">
-            {/* Enhanced Header Section */}
-            <div className="relative mb-8">
-              <div className="relative bg-white/80 backdrop-blur-sm rounded-3xl p-4 md:p-8 border border-white/50 shadow-xl">
-                <div className="flex flex-col md:flex-row md:items-start md:justify-between mb-6 space-y-4 md:space-y-0">
-                  <div className="flex items-center space-x-3 md:space-x-4">
-                    <div className="p-2 md:p-3 bg-gradient-to-r from-blush to-rose rounded-2xl shadow-lg">
-                      <Users className="h-6 w-6 md:h-8 md:w-8 text-white" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <h1 className="font-serif text-xl md:text-4xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
-                        Guest List
-                      </h1>
-                      <p className="text-gray-600 text-xs md:text-lg mt-1">
-                        Manage your wedding guests and track RSVPs
-                      </p>
-                    </div>
+    <>
+      <div className="p-6">
+        <div className="max-w-6xl mx-auto">
+          {/* Simple Header Section */}
+            <div className="mb-8">
+              <div className="flex flex-col md:flex-row md:items-start md:justify-between mb-6 space-y-4 md:space-y-0">
+                <div className="flex items-center space-x-3 md:space-x-4">
+                  <div className="p-2 md:p-3 bg-rose-500 rounded-lg">
+                    <Users className="h-6 w-6 md:h-8 md:w-8 text-white" />
                   </div>
+                  <div className="min-w-0 flex-1">
+                    <h1 className="text-xl md:text-4xl font-semibold text-gray-900 tracking-tight">
+                      Guest List
+                    </h1>
+                    <p className="text-gray-600 text-xs md:text-lg mt-1">
+                      Manage your wedding guests and track RSVPs
+                    </p>
+                  </div>
+                </div>
                   
                   <div className="flex space-x-2 md:space-x-3 w-full md:w-auto">
                     <ExportOptions 
@@ -449,7 +449,7 @@ export default function Guests() {
                           Add Guest
                         </Button>
                       </DialogTrigger>
-                  <DialogContent className="sm:max-w-md">
+                      <DialogContent className="sm:max-w-md">
                     <DialogHeader>
                       <DialogTitle>Add New Guest</DialogTitle>
                       <DialogDescription>
@@ -841,7 +841,9 @@ export default function Guests() {
               </CardContent>
             </Card>
           </div>
-        
+        </div>
+      </div>
+      
       {/* Edit Guest Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
@@ -1081,6 +1083,6 @@ export default function Guests() {
           </Form>
         </DialogContent>
       </Dialog>
-    </div>
+    </>
   );
 }

@@ -119,13 +119,18 @@ export default function Inspiration() {
     <div className="p-6">
       <div className="max-w-6xl mx-auto">
         <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="font-serif text-3xl font-semibold text-gray-800 mb-2">
-              Inspiration Board
-            </h1>
-            <p className="text-gray-600">
-              Collect and organize ideas for your perfect wedding day
-            </p>
+          <div className="flex items-center space-x-3">
+            <div className="p-3 bg-rose-500 rounded-lg">
+              <Palette className="h-8 w-8 text-white" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-semibold text-gray-900 tracking-tight mb-2">
+                Inspiration Board
+              </h1>
+              <p className="text-gray-600">
+                Collect and organize ideas for your perfect wedding day
+              </p>
+            </div>
           </div>
           
           <Button onClick={() => setIsAddDialogOpen(true)} className="gradient-blush-rose text-white">
