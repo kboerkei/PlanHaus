@@ -2,37 +2,39 @@
 
 /* Enhanced Wedding Theme Styles */
 :root {
-  /* Updated color palette for elegant wedding theme */
-  --background: 37 43% 98%; /* Ivory #FAF9F6 */
-  --foreground: 214 23% 20%; /* Soft charcoal #333 */
+  /* Sophisticated color palette for luxury wedding theme */
+  --background: 25 100% 99%; /* Pure white with warm undertone */
+  --foreground: 215 25% 27%; /* Rich charcoal */
   --card: 0 0% 100%;
-  --card-foreground: 214 23% 20%;
+  --card-foreground: 215 25% 27%;
   --popover: 0 0% 100%;
-  --popover-foreground: 214 23% 20%;
-  --primary: 346 30% 69%; /* Dusty rose #D9A5B3 */
+  --popover-foreground: 215 25% 27%;
+  --primary: 345 83% 47%; /* Rich rose */
   --primary-foreground: 0 0% 100%;
-  --secondary: 80 12% 85%; /* Soft sage */
-  --secondary-foreground: 214 23% 20%;
-  --muted: 37 43% 95%;
-  --muted-foreground: 214 16% 50%;
-  --accent: 346 30% 69%;
+  --secondary: 46 100% 94%; /* Champagne */
+  --secondary-foreground: 215 25% 27%;
+  --muted: 25 100% 97%;
+  --muted-foreground: 215 15% 55%;
+  --accent: 345 83% 47%;
   --accent-foreground: 0 0% 100%;
-  --destructive: 0 70% 65%;
+  --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 100%;
-  --border: 37 20% 90%;
-  --input: 37 20% 92%;
-  --ring: 346 30% 69%;
-  --radius: 0.75rem;
+  --border: 25 30% 92%;
+  --input: 25 30% 94%;
+  --ring: 345 83% 47%;
+  --radius: 1rem;
 
-  /* Enhanced custom wedding colors */
-  --blush: 346 30% 69%; /* Dusty rose */
-  --rose-gold: 14 48% 78%;
-  --champagne: 46 42% 89%;
-  --sage: 80 12% 70%;
-  --cream: 37 43% 98%;
-  --ivory: 37 43% 98%;
-  --dusty-rose: 346 30% 69%;
-  --muted-gold: 45 25% 75%;
+  /* Luxury wedding color palette */
+  --blush: 345 83% 47%; /* Rich rose */
+  --rose-gold: 14 65% 70%; /* Warm rose gold */
+  --champagne: 46 100% 94%; /* Elegant champagne */
+  --sage: 80 20% 65%; /* Muted sage */
+  --cream: 25 100% 97%; /* Warm cream */
+  --ivory: 25 100% 99%; /* Pure ivory */
+  --dusty-rose: 345 50% 65%; /* Soft dusty rose */
+  --muted-gold: 45 35% 75%; /* Sophisticated gold */
+  --pearl: 0 0% 95%; /* Pearl white */
+  --mauve: 320 25% 75%; /* Elegant mauve */
 }
 
 /* Enhanced Global Styles */
@@ -68,11 +70,14 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Enhanced Button Styles */
 .btn-elegant {
-  @apply inline-flex items-center justify-center rounded-xl px-6 py-3 text-sm font-medium;
-  @apply transition-all duration-200 ease-in-out;
-  @apply shadow-sm hover:shadow-md;
-  background: linear-gradient(135deg, hsl(var(--dusty-rose)) 0%, hsl(var(--rose-gold)) 100%);
+  @apply inline-flex items-center justify-center rounded-2xl px-8 py-4 text-sm font-semibold;
+  @apply transition-all duration-300 ease-in-out;
+  @apply shadow-lg hover:shadow-xl;
+  background: linear-gradient(135deg, hsl(var(--blush)) 0%, hsl(var(--rose-gold)) 50%, hsl(var(--dusty-rose)) 100%);
   color: white;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+}
   border: none;
 }
 
@@ -256,11 +261,19 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Enhanced Shadows */
 .shadow-elegant {
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08), 0 4px 16px rgba(0, 0, 0, 0.04);
 }
 
 .shadow-elegant-hover {
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.12), 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.shadow-luxury {
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08), 0 8px 32px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.shadow-wedding {
+  box-shadow: 0 12px 40px rgba(220, 38, 127, 0.15), 0 6px 20px rgba(220, 38, 127, 0.08);
 }
 
 /* Gradient Utilities */
