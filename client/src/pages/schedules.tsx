@@ -570,7 +570,21 @@ export default function Schedules() {
                             {events
                               .sort((a, b) => {
                                 try {
-                                  return new Date(`2000-01-01T${a.startTime}`).getTime() - new Date(`2000-01-01T${b.startTime}`).getTime();
+                                  // Helper function to extract time for comparison
+                                  const getTimeForSort = (timeStr) => {
+                                    if (timeStr.includes('T')) {
+                                      // Extract time from ISO string like "2000-01-01T08:00:00.000Z"
+                                      const timeMatch = timeStr.match(/T(\d{2}):(\d{2})/);
+                                      if (timeMatch) {
+                                        return parseInt(timeMatch[1]) * 60 + parseInt(timeMatch[2]);
+                                      }
+                                    }
+                                    // Handle simple time format like "08:00"
+                                    const [hours, minutes] = timeStr.split(':').map(Number);
+                                    return hours * 60 + minutes;
+                                  };
+                                  
+                                  return getTimeForSort(a.startTime) - getTimeForSort(b.startTime);
                                 } catch {
                                   return 0;
                                 }
