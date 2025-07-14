@@ -20,7 +20,7 @@ import Inspiration from "@/pages/inspiration";
 import Resources from "@/pages/resources";
 import Schedules from "@/pages/schedules";
 import Intake from "@/pages/intake";
-import Sidebar from "@/components/layout/sidebar-enhanced";
+// import Sidebar from "@/components/layout/sidebar-enhanced"; // Removed for cleaner design
 import Header from "@/components/layout/header";
 import Footer from "@/components/layout/footer";
 import MobileNav from "@/components/layout/mobile-nav-enhanced";
@@ -31,8 +31,7 @@ function Router({ user, onLogout, isNewUser, onIntakeComplete }: { user: any; on
 
   return (
     <div className="flex h-screen bg-background">
-      <Sidebar />
-      <div className="flex-1 flex flex-col overflow-hidden lg:ml-64">
+      <div className="flex-1 flex flex-col overflow-hidden">
         <Header />
         <main className="flex-1 overflow-auto pb-16 lg:pb-0 safe-area-pb">
           <div className="min-h-full flex flex-col">
