@@ -26,11 +26,18 @@ export async function setupDemoData() {
   console.log(`Found ${existingProjects.length} existing projects for demo user`);
   console.log(`Austin farmhouse project exists: ${!!demoProject}`);
   
+  // Always ensure Emma & Jake's Wedding is the primary project (first in order)
   if (!demoProject) {
-    // Check if we have old demo projects to replace
+    // Check if we have old demo projects to delete first
     const hasOldProjects = existingProjects.length > 0;
     if (hasOldProjects) {
-      console.log(`Found ${existingProjects.length} old demo projects. Creating Austin farmhouse wedding...`);
+      console.log(`Found ${existingProjects.length} old demo projects. Replacing with Emma & Jake's Wedding...`);
+      // Delete old projects to ensure Emma & Jake's Wedding becomes the primary one
+      for (const oldProject of existingProjects) {
+        if (oldProject.name !== "Emma & Jake's Wedding") {
+          await storage.deleteWeddingProject(oldProject.id);
+        }
+      }
     }
     
     // Create Austin farmhouse wedding demo project

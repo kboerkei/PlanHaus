@@ -23,23 +23,23 @@ export default function MilestoneCelebration() {
     enabled: !!localStorage.getItem('sessionId')
   });
 
+  // Calculate milestone progress - prioritize Emma & Jake's Wedding demo
+  const project = projects?.find(p => p.name === "Emma & Jake's Wedding") || projects?.[0];
+
   const { data: tasks } = useQuery({
-    queryKey: ['/api/projects', projects?.[0]?.id, 'tasks'],
-    enabled: !!projects?.[0]?.id
+    queryKey: ['/api/projects', project?.id, 'tasks'],
+    enabled: !!project?.id
   });
 
   const { data: guests } = useQuery({
-    queryKey: ['/api/projects', projects?.[0]?.id, 'guests'],
-    enabled: !!projects?.[0]?.id
+    queryKey: ['/api/projects', project?.id, 'guests'],
+    enabled: !!project?.id
   });
 
   const { data: vendors } = useQuery({
-    queryKey: ['/api/projects', projects?.[0]?.id, 'vendors'],
-    enabled: !!projects?.[0]?.id
+    queryKey: ['/api/projects', project?.id, 'vendors'],
+    enabled: !!project?.id
   });
-
-  // Calculate milestone progress
-  const project = projects?.[0];
   const completedTasks = tasks?.filter(t => t.status === 'completed') || [];
   const confirmedGuests = guests?.filter(g => g.rsvpStatus === 'confirmed') || [];
   const bookedVendors = vendors?.filter(v => v.status === 'booked') || [];
