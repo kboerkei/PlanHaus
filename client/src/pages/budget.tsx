@@ -183,19 +183,24 @@ export default function Budget() {
     return budgetItems?.filter((item: any) => item.category === category) || [];
   };
 
-  // Fetch wedding project data
-  const { data: weddingProjects, isLoading: projectsLoading } = useQuery({
-    queryKey: ['/api/wedding-projects'],
+  // Get current project
+  const { data: projects } = useQuery({
+    queryKey: ['/api/projects'],
+    enabled: true,
   });
 
-  // Fetch budget items
-  const { data: budgetItems, isLoading: budgetLoading, error: budgetError } = useQuery({
-    queryKey: ['/api/budget-items'],
+  const currentProject = projects?.find(p => p.name === "Emma & Jake's Wedding") || projects?.[0];
+
+  // Get budget items for current project
+  const { data: budgetItems, error: budgetError, isLoading: budgetLoading } = useQuery({
+    queryKey: ['/api/projects', currentProject?.id, 'budget'],
+    enabled: !!currentProject?.id,
+    retry: 2,
+    refetchOnWindowFocus: false,
   });
 
-  const currentProject = weddingProjects?.[0];
   const totalBudget = currentProject?.budget ? parseFloat(currentProject.budget) : 0;
-  const totalSpent = budgetItems?.reduce((sum: number, item: any) => sum + (item.actualCost || 0), 0) || 0;
+  const totalSpent = budgetItems?.reduce((sum: number, item: any) => sum + (parseFloat(item.actualCost) || 0), 0) || 0;
   const remaining = totalBudget - totalSpent;
 
   // Handle null or error states

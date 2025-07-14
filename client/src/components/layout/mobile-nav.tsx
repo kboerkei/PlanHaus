@@ -24,6 +24,12 @@ export default function MobileNav() {
   const [location] = useLocation();
   const [isMoreOpen, setIsMoreOpen] = useState(false);
 
+  const handleNavClick = (href: string) => {
+    console.log('Mobile nav clicked:', href);
+    // Force navigation with page reload if needed
+    window.location.href = href;
+  };
+
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 md:hidden z-50 safe-area-pb">
       <div className="grid grid-cols-5 py-2">
@@ -32,17 +38,18 @@ export default function MobileNav() {
           const isActive = location === item.href;
           
           return (
-            <Link 
+            <button
               key={item.name} 
-              href={item.href}
+              onClick={() => handleNavClick(item.href)}
               className={cn(
-                "flex flex-col items-center py-2 px-1 transition-colors touch-manipulation",
+                "flex flex-col items-center py-3 px-2 transition-colors touch-manipulation min-h-[48px] relative",
                 isActive ? "text-blush" : "text-gray-400 active:text-gray-600"
               )}
+              type="button"
             >
               <Icon size={18} />
               <span className="text-xs mt-1 truncate">{item.name}</span>
-            </Link>
+            </button>
           );
         })}
         
@@ -60,18 +67,21 @@ export default function MobileNav() {
                 const isActive = location === item.href;
                 
                 return (
-                  <Link 
+                  <button
                     key={item.name} 
-                    href={item.href}
-                    onClick={() => setIsMoreOpen(false)}
+                    onClick={() => {
+                      setIsMoreOpen(false);
+                      handleNavClick(item.href);
+                    }}
                     className={cn(
-                      "flex items-center space-x-3 p-3 rounded-lg transition-colors touch-manipulation",
+                      "flex items-center space-x-3 p-3 rounded-lg transition-colors touch-manipulation w-full min-h-[48px]",
                       isActive ? "bg-blush text-white" : "text-gray-600 hover:bg-gray-50 active:bg-gray-100"
                     )}
+                    type="button"
                   >
                     <Icon size={20} />
                     <span className="font-medium">{item.name}</span>
-                  </Link>
+                  </button>
                 );
               })}
             </div>

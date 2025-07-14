@@ -185,6 +185,9 @@
   /* Mobile touch improvements */
   .touch-manipulation {
     touch-action: manipulation;
+    -webkit-tap-highlight-color: rgba(244, 165, 185, 0.3);
+    -webkit-user-select: none;
+    user-select: none;
   }
 
   /* Mobile-specific improvements */
