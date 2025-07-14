@@ -386,67 +386,33 @@ export default function TimelineModern() {
       <div className="max-w-7xl mx-auto">
             {/* Simple Header Section */}
             <div className="mb-8">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="flex items-center space-x-3 mb-3">
-                    <div className="p-3 bg-rose-500 rounded-lg">
-                      <Calendar className="h-8 w-8 text-white" />
-                    </div>
-                    <div>
-                      <h1 className="text-4xl font-semibold text-gray-900 tracking-tight">
-                        Wedding Timeline
-                      </h1>
-                      <p className="text-gray-600 text-lg">
-                        {currentProject?.date 
-                          ? `${Math.ceil((new Date(currentProject.date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))} days until your big day`
-                          : "Organize your perfect wedding journey"
-                        }
-                      </p>
-                    </div>
+              <div className="flex flex-col md:flex-row md:items-start md:justify-between mb-6 space-y-4 md:space-y-0">
+                <div className="flex items-center space-x-3 md:space-x-4">
+                  <div className="p-2 md:p-3 bg-rose-500 rounded-lg">
+                    <Calendar className="h-6 w-6 md:h-8 md:w-8 text-white" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h1 className="text-xl md:text-4xl font-semibold text-gray-900 tracking-tight">
+                      Timeline
+                    </h1>
+                    <p className="text-gray-600 text-xs md:text-lg mt-1">
+                      {currentProject?.date 
+                        ? `${Math.ceil((new Date(currentProject.date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))} days until your special day`
+                        : "Organize your perfect wedding journey"
+                      }
+                    </p>
                   </div>
                 </div>
-                  
-                  <div className="flex items-center space-x-4">
-                    <div className="text-center">
-                      <div className="relative w-20 h-20 mb-2">
-                        <svg className="w-20 h-20 transform -rotate-90" viewBox="0 0 36 36">
-                          <path
-                            className="text-gray-200"
-                            stroke="currentColor"
-                            strokeWidth="3"
-                            fill="none"
-                            d="M18 2.0845
-                              a 15.9155 15.9155 0 0 1 0 31.831
-                              a 15.9155 15.9155 0 0 1 0 -31.831"
-                          />
-                          <path
-                            className="text-blush"
-                            stroke="currentColor"
-                            strokeWidth="3"
-                            strokeDasharray={`${completionPercentage}, 100`}
-                            strokeLinecap="round"
-                            fill="none"
-                            d="M18 2.0845
-                              a 15.9155 15.9155 0 0 1 0 31.831
-                              a 15.9155 15.9155 0 0 1 0 -31.831"
-                          />
-                        </svg>
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <span className="text-2xl font-bold text-gray-800">{completionPercentage}%</span>
-                        </div>
-                      </div>
-                      <p className="text-sm text-gray-600 font-medium">Complete</p>
-                    </div>
-                    
-                    <Button 
-                      onClick={() => setIsAddDialogOpen(true)}
-                      className="gradient-blush-rose text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
-                      size="lg"
-                    >
-                      <Plus className="mr-2" size={20} />
-                      Add Task
-                    </Button>
-                  </div>
+                
+                <div className="flex items-center space-x-2 md:space-x-3 w-full md:w-auto">
+                  <Button 
+                    onClick={() => setIsAddDialogOpen(true)}
+                    className="gradient-blush-rose text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 flex-1 md:flex-none"
+                    size="lg"
+                  >
+                    <Plus className="mr-2" size={20} />
+                    Add Task
+                  </Button>
                 </div>
               </div>
             </div>
