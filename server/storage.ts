@@ -34,6 +34,7 @@ export interface IStorage {
 
   // Tasks
   createTask(task: InsertTask): Promise<Task>;
+  getTaskById(id: number): Promise<Task | undefined>;
   getTasksByProjectId(projectId: number): Promise<Task[]>;
   updateTask(id: number, updates: Partial<InsertTask>): Promise<Task | undefined>;
   deleteTask(id: number): Promise<boolean>;
@@ -257,6 +258,10 @@ export class MemStorage implements IStorage {
     };
     this.tasks.set(id, task);
     return task;
+  }
+
+  async getTaskById(id: number): Promise<Task | undefined> {
+    return this.tasks.get(id);
   }
 
   async getTasksByProjectId(projectId: number): Promise<Task[]> {
@@ -675,6 +680,11 @@ export class DatabaseStorage implements IStorage {
   async createTask(insertTask: InsertTask): Promise<Task> {
     const [task] = await db.insert(tasks).values(insertTask).returning();
     return task;
+  }
+
+  async getTaskById(id: number): Promise<Task | undefined> {
+    const [task] = await db.select().from(tasks).where(eq(tasks.id, id));
+    return task || undefined;
   }
 
   async getTasksByProjectId(projectId: number): Promise<Task[]> {

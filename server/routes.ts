@@ -444,26 +444,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const taskId = parseInt(req.params.id);
       const updates = req.body;
       
+      console.log('Task update request:', { taskId, updates });
+      
+      // Convert date strings to Date objects if present and valid
+      if (updates.dueDate) {
+        if (typeof updates.dueDate === 'string') {
+          const parsedDate = new Date(updates.dueDate);
+          if (!isNaN(parsedDate.getTime())) {
+            updates.dueDate = parsedDate;
+          } else {
+            delete updates.dueDate; // Remove invalid date
+          }
+        }
+      }
+      if (updates.completedAt) {
+        if (typeof updates.completedAt === 'string') {
+          const parsedDate = new Date(updates.completedAt);
+          if (!isNaN(parsedDate.getTime())) {
+            updates.completedAt = parsedDate;
+          } else {
+            delete updates.completedAt; // Remove invalid date
+          }
+        }
+      }
+      
+      // Validate the task exists first
+      const existingTask = await storage.getTaskById(taskId);
+      if (!existingTask) {
+        console.log('Task not found:', taskId);
+        return res.status(404).json({ message: "Task not found" });
+      }
+      
       const task = await storage.updateTask(taskId, updates);
       if (!task) {
+        console.log('Update failed for task:', taskId);
         return res.status(404).json({ message: "Task not found" });
       }
 
-      // Create activity
-      await storage.createActivity({
-        projectId: task.projectId,
-        userId: (req as any).userId,
-        action: 'updated task',
-        target: 'task',
-        targetId: task.id,
-        details: { taskTitle: task.title, updates }
-      });
+      console.log('Task updated successfully:', task);
+
+      // Create activity (optional, continue if fails)
+      try {
+        await storage.createActivity({
+          projectId: task.projectId,
+          userId: (req as any).userId,
+          action: 'updated task',
+          target: 'task',
+          targetId: task.id,
+          details: { taskTitle: task.title, updates }
+        });
+      } catch (activityError) {
+        console.log('Activity creation failed:', activityError);
+        // Continue - don't fail the whole request
+      }
 
       websocketService?.notifyTaskUpdate(task.projectId, task, 'updated', (req as any).userId);
 
       res.json(task);
     } catch (error) {
-      res.status(500).json({ message: "Failed to update task" });
+      console.error('Task update error:', error);
+      res.status(500).json({ message: "Failed to update task", error: error instanceof Error ? error.message : 'Unknown error' });
     }
   });
 

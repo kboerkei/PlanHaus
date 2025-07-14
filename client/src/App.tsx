@@ -20,9 +20,9 @@ import Inspiration from "@/pages/inspiration";
 import Resources from "@/pages/resources";
 import Schedules from "@/pages/schedules";
 import Intake from "@/pages/intake";
-import Sidebar from "@/components/layout/sidebar";
+import Sidebar from "@/components/layout/sidebar-enhanced";
 import Header from "@/components/layout/header";
-import MobileNav from "@/components/layout/mobile-nav";
+import MobileNav from "@/components/layout/mobile-nav-enhanced";
 import FloatingActions from "@/components/layout/floating-actions";
 
 function Router({ user, onLogout, isNewUser, onIntakeComplete }: { user: any; onLogout: () => void; isNewUser: boolean; onIntakeComplete: () => void }) {
