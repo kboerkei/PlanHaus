@@ -36,8 +36,8 @@ export default function MobileNav() {
               key={item.name} 
               href={item.href}
               className={cn(
-                "flex flex-col items-center py-2 px-1 transition-colors",
-                isActive ? "text-blush" : "text-gray-400"
+                "flex flex-col items-center py-2 px-1 transition-colors touch-manipulation",
+                isActive ? "text-blush" : "text-gray-400 active:text-gray-600"
               )}
             >
               <Icon size={18} />
@@ -48,7 +48,7 @@ export default function MobileNav() {
         
         <Sheet open={isMoreOpen} onOpenChange={setIsMoreOpen}>
           <SheetTrigger asChild>
-            <button className="flex flex-col items-center py-2 px-1 transition-colors text-gray-400">
+            <button className="flex flex-col items-center py-2 px-1 transition-colors text-gray-400 active:text-gray-600 touch-manipulation">
               <MoreHorizontal size={18} />
               <span className="text-xs mt-1">More</span>
             </button>
@@ -65,8 +65,8 @@ export default function MobileNav() {
                     href={item.href}
                     onClick={() => setIsMoreOpen(false)}
                     className={cn(
-                      "flex items-center space-x-3 p-3 rounded-lg transition-colors",
-                      isActive ? "bg-blush text-white" : "text-gray-600 hover:bg-gray-50"
+                      "flex items-center space-x-3 p-3 rounded-lg transition-colors touch-manipulation",
+                      isActive ? "bg-blush text-white" : "text-gray-600 hover:bg-gray-50 active:bg-gray-100"
                     )}
                   >
                     <Icon size={20} />

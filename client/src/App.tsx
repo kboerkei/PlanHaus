@@ -31,7 +31,7 @@ function Router({ user, onLogout, isNewUser, onIntakeComplete }: { user: any; on
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden lg:ml-64">
         <Header user={user} onLogout={onLogout} />
-        <main className="flex-1 overflow-auto pb-16 lg:pb-0">
+        <main className="flex-1 overflow-auto pb-16 lg:pb-0 safe-area-pb">
           <Switch>
             <Route path="/" component={Dashboard} />
             <Route path="/intake">
