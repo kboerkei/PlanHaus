@@ -1,8 +1,5 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import Sidebar from "@/components/layout/sidebar";
-import Header from "@/components/layout/header";
-import MobileNav from "@/components/layout/mobile-nav";
 import LoadingSpinner from "@/components/loading-spinner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -38,6 +35,16 @@ export default function Budget() {
     isPaid: false
   });
   const { toast } = useToast();
+
+  // Query definitions
+  const { data: projects, isLoading: projectsLoading } = useQuery({
+    queryKey: ['/api/projects']
+  });
+
+  const { data: budgetItems = [], isLoading: budgetLoading } = useQuery({
+    queryKey: ['/api/budget-items'],
+    select: (data) => data || []
+  });
   
   // Budget creation mutation
   const createBudgetMutation = useMutation({
@@ -182,61 +189,62 @@ export default function Budget() {
   };
 
   const getItemsByCategory = (category: string) => {
-    return budgetItems?.filter((item: any) => item.category === category) || [];
+    return finalBudgetItems?.filter((item: any) => item.category === category) || [];
   };
-
-  // Get current project
-  const { data: projects } = useQuery({
-    queryKey: ['/api/projects'],
-    enabled: true,
-  });
 
   const currentProject = projects?.find(p => p.name === "Emma & Jake's Wedding") || projects?.[0];
 
-  // Get budget items for current project
-  const { data: budgetItems, error: budgetError, isLoading: budgetLoading } = useQuery({
+  // Get budget items for current project - override the global query
+  const { data: projectBudgetItems, error: budgetError, isLoading: projectBudgetLoading } = useQuery({
     queryKey: ['/api/projects', currentProject?.id, 'budget'],
     enabled: !!currentProject?.id,
     retry: 2,
     refetchOnWindowFocus: false,
   });
 
+  // Use project-specific budget items if available, otherwise fall back to global
+  const finalBudgetItems = projectBudgetItems || budgetItems;
+
   const totalBudget = currentProject?.budget ? parseFloat(currentProject.budget) : 0;
-  const totalSpent = budgetItems?.reduce((sum: number, item: any) => sum + (parseFloat(item.actualCost) || 0), 0) || 0;
+  const totalSpent = finalBudgetItems?.reduce((sum: number, item: any) => sum + (parseFloat(item.actualCost) || 0), 0) || 0;
   const remaining = totalBudget - totalSpent;
 
-  // Handle null or error states
-  if (budgetError || budgetItems === null) {
+  // Handle loading state
+  if (projectsLoading || budgetLoading || projectBudgetLoading) {
     return (
-      <div className="flex min-h-screen bg-cream">
-        <Sidebar />
-        <main className="flex-1 overflow-y-auto">
-          <Header />
-          <div className="p-4 sm:p-6 mobile-padding">
-            <div className="max-w-6xl mx-auto">
-              <div className="text-center py-12">
-                <DollarSign className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-gray-800 mb-2">Welcome to Budget Management</h3>
-                <p className="text-gray-600 mb-6">Start tracking your wedding expenses and stay within budget.</p>
-                <Button 
-                  onClick={() => setIsAddDialogOpen(true)}
-                  className="gradient-blush-rose text-white touch-manipulation"
-                >
-                  <Plus size={16} className="mr-2" />
-                  Add First Budget Item
-                </Button>
-              </div>
-            </div>
+      <div className="p-6">
+        <div className="text-center py-12">
+          <LoadingSpinner size="lg" text="Loading your budget information..." />
+        </div>
+      </div>
+    );
+  }
+
+  // Handle null or error states
+  if (budgetError || finalBudgetItems === null) {
+    return (
+      <div className="p-4 sm:p-6 mobile-padding">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center py-12">
+            <DollarSign className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-gray-800 mb-2">Welcome to Budget Management</h3>
+            <p className="text-gray-600 mb-6">Start tracking your wedding expenses and stay within budget.</p>
+            <Button 
+              onClick={() => setIsAddDialogOpen(true)}
+              className="gradient-blush-rose text-white touch-manipulation"
+            >
+              <Plus size={16} className="mr-2" />
+              Add First Budget Item
+            </Button>
           </div>
-        </main>
-        <MobileNav />
+        </div>
       </div>
     );
   }
 
   // Group budget items by category
-  const budgetCategories = budgetItems ? 
-    budgetItems.reduce((acc: any[], item: any) => {
+  const budgetCategories = finalBudgetItems ? 
+    finalBudgetItems.reduce((acc: any[], item: any) => {
       const existingCategory = acc.find(cat => cat.category === item.category);
       if (existingCategory) {
         existingCategory.estimated += item.estimatedCost || 0;
@@ -299,14 +307,9 @@ export default function Budget() {
 
 
   return (
-    <div className="flex min-h-screen bg-cream">
-      <Sidebar />
-      
-      <main className="flex-1 overflow-y-auto">
-        <Header />
-        
-        <div className="p-6">
-          <div className="max-w-6xl mx-auto">
+    <>
+      <div className="p-6">
+        <div className="max-w-6xl mx-auto">
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h1 className="font-serif text-3xl font-semibold text-gray-800 mb-2">
@@ -583,9 +586,6 @@ export default function Budget() {
             </Card>
           </div>
         </div>
-      </main>
-      
-      <MobileNav />
 
       {/* Add Budget Item Dialog */}
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
@@ -801,6 +801,6 @@ export default function Budget() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </>
   );
 }

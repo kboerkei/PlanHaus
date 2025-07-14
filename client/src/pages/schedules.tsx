@@ -4,8 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { format } from "date-fns";
-import Sidebar from "@/components/layout/sidebar";
-import Header from "@/components/layout/header";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -104,25 +103,18 @@ export default function Schedules() {
   // Handle null or error states
   if (error || schedules === null) {
     return (
-      <div className="flex min-h-screen bg-cream">
-        <Sidebar />
-        <main className="flex-1 overflow-y-auto">
-          <Header />
-          <div className="p-6">
-            <div className="max-w-6xl mx-auto">
-              <div className="text-center py-12">
-                <Calendar className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-gray-800 mb-2">Welcome to Schedule Management</h3>
-                <p className="text-gray-600 mb-6">Create detailed schedules for your wedding day and events.</p>
-                <Button className="gradient-blush-rose text-white">
-                  <Plus size={16} className="mr-2" />
-                  Create First Schedule
-                </Button>
-              </div>
-            </div>
+      <div className="p-6">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center py-12">
+            <Calendar className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-gray-800 mb-2">Welcome to Schedule Management</h3>
+            <p className="text-gray-600 mb-6">Create detailed schedules for your wedding day and events.</p>
+            <Button className="gradient-blush-rose text-white">
+              <Plus size={16} className="mr-2" />
+              Create First Schedule
+            </Button>
           </div>
-        </main>
-        <MobileNav />
+        </div>
       </div>
     );
   }
@@ -224,39 +216,27 @@ export default function Schedules() {
 
   if (!projects?.[0]) {
     return (
-      <div className="flex min-h-screen bg-cream">
-        <Sidebar />
-        <main className="flex-1 overflow-y-auto">
-          <Header />
-          <div className="p-6">
-            <div className="text-center">
-              <p className="text-gray-500">Create a wedding project to get started with schedules.</p>
-            </div>
-          </div>
-        </main>
+      <div className="p-6">
+        <div className="text-center">
+          <p className="text-gray-500">Create a wedding project to get started with schedules.</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-screen bg-cream">
-      <Sidebar />
-      
-      <main className="flex-1 overflow-y-auto">
-        <Header />
-        
-        <div className="p-6">
-          <div className="max-w-6xl mx-auto">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h1 className="font-serif text-3xl font-semibold text-gray-800 mb-2">
-                  Wedding Schedules
-                </h1>
-                <p className="text-gray-600">
-                  Organize your wedding events across multiple days
-                </p>
-              </div>
-              <Dialog open={isScheduleDialogOpen} onOpenChange={setIsScheduleDialogOpen}>
+    <div className="p-6">
+      <div className="max-w-6xl mx-auto">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="font-serif text-3xl font-semibold text-gray-800 mb-2">
+              Wedding Schedules
+            </h1>
+            <p className="text-gray-600">
+              Organize your wedding events across multiple days
+            </p>
+          </div>
+          <Dialog open={isScheduleDialogOpen} onOpenChange={setIsScheduleDialogOpen}>
                 <DialogTrigger asChild>
                   <Button className="gradient-blush-rose text-white">
                     <Plus size={16} className="mr-2" />
@@ -360,10 +340,10 @@ export default function Schedules() {
                     </form>
                   </Form>
                 </DialogContent>
-              </Dialog>
-            </div>
+          </Dialog>
+        </div>
 
-            {schedules.length === 0 ? (
+        {schedules.length === 0 ? (
               <Card>
                 <CardContent className="flex flex-col items-center justify-center py-12">
                   <Calendar className="w-16 h-16 text-gray-400 mb-4" />
@@ -623,9 +603,7 @@ export default function Schedules() {
                 ))}
               </Tabs>
             )}
-          </div>
-        </div>
-      </main>
+      </div>
     </div>
   );
 }

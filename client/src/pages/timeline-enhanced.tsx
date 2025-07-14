@@ -1,8 +1,6 @@
 import { useState, useMemo } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import Sidebar from "@/components/layout/sidebar";
-import Header from "@/components/layout/header";
-import MobileNav from "@/components/layout/mobile-nav";
+
 import LoadingSpinner from "@/components/loading-spinner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -548,32 +546,19 @@ export default function Timeline() {
 
   if (tasksLoading || projectsLoading) {
     return (
-      <div className="flex min-h-screen bg-gradient-to-br from-cream via-white to-blush/5">
-        <Sidebar />
-        <main className="flex-1 overflow-y-auto">
-          <Header />
-          <div className="p-6">
-            <div className="flex items-center justify-center h-64">
-              <LoadingSpinner size="lg" text="Loading your wedding timeline..." />
-            </div>
-          </div>
-        </main>
-        <MobileNav />
+      <div className="p-6">
+        <div className="flex items-center justify-center h-64">
+          <LoadingSpinner size="lg" text="Loading your wedding timeline..." />
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-cream via-white to-blush/5">
-      <Sidebar />
-      
-      <main className="flex-1 overflow-y-auto">
-        <Header />
-        
-        <div className="p-6">
-          <div className="max-w-7xl mx-auto">
-            {/* Enhanced Header Section */}
-            <div className="relative mb-8">
+    <div className="p-6 bg-gradient-to-br from-cream via-white to-blush/5 min-h-screen">
+      <div className="max-w-7xl mx-auto">
+        {/* Enhanced Header Section */}
+        <div className="relative mb-8">
               {/* Main Hero Card */}
               <div className="relative bg-gradient-to-br from-white via-cream/30 to-blush/10 backdrop-blur-sm rounded-3xl p-8 border border-white/60 shadow-2xl overflow-hidden">
                 {/* Animated Background Elements */}
@@ -971,14 +956,10 @@ export default function Timeline() {
                 </div>
               </TabsContent>
             </Tabs>
-          </div>
         </div>
-      </main>
-      
-      <MobileNav />
 
-      {/* Add Task Dialog */}
-      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+        {/* Add Task Dialog */}
+        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
             <DialogTitle className="text-2xl font-semibold flex items-center space-x-2">
