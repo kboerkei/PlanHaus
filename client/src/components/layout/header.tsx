@@ -3,26 +3,21 @@ import { Link } from "wouter";
 
 export default function Header() {
   return (
-    <header className="nav-elegant sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          {/* Logo */}
+    <header className="bg-white/95 backdrop-blur-sm border-b border-gray-100 sticky top-0 z-50">
+      <div className="px-6 py-4">
+        <div className="flex items-center justify-between">
+          {/* Simple Logo */}
           <Link href="/" className="flex items-center space-x-2 group">
-            <div className="relative">
-              <Heart 
-                className="h-8 w-8 text-rose-400 group-hover:text-rose-500 transition-colors" 
-                fill="currentColor"
-              />
-              <div className="absolute inset-0 bg-rose-400/20 rounded-full blur-lg opacity-0 group-hover:opacity-100 transition-opacity"></div>
-            </div>
-            <span className="logo">Gatherly</span>
+            <Heart 
+              className="h-6 w-6 text-rose-500" 
+              fill="currentColor"
+            />
+            <span className="text-xl font-semibold text-gray-900 font-heading">Gatherly</span>
           </Link>
 
-          {/* Right side - could add user menu or notifications here */}
-          <div className="flex items-center space-x-4">
-            <span className="text-sm text-gray-600 font-medium hidden sm:block">
-              Your Wedding Planning Journey
-            </span>
+          {/* Clean right side */}
+          <div className="text-sm text-gray-500 hidden sm:block">
+            Wedding Planning
           </div>
         </div>
       </div>
