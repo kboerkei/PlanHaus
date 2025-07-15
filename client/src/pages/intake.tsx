@@ -10,8 +10,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, Heart, Users, Palette, ListChecks, UserPlus, Plus, Trash2, ArrowLeft, Sparkles } from "lucide-react";
-import ProgressBar from "@/components/ui/progress-bar";
+import { Stepper } from "@/components/ui/stepper";
+import { CalendarIcon, Heart, Users, Palette, ListChecks, UserPlus, Plus, Trash2, ArrowLeft, ArrowRight, Sparkles, CheckCircle, AlertCircle } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -91,6 +91,39 @@ const priorityOptions = [
   "Guest Experience", "Honeymoon"
 ];
 
+const steps = [
+  {
+    id: 1,
+    title: "Couple Info",
+    description: "Tell us about yourselves",
+    icon: Heart
+  },
+  {
+    id: 2,
+    title: "Wedding Basics",
+    description: "Date, venue, and guests",
+    icon: CalendarIcon
+  },
+  {
+    id: 3,
+    title: "Style & Vision",
+    description: "Your dream wedding style",
+    icon: Palette
+  },
+  {
+    id: 4,
+    title: "Priorities",
+    description: "What matters most",
+    icon: ListChecks
+  },
+  {
+    id: 5,
+    title: "Key People",
+    description: "VIPs and wedding party",
+    icon: Users
+  }
+];
+
 interface IntakeProps {
   onComplete?: () => void;
 }
@@ -99,6 +132,8 @@ export default function Intake({ onComplete }: IntakeProps) {
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const [isLoadingExisting, setIsLoadingExisting] = useState(false);
+  const [currentStep, setCurrentStep] = useState(1);
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   
   const [formData, setFormData] = useState<IntakeFormData>({
     coupleInfo: {
@@ -133,6 +168,75 @@ export default function Intake({ onComplete }: IntakeProps) {
   const [newMustHave, setNewMustHave] = useState("");
   const [newPinterestBoard, setNewPinterestBoard] = useState("");
   const [newColorPalette, setNewColorPalette] = useState("");
+
+  // Validation functions
+  const validateStep = (step: number): boolean => {
+    const errors: Record<string, string> = {};
+    
+    switch (step) {
+      case 1: // Couple Info
+        if (!formData.coupleInfo.partner1.firstName.trim()) {
+          errors.partner1FirstName = "First partner's name is required";
+        }
+        if (!formData.coupleInfo.partner1.email.trim()) {
+          errors.partner1Email = "First partner's email is required";
+        } else if (!/\S+@\S+\.\S+/.test(formData.coupleInfo.partner1.email)) {
+          errors.partner1Email = "Please enter a valid email address";
+        }
+        break;
+        
+      case 2: // Wedding Basics
+        if (!formData.weddingBasics.weddingDate) {
+          errors.weddingDate = "Wedding date is required";
+        }
+        if (!formData.weddingBasics.ceremonyLocation.trim()) {
+          errors.ceremonyLocation = "Ceremony location is required";
+        }
+        if (formData.weddingBasics.estimatedGuests <= 0) {
+          errors.estimatedGuests = "Please enter estimated number of guests";
+        }
+        break;
+        
+      case 3: // Style & Vision
+        if (!formData.styleVision.overallVibe) {
+          errors.overallVibe = "Please select your overall wedding vibe";
+        }
+        break;
+        
+      case 4: // Priorities
+        if (formData.priorities.topPriorities.length === 0) {
+          errors.topPriorities = "Please select at least one priority";
+        }
+        break;
+        
+      case 5: // Key People
+        const hasValidVIP = formData.keyPeople.vips.some(vip => vip.name.trim());
+        if (!hasValidVIP) {
+          errors.vips = "Please add at least one VIP";
+        }
+        break;
+    }
+    
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const nextStep = () => {
+    if (validateStep(currentStep)) {
+      setCurrentStep(prev => Math.min(prev + 1, 5));
+    }
+  };
+
+  const prevStep = () => {
+    setCurrentStep(prev => Math.max(prev - 1, 1));
+  };
+
+  const goToStep = (step: number) => {
+    // Allow navigation to previous steps or current step
+    if (step <= currentStep) {
+      setCurrentStep(step);
+    }
+  };
 
   // Load existing intake data if it exists
   useEffect(() => {
@@ -264,11 +368,20 @@ export default function Intake({ onComplete }: IntakeProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Basic validation
-    if (!formData.coupleInfo.partner1.firstName || !formData.coupleInfo.partner1.email) {
+    // Validate all steps before submission
+    let allValid = true;
+    for (let i = 1; i <= 5; i++) {
+      if (!validateStep(i)) {
+        allValid = false;
+        setCurrentStep(i);
+        break;
+      }
+    }
+    
+    if (!allValid) {
       toast({
-        title: "Missing information",
-        description: "Please fill in at least the first partner's name and email.",
+        title: "Please complete all required fields",
+        description: "Some steps have missing or invalid information.",
         variant: "destructive",
       });
       return;
@@ -453,123 +566,211 @@ export default function Intake({ onComplete }: IntakeProps) {
     return `${steps[Math.min(currentSection, totalSteps - 1)]} (${Math.min(currentSection + 1, totalSteps)} of ${totalSteps})`;
   };
 
+  const renderStepContent = () => {
+    switch (currentStep) {
+      case 1:
+        return renderCoupleInfo();
+      case 2:
+        return renderWeddingBasics();
+      case 3:
+        return renderStyleVision();
+      case 4:
+        return renderPriorities();
+      case 5:
+        return renderKeyPeople();
+      default:
+        return null;
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-6 py-8 max-w-4xl">
+    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-pink-50">
+      <div className="container mx-auto px-6 py-8 max-w-5xl">
         {/* Enhanced Header */}
-        <div className="text-center mb-8 animate-fade-in-up">
-          <Heart className="h-16 w-16 text-rose-400 mx-auto mb-6" fill="currentColor" />
-          <h1 className="font-heading text-4xl md:text-5xl font-bold text-foreground mb-4">
-            Wedding Planning Intake
-          </h1>
-          <p className="text-muted-foreground text-lg leading-relaxed max-w-2xl mx-auto">
-            Let's gather the essential information to create your perfect wedding plan
-          </p>
+        <div className="text-center mb-8">
+          <div className="mb-6">
+            <div className="w-20 h-20 bg-gradient-to-r from-rose-400 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+              <Heart className="h-10 w-10 text-white" fill="currentColor" />
+            </div>
+            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+              Wedding Planning Intake
+            </h1>
+            <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+              Let's gather the essential information to create your perfect wedding plan
+            </p>
+          </div>
         </div>
 
-        {/* Progress Bar */}
-        <div className="mb-8 animate-fade-in-up animate-delay-100">
-          <ProgressBar 
-            currentStep={Object.keys(formData).filter(key => {
-              const section = formData[key as keyof IntakeFormData];
-              return typeof section === 'object' && Object.values(section).some(val => 
-                val !== "" && val !== 0 && val !== false && (!Array.isArray(val) || val.length > 0)
-              );
-            }).length + 1} 
-            totalSteps={5}
-            stepLabel={getStepLabel()}
+        {/* Stepper Navigation */}
+        <div className="mb-8">
+          <Stepper 
+            steps={steps}
+            currentStep={currentStep}
+            onStepClick={goToStep}
+            allowNavigation={true}
           />
         </div>
 
-      <form onSubmit={handleSubmit} className="space-elegant animate-fade-in-up animate-delay-200">
-        {/* Couple Information */}
-        <Card className="card-elegant">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Heart className="h-5 w-5 text-blush" />
-              Couple Information
-            </CardTitle>
-            <CardDescription>
-              Tell us about yourselves and your relationship
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Partner 1 */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <Label htmlFor="p1-firstName">First Name *</Label>
-                <Input
-                  id="p1-firstName"
-                  value={formData.coupleInfo.partner1.firstName}
-                  onChange={(e) => setFormData(prev => ({
-                    ...prev,
-                    coupleInfo: {
-                      ...prev.coupleInfo,
-                      partner1: { ...prev.coupleInfo.partner1, firstName: e.target.value }
-                    }
-                  }))}
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="p1-lastName">Last Name</Label>
-                <Input
-                  id="p1-lastName"
-                  value={formData.coupleInfo.partner1.lastName}
-                  onChange={(e) => setFormData(prev => ({
-                    ...prev,
-                    coupleInfo: {
-                      ...prev.coupleInfo,
-                      partner1: { ...prev.coupleInfo.partner1, lastName: e.target.value }
-                    }
-                  }))}
-                />
-              </div>
-              <div>
-                <Label htmlFor="p1-role">Role</Label>
-                <Select
-                  value={formData.coupleInfo.partner1.role}
-                  onValueChange={(value) => setFormData(prev => ({
-                    ...prev,
-                    coupleInfo: {
-                      ...prev.coupleInfo,
-                      partner1: { ...prev.coupleInfo.partner1, role: value }
-                    }
-                  }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select role" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {weddingRoles.map(role => (
-                      <SelectItem key={role} value={role}>{role}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+        {/* Form Content */}
+        <div className="bg-white rounded-2xl shadow-xl p-8 mb-8">
+          {renderStepContent()}
+        </div>
+
+        {/* Navigation Buttons */}
+        <div className="flex justify-between items-center">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={prevStep}
+            disabled={currentStep === 1}
+            className="flex items-center gap-2"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Previous
+          </Button>
+
+          <div className="flex gap-3">
+            {currentStep < 5 ? (
+              <Button
+                type="button"
+                onClick={nextStep}
+                className="flex items-center gap-2 bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700"
+              >
+                Next
+                <ArrowRight className="w-4 h-4" />
+              </Button>
+            ) : (
+              <Button
+                onClick={handleSubmit}
+                disabled={submitIntakeMutation.isPending}
+                className="flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700"
+              >
+                {submitIntakeMutation.isPending ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle className="w-4 h-4" />
+                    Complete Intake
+                  </>
+                )}
+              </Button>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  // Step 1: Couple Information
+  function renderCoupleInfo() {
+    return (
+        <div>
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-12 h-12 bg-gradient-to-r from-rose-400 to-pink-500 rounded-full flex items-center justify-center">
+              <Heart className="h-6 w-6 text-white" />
             </div>
-            
             <div>
-              <Label htmlFor="p1-email">Email Address *</Label>
-              <Input
-                id="p1-email"
-                type="email"
-                value={formData.coupleInfo.partner1.email}
-                onChange={(e) => setFormData(prev => ({
-                  ...prev,
-                  coupleInfo: {
-                    ...prev.coupleInfo,
-                    partner1: { ...prev.coupleInfo.partner1, email: e.target.value }
-                  }
-                }))}
-                required
-              />
+              <h2 className="text-2xl font-bold text-gray-900">Couple Information</h2>
+              <p className="text-gray-600">Tell us about yourselves and your relationship</p>
+            </div>
+          </div>
+
+          <div className="space-y-8">
+            {/* Partner 1 */}
+            <div className="bg-gray-50 rounded-xl p-6">
+              <h3 className="text-lg font-semibold mb-4 text-gray-900">Primary Partner</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <Label htmlFor="p1-firstName">First Name *</Label>
+                  <Input
+                    id="p1-firstName"
+                    value={formData.coupleInfo.partner1.firstName}
+                    onChange={(e) => setFormData(prev => ({
+                      ...prev,
+                      coupleInfo: {
+                        ...prev.coupleInfo,
+                        partner1: { ...prev.coupleInfo.partner1, firstName: e.target.value }
+                      }
+                    }))}
+                    className={cn(validationErrors.partner1FirstName && "border-red-500")}
+                    required
+                  />
+                  {validationErrors.partner1FirstName && (
+                    <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
+                      <AlertCircle className="w-4 h-4" />
+                      {validationErrors.partner1FirstName}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <Label htmlFor="p1-lastName">Last Name</Label>
+                  <Input
+                    id="p1-lastName"
+                    value={formData.coupleInfo.partner1.lastName}
+                    onChange={(e) => setFormData(prev => ({
+                      ...prev,
+                      coupleInfo: {
+                        ...prev.coupleInfo,
+                        partner1: { ...prev.coupleInfo.partner1, lastName: e.target.value }
+                      }
+                    }))}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="p1-email">Email Address *</Label>
+                  <Input
+                    id="p1-email"
+                    type="email"
+                    value={formData.coupleInfo.partner1.email}
+                    onChange={(e) => setFormData(prev => ({
+                      ...prev,
+                      coupleInfo: {
+                        ...prev.coupleInfo,
+                        partner1: { ...prev.coupleInfo.partner1, email: e.target.value }
+                      }
+                    }))}
+                    className={cn(validationErrors.partner1Email && "border-red-500")}
+                    required
+                  />
+                  {validationErrors.partner1Email && (
+                    <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
+                      <AlertCircle className="w-4 h-4" />
+                      {validationErrors.partner1Email}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <Label htmlFor="p1-role">Role</Label>
+                  <Select
+                    value={formData.coupleInfo.partner1.role}
+                    onValueChange={(value) => setFormData(prev => ({
+                      ...prev,
+                      coupleInfo: {
+                        ...prev.coupleInfo,
+                        partner1: { ...prev.coupleInfo.partner1, role: value }
+                      }
+                    }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select role" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {weddingRoles.map(role => (
+                        <SelectItem key={role} value={role}>{role}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
             </div>
 
             {/* Partner 2 */}
-            <div className="border-t pt-4">
-              <h4 className="font-medium mb-4">Partner 2</h4>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="bg-gray-50 rounded-xl p-6">
+              <h3 className="text-lg font-semibold mb-4 text-gray-900">Second Partner (Optional)</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <Label htmlFor="p2-firstName">First Name</Label>
                   <Input
@@ -599,6 +800,21 @@ export default function Intake({ onComplete }: IntakeProps) {
                   />
                 </div>
                 <div>
+                  <Label htmlFor="p2-email">Email Address</Label>
+                  <Input
+                    id="p2-email"
+                    type="email"
+                    value={formData.coupleInfo.partner2.email}
+                    onChange={(e) => setFormData(prev => ({
+                      ...prev,
+                      coupleInfo: {
+                        ...prev.coupleInfo,
+                        partner2: { ...prev.coupleInfo.partner2, email: e.target.value }
+                      }
+                    }))}
+                  />
+                </div>
+                <div>
                   <Label htmlFor="p2-role">Role</Label>
                   <Select
                     value={formData.coupleInfo.partner2.role}
@@ -621,71 +837,60 @@ export default function Intake({ onComplete }: IntakeProps) {
                   </Select>
                 </div>
               </div>
-              
-              <div className="mt-4">
-                <Label htmlFor="p2-email">Email Address</Label>
-                <Input
-                  id="p2-email"
-                  type="email"
-                  value={formData.coupleInfo.partner2.email}
-                  onChange={(e) => setFormData(prev => ({
-                    ...prev,
-                    coupleInfo: {
-                      ...prev.coupleInfo,
-                      partner2: { ...prev.coupleInfo.partner2, email: e.target.value }
-                    }
-                  }))}
-                />
-              </div>
             </div>
 
             {/* Wedding Planner */}
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-3 p-4 bg-blue-50 rounded-xl">
               <Checkbox
-                id="hasPlanner"
+                id="hasWeddingPlanner"
                 checked={formData.coupleInfo.hasWeddingPlanner}
                 onCheckedChange={(checked) => setFormData(prev => ({
                   ...prev,
-                  coupleInfo: {
-                    ...prev.coupleInfo,
-                    hasWeddingPlanner: checked as boolean
-                  }
+                  coupleInfo: { ...prev.coupleInfo, hasWeddingPlanner: checked as boolean }
                 }))}
               />
-              <Label htmlFor="hasPlanner">Do you already have a wedding planner?</Label>
+              <Label htmlFor="hasWeddingPlanner" className="text-sm font-medium">
+                We have hired a wedding planner
+              </Label>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
+    );
+  }
 
-        {/* Wedding Basics */}
-        <Card className="card-elegant animate-slide-in-right animate-delay-300">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <CalendarIcon className="h-5 w-5 text-blush" />
-              Wedding Basics
-            </CardTitle>
-            <CardDescription>
-              The fundamental details of your special day
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Wedding Date */}
+  // Step 2: Wedding Basics
+  function renderWeddingBasics() {
+    return (
+      <div>
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-12 h-12 bg-gradient-to-r from-blue-400 to-indigo-500 rounded-full flex items-center justify-center">
+            <CalendarIcon className="h-6 w-6 text-white" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">Wedding Basics</h2>
+            <p className="text-gray-600">Essential details about your special day</p>
+          </div>
+        </div>
+
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <Label>Wedding Date</Label>
+              <Label>Wedding Date *</Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
                     className={cn(
                       "w-full justify-start text-left font-normal",
-                      !formData.weddingBasics.weddingDate && "text-muted-foreground"
+                      !formData.weddingBasics.weddingDate && "text-muted-foreground",
+                      validationErrors.weddingDate && "border-red-500"
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
                     {formData.weddingBasics.weddingDate ? (
                       format(formData.weddingBasics.weddingDate, "PPP")
                     ) : (
-                      <span>Pick a date (or target timeframe)</span>
+                      <span>Pick a date</span>
                     )}
                   </Button>
                 </PopoverTrigger>
@@ -701,420 +906,449 @@ export default function Intake({ onComplete }: IntakeProps) {
                   />
                 </PopoverContent>
               </Popover>
-            </div>
-
-            {/* Locations */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="ceremony-location">Ceremony Location</Label>
-                <Input
-                  id="ceremony-location"
-                  placeholder="e.g., Garden, Church, Beach"
-                  value={formData.weddingBasics.ceremonyLocation}
-                  onChange={(e) => setFormData(prev => ({
-                    ...prev,
-                    weddingBasics: { ...prev.weddingBasics, ceremonyLocation: e.target.value }
-                  }))}
-                />
-              </div>
-              <div>
-                <Label htmlFor="reception-location">Reception Location</Label>
-                <Input
-                  id="reception-location"
-                  placeholder="e.g., Ballroom, Barn, Same as ceremony"
-                  value={formData.weddingBasics.receptionLocation}
-                  onChange={(e) => setFormData(prev => ({
-                    ...prev,
-                    weddingBasics: { ...prev.weddingBasics, receptionLocation: e.target.value }
-                  }))}
-                />
-              </div>
-            </div>
-
-            {/* Numbers */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="guest-count">Estimated Guest Count</Label>
-                <Input
-                  id="guest-count"
-                  type="number"
-                  placeholder="e.g., 100"
-                  value={formData.weddingBasics.estimatedGuests || ""}
-                  onChange={(e) => setFormData(prev => ({
-                    ...prev,
-                    weddingBasics: { ...prev.weddingBasics, estimatedGuests: parseInt(e.target.value) || 0 }
-                  }))}
-                />
-              </div>
-              <div>
-                <Label htmlFor="total-budget">Total Budget ($)</Label>
-                <Input
-                  id="total-budget"
-                  type="number"
-                  placeholder="e.g., 25000"
-                  value={formData.weddingBasics.totalBudget || ""}
-                  onChange={(e) => setFormData(prev => ({
-                    ...prev,
-                    weddingBasics: { ...prev.weddingBasics, totalBudget: parseInt(e.target.value) || 0 }
-                  }))}
-                />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Style & Vision */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Palette className="h-5 w-5 text-blush" />
-              Style & Vision
-            </CardTitle>
-            <CardDescription>
-              Help us understand your dream wedding aesthetic
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Overall Vibe */}
-            <div>
-              <Label>Overall Wedding Vibe</Label>
-              <Select
-                value={formData.styleVision.overallVibe}
-                onValueChange={(value) => setFormData(prev => ({
-                  ...prev,
-                  styleVision: { ...prev.styleVision, overallVibe: value }
-                }))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Choose your style" />
-                </SelectTrigger>
-                <SelectContent>
-                  {weddingVibes.map(vibe => (
-                    <SelectItem key={vibe} value={vibe}>{vibe}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Color Palette */}
-            <div>
-              <Label>Color Palette</Label>
-              <div className="flex gap-2 mb-2">
-                <Input
-                  placeholder="e.g., Blush pink, sage green, gold accents"
-                  value={newColorPalette}
-                  onChange={(e) => setNewColorPalette(e.target.value)}
-                  onKeyPress={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      addColorPalette();
-                    }
-                  }}
-                />
-                <Button type="button" onClick={addColorPalette}>
-                  <Plus className="h-4 w-4" />
-                </Button>
-              </div>
-              {formData.styleVision.colorPalette && (
-                <div className="space-y-2">
-                  {formData.styleVision.colorPalette.split(',').map((color, index) => (
-                    <div key={index} className="bg-gradient-to-r from-blush/10 to-rose/10 p-3 rounded-lg border border-blush/20">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium">{color.trim()}</span>
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => removeColorFromPalette(index)}
-                          className="h-6 w-6 p-0"
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+              {validationErrors.weddingDate && (
+                <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
+                  <AlertCircle className="w-4 h-4" />
+                  {validationErrors.weddingDate}
+                </p>
               )}
             </div>
 
-            {/* Must-Have Elements */}
             <div>
-              <Label>Must-Have Elements</Label>
-              <div className="flex gap-2 mb-2">
+              <Label htmlFor="estimatedGuests">Estimated Guests *</Label>
+              <Input
+                id="estimatedGuests"
+                type="number"
+                value={formData.weddingBasics.estimatedGuests || ""}
+                onChange={(e) => setFormData(prev => ({
+                  ...prev,
+                  weddingBasics: { ...prev.weddingBasics, estimatedGuests: parseInt(e.target.value) || 0 }
+                }))}
+                className={cn(validationErrors.estimatedGuests && "border-red-500")}
+                placeholder="How many guests?"
+              />
+              {validationErrors.estimatedGuests && (
+                <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
+                  <AlertCircle className="w-4 h-4" />
+                  {validationErrors.estimatedGuests}
+                </p>
+              )}
+            </div>
+          </div>
+
+          <div>
+            <Label htmlFor="ceremonyLocation">Ceremony Location *</Label>
+            <Input
+              id="ceremonyLocation"
+              value={formData.weddingBasics.ceremonyLocation}
+              onChange={(e) => setFormData(prev => ({
+                ...prev,
+                weddingBasics: { ...prev.weddingBasics, ceremonyLocation: e.target.value }
+              }))}
+              className={cn(validationErrors.ceremonyLocation && "border-red-500")}
+              placeholder="Where will your ceremony take place?"
+            />
+            {validationErrors.ceremonyLocation && (
+              <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
+                <AlertCircle className="w-4 h-4" />
+                {validationErrors.ceremonyLocation}
+              </p>
+            )}
+          </div>
+
+          <div>
+            <Label htmlFor="receptionLocation">Reception Location</Label>
+            <Input
+              id="receptionLocation"
+              value={formData.weddingBasics.receptionLocation}
+              onChange={(e) => setFormData(prev => ({
+                ...prev,
+                weddingBasics: { ...prev.weddingBasics, receptionLocation: e.target.value }
+              }))}
+              placeholder="Where will your reception be? (leave blank if same as ceremony)"
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="totalBudget">Total Budget</Label>
+            <Input
+              id="totalBudget"
+              type="number"
+              value={formData.weddingBasics.totalBudget || ""}
+              onChange={(e) => setFormData(prev => ({
+                ...prev,
+                weddingBasics: { ...prev.weddingBasics, totalBudget: parseInt(e.target.value) || 0 }
+              }))}
+              placeholder="Your total wedding budget (optional)"
+            />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Step 3: Style & Vision
+  function renderStyleVision() {
+    return (
+      <div>
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-12 h-12 bg-gradient-to-r from-purple-400 to-pink-500 rounded-full flex items-center justify-center">
+            <Palette className="h-6 w-6 text-white" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">Style & Vision</h2>
+            <p className="text-gray-600">Help us understand your dream wedding aesthetic</p>
+          </div>
+        </div>
+
+        <div className="space-y-6">
+          <div>
+            <Label>Overall Wedding Vibe *</Label>
+            <RadioGroup
+              value={formData.styleVision.overallVibe}
+              onValueChange={(value) => setFormData(prev => ({
+                ...prev,
+                styleVision: { ...prev.styleVision, overallVibe: value }
+              }))}
+              className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-3"
+            >
+              {weddingVibes.map(vibe => (
+                <Label
+                  key={vibe}
+                  className={cn(
+                    "flex items-center space-x-2 p-4 rounded-lg border cursor-pointer transition-colors",
+                    formData.styleVision.overallVibe === vibe
+                      ? "border-rose-500 bg-rose-50"
+                      : "border-gray-200 hover:bg-gray-50"
+                  )}
+                >
+                  <RadioGroupItem value={vibe} />
+                  <span className="text-sm font-medium">{vibe}</span>
+                </Label>
+              ))}
+            </RadioGroup>
+            {validationErrors.overallVibe && (
+              <p className="text-red-500 text-sm mt-2 flex items-center gap-1">
+                <AlertCircle className="w-4 h-4" />
+                {validationErrors.overallVibe}
+              </p>
+            )}
+          </div>
+
+          <div>
+            <Label>Color Palette</Label>
+            <div className="mt-2">
+              <div className="flex gap-2 mb-3">
                 <Input
-                  placeholder="e.g., Live band, outdoor setting, food trucks"
-                  value={newMustHave}
-                  onChange={(e) => setNewMustHave(e.target.value)}
+                  value={newColorPalette}
+                  onChange={(e) => setNewColorPalette(e.target.value)}
+                  placeholder="Add a color (e.g., Blush Pink, Navy Blue)"
+                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addColorPalette())}
                 />
-                <Button type="button" onClick={addMustHaveElement}>
-                  <Plus className="h-4 w-4" />
+                <Button type="button" onClick={addColorPalette} variant="outline">
+                  <Plus className="w-4 h-4" />
                 </Button>
               </div>
               <div className="flex flex-wrap gap-2">
+                {formData.styleVision.colorPalette.split(',').filter(c => c.trim()).map((color, index) => (
+                  <span
+                    key={index}
+                    className="inline-flex items-center gap-1 px-3 py-1 bg-rose-100 text-rose-800 rounded-full text-sm"
+                  >
+                    {color.trim()}
+                    <button
+                      type="button"
+                      onClick={() => removeColorFromPalette(index)}
+                      className="hover:text-rose-600"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <Label>Must-Have Elements</Label>
+            <div className="mt-2">
+              <div className="flex gap-2 mb-3">
+                <Input
+                  value={newMustHave}
+                  onChange={(e) => setNewMustHave(e.target.value)}
+                  placeholder="Add a must-have element (e.g., Live band, Garden ceremony)"
+                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addMustHaveElement())}
+                />
+                <Button type="button" onClick={addMustHaveElement} variant="outline">
+                  <Plus className="w-4 h-4" />
+                </Button>
+              </div>
+              <div className="space-y-2">
                 {formData.styleVision.mustHaveElements.map((element, index) => (
-                  <div key={index} className="bg-blush/10 px-3 py-1 rounded-full flex items-center gap-2">
+                  <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
                     <span className="text-sm">{element}</span>
                     <Button
                       type="button"
-                      size="sm"
-                      variant="ghost"
                       onClick={() => removeMustHaveElement(index)}
-                      className="h-4 w-4 p-0"
+                      variant="ghost"
+                      size="sm"
                     >
-                      <Trash2 className="h-3 w-3" />
+                      <Trash2 className="w-4 h-4" />
                     </Button>
                   </div>
                 ))}
               </div>
             </div>
+          </div>
 
-            {/* Pinterest Boards */}
-            <div>
-              <Label>Pinterest Inspiration Boards</Label>
-              <div className="flex gap-2 mb-2">
+          <div>
+            <Label>Pinterest Inspiration Boards</Label>
+            <div className="mt-2">
+              <div className="flex gap-2 mb-3">
                 <Input
-                  placeholder="Pinterest board URL (e.g., https://pinterest.com/username/board-name)"
                   value={newPinterestBoard}
                   onChange={(e) => setNewPinterestBoard(e.target.value)}
+                  placeholder="Add Pinterest board URL"
+                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addPinterestBoard())}
                 />
-                <Button type="button" onClick={addPinterestBoard}>
-                  <Plus className="h-4 w-4" />
+                <Button type="button" onClick={addPinterestBoard} variant="outline">
+                  <Plus className="w-4 h-4" />
                 </Button>
               </div>
               <div className="space-y-2">
                 {formData.styleVision.pinterestBoards.map((board, index) => (
-                  <div key={index} className="flex items-center gap-2 p-2 bg-gray-50 rounded">
-                    <span className="text-sm flex-1 font-mono">{board}</span>
+                  <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+                    <a href={board} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 hover:underline truncate">
+                      {board}
+                    </a>
                     <Button
                       type="button"
-                      size="sm"
-                      variant="ghost"
                       onClick={() => removePinterestBoard(index)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Priorities */}
-        <Card className="card-elegant animate-slide-in-right animate-delay-400">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <ListChecks className="h-5 w-5 text-blush" />
-              Priorities
-            </CardTitle>
-            <CardDescription>
-              Help us focus on what matters most to you
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Top 3 Priorities */}
-            <div>
-              <Label>Select Your Top 3 Priorities</Label>
-              <p className="text-sm text-gray-600 mb-3">
-                Choose up to 3 areas that are most important for your wedding
-              </p>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                {priorityOptions.map(priority => (
-                  <div key={priority} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={priority}
-                      checked={formData.priorities.topPriorities.includes(priority)}
-                      onCheckedChange={() => togglePriority(priority)}
-                      disabled={
-                        !formData.priorities.topPriorities.includes(priority) &&
-                        formData.priorities.topPriorities.length >= 3
-                      }
-                    />
-                    <Label htmlFor={priority} className="text-sm">{priority}</Label>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Non-negotiables */}
-            <div>
-              <Label htmlFor="non-negotiables">Non-negotiables & Special Traditions</Label>
-              <Textarea
-                id="non-negotiables"
-                placeholder="Tell us about any must-haves, family traditions, religious requirements, or dealbreakers..."
-                value={formData.priorities.nonNegotiables}
-                onChange={(e) => setFormData(prev => ({
-                  ...prev,
-                  priorities: { ...prev.priorities, nonNegotiables: e.target.value }
-                }))}
-                rows={4}
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Key People */}
-        <Card className="card-elegant animate-slide-in-right animate-delay-500">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5 text-blush" />
-              Key People
-            </CardTitle>
-            <CardDescription>
-              Tell us about the important people in your wedding
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* VIPs */}
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <Label>VIPs (Parents, Siblings, Close Family)</Label>
-                <Button type="button" onClick={addVIP} size="sm">
-                  <UserPlus className="h-4 w-4 mr-1" />
-                  Add VIP
-                </Button>
-              </div>
-              <div className="space-y-3">
-                {formData.keyPeople.vips.map((vip, index) => (
-                  <div key={index} className="flex gap-2">
-                    <Input
-                      placeholder="Name"
-                      value={vip.name}
-                      onChange={(e) => {
-                        const newVips = [...formData.keyPeople.vips];
-                        newVips[index] = { ...newVips[index], name: e.target.value };
-                        setFormData(prev => ({
-                          ...prev,
-                          keyPeople: { ...prev.keyPeople, vips: newVips }
-                        }));
-                      }}
-                    />
-                    <Input
-                      placeholder="Role (e.g., Mother, Father, Sister)"
-                      value={vip.role}
-                      onChange={(e) => {
-                        const newVips = [...formData.keyPeople.vips];
-                        newVips[index] = { ...newVips[index], role: e.target.value };
-                        setFormData(prev => ({
-                          ...prev,
-                          keyPeople: { ...prev.keyPeople, vips: newVips }
-                        }));
-                      }}
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
+                      variant="ghost"
                       size="sm"
-                      onClick={() => removeVIP(index)}
-                      disabled={formData.keyPeople.vips.length === 1}
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Trash2 className="w-4 h-4" />
                     </Button>
                   </div>
                 ))}
               </div>
             </div>
-
-            {/* Wedding Party */}
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <Label>Wedding Party Members</Label>
-                <Button type="button" onClick={addWeddingPartyMember} size="sm">
-                  <UserPlus className="h-4 w-4 mr-1" />
-                  Add Member
-                </Button>
-              </div>
-              <div className="space-y-3">
-                {formData.keyPeople.weddingParty.map((member, index) => (
-                  <div key={index} className="flex gap-2">
-                    <Input
-                      placeholder="Name"
-                      value={member.name}
-                      onChange={(e) => {
-                        const newMembers = [...formData.keyPeople.weddingParty];
-                        newMembers[index] = { ...newMembers[index], name: e.target.value };
-                        setFormData(prev => ({
-                          ...prev,
-                          keyPeople: { ...prev.keyPeople, weddingParty: newMembers }
-                        }));
-                      }}
-                    />
-                    <Input
-                      placeholder="Role (e.g., Maid of Honor, Best Man, Bridesmaid)"
-                      value={member.role}
-                      onChange={(e) => {
-                        const newMembers = [...formData.keyPeople.weddingParty];
-                        newMembers[index] = { ...newMembers[index], role: e.target.value };
-                        setFormData(prev => ({
-                          ...prev,
-                          keyPeople: { ...prev.keyPeople, weddingParty: newMembers }
-                        }));
-                      }}
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => removeWeddingPartyMember(index)}
-                      disabled={formData.keyPeople.weddingParty.length === 1}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Officiant Status */}
-            <div>
-              <Label>Officiant Status</Label>
-              <RadioGroup
-                value={formData.keyPeople.officiantStatus}
-                onValueChange={(value) => setFormData(prev => ({
-                  ...prev,
-                  keyPeople: { ...prev.keyPeople, officiantStatus: value }
-                }))}
-                className="mt-2"
-              >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="decided" id="officiant-decided" />
-                  <Label htmlFor="officiant-decided">Already decided</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="considering" id="officiant-considering" />
-                  <Label htmlFor="officiant-considering">Considering options</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="need-help" id="officiant-help" />
-                  <Label htmlFor="officiant-help">Need help finding one</Label>
-                </div>
-              </RadioGroup>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Submit Button */}
-        <div className="flex justify-center pt-8 animate-fade-in-up animate-delay-600">
-          <Button 
-            type="submit" 
-            className="btn-elegant px-12 py-4 text-lg font-semibold shadow-elegant hover:shadow-elegant-hover transform hover:scale-105 transition-all duration-300"
-            disabled={submitIntakeMutation.isPending}
-          >
-            {submitIntakeMutation.isPending ? (
-              <div className="flex items-center space-x-2">
-                <div className="loading-elegant"></div>
-                <span>Saving your information...</span>
-              </div>
-            ) : (
-              <div className="flex items-center space-x-2">
-                <Sparkles className="h-5 w-5" />
-                <span>Complete Intake & Start Planning</span>
-              </div>
-            )}
-          </Button>
+          </div>
         </div>
-      </form>
       </div>
-    </div>
-  );
+    );
+  }
+
+  // Step 4: Priorities
+  function renderPriorities() {
+    return (
+      <div>
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-12 h-12 bg-gradient-to-r from-amber-400 to-orange-500 rounded-full flex items-center justify-center">
+            <ListChecks className="h-6 w-6 text-white" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">Priorities</h2>
+            <p className="text-gray-600">What matters most for your perfect day?</p>
+          </div>
+        </div>
+
+        <div className="space-y-6">
+          <div>
+            <Label>Top 3 Priorities *</Label>
+            <p className="text-sm text-gray-600 mb-4">Select up to 3 most important aspects of your wedding</p>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              {priorityOptions.map(priority => (
+                <Label
+                  key={priority}
+                  className={cn(
+                    "flex items-center space-x-2 p-3 rounded-lg border cursor-pointer transition-colors",
+                    formData.priorities.topPriorities.includes(priority)
+                      ? "border-amber-500 bg-amber-50"
+                      : "border-gray-200 hover:bg-gray-50"
+                  )}
+                >
+                  <Checkbox
+                    checked={formData.priorities.topPriorities.includes(priority)}
+                    onCheckedChange={() => togglePriority(priority)}
+                  />
+                  <span className="text-sm font-medium">{priority}</span>
+                </Label>
+              ))}
+            </div>
+            {validationErrors.topPriorities && (
+              <p className="text-red-500 text-sm mt-2 flex items-center gap-1">
+                <AlertCircle className="w-4 h-4" />
+                {validationErrors.topPriorities}
+              </p>
+            )}
+          </div>
+
+          <div>
+            <Label htmlFor="nonNegotiables">Non-Negotiables</Label>
+            <Textarea
+              id="nonNegotiables"
+              value={formData.priorities.nonNegotiables}
+              onChange={(e) => setFormData(prev => ({
+                ...prev,
+                priorities: { ...prev.priorities, nonNegotiables: e.target.value }
+              }))}
+              placeholder="Describe anything that's absolutely essential for your wedding day..."
+              rows={4}
+            />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Step 5: Key People
+  function renderKeyPeople() {
+    return (
+      <div>
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-12 h-12 bg-gradient-to-r from-emerald-400 to-teal-500 rounded-full flex items-center justify-center">
+            <Users className="h-6 w-6 text-white" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">Key People</h2>
+            <p className="text-gray-600">Tell us about your VIPs and wedding party</p>
+          </div>
+        </div>
+
+        <div className="space-y-8">
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <Label>VIP Guests *</Label>
+              <Button type="button" onClick={addVIP} variant="outline" size="sm">
+                <Plus className="w-4 h-4 mr-1" />
+                Add VIP
+              </Button>
+            </div>
+            <div className="space-y-3">
+              {formData.keyPeople.vips.map((vip, index) => (
+                <div key={index} className="flex gap-3 items-center p-3 bg-gray-50 rounded-lg">
+                  <Input
+                    value={vip.name}
+                    onChange={(e) => setFormData(prev => ({
+                      ...prev,
+                      keyPeople: {
+                        ...prev.keyPeople,
+                        vips: prev.keyPeople.vips.map((v, i) => 
+                          i === index ? { ...v, name: e.target.value } : v
+                        )
+                      }
+                    }))}
+                    placeholder="Name"
+                  />
+                  <Input
+                    value={vip.role}
+                    onChange={(e) => setFormData(prev => ({
+                      ...prev,
+                      keyPeople: {
+                        ...prev.keyPeople,
+                        vips: prev.keyPeople.vips.map((v, i) => 
+                          i === index ? { ...v, role: e.target.value } : v
+                        )
+                      }
+                    }))}
+                    placeholder="Relationship (e.g., Mother, Best Friend)"
+                  />
+                  <Button
+                    type="button"
+                    onClick={() => removeVIP(index)}
+                    variant="ghost"
+                    size="sm"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+            {validationErrors.vips && (
+              <p className="text-red-500 text-sm mt-2 flex items-center gap-1">
+                <AlertCircle className="w-4 h-4" />
+                {validationErrors.vips}
+              </p>
+            )}
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <Label>Wedding Party</Label>
+              <Button type="button" onClick={addWeddingPartyMember} variant="outline" size="sm">
+                <Plus className="w-4 h-4 mr-1" />
+                Add Member
+              </Button>
+            </div>
+            <div className="space-y-3">
+              {formData.keyPeople.weddingParty.map((member, index) => (
+                <div key={index} className="flex gap-3 items-center p-3 bg-gray-50 rounded-lg">
+                  <Input
+                    value={member.name}
+                    onChange={(e) => setFormData(prev => ({
+                      ...prev,
+                      keyPeople: {
+                        ...prev.keyPeople,
+                        weddingParty: prev.keyPeople.weddingParty.map((m, i) => 
+                          i === index ? { ...m, name: e.target.value } : m
+                        )
+                      }
+                    }))}
+                    placeholder="Name"
+                  />
+                  <Input
+                    value={member.role}
+                    onChange={(e) => setFormData(prev => ({
+                      ...prev,
+                      keyPeople: {
+                        ...prev.keyPeople,
+                        weddingParty: prev.keyPeople.weddingParty.map((m, i) => 
+                          i === index ? { ...m, role: e.target.value } : m
+                        )
+                      }
+                    }))}
+                    placeholder="Role (e.g., Maid of Honor, Best Man)"
+                  />
+                  <Button
+                    type="button"
+                    onClick={() => removeWeddingPartyMember(index)}
+                    variant="ghost"
+                    size="sm"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <Label>Officiant Status</Label>
+            <RadioGroup
+              value={formData.keyPeople.officiantStatus}
+              onValueChange={(value) => setFormData(prev => ({
+                ...prev,
+                keyPeople: { ...prev.keyPeople, officiantStatus: value }
+              }))}
+              className="mt-3"
+            >
+              <Label className="flex items-center space-x-2">
+                <RadioGroupItem value="booked" />
+                <span>We have already booked our officiant</span>
+              </Label>
+              <Label className="flex items-center space-x-2">
+                <RadioGroupItem value="searching" />
+                <span>We are still looking for an officiant</span>
+              </Label>
+              <Label className="flex items-center space-x-2">
+                <RadioGroupItem value="friend-family" />
+                <span>A friend or family member will officiate</span>
+              </Label>
+            </RadioGroup>
+          </div>
+        </div>
+      </div>
+    );
+  }
 }
