@@ -1,12 +1,30 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Bot, Send, Sparkles, Calendar, DollarSign, Users } from "lucide-react";
+import { Bot, Send, Sparkles, Calendar, DollarSign, Users, RotateCcw } from "lucide-react";
+
+// Enhanced interface for chat messages with additional properties
+interface ChatMessage {
+  id: number;
+  type: 'user' | 'ai';
+  message: string;
+  timestamp: Date;
+  isTyping?: boolean;
+  isError?: boolean;
+}
 
 export default function AIAssistant() {
   const [message, setMessage] = useState("");
-  const [chatHistory, setChatHistory] = useState([
+  const [isLoading, setIsLoading] = useState(false);
+  const [lastQuickAction, setLastQuickAction] = useState<string | null>(null);
+  const chatEndRef = useRef<HTMLDivElement>(null);
+  
+  // Mock intake form summary - in a real app, this would come from the intake data
+  // This provides context to the AI for more personalized responses
+  const formSummary = "We're planning a romantic garden wedding in Austin with 150 guests and a $40,000 budget. Our top priorities are food, vibe, and guest experience. The ceremony will be at Sunset Ranch Austin in October 2025, with a rustic farmhouse theme featuring blush pink and navy blue colors.";
+  
+  const [chatHistory, setChatHistory] = useState<ChatMessage[]>([
     {
       id: 1,
       type: 'ai',
@@ -16,13 +34,25 @@ export default function AIAssistant() {
   ]);
 
   const handleQuickAction = (actionMessage: string) => {
+    // Prevent double-click spamming - check if this is the same as last quick action
+    if (lastQuickAction === actionMessage || isLoading) {
+      return;
+    }
+    
+    setLastQuickAction(actionMessage);
     setMessage(actionMessage);
+    
     // Auto-send the message after a brief delay to show it was populated
     setTimeout(() => {
       if (actionMessage.trim() && !isLoading) {
         handleSendMessage();
       }
     }, 100);
+    
+    // Reset the last quick action after a delay to allow the same action again later
+    setTimeout(() => {
+      setLastQuickAction(null);
+    }, 2000);
   };
 
   const quickActions = [
@@ -52,7 +82,12 @@ export default function AIAssistant() {
     }
   ];
 
-  const [isLoading, setIsLoading] = useState(false);
+  // Scroll to bottom when new messages are added
+  useEffect(() => {
+    if (chatEndRef.current) {
+      chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [chatHistory]);
 
   const handleSendMessage = async () => {
     if (!message.trim() || isLoading) return;
@@ -72,7 +107,24 @@ export default function AIAssistant() {
       return [...prev, userMessage];
     });
     
+    // Show typing indicator immediately
+    const typingId = Date.now() + 0.5;
+    setChatHistory(prev => [...prev, {
+      id: typingId,
+      type: 'ai' as const,
+      message: 'typing...',
+      timestamp: new Date(),
+      isTyping: true
+    }]);
+    
     try {
+      // Inject intake form context for more personalized responses
+      // For follow-up question detection, we could analyze the conversation history:
+      // - Check if current message references previous responses ("that venue", "those suggestions")
+      // - Look for pronouns and context clues that indicate continuation
+      // - Pass recent chat history (last 3-5 messages) to maintain conversation context
+      // This would enable the AI to provide more contextual and coherent responses
+      
       const response = await fetch('/api/ai/chat', {
         method: 'POST',
         headers: {
@@ -81,7 +133,10 @@ export default function AIAssistant() {
         },
         body: JSON.stringify({ 
           message: currentMessage,
-          context: 'wedding_planning_assistant'
+          context: 'wedding_planning_assistant',
+          summary: formSummary, // Include wedding context from intake form
+          // Future enhancement: include recent conversation history for better context
+          // conversationHistory: chatHistory.slice(-6).map(msg => ({ type: msg.type, message: msg.message }))
         })
       });
       
@@ -91,30 +146,50 @@ export default function AIAssistant() {
       
       const data = await response.json();
       
-      // Add AI response using callback to ensure correct state
+      // Remove typing indicator and add real AI response
       setChatHistory(prev => {
+        const filteredHistory = prev.filter(msg => msg.id !== typingId);
         const aiResponse = {
           id: Date.now() + 1, // Use timestamp + 1 for unique ID
           type: 'ai' as const,
           message: data.response || "I'm here to help with your wedding planning! Could you tell me more about what you'd like assistance with?",
           timestamp: new Date()
         };
-        return [...prev, aiResponse];
+        return [...filteredHistory, aiResponse];
       });
     } catch (error) {
       console.error('Chat error:', error);
+      // Remove typing indicator and show error message
       setChatHistory(prev => {
+        const filteredHistory = prev.filter(msg => msg.id !== typingId);
         const errorResponse = {
           id: Date.now() + 1,
           type: 'ai' as const,
-          message: "I'm sorry, I'm having trouble connecting right now. Please try again in a moment.",
-          timestamp: new Date()
+          message: "Oops! Something went wrong. Please try again in a moment.",
+          timestamp: new Date(),
+          isError: true
         };
-        return [...prev, errorResponse];
+        return [...filteredHistory, errorResponse];
       });
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Retry function for failed messages
+  const handleRetry = () => {
+    // Remove the last error message and retry with the previous user message
+    setChatHistory(prev => {
+      const lastErrorIndex = prev.findLastIndex(msg => msg.isError);
+      if (lastErrorIndex > 0) {
+        const lastUserMessage = prev[lastErrorIndex - 1];
+        if (lastUserMessage.type === 'user') {
+          setMessage(lastUserMessage.message);
+          return prev.slice(0, lastErrorIndex);
+        }
+      }
+      return prev;
+    });
   };
 
   return (
@@ -166,26 +241,56 @@ export default function AIAssistant() {
                       <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
                         chat.type === 'user' 
                           ? 'bg-blush text-white' 
+                          : chat.isError
+                          ? 'bg-red-50 text-red-800 border border-red-200'
+                          : chat.isTyping
+                          ? 'bg-gray-100 text-gray-600 border border-gray-200'
                           : 'bg-white text-gray-800 border border-gray-200'
                       }`}>
-                        <p className="text-sm whitespace-pre-wrap">{chat.message}</p>
-                        <p className="text-xs mt-1 opacity-70">
-                          {chat.timestamp.toLocaleTimeString()}
-                        </p>
+                        {/* Show typing animation or regular message */}
+                        {chat.isTyping ? (
+                          <div className="flex items-center space-x-2">
+                            <span className="text-sm">AI is typing</span>
+                            <div className="flex space-x-1">
+                              <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                              <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                              <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                            </div>
+                          </div>
+                        ) : (
+                          <>
+                            <p className="text-sm whitespace-pre-wrap">{chat.message}</p>
+                            <div className="flex items-center justify-between mt-2">
+                              {/* Enhanced timestamp formatting */}
+                              <p className={`text-xs opacity-70 ${
+                                chat.type === 'user' ? 'text-white text-opacity-70' : 'text-gray-500'
+                              }`}>
+                                {chat.timestamp.toLocaleTimeString('en-US', { 
+                                  hour: 'numeric', 
+                                  minute: '2-digit',
+                                  hour12: true 
+                                })}
+                              </p>
+                              {/* Retry button for error messages */}
+                              {chat.isError && (
+                                <Button
+                                  onClick={handleRetry}
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-6 px-2 py-0 text-xs text-red-600 hover:text-red-800"
+                                >
+                                  <RotateCcw className="w-3 h-3 mr-1" />
+                                  Retry
+                                </Button>
+                              )}
+                            </div>
+                          </>
+                        )}
                       </div>
                     </div>
                   ))}
-                  {isLoading && (
-                    <div className="flex justify-start">
-                      <div className="bg-white text-gray-800 border border-gray-200 px-4 py-2 rounded-lg">
-                        <div className="flex items-center space-x-2">
-                          <div className="w-3 h-3 bg-gray-400 rounded-full animate-bounce"></div>
-                          <div className="w-3 h-3 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
-                          <div className="w-3 h-3 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
+                  {/* Scroll anchor */}
+                  <div ref={chatEndRef} />
                 </div>
                 
                 <div className="flex space-x-2">
