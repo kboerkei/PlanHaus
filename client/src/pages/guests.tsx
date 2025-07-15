@@ -351,7 +351,7 @@ export default function Guests() {
                     Add Guest
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="sm:max-w-sm">
+                <DialogContent className="sm:max-w-sm mobile-dialog">
                   <DialogHeader>
                     <DialogTitle>Add New Guest</DialogTitle>
                     <DialogDescription>
@@ -359,7 +359,7 @@ export default function Guests() {
                     </DialogDescription>
                   </DialogHeader>
                   <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3 mobile-form">
                       <FormField
                         control={form.control}
                         name="name"
@@ -410,12 +410,12 @@ export default function Guests() {
                         )}
                       />
                       <div className="flex justify-end space-x-2 pt-2">
-                        <Button type="button" variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+                        <Button type="button" variant="outline" onClick={() => setIsAddDialogOpen(false)} className="mobile-touch">
                           Cancel
                         </Button>
                         <Button 
                           type="submit" 
-                          className="gradient-blush-rose text-white"
+                          className="gradient-blush-rose text-white mobile-touch"
                           disabled={createGuestMutation.isPending}
                         >
                           {createGuestMutation.isPending ? "Adding..." : "Add Guest"}
@@ -604,6 +604,7 @@ export default function Guests() {
                           variant="outline" 
                           size="sm"
                           onClick={() => handleEditGuest(guest)}
+                          className="mobile-touch"
                         >
                           Edit
                         </Button>
@@ -619,7 +620,7 @@ export default function Guests() {
       
       {/* Edit Guest Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto mobile-dialog">
           <DialogHeader>
             <DialogTitle>Edit Guest</DialogTitle>
           </DialogHeader>
@@ -781,7 +782,7 @@ export default function Guests() {
                 )}
               />
 
-              <div className="flex justify-end space-x-2">
+              <div className="flex justify-end space-x-2 pt-2">
                 <Button 
                   type="button" 
                   variant="outline" 
@@ -790,13 +791,14 @@ export default function Guests() {
                     setEditingGuest(null);
                     editForm.reset();
                   }}
+                  className="mobile-touch"
                 >
                   Cancel
                 </Button>
                 <Button 
                   type="submit" 
                   disabled={updateGuestMutation.isPending}
-                  className="gradient-blush-rose text-white"
+                  className="gradient-blush-rose text-white mobile-touch"
                 >
                   {updateGuestMutation.isPending ? "Updating..." : "Update Guest"}
                 </Button>

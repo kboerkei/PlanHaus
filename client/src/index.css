@@ -47,11 +47,12 @@
 }
 
 /* Mobile-specific optimizations */
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   body {
     -webkit-text-size-adjust: 100%;
     -ms-text-size-adjust: 100%;
     text-size-adjust: 100%;
+    overflow-x: hidden;
   }
   
   /* Prevent zoom on input focus */
@@ -60,13 +61,28 @@
   }
   
   /* Mobile layout adjustments */
-  .md\:hidden {
+  .lg\:hidden {
     display: none !important;
   }
   
-  /* Ensure mobile nav is always visible on mobile */
-  .mobile-nav {
-    display: block !important;
+  /* Mobile form optimization */
+  .mobile-form {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 1rem !important;
+  }
+  
+  /* Mobile dialog optimization */
+  .mobile-dialog {
+    margin: 0.5rem !important;
+    max-height: calc(100vh - 2rem) !important;
+    overflow-y: auto !important;
+  }
+  
+  /* Touch-friendly buttons */
+  .mobile-touch {
+    min-height: 44px !important;
+    min-width: 44px !important;
   }
 }
 
