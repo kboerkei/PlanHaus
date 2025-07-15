@@ -80,7 +80,7 @@ export default function Auth({ onAuth }: AuthProps) {
     onSuccess: (data) => {
       onAuth(data.user, data.sessionId, false);
       toast({
-        title: "Welcome to Gatherly!",
+        title: "Welcome to PlanHaus!",
         description: "Logged in as demo user.",
       });
     },
@@ -104,7 +104,7 @@ export default function Auth({ onAuth }: AuthProps) {
       onAuth(data.user, data.sessionId, true);
       toast({
         title: "Account created!",
-        description: "Welcome to Gatherly. Let's start planning your perfect wedding.",
+        description: "Welcome to PlanHaus. Let's start planning your perfect wedding.",
       });
     },
     onError: (error: any) => {
@@ -169,7 +169,7 @@ export default function Auth({ onAuth }: AuthProps) {
           <div className="w-16 h-16 gradient-blush-rose rounded-2xl flex items-center justify-center mx-auto mb-4">
             <Heart className="text-white" size={32} />
           </div>
-          <h1 className="font-serif text-3xl font-bold text-gray-800 mb-2">Gatherly</h1>
+          <h1 className="font-serif text-3xl font-bold text-gray-800 mb-2">PlanHaus</h1>
           <p className="text-gray-600">AI-Powered Wedding Planning</p>
         </div>
 

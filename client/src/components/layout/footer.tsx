@@ -8,11 +8,11 @@ export default function Footer() {
           {/* Logo and tagline */}
           <div className="flex items-center space-x-2">
             <Heart className="h-5 w-5 text-rose-400" fill="currentColor" />
-            <span className="font-semibold text-gray-700">Gatherly</span>
+            <span className="font-semibold text-gray-700">PlanHaus</span>
           </div>
           
           <p className="text-center text-gray-600">
-            Made with <Heart className="h-4 w-4 inline text-rose-400" fill="currentColor" /> by Gatherly
+            Made with <Heart className="h-4 w-4 inline text-rose-400" fill="currentColor" /> by PlanHaus
           </p>
           
           {/* Social links placeholder */}
@@ -29,7 +29,7 @@ export default function Footer() {
           </div>
           
           <div className="flex items-center space-x-6 text-xs text-gray-500">
-            <span>© 2025 Gatherly</span>
+            <span>© 2025 PlanHaus</span>
             <a href="#" className="hover:text-rose-400 transition-colors">Privacy Policy</a>
             <a href="#" className="hover:text-rose-400 transition-colors">Terms of Service</a>
           </div>

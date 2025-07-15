@@ -11,7 +11,7 @@ export default function Header() {
             <div className="w-8 h-8 rounded-full bg-gradient-to-r from-rose-400 to-pink-500 flex items-center justify-center shadow-sm">
               <Heart className="h-4 w-4 text-white" fill="currentColor" />
             </div>
-            <span className="text-lg font-bold text-gray-800 tracking-tight">Gatherly</span>
+            <span className="text-lg font-bold text-gray-800 tracking-tight">PlanHaus</span>
           </Link>
 
           {/* Minimal tagline */}

@@ -42,7 +42,7 @@ export default function Sidebar() {
             <Heart className="h-5 w-5 text-white" />
           </div>
           <div>
-            <h2 className="text-lg font-bold text-gray-800 tracking-tight">Gatherly</h2>
+            <h2 className="text-lg font-bold text-gray-800 tracking-tight">PlanHaus</h2>
             <p className="text-xs text-gray-500 font-medium">Wedding Planning</p>
           </div>
         </div>

@@ -2,7 +2,7 @@
 
 ## Overview
 
-This is a full-stack wedding planning application called "Gatherly" that helps couples plan their weddings with AI assistance. The application features real-time collaboration, comprehensive wedding planning tools, and AI-powered recommendations.
+This is a full-stack wedding planning application called "PlanHaus" that helps couples plan their weddings with AI assistance. The application features real-time collaboration, comprehensive wedding planning tools, and AI-powered recommendations.
 
 ## User Preferences
 
@@ -336,3 +336,10 @@ The application uses a comprehensive schema covering:
   - Colors, vibe, and Pinterest boards → Inspiration section (creates inspiration items)
 - API endpoints now auto-create default projects when needed to enable immediate functionality
 - Enhanced user experience: no forced redirects to intake form, immediate access to all features
+
+### Brand Name Change to PlanHaus (January 15, 2025)
+- Updated all application branding from "Gatherly" to "PlanHaus"
+- Modified page titles, headers, footers, and authentication messages  
+- Updated sidebar logo and company references throughout the application
+- Changed HTML title and all user-facing brand mentions to reflect new name
+- Consistent branding across all components and user-facing text
