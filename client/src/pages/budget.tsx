@@ -500,40 +500,44 @@ export default function Budget() {
   return (
     <>
       <div className="p-6">
-        <div className="max-w-6xl mx-auto">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center space-x-3">
-                <div className="p-3 bg-rose-500 rounded-lg">
-                  <DollarSign className="h-8 w-8 text-white" />
+        <div className="max-w-7xl mx-auto">
+          {/* Simple Header Section */}
+          <div className="mb-8">
+            <div className="flex flex-col md:flex-row md:items-start md:justify-between mb-6 space-y-4 md:space-y-0">
+                <div className="flex items-center space-x-3 md:space-x-4">
+                  <div className="p-2 md:p-3 bg-rose-500 rounded-lg">
+                    <DollarSign className="h-6 w-6 md:h-8 md:w-8 text-white" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h1 className="text-xl md:text-4xl font-semibold text-gray-900 tracking-tight">
+                      Wedding Budget
+                    </h1>
+                    <p className="text-gray-600 text-xs md:text-lg mt-1">
+                      Track your spending and stay on budget
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h1 className="text-3xl font-semibold text-gray-900 tracking-tight mb-2">
-                    Wedding Budget
-                  </h1>
-                  <p className="text-gray-600">
-                    Track your spending and stay on budget
-                  </p>
+                
+                <div className="flex items-center space-x-2 md:space-x-3 w-full md:w-auto">
+                  {/* Export Budget Button */}
+                  <Button 
+                    onClick={handleExportBudget}
+                    variant="outline"
+                    className="border-blush text-blush hover:bg-blush hover:text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 flex-1 md:flex-none"
+                  >
+                    <Download size={16} className="mr-2" />
+                    Export Budget
+                  </Button>
+                  <Button 
+                    onClick={() => setIsAddDialogOpen(true)}
+                    className="gradient-blush-rose text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 flex-1 md:flex-none"
+                  >
+                    <Plus size={16} className="mr-2" />
+                    Add Expense
+                  </Button>
                 </div>
-              </div>
-              <div className="flex items-center space-x-3">
-                {/* Export Budget Button */}
-                <Button 
-                  onClick={handleExportBudget}
-                  variant="outline"
-                  className="border-blush text-blush hover:bg-blush hover:text-white"
-                >
-                  <Download size={16} className="mr-2" />
-                  Export Budget
-                </Button>
-                <Button 
-                  onClick={() => setIsAddDialogOpen(true)}
-                  className="gradient-blush-rose text-white"
-                >
-                  <Plus size={16} className="mr-2" />
-                  Add Expense
-                </Button>
-              </div>
             </div>
+          </div>
 
             {/* Enhanced Budget Summary Card */}
             <Card className="mb-6 border-0 shadow-lg bg-gradient-to-r from-purple-50 to-pink-50">
