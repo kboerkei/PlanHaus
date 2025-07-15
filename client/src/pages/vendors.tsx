@@ -336,6 +336,16 @@ export default function VendorsEnhanced() {
     );
   }
 
+  const handleCategoryFilter = (category: string | null) => {
+    if (category === 'booked' || category === 'contacted' || category === 'quoted') {
+      setFilterStatus(category);
+      setFilterCategory('');
+    } else {
+      setFilterCategory(category || '');
+      setFilterStatus('');
+    }
+  };
+
   return (
     <>
       <div className="p-6">

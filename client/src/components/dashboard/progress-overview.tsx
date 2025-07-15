@@ -63,9 +63,10 @@ export default function ProgressOverview() {
   // Prioritize Austin farmhouse wedding demo
   const currentProject = projects?.find(p => p.name === "Emma & Jake's Wedding") || projects?.[0];
 
-  const { data: tasks } = useQuery({
-    queryKey: ['/api/projects', currentProject?.id, 'tasks'],
-    enabled: !!currentProject?.id
+  // Use dashboard stats for consistent global data
+  const { data: dashboardStats } = useQuery({
+    queryKey: ['/api/dashboard/stats'],
+    enabled: !!localStorage.getItem('sessionId')
   });
 
   const { data: guests } = useQuery({
@@ -83,9 +84,8 @@ export default function ProgressOverview() {
     enabled: !!currentProject?.id
   });
 
-  // Calculate real progress
+  // Calculate real progress using dashboard stats for tasks
   const project = currentProject;
-  const completedTasks = tasks?.filter(t => t.status === 'completed') || [];
   const confirmedGuests = guests?.filter(g => g.rsvpStatus === 'confirmed') || [];
   const bookedVendors = vendors?.filter(v => v.status === 'booked') || [];
   const paidBudgetItems = budgetItems?.filter(b => b.isPaid) || [];
@@ -94,7 +94,10 @@ export default function ProgressOverview() {
   const totalBudget = project?.budget ? parseFloat(project.budget) : 0;
   const totalSpent = budgetItems?.reduce((sum, item) => sum + (parseFloat(item.actualCost || '0')), 0) || 0;
   
-  const taskProgress = tasks?.length ? Math.round((completedTasks.length / tasks.length) * 100) : 0;
+  // Use dashboard stats for task progress
+  const totalTasks = dashboardStats?.tasks?.total || 0;
+  const completedTasks = dashboardStats?.tasks?.completed || 0;
+  const taskProgress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
   const guestProgress = guests?.length ? Math.round((confirmedGuests.length / guests.length) * 100) : 0;
   const vendorProgress = vendors?.length ? Math.round((bookedVendors.length / vendors.length) * 100) : 0;
   const budgetProgress = totalBudget > 0 ? Math.round((totalSpent / totalBudget) * 100) : 0;
@@ -129,7 +132,7 @@ export default function ProgressOverview() {
             percentage={taskProgress}
             color="var(--rose-gold)"
             label="Tasks"
-            sublabel={`${completedTasks.length} of ${tasks?.length || 0} done`}
+            sublabel={`${completedTasks} of ${totalTasks} done`}
             onClick={() => setLocation('/timeline')}
           />
           <ProgressRing
