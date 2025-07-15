@@ -24,6 +24,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import VendorOverview from "@/components/vendors/vendor-overview";
 
 const vendorSchema = z.object({
   name: z.string().min(1, "Name is required"),
