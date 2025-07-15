@@ -69,8 +69,8 @@ const statusIcons = {
 
 export default function VendorsEnhanced() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterCategory, setFilterCategory] = useState("");
-  const [filterStatus, setFilterStatus] = useState("");
+  const [filterCategory, setFilterCategory] = useState("all");
+  const [filterStatus, setFilterStatus] = useState("all");
   const [viewMode, setViewMode] = useState<"grid" | "list">("list");
   const [sortBy, setSortBy] = useState("name");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -221,8 +221,8 @@ export default function VendorsEnhanced() {
   const filteredVendors = (vendors || []).filter((vendor: any) => {
     const matchesSearch = vendor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          (vendor.email && vendor.email.toLowerCase().includes(searchTerm.toLowerCase()));
-    const matchesCategory = !filterCategory || vendor.category === filterCategory;
-    const matchesStatus = !filterStatus || vendor.status === filterStatus;
+    const matchesCategory = !filterCategory || filterCategory === "all" || vendor.category === filterCategory;
+    const matchesStatus = !filterStatus || filterStatus === "all" || vendor.status === filterStatus;
     return matchesSearch && matchesCategory && matchesStatus;
   }).sort((a: any, b: any) => {
     if (sortBy === "name") return a.name.localeCompare(b.name);
@@ -407,10 +407,10 @@ export default function VendorsEnhanced() {
   const handleCategoryFilter = (category: string | null) => {
     if (category === 'booked' || category === 'contacted' || category === 'quoted') {
       setFilterStatus(category);
-      setFilterCategory('');
+      setFilterCategory('all');
     } else {
-      setFilterCategory(category || '');
-      setFilterStatus('');
+      setFilterCategory(category || 'all');
+      setFilterStatus('all');
     }
   };
 
@@ -807,7 +807,7 @@ export default function VendorsEnhanced() {
                         <SelectValue placeholder="All Categories" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">All Categories</SelectItem>
+                        <SelectItem value="all">All Categories</SelectItem>
                         {vendorCategories.map(category => (
                           <SelectItem key={category} value={category}>{category}</SelectItem>
                         ))}
@@ -820,7 +820,7 @@ export default function VendorsEnhanced() {
                         <SelectValue placeholder="All Status" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">All Status</SelectItem>
+                        <SelectItem value="all">All Status</SelectItem>
                         {vendorStatuses.map(status => (
                           <SelectItem key={status} value={status}>
                             {status.charAt(0).toUpperCase() + status.slice(1)}
@@ -884,16 +884,16 @@ export default function VendorsEnhanced() {
                   <div className="text-center py-12">
                     <Store className="mx-auto h-16 w-16 text-gray-400 mb-4" />
                     <h3 className="text-xl font-semibold text-gray-800 mb-2">
-                      {searchTerm || filterCategory || filterStatus 
+                      {searchTerm || (filterCategory && filterCategory !== "all") || (filterStatus && filterStatus !== "all") 
                         ? "No vendors match your filters" 
                         : "No vendors yet"}
                     </h3>
                     <p className="text-gray-600 mb-6">
-                      {searchTerm || filterCategory || filterStatus 
+                      {searchTerm || (filterCategory && filterCategory !== "all") || (filterStatus && filterStatus !== "all") 
                         ? "Try adjusting your search or filters" 
                         : "Start building your vendor list for your wedding"}
                     </p>
-                    {!searchTerm && !filterCategory && !filterStatus && (
+                    {!searchTerm && (!filterCategory || filterCategory === "all") && (!filterStatus || filterStatus === "all") && (
                       <div className="flex justify-center space-x-3">
                         <Button
                           onClick={() => setIsSearchDialogOpen(true)}
