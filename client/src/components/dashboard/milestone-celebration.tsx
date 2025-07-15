@@ -181,13 +181,13 @@ export default function MilestoneCelebration() {
           />
         ))}
         
-        <CardContent className="relative p-12 text-center">
+        <CardContent className="relative p-6 text-center">
           {/* Enhanced countdown with better visual hierarchy */}
-          <div className="mb-8">
+          <div className="mb-4">
             {/* Large countdown number with dramatic styling */}
-            <div className="relative inline-block mb-6">
+            <div className="relative inline-block mb-3">
               <div className="absolute inset-0 bg-gradient-to-br from-blush to-rose rounded-3xl blur-2xl opacity-40 scale-110 animate-pulse" />
-              <div className="relative bg-gradient-to-br from-white via-pearl to-cream rounded-3xl p-8 shadow-2xl border-4 border-gradient-to-r from-blush/30 to-rose/30 backdrop-blur-sm">
+              <div className="relative bg-gradient-to-br from-white via-pearl to-cream rounded-3xl p-6 shadow-2xl border-4 border-gradient-to-r from-blush/30 to-rose/30 backdrop-blur-sm">
                 <div className="text-7xl md:text-8xl font-bold text-black tracking-tighter">
                   {daysUntil > 0 ? daysUntil : daysUntil === 0 ? "0" : "♾️"}
                 </div>
@@ -207,7 +207,7 @@ export default function MilestoneCelebration() {
           </div>
           
           {/* Enhanced wedding details with stunning design */}
-          <div className="space-y-6">
+          <div className="space-y-4">
             {/* Wedding name with elegant styling */}
             <div className="relative">
               <h3 className="text-3xl md:text-4xl font-serif font-semibold bg-gradient-to-r from-gray-800 via-blush to-rose bg-clip-text text-transparent mb-3 leading-tight animate-fade-in">
