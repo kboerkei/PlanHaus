@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { DollarSign, Plus, TrendingUp, AlertTriangle, ChevronDown, ChevronRight, Edit2, Trash2, Check, X } from "lucide-react";
+import { DollarSign, Plus, TrendingUp, AlertTriangle, ChevronDown, ChevronRight, Edit2, Trash2, Check, X, Download, Filter, ArrowUpDown, AlertCircle } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
@@ -17,6 +17,10 @@ export default function Budget() {
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
   const [editingItem, setEditingItem] = useState<any>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  // Enhanced filtering and sorting state
+  const [sortBy, setSortBy] = useState<'category' | 'estimatedCost' | 'actualCost' | 'isPaid'>('category');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [filterPaidStatus, setFilterPaidStatus] = useState<'all' | 'paid' | 'unpaid'>('all');
   const [budgetForm, setBudgetForm] = useState({
     category: "",
     item: "",
@@ -133,11 +137,34 @@ export default function Budget() {
       return;
     }
     
-    // Convert form data to match the API schema
+    // Enhanced validation and number conversion
+    const estimatedCost = parseFloat(budgetForm.estimatedCost);
+    const actualCost = budgetForm.actualCost ? parseFloat(budgetForm.actualCost) : null;
+    
+    if (isNaN(estimatedCost) || estimatedCost < 0) {
+      toast({
+        title: "Invalid Cost",
+        description: "Please enter a valid estimated cost",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (actualCost !== null && (isNaN(actualCost) || actualCost < 0)) {
+      toast({
+        title: "Invalid Cost",
+        description: "Please enter a valid actual cost",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Convert form data to match the API schema with proper number formatting
     const budgetData = {
       category: budgetForm.category,
       item: budgetForm.item,
-      estimatedCost: budgetForm.estimatedCost,
+      estimatedCost: estimatedCost,
+      actualCost: actualCost,
       vendor: budgetForm.vendor || null,
       notes: budgetForm.notes || null,
     };
@@ -168,12 +195,36 @@ export default function Budget() {
       });
       return;
     }
+    
+    // Enhanced validation for edit form
+    const estimatedCost = parseFloat(editForm.estimatedCost);
+    const actualCost = editForm.actualCost ? parseFloat(editForm.actualCost) : null;
+    
+    if (isNaN(estimatedCost) || estimatedCost < 0) {
+      toast({
+        title: "Invalid Cost",
+        description: "Please enter a valid estimated cost",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (actualCost !== null && (isNaN(actualCost) || actualCost < 0)) {
+      toast({
+        title: "Invalid Cost",
+        description: "Please enter a valid actual cost",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     editBudgetMutation.mutate({
       id: editingItem.id,
       data: {
         ...editForm,
-        estimatedCost: editForm.estimatedCost,
-        actualCost: editForm.actualCost || null
+        estimatedCost: estimatedCost,
+        actualCost: actualCost,
+        isPaid: editForm.isPaid
       }
     });
   };
@@ -189,8 +240,78 @@ export default function Budget() {
   };
 
   const getItemsByCategory = (category: string) => {
-    return finalBudgetItems?.filter((item: any) => item.category === category) || [];
+    return filteredSortedItems?.filter((item: any) => item.category === category) || [];
   };
+
+  // Add loading skeleton for budget page
+  if (projectsLoading || budgetLoading || projectBudgetLoading) {
+    return (
+      <div className="p-6">
+        <div className="max-w-6xl mx-auto">
+          {/* Loading Header */}
+          <div className="mb-8 animate-pulse">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center space-x-3">
+                <div className="p-3 bg-gray-200 rounded-lg w-14 h-14"></div>
+                <div>
+                  <div className="h-8 bg-gray-200 rounded w-64 mb-2"></div>
+                  <div className="h-4 bg-gray-200 rounded w-48"></div>
+                </div>
+              </div>
+              <div className="flex space-x-3">
+                <div className="h-10 bg-gray-200 rounded w-32"></div>
+                <div className="h-10 bg-gray-200 rounded w-32"></div>
+              </div>
+            </div>
+          </div>
+
+          {/* Loading Summary Card */}
+          <div className="mb-6 animate-pulse">
+            <div className="border-0 shadow-lg bg-gray-50 rounded-lg p-6">
+              <div className="h-6 bg-gray-200 rounded w-48 mb-4"></div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="text-center md:text-left">
+                    <div className="h-4 bg-gray-200 rounded w-24 mb-2"></div>
+                    <div className="h-8 bg-gray-200 rounded w-20 mb-2"></div>
+                    <div className="h-3 bg-gray-200 rounded w-16"></div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Loading Controls */}
+          <div className="mb-6 animate-pulse">
+            <div className="border rounded-lg p-6">
+              <div className="h-6 bg-gray-200 rounded w-32 mb-4"></div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {[1, 2, 3].map((i) => (
+                  <div key={i}>
+                    <div className="h-4 bg-gray-200 rounded w-20 mb-2"></div>
+                    <div className="h-10 bg-gray-200 rounded"></div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Loading Budget Items */}
+          <div className="space-y-4 animate-pulse">
+            {[1, 2].map((i) => (
+              <div key={i} className="border rounded-lg p-6">
+                <div className="h-6 bg-gray-200 rounded w-40 mb-4"></div>
+                <div className="space-y-3">
+                  <div className="h-16 bg-gray-200 rounded"></div>
+                  <div className="h-16 bg-gray-200 rounded"></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const currentProject = projects?.find(p => p.name === "Emma & Jake's Wedding") || projects?.[0];
 
@@ -205,9 +326,83 @@ export default function Budget() {
   // Use project-specific budget items if available, otherwise fall back to global
   const finalBudgetItems = projectBudgetItems || budgetItems;
 
+  // Enhanced budget calculations with better number handling
+  const formatCurrency = (amount: number | string): string => {
+    const num = typeof amount === 'number' ? amount : parseFloat(amount || "0");
+    return isNaN(num) ? "$0" : `$${num.toLocaleString()}`;
+  };
+
+  // Sanitize input to allow only numbers and decimals
+  const sanitizeNumericInput = (value: string): string => {
+    return value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');
+  };
+
   const totalBudget = currentProject?.budget ? parseFloat(currentProject.budget) : 0;
-  const totalSpent = finalBudgetItems?.reduce((sum: number, item: any) => sum + (parseFloat(item.actualCost) || 0), 0) || 0;
-  const remaining = totalBudget - totalSpent;
+  
+  // Calculate totals with enhanced number parsing
+  const totalEstimated = finalBudgetItems?.reduce((sum: number, item: any) => {
+    const estimated = typeof item.estimatedCost === 'number' ? item.estimatedCost : parseFloat(item.estimatedCost || "0");
+    return sum + (isNaN(estimated) ? 0 : estimated);
+  }, 0) || 0;
+  
+  const totalActual = finalBudgetItems?.reduce((sum: number, item: any) => {
+    const actual = typeof item.actualCost === 'number' ? item.actualCost : parseFloat(item.actualCost || "0");
+    return sum + (isNaN(actual) ? 0 : actual);
+  }, 0) || 0;
+  
+  const budgetDifference = totalEstimated - totalActual;
+  const budgetUsagePercentage = totalEstimated > 0 ? (totalActual / totalEstimated) * 100 : 0;
+  const remaining = totalBudget - totalActual;
+
+  // Enhanced filtering and sorting logic
+  const getFilteredAndSortedItems = () => {
+    if (!finalBudgetItems) return [];
+    
+    let filtered = finalBudgetItems.filter((item: any) => {
+      if (filterPaidStatus === 'paid') return item.isPaid === true;
+      if (filterPaidStatus === 'unpaid') return item.isPaid !== true;
+      return true; // 'all'
+    });
+
+    return filtered.sort((a: any, b: any) => {
+      let aValue, bValue;
+      
+      switch (sortBy) {
+        case 'estimatedCost':
+          aValue = parseFloat(a.estimatedCost || "0");
+          bValue = parseFloat(b.estimatedCost || "0");
+          break;
+        case 'actualCost':
+          aValue = parseFloat(a.actualCost || "0");
+          bValue = parseFloat(b.actualCost || "0");
+          break;
+        case 'isPaid':
+          aValue = a.isPaid ? 1 : 0;
+          bValue = b.isPaid ? 1 : 0;
+          break;
+        default: // 'category'
+          aValue = a.category || "";
+          bValue = b.category || "";
+      }
+      
+      if (typeof aValue === 'string') {
+        return sortOrder === 'asc' ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
+      }
+      
+      return sortOrder === 'asc' ? aValue - bValue : bValue - aValue;
+    });
+  };
+
+  const filteredSortedItems = getFilteredAndSortedItems();
+
+  // Export functionality (placeholder for future implementation)
+  const handleExportBudget = () => {
+    // Future implementation: Generate CSV/PDF export
+    toast({
+      title: "Export Feature",
+      description: "Budget export functionality will be available soon. For now, you can copy the data manually.",
+    });
+  };
 
   // Handle loading state
   if (projectsLoading || budgetLoading || projectBudgetLoading) {
@@ -242,22 +437,25 @@ export default function Budget() {
     );
   }
 
-  // Group budget items by category
-  const budgetCategories = finalBudgetItems ? 
-    finalBudgetItems.reduce((acc: any[], item: any) => {
+  // Group budget items by category using filtered/sorted items
+  const budgetCategories = filteredSortedItems ? 
+    filteredSortedItems.reduce((acc: any[], item: any) => {
       const existingCategory = acc.find(cat => cat.category === item.category);
+      const estimatedCost = parseFloat(item.estimatedCost || "0");
+      const actualCost = parseFloat(item.actualCost || "0");
+      
       if (existingCategory) {
-        existingCategory.estimated += item.estimatedCost || 0;
-        existingCategory.actual += item.actualCost || 0;
+        existingCategory.estimated += estimatedCost;
+        existingCategory.actual += actualCost;
       } else {
         acc.push({
           id: item.id,
           category: item.category,
-          estimated: item.estimatedCost || 0,
-          actual: item.actualCost || 0,
-          percentage: totalBudget > 0 ? Math.round(((item.estimatedCost || 0) / totalBudget) * 100) : 0,
-          status: (item.actualCost || 0) === 0 ? 'pending' : 
-                  (item.actualCost || 0) > (item.estimatedCost || 0) ? 'over' : 'under'
+          estimated: estimatedCost,
+          actual: actualCost,
+          percentage: totalEstimated > 0 ? Math.round((estimatedCost / totalEstimated) * 100) : 0,
+          status: actualCost === 0 ? 'pending' : 
+                  actualCost > estimatedCost ? 'over' : 'under'
         });
       }
       return acc;
@@ -317,78 +515,152 @@ export default function Budget() {
                   </p>
                 </div>
               </div>
-              <Button 
-                onClick={() => setIsAddDialogOpen(true)}
-                className="gradient-blush-rose text-white"
-              >
-                <Plus size={16} className="mr-2" />
-                Add Expense
-              </Button>
+              <div className="flex items-center space-x-3">
+                {/* Export Budget Button */}
+                <Button 
+                  onClick={handleExportBudget}
+                  variant="outline"
+                  className="border-blush text-blush hover:bg-blush hover:text-white"
+                >
+                  <Download size={16} className="mr-2" />
+                  Export Budget
+                </Button>
+                <Button 
+                  onClick={() => setIsAddDialogOpen(true)}
+                  className="gradient-blush-rose text-white"
+                >
+                  <Plus size={16} className="mr-2" />
+                  Add Expense
+                </Button>
+              </div>
             </div>
 
-            {/* Budget Overview */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-lg flex items-center space-x-2">
-                    <DollarSign className="text-blush" size={20} />
-                    <span>Total Budget</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-gray-800">
-                    {totalBudget > 0 ? `$${totalBudget.toLocaleString()}` : 'Not Set'}
-                  </div>
-                  {totalBudget === 0 && (
-                    <div className="text-sm text-gray-500 mt-1">
-                      Complete your intake form to set budget
+            {/* Enhanced Budget Summary Card */}
+            <Card className="mb-6 border-0 shadow-lg bg-gradient-to-r from-purple-50 to-pink-50">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-xl flex items-center justify-between">
+                  <span className="flex items-center space-x-2">
+                    <TrendingUp className="text-purple-600" size={24} />
+                    <span>Budget Summary</span>
+                  </span>
+                  {budgetUsagePercentage > 80 && (
+                    <div className="flex items-center space-x-1 text-amber-600">
+                      <AlertTriangle size={20} />
+                      <span className="text-sm font-medium">High Usage</span>
                     </div>
                   )}
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-lg flex items-center space-x-2">
-                    <TrendingUp className="text-green-600" size={20} />
-                    <span>Actually Spent</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-gray-800">
-                    ${totalSpent.toLocaleString()}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {/* Total Estimated Spend */}
+                  <div className="text-center md:text-left">
+                    <p className="text-sm font-medium text-gray-600 mb-1">Total Estimated</p>
+                    <p className="text-3xl font-bold text-purple-700">{formatCurrency(totalEstimated)}</p>
+                    <p className="text-xs text-gray-500 mt-1">Budget planned</p>
                   </div>
-                  <div className="text-sm text-gray-500 mt-1">
-                    Based on actual amounts only
+                  
+                  {/* Total Actual Spend */}
+                  <div className="text-center md:text-left">
+                    <p className="text-sm font-medium text-gray-600 mb-1">Total Actual</p>
+                    <p className="text-3xl font-bold text-blue-700">{formatCurrency(totalActual)}</p>
+                    <p className="text-xs text-gray-500 mt-1">Actually spent</p>
                   </div>
-                  {totalBudget > 0 && (
-                    <Progress 
-                      value={(totalSpent / totalBudget) * 100} 
-                      className="mt-2"
-                    />
-                  )}
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-lg flex items-center space-x-2">
-                    <DollarSign className="text-blue-600" size={20} />
-                    <span>Remaining</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-gray-800">
-                    ${remaining.toLocaleString()}
+                  
+                  {/* Difference */}
+                  <div className="text-center md:text-left">
+                    <p className="text-sm font-medium text-gray-600 mb-1">Difference</p>
+                    <p className={`text-3xl font-bold ${budgetDifference >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {budgetDifference >= 0 ? '+' : ''}{formatCurrency(budgetDifference)}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {budgetDifference >= 0 ? 'Under budget' : 'Over budget'}
+                    </p>
                   </div>
-                  {totalBudget > 0 && (
-                    <div className="text-sm text-gray-600 mt-1">
-                      {Math.round(((totalBudget - totalSpent) / totalBudget) * 100)}% of budget
+                </div>
+                
+                {/* Budget Usage Progress Bar */}
+                <div className="mt-6">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium text-gray-700">Budget Usage</span>
+                    <span className="text-sm text-gray-600">{budgetUsagePercentage.toFixed(1)}%</span>
+                  </div>
+                  <Progress 
+                    value={Math.min(budgetUsagePercentage, 100)} 
+                    className={`h-3 ${budgetUsagePercentage > 100 ? 'bg-red-100' : 'bg-gray-200'}`}
+                  />
+                  {budgetUsagePercentage > 100 && (
+                    <div className="flex items-center space-x-1 mt-2 text-red-600">
+                      <AlertCircle size={16} />
+                      <span className="text-sm font-medium">Over budget by {formatCurrency(totalActual - totalEstimated)}</span>
                     </div>
                   )}
-                </CardContent>
-              </Card>
-            </div>
+                  {budgetUsagePercentage > 80 && budgetUsagePercentage <= 100 && (
+                    <div className="flex items-center space-x-1 mt-2 text-amber-600">
+                      <AlertTriangle size={16} />
+                      <span className="text-sm font-medium">Warning: {(100 - budgetUsagePercentage).toFixed(1)}% budget remaining</span>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Enhanced Filtering and Sorting Controls */}
+            <Card className="mb-6">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg">Filter & Sort</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-col md:flex-row gap-4">
+                  {/* Payment Status Filter */}
+                  <div className="flex-1">
+                    <Label htmlFor="filter-paid" className="text-sm font-medium text-gray-700">Payment Status</Label>
+                    <Select value={filterPaidStatus} onValueChange={(value: 'all' | 'paid' | 'unpaid') => setFilterPaidStatus(value)}>
+                      <SelectTrigger className="mt-1">
+                        <Filter size={16} className="mr-2" />
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Items</SelectItem>
+                        <SelectItem value="paid">Paid Only</SelectItem>
+                        <SelectItem value="unpaid">Unpaid Only</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  {/* Sort By */}
+                  <div className="flex-1">
+                    <Label htmlFor="sort-by" className="text-sm font-medium text-gray-700">Sort By</Label>
+                    <Select value={sortBy} onValueChange={(value: typeof sortBy) => setSortBy(value)}>
+                      <SelectTrigger className="mt-1">
+                        <ArrowUpDown size={16} className="mr-2" />
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="category">Category</SelectItem>
+                        <SelectItem value="estimatedCost">Estimated Cost</SelectItem>
+                        <SelectItem value="actualCost">Actual Cost</SelectItem>
+                        <SelectItem value="isPaid">Payment Status</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  {/* Sort Order */}
+                  <div className="flex-1">
+                    <Label htmlFor="sort-order" className="text-sm font-medium text-gray-700">Order</Label>
+                    <Select value={sortOrder} onValueChange={(value: 'asc' | 'desc') => setSortOrder(value)}>
+                      <SelectTrigger className="mt-1">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="asc">Ascending</SelectItem>
+                        <SelectItem value="desc">Descending</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
             {/* Budget Categories */}
             <Card>
@@ -631,12 +903,14 @@ export default function Budget() {
                   <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">$</span>
                   <Input
                     id="budget-estimated-cost"
-                    type="number"
-                    step="0.01"
+                    type="text"
                     placeholder="0.00"
                     className="pl-8 border-blue-300 focus:border-blue-500"
                     value={budgetForm.estimatedCost}
-                    onChange={(e) => setBudgetForm({ ...budgetForm, estimatedCost: e.target.value })}
+                    onChange={(e) => setBudgetForm({ 
+                      ...budgetForm, 
+                      estimatedCost: sanitizeNumericInput(e.target.value) 
+                    })}
                   />
                 </div>
                 <p className="text-xs text-blue-600">How much you expect to spend</p>
@@ -650,12 +924,14 @@ export default function Budget() {
                   <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">$</span>
                   <Input
                     id="budget-actual-cost"
-                    type="number"
-                    step="0.01"
+                    type="text"
                     placeholder="0.00"
                     className="pl-8 border-green-300 focus:border-green-500"
                     value={budgetForm.actualCost || ""}
-                    onChange={(e) => setBudgetForm({ ...budgetForm, actualCost: e.target.value })}
+                    onChange={(e) => setBudgetForm({ 
+                      ...budgetForm, 
+                      actualCost: sanitizeNumericInput(e.target.value) 
+                    })}
                   />
                 </div>
                 <p className="text-xs text-green-600">How much you actually spent (optional)</p>
@@ -732,12 +1008,14 @@ export default function Budget() {
                   <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">$</span>
                   <Input
                     id="edit-estimated-cost"
-                    type="number"
-                    step="0.01"
+                    type="text"
                     placeholder="0.00"
                     className="pl-8 border-blue-300 focus:border-blue-500"
                     value={editForm.estimatedCost}
-                    onChange={(e) => setEditForm({ ...editForm, estimatedCost: e.target.value })}
+                    onChange={(e) => setEditForm({ 
+                      ...editForm, 
+                      estimatedCost: sanitizeNumericInput(e.target.value) 
+                    })}
                   />
                 </div>
                 <p className="text-xs text-blue-600">Expected cost</p>
@@ -751,12 +1029,14 @@ export default function Budget() {
                   <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">$</span>
                   <Input
                     id="edit-actual-cost"
-                    type="number"
-                    step="0.01"
+                    type="text"
                     placeholder="0.00"
                     className="pl-8 border-green-300 focus:border-green-500"
                     value={editForm.actualCost}
-                    onChange={(e) => setEditForm({ ...editForm, actualCost: e.target.value })}
+                    onChange={(e) => setEditForm({ 
+                      ...editForm, 
+                      actualCost: sanitizeNumericInput(e.target.value) 
+                    })}
                   />
                 </div>
                 <p className="text-xs text-green-600">What you actually spent</p>
