@@ -188,15 +188,9 @@ export default function MilestoneCelebration() {
             <div className="relative inline-block mb-6">
               <div className="absolute inset-0 bg-gradient-to-br from-blush to-rose rounded-3xl blur-2xl opacity-40 scale-110 animate-pulse" />
               <div className="relative bg-gradient-to-br from-white via-pearl to-cream rounded-3xl p-8 shadow-2xl border-4 border-gradient-to-r from-blush/30 to-rose/30 backdrop-blur-sm">
-                <div className="text-7xl md:text-8xl font-bold bg-gradient-to-br from-blush via-rose to-purple bg-clip-text text-transparent drop-shadow-2xl animate-pulse tracking-tighter">
+                <div className="text-7xl md:text-8xl font-bold text-black tracking-tighter">
                   {daysUntil > 0 ? daysUntil : daysUntil === 0 ? "0" : "♾️"}
                 </div>
-                
-                {/* Floating sparkle elements */}
-                <div className="absolute -top-4 -right-4 text-3xl animate-bounce delay-300">✨</div>
-                <div className="absolute -bottom-4 -left-4 text-2xl animate-bounce delay-700">🌟</div>
-                <div className="absolute top-2 left-2 text-xl animate-ping delay-1000">💫</div>
-                <div className="absolute bottom-2 right-2 text-xl animate-bounce delay-500">⭐</div>
               </div>
               
 
