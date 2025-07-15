@@ -53,14 +53,7 @@ export default function Budget() {
     select: (data) => data || []
   });
 
-  // Debug logging
-  console.log('Budget Debug:', {
-    projects,
-    currentProject,
-    budgetItems,
-    projectsLoading,
-    budgetLoading
-  });
+
   
   // Budget creation mutation
   const createBudgetMutation = useMutation({
@@ -523,7 +516,7 @@ export default function Budget() {
                 </div>
                 <div className="min-w-0 flex-1">
                   <h1 className="text-xl md:text-4xl font-semibold text-gray-900 tracking-tight">
-                    Wedding Budget
+                    Budget
                   </h1>
                   <p className="text-gray-600 text-xs md:text-lg mt-1">
                     Track your spending and stay on budget
@@ -555,7 +548,7 @@ export default function Budget() {
                 </div>
                 <div className="min-w-0 flex-1">
                   <h1 className="text-xl md:text-4xl font-semibold text-gray-900 tracking-tight">
-                    Wedding Budget
+                    Budget
                   </h1>
                   <p className="text-gray-600 text-xs md:text-lg mt-1">
                     Track your spending and stay on budget
