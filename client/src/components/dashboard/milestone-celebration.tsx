@@ -199,7 +199,7 @@ export default function MilestoneCelebration() {
             {/* Enhanced subtitle with animation */}
             <div className="space-y-2">
               <p className="text-3xl md:text-4xl font-serif font-light bg-gradient-to-r from-gray-700 via-gray-800 to-gray-700 bg-clip-text text-transparent tracking-wide animate-fade-in">
-                {daysUntil > 0 ? "Days" : daysUntil === 0 ? "Today's the Day! 🎉" : "Happily Ever After ✨"}
+                {daysUntil > 0 ? "Days Until Forever" : daysUntil === 0 ? "Today's the Day! 🎉" : "Happily Ever After ✨"}
               </p>
               
 
@@ -254,7 +254,7 @@ export default function MilestoneCelebration() {
                     </div>
                     <div>
                       <div className="font-semibold text-purple-500">{daysUntil % 7}</div>
-                      <div className="text-gray-500">extra days</div>
+                      <div className="text-gray-500">days</div>
                     </div>
                   </div>
                 </div>
