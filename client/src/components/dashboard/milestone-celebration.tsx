@@ -202,17 +202,7 @@ export default function MilestoneCelebration() {
                 {daysUntil > 0 ? "Days Until Forever" : daysUntil === 0 ? "Today's the Day! 🎉" : "Happily Ever After ✨"}
               </p>
               
-              {daysUntil > 0 && (
-                <div className="flex items-center justify-center space-x-2 text-lg text-gray-600 animate-slide-in-up">
-                  <Calendar size={20} className="text-blush" />
-                  <span className="font-medium">
-                    {daysUntil === 1 ? "Tomorrow!" : 
-                     daysUntil <= 7 ? "This week!" :
-                     daysUntil <= 30 ? "This month!" :
-                     daysUntil <= 365 ? "This year!" : "Coming soon!"}
-                  </span>
-                </div>
-              )}
+
             </div>
           </div>
           
