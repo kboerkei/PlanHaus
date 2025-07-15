@@ -33,7 +33,7 @@ const vendorSchema = z.object({
   phone: z.string().optional(),
   website: z.string().optional(),
   address: z.string().optional(),
-  quote: z.string().optional(),
+  quote: z.preprocess(val => val === "" ? undefined : Number(val), z.number().nonnegative().optional()),
   notes: z.string().optional(),
   status: z.string().optional(),
   contractSigned: z.boolean().optional(),
@@ -217,17 +217,22 @@ export default function VendorsEnhanced() {
     }
   });
 
+  // Enhanced filtering logic with better category and status handling
   const filteredVendors = (vendors || []).filter((vendor: any) => {
     const matchesSearch = vendor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          (vendor.email && vendor.email.toLowerCase().includes(searchTerm.toLowerCase()));
-    const matchesCategory = !filterCategory || filterCategory === 'all' || vendor.category === filterCategory;
-    const matchesStatus = !filterStatus || filterStatus === 'all' || vendor.status === filterStatus;
+    const matchesCategory = !filterCategory || vendor.category === filterCategory;
+    const matchesStatus = !filterStatus || vendor.status === filterStatus;
     return matchesSearch && matchesCategory && matchesStatus;
   }).sort((a: any, b: any) => {
     if (sortBy === "name") return a.name.localeCompare(b.name);
     if (sortBy === "category") return a.category.localeCompare(b.category);
     if (sortBy === "status") return a.status.localeCompare(b.status);
-    if (sortBy === "quote") return (parseFloat(b.quote || "0") - parseFloat(a.quote || "0"));
+    if (sortBy === "quote") {
+      const aQuote = typeof a.quote === 'number' ? a.quote : parseFloat(a.quote || "0");
+      const bQuote = typeof b.quote === 'number' ? b.quote : parseFloat(b.quote || "0");
+      return bQuote - aQuote;
+    }
     return 0;
   });
 
@@ -303,16 +308,79 @@ export default function VendorsEnhanced() {
     });
   };
 
+  // Calculate vendor statistics with improved number handling
   const totalVendors = (vendors || []).length;
   const bookedVendors = (vendors || []).filter(v => v.status === "booked").length;
-  const totalQuotes = (vendors || []).reduce((sum, v) => sum + (v.quote ? parseFloat(v.quote) : 0), 0);
+  const totalQuotes = (vendors || []).reduce((sum, v) => {
+    const quote = typeof v.quote === 'number' ? v.quote : parseFloat(v.quote || "0");
+    return sum + (isNaN(quote) ? 0 : quote);
+  }, 0);
   const categories = [...new Set((vendors || []).map(v => v.category))].length;
+
+  // Format currency helper function
+  const formatCurrency = (amount: number | string): string => {
+    const num = typeof amount === 'number' ? amount : parseFloat(amount || "0");
+    return isNaN(num) ? "$0" : `$${num.toLocaleString()}`;
+  };
+
+  // Check if vendor has uploaded files (mock for now)
+  const getVendorFiles = (vendorId: number) => {
+    // Mock file data - in real app this would come from the vendor data
+    const mockFiles = [
+      { id: 1, vendorId: 15, name: "contract.pdf", uploadedAt: new Date() },
+      { id: 2, vendorId: 15, name: "insurance_cert.pdf", uploadedAt: new Date() }
+    ];
+    return mockFiles.filter(file => file.vendorId === vendorId);
+  };
 
   if (isLoading) {
     return (
       <div className="p-6">
-        <div className="flex items-center justify-center h-64">
-          <LoadingSpinner size="lg" />
+        <div className="max-w-7xl mx-auto">
+          {/* Loading Header */}
+          <div className="mb-8 animate-pulse">
+            <div className="flex flex-col md:flex-row md:items-start md:justify-between mb-6 space-y-4 md:space-y-0">
+              <div className="flex items-center space-x-3 md:space-x-4">
+                <div className="p-2 md:p-3 bg-gray-200 rounded-lg w-12 h-12"></div>
+                <div className="min-w-0 flex-1">
+                  <div className="h-8 bg-gray-200 rounded w-64 mb-2"></div>
+                  <div className="h-4 bg-gray-200 rounded w-48"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Loading Statistics Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="animate-pulse">
+                <div className="border-0 shadow-sm bg-white/80 backdrop-blur rounded-lg p-6">
+                  <div className="flex items-center space-x-4">
+                    <div className="p-3 bg-gray-200 rounded-xl w-12 h-12"></div>
+                    <div>
+                      <div className="h-4 bg-gray-200 rounded w-20 mb-2"></div>
+                      <div className="h-8 bg-gray-200 rounded w-12"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Loading Vendor Cards */}
+          <div className="space-y-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="animate-pulse border border-gray-200 rounded-lg p-6">
+                <div className="flex items-center space-x-4">
+                  <div className="h-12 w-12 bg-gray-200 rounded-full"></div>
+                  <div className="flex-1">
+                    <div className="h-6 bg-gray-200 rounded w-48 mb-2"></div>
+                    <div className="h-4 bg-gray-200 rounded w-32"></div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     );
@@ -609,9 +677,15 @@ export default function VendorsEnhanced() {
                           name="quote"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Quote Amount</FormLabel>
+                              <FormLabel>Quote Amount ($)</FormLabel>
                               <FormControl>
-                                <Input placeholder="0" {...field} />
+                                <Input 
+                                  type="number" 
+                                  placeholder="0" 
+                                  min="0"
+                                  step="0.01"
+                                  {...field} 
+                                />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -651,7 +725,7 @@ export default function VendorsEnhanced() {
               </div>
             </div>
 
-            {/* Statistics Cards */}
+            {/* Statistics Cards with Enhanced Total Vendor Spend */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
               <Card className="border-0 shadow-sm bg-white/80 backdrop-blur">
                 <CardContent className="p-6">
@@ -681,15 +755,16 @@ export default function VendorsEnhanced() {
                 </CardContent>
               </Card>
 
-              <Card className="border-0 shadow-sm bg-white/80 backdrop-blur">
+              {/* Enhanced Total Vendor Spend Card */}
+              <Card className="border-0 shadow-sm bg-gradient-to-r from-purple-50 to-pink-50 backdrop-blur">
                 <CardContent className="p-6">
                   <div className="flex items-center space-x-4">
                     <div className="p-3 bg-purple-100 rounded-xl">
                       <DollarSign className="h-6 w-6 text-purple-600" />
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-gray-600">Total Quotes</p>
-                      <p className="text-2xl font-bold text-gray-900">${totalQuotes.toLocaleString()}</p>
+                      <p className="text-sm font-medium text-purple-700">Estimated Vendor Spend</p>
+                      <p className="text-2xl font-bold text-purple-900">{formatCurrency(totalQuotes)}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -725,30 +800,32 @@ export default function VendorsEnhanced() {
                       />
                     </div>
                     
+                    {/* Enhanced Category Filter */}
                     <Select value={filterCategory} onValueChange={setFilterCategory}>
                       <SelectTrigger className="w-full md:w-48 border-gray-200">
                         <Filter size={16} className="mr-2" />
                         <SelectValue placeholder="All Categories" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all">All Categories</SelectItem>
+                        <SelectItem value="">All Categories</SelectItem>
                         {vendorCategories.map(category => (
                           <SelectItem key={category} value={category}>{category}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                     
+                    {/* Enhanced Status Filter */}
                     <Select value={filterStatus} onValueChange={setFilterStatus}>
                       <SelectTrigger className="w-full md:w-40 border-gray-200">
                         <SelectValue placeholder="All Status" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all">All Status</SelectItem>
-                        <SelectItem value="pending">Pending</SelectItem>
-                        <SelectItem value="contacted">Contacted</SelectItem>
-                        <SelectItem value="quoted">Quoted</SelectItem>
-                        <SelectItem value="booked">Booked</SelectItem>
-                        <SelectItem value="rejected">Rejected</SelectItem>
+                        <SelectItem value="">All Status</SelectItem>
+                        {vendorStatuses.map(status => (
+                          <SelectItem key={status} value={status}>
+                            {status.charAt(0).toUpperCase() + status.slice(1)}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
@@ -879,13 +956,22 @@ export default function VendorsEnhanced() {
                             </div>
                             
                             <div className="flex items-center justify-between mb-4">
-                              <Badge className={`${statusColors[vendor.status as keyof typeof statusColors]} border`}>
-                                <StatusIcon size={12} className="mr-1" />
-                                {vendor.status}
-                              </Badge>
+                              <div className="flex items-center space-x-2">
+                                <Badge className={`${statusColors[vendor.status as keyof typeof statusColors]} border`}>
+                                  <StatusIcon size={12} className="mr-1" />
+                                  {vendor.status}
+                                </Badge>
+                                {/* Mock AI suggestion badge - in real app this would be based on vendor.suggested field */}
+                                {vendor.notes?.includes("AI-found") && (
+                                  <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                                    <Sparkles size={10} className="mr-1" />
+                                    Suggested
+                                  </Badge>
+                                )}
+                              </div>
                               {vendor.quote && (
                                 <span className="text-lg font-semibold text-gray-800">
-                                  ${parseFloat(vendor.quote).toLocaleString()}
+                                  {formatCurrency(vendor.quote)}
                                 </span>
                               )}
                             </div>
@@ -907,17 +993,51 @@ export default function VendorsEnhanced() {
                                 <div className="flex items-center space-x-2">
                                   <Globe size={14} />
                                   <a 
-                                    href={vendor.website} 
+                                    href={vendor.website.startsWith('http') ? vendor.website : `https://${vendor.website}`} 
                                     target="_blank" 
                                     rel="noopener noreferrer"
-                                    className="text-blush hover:underline truncate"
+                                    className="text-blush hover:underline truncate flex items-center space-x-1"
                                   >
-                                    {vendor.website}
+                                    <span>{vendor.website}</span>
+                                    <ExternalLink size={12} />
                                   </a>
                                 </div>
                               )}
                             </div>
                             
+                            {/* File Upload Integration */}
+                            {(() => {
+                              const vendorFiles = getVendorFiles(vendor.id);
+                              return vendorFiles.length > 0 ? (
+                                <div className="mt-4 p-3 bg-green-50 rounded-lg border border-green-200">
+                                  <div className="flex items-center justify-between mb-2">
+                                    <span className="text-sm font-medium text-green-800">Contract Files</span>
+                                    <File size={14} className="text-green-600" />
+                                  </div>
+                                  <div className="space-y-1">
+                                    {vendorFiles.map((file) => (
+                                      <div key={file.id} className="flex items-center space-x-2 text-sm text-green-700">
+                                        <File size={12} />
+                                        <span className="truncate">{file.name}</span>
+                                        <ExternalLink size={10} className="cursor-pointer hover:text-green-900" />
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="mt-4">
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm" 
+                                    className="w-full border-dashed border-gray-300 text-gray-600 hover:border-blush hover:text-blush"
+                                  >
+                                    <Upload size={14} className="mr-2" />
+                                    Upload Contract
+                                  </Button>
+                                </div>
+                              );
+                            })()}
+
                             {vendor.notes && (
                               <div className="mt-4 p-3 bg-gray-50 rounded-lg">
                                 <p className="text-sm text-gray-700 line-clamp-2">{vendor.notes}</p>
@@ -951,6 +1071,13 @@ export default function VendorsEnhanced() {
                                 <Badge variant="outline" className="text-gray-600">
                                   {vendor.category}
                                 </Badge>
+                                {/* Mock AI suggestion badge */}
+                                {vendor.notes?.includes("AI-found") && (
+                                  <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                                    <Sparkles size={10} className="mr-1" />
+                                    Suggested
+                                  </Badge>
+                                )}
                               </div>
                               
                               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
@@ -974,12 +1101,13 @@ export default function VendorsEnhanced() {
                                     <div className="flex items-center space-x-2">
                                       <Globe size={14} />
                                       <a 
-                                        href={vendor.website} 
+                                        href={vendor.website.startsWith('http') ? vendor.website : `https://${vendor.website}`} 
                                         target="_blank" 
                                         rel="noopener noreferrer"
-                                        className="text-blush hover:underline truncate"
+                                        className="text-blush hover:underline truncate flex items-center space-x-1"
                                       >
-                                        {vendor.website}
+                                        <span>{vendor.website}</span>
+                                        <ExternalLink size={10} />
                                       </a>
                                     </div>
                                   )}
@@ -996,12 +1124,45 @@ export default function VendorsEnhanced() {
                                     <div className="flex items-center space-x-2">
                                       <DollarSign size={14} />
                                       <span className="font-semibold text-gray-800">
-                                        ${parseFloat(vendor.quote).toLocaleString()}
+                                        {formatCurrency(vendor.quote)}
                                       </span>
                                     </div>
                                   )}
                                 </div>
                               </div>
+                              
+                              {/* File Upload Integration for List View */}
+                              {(() => {
+                                const vendorFiles = getVendorFiles(vendor.id);
+                                return vendorFiles.length > 0 ? (
+                                  <div className="mt-3 p-3 bg-green-50 rounded-lg border border-green-200">
+                                    <div className="flex items-center justify-between mb-2">
+                                      <span className="text-sm font-medium text-green-800">Contract Files</span>
+                                      <File size={14} className="text-green-600" />
+                                    </div>
+                                    <div className="space-y-1">
+                                      {vendorFiles.map((file) => (
+                                        <div key={file.id} className="flex items-center space-x-2 text-sm text-green-700">
+                                          <File size={12} />
+                                          <span className="truncate">{file.name}</span>
+                                          <ExternalLink size={10} className="cursor-pointer hover:text-green-900" />
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div className="mt-3">
+                                    <Button 
+                                      variant="outline" 
+                                      size="sm" 
+                                      className="w-full border-dashed border-gray-300 text-gray-600 hover:border-blush hover:text-blush"
+                                    >
+                                      <Upload size={14} className="mr-2" />
+                                      Upload Contract
+                                    </Button>
+                                  </div>
+                                );
+                              })()}
                               
                               {vendor.notes && (
                                 <div className="mt-3 p-3 bg-gray-50 rounded-lg">
@@ -1183,9 +1344,15 @@ export default function VendorsEnhanced() {
                 name="quote"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Quote Amount</FormLabel>
+                    <FormLabel>Quote Amount ($)</FormLabel>
                     <FormControl>
-                      <Input placeholder="0" {...field} />
+                      <Input 
+                        type="number" 
+                        placeholder="0" 
+                        min="0"
+                        step="0.01"
+                        {...field} 
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
