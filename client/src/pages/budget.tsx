@@ -52,6 +52,15 @@ export default function Budget() {
     enabled: !!currentProject?.id,
     select: (data) => data || []
   });
+
+  // Debug logging
+  console.log('Budget Debug:', {
+    projects,
+    currentProject,
+    budgetItems,
+    projectsLoading,
+    budgetLoading
+  });
   
   // Budget creation mutation
   const createBudgetMutation = useMutation({
@@ -491,11 +500,43 @@ export default function Budget() {
     }
   };
 
-  if (projectsLoading || budgetLoading) {
+  if (projectsLoading) {
     return (
       <div className="p-6">
         <div className="text-center py-12">
           <LoadingSpinner size="lg" text="Loading your budget information..." />
+        </div>
+      </div>
+    );
+  }
+
+  // Always show header even if budget is loading
+  if (!currentProject) {
+    return (
+      <div className="p-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="mb-8">
+            <div className="flex flex-col md:flex-row md:items-start md:justify-between mb-6 space-y-4 md:space-y-0">
+              <div className="flex items-center space-x-3 md:space-x-4">
+                <div className="p-2 md:p-3 bg-rose-500 rounded-lg">
+                  <DollarSign className="h-6 w-6 md:h-8 md:w-8 text-white" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h1 className="text-xl md:text-4xl font-semibold text-gray-900 tracking-tight">
+                    Wedding Budget
+                  </h1>
+                  <p className="text-gray-600 text-xs md:text-lg mt-1">
+                    Track your spending and stay on budget
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="text-center py-12">
+            <DollarSign className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-gray-800 mb-2">No Wedding Project Found</h3>
+            <p className="text-gray-600">Please create a wedding project first.</p>
+          </div>
         </div>
       </div>
     );
