@@ -182,40 +182,106 @@ export default function MilestoneCelebration() {
         ))}
         
         <CardContent className="relative p-12 text-center">
-          {/* Enhanced heart icon */}
+          {/* Enhanced countdown with better visual hierarchy */}
           <div className="mb-8">
-            <div className="relative inline-block">
-              <div className="absolute inset-0 bg-gradient-to-br from-blush to-rose rounded-full blur-xl opacity-60 animate-pulse" />
-              <div className="relative w-28 h-28 bg-gradient-to-br from-blush via-rose to-purple rounded-full flex items-center justify-center shadow-2xl border-4 border-white/50 backdrop-blur-sm">
-                <Heart className="text-white drop-shadow-lg animate-pulse" size={40} />
+            {/* Large countdown number with dramatic styling */}
+            <div className="relative inline-block mb-6">
+              <div className="absolute inset-0 bg-gradient-to-br from-blush to-rose rounded-3xl blur-2xl opacity-40 scale-110 animate-pulse" />
+              <div className="relative bg-gradient-to-br from-white via-pearl to-cream rounded-3xl p-8 shadow-2xl border-4 border-gradient-to-r from-blush/30 to-rose/30 backdrop-blur-sm">
+                <div className="text-7xl md:text-8xl font-bold bg-gradient-to-br from-blush via-rose to-purple bg-clip-text text-transparent drop-shadow-2xl animate-pulse tracking-tighter">
+                  {daysUntil > 0 ? daysUntil : daysUntil === 0 ? "0" : "♾️"}
+                </div>
+                
+                {/* Floating sparkle elements */}
+                <div className="absolute -top-4 -right-4 text-3xl animate-bounce delay-300">✨</div>
+                <div className="absolute -bottom-4 -left-4 text-2xl animate-bounce delay-700">🌟</div>
+                <div className="absolute top-2 left-2 text-xl animate-ping delay-1000">💫</div>
+                <div className="absolute bottom-2 right-2 text-xl animate-bounce delay-500">⭐</div>
               </div>
-              {/* Floating hearts */}
-              <div className="absolute -top-2 -right-2 text-blush animate-bounce delay-300">💖</div>
-              <div className="absolute -bottom-2 -left-2 text-rose animate-bounce delay-700">💕</div>
+              
+              {/* Orbiting hearts */}
+              <div className="absolute inset-0 animate-spin-slow">
+                <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 text-2xl">💖</div>
+                <div className="absolute top-1/2 -right-6 transform -translate-y-1/2 text-xl">💕</div>
+                <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-2xl">💝</div>
+                <div className="absolute top-1/2 -left-6 transform -translate-y-1/2 text-xl">💗</div>
+              </div>
+            </div>
+            
+            {/* Enhanced subtitle with animation */}
+            <div className="space-y-2">
+              <p className="text-3xl md:text-4xl font-serif font-light bg-gradient-to-r from-gray-700 via-gray-800 to-gray-700 bg-clip-text text-transparent tracking-wide animate-fade-in">
+                {daysUntil > 0 ? "Days Until Forever" : daysUntil === 0 ? "Today's the Day! 🎉" : "Happily Ever After ✨"}
+              </p>
+              
+              {daysUntil > 0 && (
+                <div className="flex items-center justify-center space-x-2 text-lg text-gray-600 animate-slide-in-up">
+                  <Calendar size={20} className="text-blush" />
+                  <span className="font-medium">
+                    {daysUntil === 1 ? "Tomorrow!" : 
+                     daysUntil <= 7 ? "This week!" :
+                     daysUntil <= 30 ? "This month!" :
+                     daysUntil <= 365 ? "This year!" : "Coming soon!"}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
           
-          {/* Enhanced title with gradient text */}
-          <div className="mb-6">
-            <h2 className="text-5xl sm:text-6xl font-serif font-bold bg-gradient-to-r from-gray-800 via-blush to-rose bg-clip-text text-transparent mb-3 leading-tight">
-              {daysUntil > 0 ? `${daysUntil}` : daysUntil === 0 ? "0" : "∞"}
-            </h2>
-            <p className="text-2xl font-serif text-gray-700 mb-2">
-              {daysUntil > 0 ? "Days Until Forever" : daysUntil === 0 ? "Today's the Day!" : "Happily Ever After"}
-            </p>
-          </div>
-          
-          {/* Wedding details with enhanced styling */}
-          <div className="mb-8">
-            <h3 className="text-2xl font-serif font-semibold text-gray-800 mb-2">{project.name}</h3>
-            <p className="text-lg text-gray-600 font-medium">
-              {weddingDate.toLocaleDateString('en-US', { 
-                weekday: 'long', 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
-              })}
-            </p>
+          {/* Enhanced wedding details with stunning design */}
+          <div className="space-y-6">
+            {/* Wedding name with elegant styling */}
+            <div className="relative">
+              <h3 className="text-3xl md:text-4xl font-serif font-semibold bg-gradient-to-r from-gray-800 via-blush to-rose bg-clip-text text-transparent mb-3 leading-tight animate-fade-in">
+                {project.name}
+              </h3>
+              
+              {/* Decorative line */}
+              <div className="flex items-center justify-center space-x-4 mb-4">
+                <div className="w-12 h-0.5 bg-gradient-to-r from-transparent to-blush"></div>
+                <div className="text-blush text-xl">💐</div>
+                <div className="w-12 h-0.5 bg-gradient-to-l from-transparent to-blush"></div>
+              </div>
+            </div>
+            
+            {/* Wedding date with enhanced typography */}
+            <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 border border-white/40 shadow-lg">
+              <p className="text-xl md:text-2xl text-gray-700 font-medium leading-relaxed">
+                {weddingDate.toLocaleDateString('en-US', { 
+                  weekday: 'long', 
+                  year: 'numeric', 
+                  month: 'long', 
+                  day: 'numeric' 
+                })}
+              </p>
+              
+              {project.venue && (
+                <div className="flex items-center justify-center space-x-2 mt-4 text-gray-600">
+                  <span className="text-blush">📍</span>
+                  <span className="font-medium">{project.venue}</span>
+                </div>
+              )}
+              
+              {/* Additional countdown insights */}
+              {daysUntil > 0 && (
+                <div className="mt-4 pt-4 border-t border-gray-200">
+                  <div className="grid grid-cols-3 gap-4 text-center text-sm">
+                    <div>
+                      <div className="font-semibold text-blush">{Math.floor(daysUntil / 7)}</div>
+                      <div className="text-gray-500">weeks</div>
+                    </div>
+                    <div>
+                      <div className="font-semibold text-rose">{Math.floor(daysUntil / 30)}</div>
+                      <div className="text-gray-500">months</div>
+                    </div>
+                    <div>
+                      <div className="font-semibold text-purple-500">{daysUntil % 7}</div>
+                      <div className="text-gray-500">extra days</div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
           
 
