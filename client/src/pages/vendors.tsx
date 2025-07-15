@@ -84,8 +84,18 @@ export default function VendorsEnhanced() {
   const [isSearching, setIsSearching] = useState(false);
   const { toast } = useToast();
 
+  // Get project data to ensure consistency with dashboard
+  const { data: projects } = useQuery({
+    queryKey: ['/api/projects'],
+    enabled: !!localStorage.getItem('sessionId')
+  });
+
+  // Prioritize Emma & Jake's Wedding demo project for consistency
+  const currentProject = projects?.find(p => p.name === "Emma & Jake's Wedding") || projects?.[0];
+
   const { data: vendors = [], isLoading, error } = useQuery({
-    queryKey: ['/api/vendors']
+    queryKey: ['/api/projects', currentProject?.id, 'vendors'],
+    enabled: !!currentProject?.id
   });
 
   const form = useForm<VendorFormData>({
@@ -119,12 +129,12 @@ export default function VendorsEnhanced() {
   });
 
   const createVendorMutation = useMutation({
-    mutationFn: (data: VendorFormData) => apiRequest('/api/vendors', {
+    mutationFn: (data: VendorFormData) => apiRequest(`/api/projects/${currentProject?.id}/vendors`, {
       method: 'POST',
       body: JSON.stringify(data),
     }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/vendors'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/projects', currentProject?.id, 'vendors'] });
       toast({
         title: "Success",
         description: "Vendor added successfully",
@@ -148,7 +158,7 @@ export default function VendorsEnhanced() {
         body: JSON.stringify(data),
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/vendors'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/projects', currentProject?.id, 'vendors'] });
       toast({
         title: "Success",
         description: "Vendor updated successfully",
@@ -171,7 +181,7 @@ export default function VendorsEnhanced() {
       method: 'DELETE',
     }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/vendors'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/projects', currentProject?.id, 'vendors'] });
       toast({
         title: "Success",
         description: "Vendor deleted successfully",

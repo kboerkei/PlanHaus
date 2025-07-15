@@ -170,3 +170,28 @@ export default function EnhancedDashboardStats() {
     </div>
   );
 }
+
+function VendorStatsCard() {
+  const { data: dashboardStats } = useQuery({
+    queryKey: ['/api/dashboard/stats'],
+    enabled: true,
+  });
+
+  const vendorBookedRate = dashboardStats?.vendors?.total > 0
+    ? Math.round((dashboardStats.vendors.booked / dashboardStats.vendors.total) * 100)
+    : 0;
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-1 gap-4 mb-6">
+      <StatCard
+        title="Vendors"
+        value={`${dashboardStats?.vendors?.booked || 0} of ${dashboardStats?.vendors?.total || 0} booked`}
+        subtitle={`${vendorBookedRate}% completed`}
+        progress={vendorBookedRate}
+        icon={Zap}
+        urgency={dashboardStats?.vendors?.total > 0 && dashboardStats?.vendors?.booked === 0 ? 'high' : 'low'}
+        trend={vendorBookedRate > 50 ? 'up' : 'neutral'}
+      />
+    </div>
+  );
+}
