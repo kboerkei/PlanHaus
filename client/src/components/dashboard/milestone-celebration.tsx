@@ -199,13 +199,7 @@ export default function MilestoneCelebration() {
                 <div className="absolute bottom-2 right-2 text-xl animate-bounce delay-500">⭐</div>
               </div>
               
-              {/* Orbiting hearts */}
-              <div className="absolute inset-0 animate-spin-slow">
-                <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 text-2xl">💖</div>
-                <div className="absolute top-1/2 -right-6 transform -translate-y-1/2 text-xl">💕</div>
-                <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-2xl">💝</div>
-                <div className="absolute top-1/2 -left-6 transform -translate-y-1/2 text-xl">💗</div>
-              </div>
+
             </div>
             
             {/* Enhanced subtitle with animation */}
