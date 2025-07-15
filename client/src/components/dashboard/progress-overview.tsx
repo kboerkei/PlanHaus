@@ -90,10 +90,14 @@ export default function ProgressOverview() {
   const bookedVendors = vendors?.filter(v => v.status === 'booked') || [];
   const paidBudgetItems = budgetItems?.filter(b => b.isPaid) || [];
   
+  // Calculate budget spent vs total budget
+  const totalBudget = project?.budget ? parseFloat(project.budget) : 0;
+  const totalSpent = budgetItems?.reduce((sum, item) => sum + (parseFloat(item.actualCost || '0')), 0) || 0;
+  
   const taskProgress = tasks?.length ? Math.round((completedTasks.length / tasks.length) * 100) : 0;
-  const guestProgress = project?.guestCount ? Math.round((confirmedGuests.length / project.guestCount) * 100) : 0;
+  const guestProgress = guests?.length ? Math.round((confirmedGuests.length / guests.length) * 100) : 0;
   const vendorProgress = vendors?.length ? Math.round((bookedVendors.length / vendors.length) * 100) : 0;
-  const budgetProgress = budgetItems?.length ? Math.round((paidBudgetItems.length / budgetItems.length) * 100) : 0;
+  const budgetProgress = totalBudget > 0 ? Math.round((totalSpent / totalBudget) * 100) : 0;
   
   const overallProgress = Math.round((taskProgress + guestProgress + vendorProgress + budgetProgress) / 4);
 
@@ -118,7 +122,7 @@ export default function ProgressOverview() {
             percentage={budgetProgress}
             color="var(--blush)"
             label="Budget"
-            sublabel={`${paidBudgetItems.length} of ${budgetItems?.length || 0} paid`}
+            sublabel={`$${Math.round(totalSpent).toLocaleString()} of $${Math.round(totalBudget).toLocaleString()}`}
             onClick={() => setLocation('/budget')}
           />
           <ProgressRing
@@ -132,7 +136,7 @@ export default function ProgressOverview() {
             percentage={guestProgress}
             color="var(--champagne)"
             label="RSVPs"
-            sublabel={`${confirmedGuests.length} of ${project?.guestCount || 0}`}
+            sublabel={`${confirmedGuests.length} of ${guests?.length || 0} confirmed`}
             onClick={() => setLocation('/guests')}
           />
           <ProgressRing
