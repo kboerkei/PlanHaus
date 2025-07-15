@@ -45,8 +45,11 @@ export default function Budget() {
     queryKey: ['/api/projects']
   });
 
+  const currentProject = projects?.find(p => p.name === "Emma & Jake's Wedding") || projects?.[0];
+
   const { data: budgetItems = [], isLoading: budgetLoading } = useQuery({
-    queryKey: ['/api/budget-items'],
+    queryKey: ['/api/projects', currentProject?.id, 'budget'],
+    enabled: !!currentProject?.id,
     select: (data) => data || []
   });
   
@@ -54,10 +57,13 @@ export default function Budget() {
   const createBudgetMutation = useMutation({
     mutationFn: (data: any) => apiRequest('/api/budget-items', {
       method: 'POST',
-      body: JSON.stringify(data),
+      body: JSON.stringify({
+        ...data,
+        projectId: currentProject?.id
+      }),
     }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/budget-items'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/projects', currentProject?.id, 'budget'] });
       toast({
         title: "Expense Added",
         description: "Your budget item has been added successfully",
@@ -89,7 +95,7 @@ export default function Budget() {
         body: JSON.stringify(data),
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/budget-items'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/projects', currentProject?.id, 'budget'] });
       toast({
         title: "Expense Updated",
         description: "Your budget item has been updated successfully",
@@ -112,7 +118,7 @@ export default function Budget() {
       method: 'DELETE',
     }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/budget-items'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/projects', currentProject?.id, 'budget'] });
       toast({
         title: "Expense Deleted",
         description: "Budget item has been removed",
@@ -494,8 +500,6 @@ export default function Budget() {
       </div>
     );
   }
-
-
 
   return (
     <>
