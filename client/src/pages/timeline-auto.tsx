@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { CalendarDays, Plus, Clock, CheckCircle2, Circle, AlertCircle, Filter, ChevronDown, ChevronRight } from "lucide-react";
+import { CalendarDays, Plus, Clock, CheckCircle2, Circle, AlertCircle, Filter, ChevronDown, ChevronRight, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -62,16 +62,37 @@ const statusColors = {
 export default function TimelineAuto() {
   const queryClient = useQueryClient();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [filter, setFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
 
-  const { register, handleSubmit, reset, watch } = useForm({
+  // Overdue task detection function
+  const isTaskOverdue = (task: Task): boolean => {
+    if (!task.dueDate || task.status === "completed") return false;
+    return isBefore(new Date(task.dueDate), new Date());
+  };
+
+  const { register, handleSubmit, reset, watch, setValue } = useForm({
     defaultValues: {
       title: "",
       description: "",
       category: "",
       priority: "medium" as const,
+      dueDate: "",
+      assignedTo: "",
+      notes: ""
+    }
+  });
+
+  const { register: registerEdit, handleSubmit: handleSubmitEdit, reset: resetEdit, setValue: setValueEdit } = useForm({
+    defaultValues: {
+      title: "",
+      description: "",
+      category: "",
+      priority: "medium" as const,
+      status: "pending" as const,
       dueDate: "",
       assignedTo: "",
       notes: ""
@@ -129,6 +150,9 @@ export default function TimelineAuto() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/tasks"] });
+      setIsEditDialogOpen(false);
+      setEditingTask(null);
+      resetEdit();
       toast.success("Task updated successfully!");
     },
     onError: () => {
@@ -172,17 +196,24 @@ export default function TimelineAuto() {
       groups[timeframe].tasks.push(task);
     });
 
-    // Sort groups by order (chronological - furthest to closest to wedding)
-    return Object.values(groups).sort((a, b) => b.order - a.order);
+    // Sort groups by order (chronological - furthest to closest to wedding, then post-wedding)
+    return Object.values(groups).sort((a, b) => {
+      // Post-wedding tasks go to the bottom
+      if (a.timeframe.toLowerCase().includes('post') || a.timeframe.toLowerCase().includes('after')) return 1;
+      if (b.timeframe.toLowerCase().includes('post') || b.timeframe.toLowerCase().includes('after')) return -1;
+      
+      // Sort by timeframe order (higher order = further from wedding = shown first)
+      return b.order - a.order;
+    });
   })() : [];
 
-  // Filter tasks
+  // Filter tasks using enhanced overdue detection
   const getFilteredTasks = (tasks: Task[]) => {
     return tasks.filter(task => {
       const statusMatch = filter === "all" || 
         (filter === "completed" && task.status === "completed") ||
         (filter === "pending" && task.status === "pending") ||
-        (filter === "overdue" && task.dueDate && isBefore(new Date(task.dueDate), new Date()) && task.status !== "completed") ||
+        (filter === "overdue" && isTaskOverdue(task)) ||
         (filter === "this_week" && task.dueDate && 
           isAfter(new Date(task.dueDate), new Date()) && 
           isBefore(new Date(task.dueDate), addDays(new Date(), 7)));
@@ -196,17 +227,92 @@ export default function TimelineAuto() {
   // Get unique categories
   const categories = tasks ? [...new Set(tasks.map((task: Task) => task.category).filter(Boolean))] : [];
 
-  // Calculate stats
+  // Calculate stats using new overdue logic
   const stats = tasks ? {
     total: tasks.length,
     completed: tasks.filter((t: Task) => t.status === "completed").length,
     pending: tasks.filter((t: Task) => t.status === "pending").length,
-    overdue: tasks.filter((t: Task) => 
-      t.dueDate && isBefore(new Date(t.dueDate), new Date()) && t.status !== "completed"
-    ).length
+    overdue: tasks.filter((t: Task) => isTaskOverdue(t)).length
   } : { total: 0, completed: 0, pending: 0, overdue: 0 };
 
   const completionRate = stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0;
+
+
+
+  // Function to calculate suggested due date based on category and wedding date
+  const calculateSuggestedDueDate = (category: string): string => {
+    if (!weddingDate) return "";
+    
+    const weddingTime = weddingDate.getTime();
+    let daysBeforeWedding = 0;
+    
+    // Map categories to typical timeframes
+    switch (category?.toLowerCase()) {
+      case "venue & catering":
+        daysBeforeWedding = 365; // 12 months before
+        break;
+      case "photography & videography":
+        daysBeforeWedding = 270; // 9 months before
+        break;
+      case "attire & beauty":
+        daysBeforeWedding = 180; // 6 months before
+        break;
+      case "flowers & decor":
+        daysBeforeWedding = 90; // 3 months before
+        break;
+      case "music & entertainment":
+        daysBeforeWedding = 180; // 6 months before
+        break;
+      case "transportation":
+        daysBeforeWedding = 60; // 2 months before
+        break;
+      case "guest list & invitations":
+        daysBeforeWedding = 120; // 4 months before
+        break;
+      case "gifts & favors":
+        daysBeforeWedding = 90; // 3 months before
+        break;
+      case "ceremony details":
+        daysBeforeWedding = 60; // 2 months before
+        break;
+      case "final preparations":
+        daysBeforeWedding = 14; // 2 weeks before
+        break;
+      case "post wedding":
+        daysBeforeWedding = -30; // 1 month after
+        break;
+      default:
+        daysBeforeWedding = 120; // 4 months before (default)
+    }
+    
+    const suggestedDate = new Date(weddingTime - (daysBeforeWedding * 24 * 60 * 60 * 1000));
+    return format(suggestedDate, "yyyy-MM-dd");
+  };
+
+  // Auto-fill due date when category changes
+  const handleCategoryChange = (category: string) => {
+    const suggestedDate = calculateSuggestedDueDate(category);
+    setValue("dueDate", suggestedDate);
+  };
+
+  const handleEditCategoryChange = (category: string) => {
+    const suggestedDate = calculateSuggestedDueDate(category);
+    setValueEdit("dueDate", suggestedDate);
+  };
+
+  // Function to start editing a task
+  const startEditing = (task: Task) => {
+    setEditingTask(task);
+    setValueEdit("title", task.title);
+    setValueEdit("description", task.description || "");
+    setValueEdit("category", task.category || "");
+    setValueEdit("priority", task.priority);
+    setValueEdit("status", task.status);
+    setValueEdit("dueDate", task.dueDate ? format(new Date(task.dueDate), "yyyy-MM-dd") : "");
+    setValueEdit("assignedTo", task.assignedTo || "");
+    setValueEdit("notes", task.notes || "");
+    setIsEditDialogOpen(true);
+  };
 
   // Toggle task completion
   const toggleTaskCompletion = (task: Task) => {
@@ -225,6 +331,21 @@ export default function TimelineAuto() {
       dueDate: data.dueDate ? new Date(data.dueDate).toISOString() : null
     });
   };
+
+  // Submit edited task
+  const onEditSubmit = (data: any) => {
+    if (editingTask) {
+      updateTaskMutation.mutate({
+        id: editingTask.id,
+        updates: {
+          ...data,
+          dueDate: data.dueDate ? new Date(data.dueDate).toISOString() : null
+        }
+      });
+    }
+  };
+
+
 
   // Toggle group expansion
   const toggleGroup = (timeframe: string) => {
@@ -503,16 +624,10 @@ export default function TimelineAuto() {
                   <div className="space-y-3">
                     {filteredTasks.map((task: Task) => {
                       const StatusIcon = statusIcons[task.status];
-                      const isOverdue = task.dueDate && isBefore(new Date(task.dueDate), new Date()) && task.status !== "completed";
+                      const isOverdue = isTaskOverdue(task);
                       
                       return (
                         <div key={task.id} className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50 transition-colors">
-                          <Checkbox
-                            checked={task.status === "completed"}
-                            onCheckedChange={() => toggleTaskCompletion(task)}
-                            className="flex-shrink-0"
-                          />
-                          
                           <StatusIcon className={`h-4 w-4 flex-shrink-0 ${statusColors[task.status]}`} />
                           
                           <div className="flex-1 min-w-0">
@@ -544,6 +659,15 @@ export default function TimelineAuto() {
                               )}
                             </div>
                           </div>
+                          
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => startEditing(task)}
+                            className="flex-shrink-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50 mr-2"
+                          >
+                            Edit
+                          </Button>
                           
                           <Button
                             variant="ghost"
@@ -583,6 +707,120 @@ export default function TimelineAuto() {
           </CardContent>
         </Card>
       )}
+
+      {/* Edit Task Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Edit Task</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleSubmitEdit(onEditSubmit)} className="space-y-4">
+            <div>
+              <Label htmlFor="title">Task Title</Label>
+              <Input {...registerEdit("title", { required: true })} placeholder="Enter task title" />
+            </div>
+            
+            <div>
+              <Label htmlFor="description">Description</Label>
+              <Textarea {...registerEdit("description")} placeholder="Enter task description" />
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="category">Category</Label>
+                <Select 
+                  value={editingTask?.category || ""} 
+                  onValueChange={(value) => {
+                    setValueEdit("category", value);
+                    handleEditCategoryChange(value);
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map(category => (
+                      <SelectItem key={category} value={category}>{category}</SelectItem>
+                    ))}
+                    <SelectItem value="Budget & Planning">Budget & Planning</SelectItem>
+                    <SelectItem value="Guest List & Invitations">Guest List & Invitations</SelectItem>
+                    <SelectItem value="Ceremony">Ceremony</SelectItem>
+                    <SelectItem value="Reception">Reception</SelectItem>
+                    <SelectItem value="Decor & Design">Decor & Design</SelectItem>
+                    <SelectItem value="Attire & Beauty">Attire & Beauty</SelectItem>
+                    <SelectItem value="Photography & Videography">Photography & Videography</SelectItem>
+                    <SelectItem value="Transportation & Logistics">Transportation & Logistics</SelectItem>
+                    <SelectItem value="Legal & Documentation">Legal & Documentation</SelectItem>
+                    <SelectItem value="Honeymoon & Travel">Honeymoon & Travel</SelectItem>
+                    <SelectItem value="Post Wedding">Post Wedding</SelectItem>
+                    <SelectItem value="Gifts & Favors">Gifts & Favors</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div>
+                <Label htmlFor="priority">Priority</Label>
+                <Select 
+                  value={editingTask?.priority || ""} 
+                  onValueChange={(value) => setValueEdit("priority", value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select priority" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="low">Low</SelectItem>
+                    <SelectItem value="medium">Medium</SelectItem>
+                    <SelectItem value="high">High</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="status">Status</Label>
+                <Select 
+                  value={editingTask?.status || ""} 
+                  onValueChange={(value) => setValueEdit("status", value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="in_progress">In Progress</SelectItem>
+                    <SelectItem value="completed">Completed</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div>
+                <Label htmlFor="dueDate">Due Date</Label>
+                <Input type="date" {...registerEdit("dueDate")} />
+              </div>
+            </div>
+            
+            <div>
+              <Label htmlFor="assignedTo">Assigned To</Label>
+              <Input {...registerEdit("assignedTo")} placeholder="Person responsible" />
+            </div>
+            
+            <div>
+              <Label htmlFor="notes">Notes</Label>
+              <Textarea {...registerEdit("notes")} placeholder="Additional notes" />
+            </div>
+            
+            <div className="flex justify-end space-x-2">
+              <Button type="button" variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={updateTaskMutation.isPending}>
+                {updateTaskMutation.isPending ? "Updating..." : "Update Task"}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
