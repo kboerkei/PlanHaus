@@ -1459,6 +1459,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update schedule event endpoint
+  app.put("/api/schedule-events/:id", requireAuth, async (req: any, res) => {
+    try {
+      const eventId = parseInt(req.params.id);
+      
+      // Parse dates properly for schedule events
+      const updateData = {
+        ...req.body,
+        startTime: new Date(`2000-01-01T${req.body.startTime}:00`),
+        endTime: req.body.endTime ? new Date(`2000-01-01T${req.body.endTime}:00`) : null,
+      };
+      
+      const event = await storage.updateScheduleEvent(eventId, updateData);
+      
+      if (!event) {
+        return res.status(404).json({ message: "Schedule event not found" });
+      }
+      
+      res.json(event);
+    } catch (error) {
+      console.error('Schedule event update error:', error);
+      res.status(400).json({ message: "Failed to update schedule event" });
+    }
+  });
+
+  // Delete schedule event endpoint
+  app.delete("/api/schedule-events/:id", requireAuth, async (req: any, res) => {
+    try {
+      const eventId = parseInt(req.params.id);
+      
+      const success = await storage.deleteScheduleEvent(eventId);
+      
+      if (!success) {
+        return res.status(404).json({ message: "Schedule event not found" });
+      }
+      
+      res.json({ message: "Schedule event deleted successfully" });
+    } catch (error) {
+      console.error('Schedule event deletion error:', error);
+      res.status(500).json({ message: "Failed to delete schedule event" });
+    }
+  });
+
   // Intake API
   app.post("/api/intake", requireAuth, async (req, res) => {
     try {
