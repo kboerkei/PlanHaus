@@ -8,13 +8,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Calendar, Plus, CheckCircle2, Clock, AlertTriangle, CalendarDays, Target, Users, TrendingUp, 
-  Search, SortAsc, PartyPopper, Heart, MapPin, Clock3, ChevronUp, Filter, Grid, List
+  Search, SortAsc, PartyPopper, Heart, MapPin, Clock3, ChevronUp, Filter, Grid, List, 
+  MoreVertical, Edit, Trash2, MessageSquare, ChevronDown
 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -970,8 +972,8 @@ export default function TimelineModern() {
                                         {task.category && (
                                           <Badge variant="outline" className="text-xs">
                                             {task.category}
-                                      </Badge>
-                                    )}
+                                          </Badge>
+                                        )}
                                     
                                     <Badge 
                                       className={`text-xs ${priorityConfig[task.priority as keyof typeof priorityConfig]?.badge}`}
@@ -985,38 +987,38 @@ export default function TimelineModern() {
                                         <span>{task.assignedTo}</span>
                                       </div>
                                     )}
+                                      </div>
+                                    </div>
+                                    
+                                    {/* Task Actions */}
+                                    <DropdownMenu>
+                                      <DropdownMenuTrigger asChild>
+                                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                          <MoreVertical className="h-4 w-4" />
+                                        </Button>
+                                      </DropdownMenuTrigger>
+                                      <DropdownMenuContent align="end">
+                                        <DropdownMenuItem onClick={() => handleEditTask(task)}>
+                                          <Edit className="h-4 w-4 mr-2" />
+                                          Edit Task
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => handleAddNote(task)}>
+                                          <MessageSquare className="h-4 w-4 mr-2" />
+                                          Add Note
+                                        </DropdownMenuItem>
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuItem 
+                                          onClick={() => deleteTaskMutation.mutate(task.id)}
+                                          className="text-red-600"
+                                        >
+                                          <Trash2 className="h-4 w-4 mr-2" />
+                                          Delete Task
+                                        </DropdownMenuItem>
+                                      </DropdownMenuContent>
+                                    </DropdownMenu>
                                   </div>
                                 </div>
                               </div>
-                              
-                              {/* Task Actions */}
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                    <MoreVertical className="h-4 w-4" />
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                  <DropdownMenuItem onClick={() => handleEditTask(task)}>
-                                    <Edit className="h-4 w-4 mr-2" />
-                                    Edit Task
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem onClick={() => handleAddNote(task)}>
-                                    <MessageSquare className="h-4 w-4 mr-2" />
-                                    Add Note
-                                  </DropdownMenuItem>
-                                  <DropdownMenuSeparator />
-                                  <DropdownMenuItem 
-                                    onClick={() => deleteTaskMutation.mutate(task.id)}
-                                    className="text-red-600"
-                                  >
-                                    <Trash2 className="h-4 w-4 mr-2" />
-                                    Delete Task
-                                  </DropdownMenuItem>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
-                            </div>
-                          </div>
                         ))}
                       </div>
                     </CardContent>
