@@ -24,7 +24,6 @@ export async function apiRequest<T = any>(
 
   // If we get a 401, try to refresh session with demo login
   if (res.status === 401) {
-    console.log('API request got 401, attempting demo login...');
     try {
       const demoResponse = await fetch('/api/auth/demo-login', {
         method: 'POST',
@@ -50,7 +49,7 @@ export async function apiRequest<T = any>(
         return await retryRes.json();
       }
     } catch (error) {
-      console.log('Demo login retry failed:', error);
+      // Silent fallback for failed demo login attempts
     }
   }
 
@@ -91,9 +90,6 @@ export const queryClient = new QueryClient({
     },
     mutations: {
       retry: 1,
-      onError: (error) => {
-        console.warn('Mutation failed:', error);
-      },
     },
   },
 });

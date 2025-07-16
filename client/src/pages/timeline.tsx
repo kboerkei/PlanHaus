@@ -16,7 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Calendar, Plus, CheckCircle2, Clock, AlertTriangle, CalendarDays, Target, Users, TrendingUp, 
   Search, SortAsc, PartyPopper, Heart, MapPin, Clock3, ChevronUp, Filter, Grid, List, 
-  MoreVertical, Edit, Trash2, MessageSquare, ChevronDown
+  MoreVertical, Edit, Trash2, MessageSquare, ChevronDown, Sparkles
 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -565,9 +565,8 @@ export default function TimelineModern() {
   }
 
   return (
-    <>
-      <div className="p-6">
-        <div className="max-w-7xl mx-auto">
+    <div className="p-6">
+      <div className="max-w-7xl mx-auto">
           {/* Enhanced Header with Progress Tracker */}
           <div className="mb-8">
             <div className="flex flex-col md:flex-row md:items-start md:justify-between mb-6 space-y-4 md:space-y-0">
@@ -1317,6 +1316,5 @@ export default function TimelineModern() {
       </Dialog>
       </div>
     </div>
-    </>
   );
 }
