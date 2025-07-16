@@ -282,7 +282,7 @@ export default function TimelineModern() {
     },
     thisWeek: { 
       title: "📅 This Week", 
-      icon: Calendar1, 
+      icon: Calendar, 
       color: "border-blue-500 bg-blue-50",
       description: "Tasks due in the next 7 days"
     },
@@ -306,19 +306,19 @@ export default function TimelineModern() {
     },
     oneMonth: { 
       title: "📋 1 Month Out", 
-      icon: Calendar2, 
+      icon: CalendarDays, 
       color: "border-green-500 bg-green-50",
       description: "Final month preparations"
     },
     sixMonths: { 
       title: "🎯 6 Months Out", 
-      icon: Calendar3, 
+      icon: CalendarDays, 
       color: "border-indigo-500 bg-indigo-50",
       description: "Mid-stage planning"
     },
     twelveMonths: { 
       title: "🌟 12+ Months Out", 
-      icon: Calendar4, 
+      icon: CalendarDays, 
       color: "border-teal-500 bg-teal-50",
       description: "Early planning phase"
     },

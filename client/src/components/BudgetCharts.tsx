@@ -198,23 +198,32 @@ export default function BudgetCharts({ budgetItems }: BudgetChartsProps) {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <ResponsiveContainer width="100%" height={300}>
+          <ResponsiveContainer width="100%" height={400}>
             <PieChart>
               <Pie
-                data={categoryData}
+                data={categoryData.filter(item => item.actual > 0)}
                 cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={({ category, actual }) => `${category}: ${formatCurrency(actual)}`}
-                outerRadius={80}
+                cy="45%"
+                labelLine={true}
+                label={({ category, actual, percent }) => 
+                  percent > 8 ? `${category}: ${formatCurrency(actual)}` : ''
+                }
+                outerRadius={100}
                 fill="#8884d8"
                 dataKey="actual"
               >
-                {categoryData.map((entry, index) => (
+                {categoryData.filter(item => item.actual > 0).map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={entry.color} />
                 ))}
               </Pie>
               <Tooltip formatter={(value) => formatCurrency(value as number)} />
+              <Legend 
+                verticalAlign="bottom" 
+                height={50}
+                formatter={(value, entry) => 
+                  `${value}: ${formatCurrency(entry.payload.actual)}`
+                }
+              />
             </PieChart>
           </ResponsiveContainer>
         </CardContent>
@@ -229,15 +238,17 @@ export default function BudgetCharts({ budgetItems }: BudgetChartsProps) {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <ResponsiveContainer width="100%" height={300}>
+          <ResponsiveContainer width="100%" height={400}>
             <PieChart>
               <Pie
                 data={paymentData}
                 cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={({ name, value }) => `${name}: ${formatCurrency(value)}`}
-                outerRadius={80}
+                cy="45%"
+                labelLine={true}
+                label={({ name, value, percent }) => 
+                  percent > 10 ? `${name}: ${formatCurrency(value)}` : ''
+                }
+                outerRadius={100}
                 fill="#8884d8"
                 dataKey="value"
               >
@@ -246,6 +257,13 @@ export default function BudgetCharts({ budgetItems }: BudgetChartsProps) {
                 ))}
               </Pie>
               <Tooltip formatter={(value) => formatCurrency(value as number)} />
+              <Legend 
+                verticalAlign="bottom" 
+                height={50}
+                formatter={(value, entry) => 
+                  `${value}: ${formatCurrency(entry.payload.value)}`
+                }
+              />
             </PieChart>
           </ResponsiveContainer>
         </CardContent>
