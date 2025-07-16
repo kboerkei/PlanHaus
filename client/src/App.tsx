@@ -13,7 +13,7 @@ import Profile from "@/pages/profile";
 import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/dashboard";
 import AIAssistant from "@/pages/ai-assistant";
-import Timeline from "@/pages/timeline-simple-fixed";
+import Timeline from "@/pages/timeline-auto";
 import Budget from "@/pages/budget";
 import Guests from "@/pages/guests";
 import Vendors from "@/pages/vendors";

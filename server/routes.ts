@@ -2379,7 +2379,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Tasks API
+  // Tasks API - Enhanced with automatic default task loading
   app.get("/api/tasks", requireAuth, async (req, res) => {
     try {
       const userId = (req as any).userId;
@@ -2399,10 +2399,94 @@ export async function registerRoutes(app: Express): Promise<Server> {
         projects = [defaultProject];
       }
       
-      const tasks = await storage.getTasksByProjectId(projects[0].id);
+      let tasks = await storage.getTasksByProjectId(projects[0].id);
+      
+      // Auto-load default tasks if no tasks exist
+      if (tasks.length === 0) {
+        console.log(`No tasks found for project ${projects[0].id}, loading default wedding checklist...`);
+        
+        const defaultTasks = await storage.getDefaultTasks();
+        
+        if (defaultTasks.length > 0) {
+          console.log(`Found ${defaultTasks.length} default tasks to load`);
+          
+          // Category mapping to your preferred names
+          const mapCategory = (originalCategory: string): string => {
+            const categoryMap: { [key: string]: string } = {
+              'Budget & Planning': 'Budget & Planning',
+              'Guest List & Invitations': 'Guest List & Invitations',
+              'Ceremony': 'Ceremony',
+              'Reception': 'Reception',
+              'Decor & Rentals': 'Decor & Design',
+              'Attire': 'Attire & Beauty',
+              'Beauty': 'Attire & Beauty',
+              'Photography': 'Photography & Videography',
+              'Videography': 'Photography & Videography',
+              'Transportation': 'Transportation & Logistics',
+              'Logistics': 'Transportation & Logistics',
+              'Legal': 'Legal & Documentation',
+              'Documentation': 'Legal & Documentation',
+              'Honeymoon': 'Honeymoon & Travel',
+              'Travel': 'Honeymoon & Travel',
+              'Post-Wedding': 'Post Wedding',
+              'Gifts': 'Gifts & Favors',
+              'Favors': 'Gifts & Favors'
+            };
+            return categoryMap[originalCategory] || originalCategory;
+          };
+
+          // Create tasks from default template with calculated due dates
+          const weddingDate = projects[0].date;
+          const tasksToCreate = defaultTasks.map(defaultTask => {
+            // Calculate due date based on timeframe order
+            let dueDate = null;
+            if (defaultTask.timeframeOrder && weddingDate) {
+              // Convert timeframe order to days before wedding (roughly weeks to days)
+              const daysBeforeWedding = Math.max(0, defaultTask.timeframeOrder * 7);
+              dueDate = new Date(weddingDate.getTime() - (daysBeforeWedding * 24 * 60 * 60 * 1000));
+            }
+            
+            return {
+              title: defaultTask.taskName,
+              description: defaultTask.description || `${defaultTask.category} planning task`,
+              category: mapCategory(defaultTask.category),
+              priority: 'medium' as const,
+              status: 'pending' as const,
+              dueDate,
+              assignedTo: null,
+              notes: `Default task from ${defaultTask.timeframe} timeframe`,
+              projectId: projects[0].id,
+              createdBy: userId,
+              timeframeOrder: defaultTask.timeframeOrder,
+              defaultTimeframe: defaultTask.timeframe,
+              isDefaultTask: true,
+              customDate: null
+            };
+          });
+          
+          // Create all default tasks
+          let createdCount = 0;
+          for (const taskData of tasksToCreate) {
+            try {
+              await storage.createTask(taskData);
+              createdCount++;
+            } catch (error) {
+              console.error('Error creating default task:', taskData.title, error);
+            }
+          }
+          
+          console.log(`Successfully created ${createdCount} default tasks`);
+          
+          // Fetch the updated task list
+          tasks = await storage.getTasksByProjectId(projects[0].id);
+        } else {
+          console.log('No default tasks found in database');
+        }
+      }
+      
       res.json(tasks);
     } catch (error) {
-      console.error('Tasks error:', error);
+      console.error('Tasks API error:', error);
       res.status(500).json({ message: "Failed to fetch tasks" });
     }
   });
