@@ -12,7 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { 
   Calendar, Plus, CheckCircle2, Clock, AlertTriangle, CalendarDays, Target, Users,
-  Edit, Trash2, Filter, Search
+  Edit, Trash2, Filter, Search, FileText
 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -72,7 +72,7 @@ export default function TimelineSimple() {
   });
 
   // Get current project and wedding date
-  const currentProject = projects?.find(p => p.name === "Emma & Jake's Wedding") || projects?.[0];
+  const currentProject = Array.isArray(projects) ? projects?.find((p: any) => p.name === "Emma & Jake's Wedding") || projects?.[0] : null;
   const weddingDate = currentProject?.date ? new Date(currentProject.date) : null;
 
   // Form setup
@@ -173,6 +173,35 @@ export default function TimelineSimple() {
     });
   };
 
+  // Load wedding checklist mutation
+  const loadChecklistMutation = useMutation({
+    mutationFn: async () => {
+      if (!currentProject) throw new Error("No project found");
+      return apiRequest(`/api/projects/${currentProject.id}/tasks/from-template`, {
+        method: "POST",
+        body: JSON.stringify({ weddingDate: currentProject.date }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/tasks'] });
+      toast({
+        title: "Wedding checklist loaded!",
+        description: "Your comprehensive wedding planning checklist has been added to your timeline.",
+      });
+    },
+    onError: (error) => {
+      console.error("Error loading checklist:", error);
+      toast({
+        title: "Error loading checklist",
+        description: "Please try again or add tasks manually.",
+        variant: "destructive",
+      });
+    },
+  });
+
   // Calculate days until wedding
   const daysUntilWedding = weddingDate 
     ? Math.ceil((weddingDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
@@ -264,14 +293,35 @@ export default function TimelineSimple() {
               </div>
             </div>
             
-            <Button 
-              onClick={() => setIsAddDialogOpen(true)}
-              className="gradient-blush-rose text-white shadow-lg hover:shadow-xl"
-              size="lg"
-            >
-              <Plus className="mr-2" size={20} />
-              Add Task
-            </Button>
+            <div className="flex gap-3">
+              <Button 
+                onClick={() => loadChecklistMutation.mutate()}
+                disabled={loadChecklistMutation.isPending}
+                variant="outline"
+                size="lg"
+                className="bg-white hover:bg-gray-50 border-2 border-rose-200 text-rose-600 font-semibold"
+              >
+                {loadChecklistMutation.isPending ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-rose-600 mr-2"></div>
+                    Loading...
+                  </>
+                ) : (
+                  <>
+                    <FileText className="mr-2" size={20} />
+                    Load Wedding Checklist
+                  </>
+                )}
+              </Button>
+              <Button 
+                onClick={() => setIsAddDialogOpen(true)}
+                className="gradient-blush-rose text-white shadow-lg hover:shadow-xl"
+                size="lg"
+              >
+                <Plus className="mr-2" size={20} />
+                Add Task
+              </Button>
+            </div>
           </div>
 
           {/* Filters */}

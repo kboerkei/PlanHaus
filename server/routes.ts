@@ -534,6 +534,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.delete("/api/tasks/:id", requireAuth, async (req, res) => {
+    try {
+      const taskId = parseInt(req.params.id);
+      const userId = (req as any).userId;
+      
+      // Get task first to get project info for activity logging
+      const task = await storage.getTaskById(taskId);
+      if (!task) {
+        return res.status(404).json({ message: "Task not found" });
+      }
+
+      const success = await storage.deleteTask(taskId);
+      
+      if (!success) {
+        return res.status(404).json({ message: "Task not found" });
+      }
+
+      // Create activity
+      await storage.createActivity({
+        projectId: task.projectId,
+        userId,
+        action: 'deleted task',
+        target: 'task',
+        targetId: taskId,
+        details: { taskTitle: task.title }
+      });
+
+      websocketService?.notifyTaskUpdate(task.projectId, task, 'deleted', userId);
+
+      res.json({ success: true, message: "Task deleted successfully" });
+    } catch (error) {
+      console.error('Error deleting task:', error);
+      res.status(500).json({ message: "Failed to delete task" });
+    }
+  });
+
   // Guests
   app.get("/api/projects/:id/guests", requireAuth, async (req, res) => {
     try {
@@ -701,6 +737,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error updating RSVP:', error);
       res.status(400).json({ message: "Failed to update RSVP status" });
+    }
+  });
+
+  // Delete guest endpoint
+  app.delete("/api/guests/:id", requireAuth, async (req, res) => {
+    try {
+      const guestId = parseInt(req.params.id);
+      const userId = (req as any).userId;
+      
+      // Get guest first by checking all user's projects
+      const projects = await storage.getWeddingProjectsByUserId(userId);
+      let guest = null;
+      
+      for (const project of projects) {
+        const guests = await storage.getGuestsByProjectId(project.id);
+        guest = guests.find(g => g.id === guestId);
+        if (guest) break;
+      }
+      if (!guest) {
+        return res.status(404).json({ message: "Guest not found" });
+      }
+
+      const success = await storage.deleteGuest(guestId);
+      
+      if (!success) {
+        return res.status(404).json({ message: "Guest not found" });
+      }
+
+      // Create activity
+      await storage.createActivity({
+        projectId: guest.projectId,
+        userId,
+        action: 'deleted guest',
+        target: 'guest',
+        targetId: guestId,
+        details: { guestName: guest.name }
+      });
+
+      websocketService?.notifyGuestUpdate(guest.projectId, guest, 'deleted', userId);
+
+      res.json({ success: true, message: "Guest deleted successfully" });
+    } catch (error) {
+      console.error('Error deleting guest:', error);
+      res.status(500).json({ message: "Failed to delete guest" });
     }
   });
 
@@ -1129,6 +1209,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Delete budget item endpoint
+  app.delete("/api/budget-items/:id", requireAuth, async (req, res) => {
+    try {
+      const budgetItemId = parseInt(req.params.id);
+      const userId = (req as any).userId;
+      
+      // Get budget item first by checking all user's projects
+      const projects = await storage.getWeddingProjectsByUserId(userId);
+      let budgetItem = null;
+      
+      for (const project of projects) {
+        const budgetItems = await storage.getBudgetItemsByProjectId(project.id);
+        budgetItem = budgetItems.find(b => b.id === budgetItemId);
+        if (budgetItem) break;
+      }
+      
+      if (!budgetItem) {
+        return res.status(404).json({ message: "Budget item not found" });
+      }
+
+      const success = await storage.deleteBudgetItem(budgetItemId);
+      
+      if (!success) {
+        return res.status(404).json({ message: "Budget item not found" });
+      }
+
+      // Create activity
+      await storage.createActivity({
+        projectId: budgetItem.projectId,
+        userId,
+        action: 'deleted budget item',
+        target: 'budget',
+        targetId: budgetItemId,
+        details: { item: budgetItem.item, category: budgetItem.category }
+      });
+
+      websocketService?.notifyBudgetUpdate(budgetItem.projectId, budgetItem, 'deleted', userId);
+
+      res.json({ success: true, message: "Budget item deleted successfully" });
+    } catch (error) {
+      console.error('Error deleting budget item:', error);
+      res.status(500).json({ message: "Failed to delete budget item" });
+    }
+  });
+
   // Timeline events
   app.get("/api/projects/:id/timeline", requireAuth, async (req, res) => {
     try {
@@ -1259,6 +1384,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(item);
     } catch (error) {
       res.status(400).json({ message: "Invalid inspiration data" });
+    }
+  });
+
+  // Delete inspiration item endpoint
+  app.delete("/api/inspiration/:id", requireAuth, async (req, res) => {
+    try {
+      const inspirationId = parseInt(req.params.id);
+      const userId = (req as any).userId;
+      
+      // Get inspiration item first by checking all user's projects
+      const projects = await storage.getWeddingProjectsByUserId(userId);
+      let inspirationItem = null;
+      
+      for (const project of projects) {
+        const items = await storage.getInspirationItemsByProjectId(project.id);
+        inspirationItem = items.find(i => i.id === inspirationId);
+        if (inspirationItem) break;
+      }
+      
+      if (!inspirationItem) {
+        return res.status(404).json({ message: "Inspiration item not found" });
+      }
+
+      const success = await storage.deleteInspirationItem(inspirationId);
+      
+      if (!success) {
+        return res.status(404).json({ message: "Inspiration item not found" });
+      }
+
+      // Create activity
+      await storage.createActivity({
+        projectId: inspirationItem.projectId,
+        userId,
+        action: 'deleted inspiration',
+        target: 'inspiration',
+        targetId: inspirationId,
+        details: { title: inspirationItem.title, category: inspirationItem.category }
+      });
+
+      res.json({ success: true, message: "Inspiration item deleted successfully" });
+    } catch (error) {
+      console.error('Error deleting inspiration item:', error);
+      res.status(500).json({ message: "Failed to delete inspiration item" });
     }
   });
 
@@ -2169,6 +2337,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Budget items error:', error);
       res.status(500).json({ message: "Failed to fetch budget items" });
+    }
+  });
+
+  // Default Tasks routes
+  app.post("/api/default-tasks/seed", requireAuth, async (req, res) => {
+    try {
+      await storage.seedDefaultTasks();
+      res.json({ message: "Default tasks seeded successfully" });
+    } catch (error) {
+      console.error("Error seeding default tasks:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/api/projects/:projectId/tasks/from-template", requireAuth, async (req, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      const { weddingDate } = req.body;
+      
+      if (!weddingDate) {
+        return res.status(400).json({ message: "Wedding date is required" });
+      }
+
+      const tasks = await storage.createTasksFromTemplate(projectId, (req as any).userId, new Date(weddingDate));
+      
+      // Log activity
+      await storage.createActivity({
+        userId: (req as any).userId,
+        projectId,
+        action: "created_tasks_from_template",
+        target: "tasks",
+        targetId: null,
+        details: { count: tasks.length }
+      });
+
+      res.json(tasks);
+    } catch (error) {
+      console.error("Error creating tasks from template:", error);
+      res.status(500).json({ message: "Internal server error" });
     }
   });
 

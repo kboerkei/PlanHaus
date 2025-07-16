@@ -36,6 +36,17 @@ export const collaborators = pgTable("collaborators", {
   joinedAt: timestamp("joined_at").defaultNow().notNull(),
 });
 
+// Default wedding checklist template
+export const defaultTasks = pgTable("default_tasks", {
+  id: serial("id").primaryKey(),
+  taskName: text("task_name").notNull(),
+  category: text("category").notNull(),
+  timeframe: text("timeframe").notNull(), // e.g., "12+ months before", "9-12 months before"
+  timeframeOrder: integer("timeframe_order").notNull(), // For sorting: 1=12+months, 2=9-12months, etc.
+  description: text("description"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 export const tasks = pgTable("tasks", {
   id: serial("id").primaryKey(),
   projectId: integer("project_id").notNull(),
@@ -45,8 +56,14 @@ export const tasks = pgTable("tasks", {
   priority: text("priority"), // 'high', 'medium', 'low'
   status: text("status").notNull().default('pending'), // 'pending', 'in_progress', 'completed'
   dueDate: timestamp("due_date"),
+  customDate: timestamp("custom_date"), // User-editable date override
+  defaultTimeframe: text("default_timeframe"), // Original timeframe from template
+  timeframeOrder: integer("timeframe_order"), // For chronological sorting
   assignedTo: text("assigned_to"), // Name of person assigned to task
-  notes: text("notes"), // General notes about the task
+  notes: text("notes"), // User-editable notes
+  isCompleted: boolean("is_completed").default(false).notNull(),
+  isFromTemplate: boolean("is_from_template").default(false).notNull(), // Track if from default checklist
+  defaultTaskId: integer("default_task_id"), // Reference to original template task
   createdBy: integer("created_by").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   completedAt: timestamp("completed_at"),
@@ -252,6 +269,11 @@ export const insertCollaboratorSchema = createInsertSchema(collaborators).omit({
   joinedAt: true,
 });
 
+export const insertDefaultTaskSchema = createInsertSchema(defaultTasks).omit({
+  id: true,
+  createdAt: true,
+});
+
 export const insertTaskSchema = createInsertSchema(tasks).omit({
   id: true,
   createdAt: true,
@@ -389,7 +411,9 @@ export const insertIntakeDataSchema = createInsertSchema(intakeData).omit({
   officiantStatus: z.string().optional(),
 });
 
-// Types
+// Types  
+export type DefaultTask = typeof defaultTasks.$inferSelect;
+export type InsertDefaultTask = typeof defaultTasks.$inferInsert;
 export type IntakeData = typeof intakeData.$inferSelect;
 export type InsertIntakeData = typeof intakeData.$inferInsert;
 

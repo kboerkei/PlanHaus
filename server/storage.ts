@@ -1,10 +1,10 @@
 import {
-  users, weddingProjects, collaborators, tasks, guests, vendors, vendorPayments, budgetItems,
+  users, weddingProjects, collaborators, defaultTasks, tasks, guests, vendors, vendorPayments, budgetItems,
   timelineEvents, inspirationItems, activities, shoppingLists, shoppingItems,
   schedules, scheduleEvents, intakeData,
   type User, type InsertUser, type WeddingProject, type InsertWeddingProject,
-  type Collaborator, type InsertCollaborator, type Task, type InsertTask,
-  type Guest, type InsertGuest, type Vendor, type InsertVendor,
+  type Collaborator, type InsertCollaborator, type DefaultTask, type InsertDefaultTask,
+  type Task, type InsertTask, type Guest, type InsertGuest, type Vendor, type InsertVendor,
   type VendorPayment, type InsertVendorPayment,
   type BudgetItem, type InsertBudgetItem, type TimelineEvent, type InsertTimelineEvent,
   type InspirationItem, type InsertInspirationItem, type Activity, type InsertActivity,
@@ -32,6 +32,11 @@ export interface IStorage {
   updateCollaboratorRole(id: number, role: string): Promise<Collaborator | undefined>;
   removeCollaborator(id: number): Promise<boolean>;
 
+  // Default Tasks
+  createDefaultTask(task: InsertDefaultTask): Promise<DefaultTask>;
+  getDefaultTasks(): Promise<DefaultTask[]>;
+  seedDefaultTasks(): Promise<void>;
+
   // Tasks
   createTask(task: InsertTask): Promise<Task>;
   getTaskById(id: number): Promise<Task | undefined>;
@@ -39,6 +44,7 @@ export interface IStorage {
   updateTask(id: number, updates: Partial<InsertTask>): Promise<Task | undefined>;
   deleteTask(id: number): Promise<boolean>;
   completeTask(id: number): Promise<Task | undefined>;
+  createTasksFromTemplate(projectId: number, userId: number, weddingDate: Date): Promise<Task[]>;
 
   // Guests
   createGuest(guest: InsertGuest): Promise<Guest>;
@@ -592,7 +598,7 @@ export class MemStorage implements IStorage {
 
 // Database Storage Implementation
 import { db } from "./db";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 
 export class DatabaseStorage implements IStorage {
   async createUser(insertUser: InsertUser): Promise<User> {
@@ -677,6 +683,190 @@ export class DatabaseStorage implements IStorage {
     return result.rowCount > 0;
   }
 
+  // Default Tasks
+  async createDefaultTask(task: InsertDefaultTask): Promise<DefaultTask> {
+    const [result] = await db.insert(defaultTasks).values(task).returning();
+    return result;
+  }
+
+  async getDefaultTasks(): Promise<DefaultTask[]> {
+    return await db.select().from(defaultTasks).orderBy(defaultTasks.timeframeOrder, defaultTasks.category);
+  }
+
+  async seedDefaultTasks(): Promise<void> {
+    // Check if default tasks already exist
+    const existing = await db.select().from(defaultTasks).limit(1);
+    if (existing.length > 0) {
+      return; // Already seeded
+    }
+
+    // Default wedding checklist data from CSV
+    const defaultTasksData: InsertDefaultTask[] = [
+      // Budget & Planning
+      { taskName: "Set overall budget", category: "Budget & Planning", timeframe: "12+ months before", timeframeOrder: 1 },
+      { taskName: "Break down budget by category", category: "Budget & Planning", timeframe: "12+ months before", timeframeOrder: 1 },
+      { taskName: "Track deposits and payment deadlines", category: "Budget & Planning", timeframe: "Ongoing", timeframeOrder: 0 },
+      { taskName: "Set up wedding planning email address", category: "Budget & Planning", timeframe: "12+ months before", timeframeOrder: 1 },
+      { taskName: "Hire a wedding planner or coordinator", category: "Budget & Planning", timeframe: "12+ months before", timeframeOrder: 1 },
+      { taskName: "Create a planning timeline", category: "Budget & Planning", timeframe: "12+ months before", timeframeOrder: 1 },
+
+      // Guest List & Invitations
+      { taskName: "Draft initial guest list", category: "Guest List & Invitations", timeframe: "12+ months before", timeframeOrder: 1 },
+      { taskName: "Finalize guest list", category: "Guest List & Invitations", timeframe: "10-12 months before", timeframeOrder: 2 },
+      { taskName: "Collect mailing addresses", category: "Guest List & Invitations", timeframe: "10-12 months before", timeframeOrder: 2 },
+      { taskName: "Send Save the Dates", category: "Guest List & Invitations", timeframe: "8-10 months before", timeframeOrder: 3 },
+      { taskName: "Order invitations", category: "Guest List & Invitations", timeframe: "4-6 months before", timeframeOrder: 7 },
+      { taskName: "Finalize invitation wording", category: "Guest List & Invitations", timeframe: "3-4 months before", timeframeOrder: 8 },
+      { taskName: "Send invitations", category: "Guest List & Invitations", timeframe: "6-8 weeks before", timeframeOrder: 11 },
+      { taskName: "Track RSVPs", category: "Guest List & Invitations", timeframe: "Ongoing after invitations sent", timeframeOrder: 12 },
+      { taskName: "Send reminders to non-responders", category: "Guest List & Invitations", timeframe: "4 weeks before", timeframeOrder: 13 },
+      { taskName: "Create seating chart", category: "Guest List & Invitations", timeframe: "2-3 weeks before", timeframeOrder: 14 },
+      { taskName: "Prepare place cards or escort cards", category: "Guest List & Invitations", timeframe: "1-2 weeks before", timeframeOrder: 15 },
+
+      // Ceremony
+      { taskName: "Book venue/officiant", category: "Ceremony", timeframe: "12+ months before", timeframeOrder: 1 },
+      { taskName: "Decide on ceremony structure", category: "Ceremony", timeframe: "6-9 months before", timeframeOrder: 4 },
+      { taskName: "Write personal vows", category: "Ceremony", timeframe: "1-2 months before", timeframeOrder: 10 },
+      { taskName: "Choose readings or rituals", category: "Ceremony", timeframe: "3-6 months before", timeframeOrder: 6 },
+      { taskName: "Select music for processional, recessional", category: "Ceremony", timeframe: "2-3 months before", timeframeOrder: 9 },
+      { taskName: "Confirm license requirements", category: "Ceremony", timeframe: "2-3 months before", timeframeOrder: 9 },
+      { taskName: "Obtain marriage license", category: "Ceremony", timeframe: "1 month before", timeframeOrder: 16 },
+      { taskName: "Buy a decorative marriage certificate", category: "Ceremony", timeframe: "1 month before", timeframeOrder: 16 },
+      { taskName: "Purchase ceremony accessories", category: "Ceremony", timeframe: "2-3 months before", timeframeOrder: 9 },
+      { taskName: "Plan ceremony rehearsal", category: "Ceremony", timeframe: "1-2 weeks before", timeframeOrder: 15 },
+
+      // Reception
+      { taskName: "Book reception venue", category: "Reception", timeframe: "12+ months before", timeframeOrder: 1 },
+      { taskName: "Choose meal style", category: "Reception", timeframe: "6-9 months before", timeframeOrder: 4 },
+      { taskName: "Finalize menu with caterer", category: "Reception", timeframe: "2 months before", timeframeOrder: 17 },
+      { taskName: "Order alcohol/bar services", category: "Reception", timeframe: "2-3 months before", timeframeOrder: 9 },
+      { taskName: "Choose first dance song", category: "Reception", timeframe: "2-3 months before", timeframeOrder: 9 },
+      { taskName: "Choose parent dance songs", category: "Reception", timeframe: "2-3 months before", timeframeOrder: 9 },
+      { taskName: "Create do-not-play and must-play list", category: "Reception", timeframe: "1-2 months before", timeframeOrder: 10 },
+      { taskName: "Hire DJ/band", category: "Reception", timeframe: "9-12 months before", timeframeOrder: 2 },
+      { taskName: "Rent or confirm equipment", category: "Reception", timeframe: "2-3 months before", timeframeOrder: 9 },
+      { taskName: "Create reception timeline", category: "Reception", timeframe: "1 month before", timeframeOrder: 16 },
+      { taskName: "Assign emcee or announcer", category: "Reception", timeframe: "1 month before", timeframeOrder: 16 },
+
+      // Additional categories continue...
+      { taskName: "Choose wedding theme or colors", category: "Decor & Rentals", timeframe: "10-12 months before", timeframeOrder: 2 },
+      { taskName: "Rent tables, chairs, linens, dishware", category: "Decor & Rentals", timeframe: "3-6 months before", timeframeOrder: 6 },
+      { taskName: "Order centerpieces", category: "Decor & Rentals", timeframe: "2-3 months before", timeframeOrder: 9 },
+      { taskName: "Purchase signage", category: "Decor & Rentals", timeframe: "2-3 months before", timeframeOrder: 9 },
+      { taskName: "Make or purchase table numbers", category: "Decor & Rentals", timeframe: "1 month before", timeframeOrder: 16 },
+      { taskName: "Purchase guestbook and pens", category: "Decor & Rentals", timeframe: "1-2 months before", timeframeOrder: 10 },
+      { taskName: "Arrange delivery/pickup logistics for rentals", category: "Decor & Rentals", timeframe: "2-3 weeks before", timeframeOrder: 14 },
+
+      // Attire & Beauty
+      { taskName: "Buy wedding dress or attire", category: "Attire & Beauty", timeframe: "9-12 months before", timeframeOrder: 2 },
+      { taskName: "Schedule dress fittings", category: "Attire & Beauty", timeframe: "6-8 months before", timeframeOrder: 3 },
+      { taskName: "Choose veil or accessories", category: "Attire & Beauty", timeframe: "3-6 months before", timeframeOrder: 6 },
+      { taskName: "Buy shoes and break them in", category: "Attire & Beauty", timeframe: "2-3 months before", timeframeOrder: 9 },
+      { taskName: "Order groom's attire", category: "Attire & Beauty", timeframe: "6 months before", timeframeOrder: 5 },
+      { taskName: "Coordinate outfits for wedding party", category: "Attire & Beauty", timeframe: "6-9 months before", timeframeOrder: 4 },
+      { taskName: "Book hair & makeup artist", category: "Attire & Beauty", timeframe: "6 months before", timeframeOrder: 5 },
+      { taskName: "Schedule hair/makeup trial", category: "Attire & Beauty", timeframe: "2-3 months before", timeframeOrder: 9 },
+      { taskName: "Finalize wedding day beauty timeline", category: "Attire & Beauty", timeframe: "1 month before", timeframeOrder: 16 },
+
+      // Vendors
+      { taskName: "Book photographer", category: "Vendors", timeframe: "9-12 months before", timeframeOrder: 2 },
+      { taskName: "Book videographer", category: "Vendors", timeframe: "9-12 months before", timeframeOrder: 2 },
+      { taskName: "Book florist", category: "Vendors", timeframe: "6-9 months before", timeframeOrder: 4 },
+      { taskName: "Book caterer", category: "Vendors", timeframe: "9-12 months before", timeframeOrder: 2 },
+      { taskName: "Book cake baker", category: "Vendors", timeframe: "6-9 months before", timeframeOrder: 4 },
+      { taskName: "Book transportation", category: "Vendors", timeframe: "4-6 months before", timeframeOrder: 7 },
+      { taskName: "Prepare vendor tips", category: "Vendors", timeframe: "1-2 weeks before", timeframeOrder: 15 },
+      { taskName: "Confirm all contracts and arrival times", category: "Vendors", timeframe: "2-4 weeks before", timeframeOrder: 13 },
+
+      // Final Tasks
+      { taskName: "Final dress fitting", category: "Final Preparations", timeframe: "3-4 weeks before", timeframeOrder: 13 },
+      { taskName: "Final RSVP count to caterer", category: "Final Preparations", timeframe: "3 weeks before", timeframeOrder: 14 },
+      { taskName: "Print ceremony programs", category: "Final Preparations", timeframe: "2 weeks before", timeframeOrder: 17 },
+      { taskName: "Pick up wedding rings", category: "Final Preparations", timeframe: "2 weeks before", timeframeOrder: 17 },
+      { taskName: "Practice vows", category: "Final Preparations", timeframe: "1-2 weeks before", timeframeOrder: 15 },
+      { taskName: "Create emergency day-of kit", category: "Final Preparations", timeframe: "1 week before", timeframeOrder: 18 },
+      { taskName: "Prepare final payments and tips", category: "Final Preparations", timeframe: "1 week before", timeframeOrder: 18 },
+      { taskName: "Schedule manicure/pedicure", category: "Final Preparations", timeframe: "2-3 days before", timeframeOrder: 19 },
+      { taskName: "Steam/press outfits", category: "Final Preparations", timeframe: "1-2 days before", timeframeOrder: 20 },
+    ];
+
+    await db.insert(defaultTasks).values(defaultTasksData);
+  }
+
+  async createTasksFromTemplate(projectId: number, userId: number, weddingDate: Date): Promise<Task[]> {
+    // Get all default tasks
+    const defaultTasksList = await this.getDefaultTasks();
+    
+    // Calculate due dates based on wedding date and timeframe
+    const tasksToCreate: InsertTask[] = defaultTasksList.map(defaultTask => {
+      let dueDate: Date | null = null;
+      
+      // Calculate due date based on timeframe
+      if (defaultTask.timeframe !== "Ongoing" && defaultTask.timeframe !== "As needed") {
+        if (defaultTask.timeframe.includes("12+ months")) {
+          dueDate = new Date(weddingDate.getTime() - (365 * 24 * 60 * 60 * 1000)); // 1 year before
+        } else if (defaultTask.timeframe.includes("10-12 months")) {
+          dueDate = new Date(weddingDate.getTime() - (320 * 24 * 60 * 60 * 1000)); // 11 months before
+        } else if (defaultTask.timeframe.includes("9-12 months")) {
+          dueDate = new Date(weddingDate.getTime() - (300 * 24 * 60 * 60 * 1000)); // 10 months before
+        } else if (defaultTask.timeframe.includes("8-10 months")) {
+          dueDate = new Date(weddingDate.getTime() - (270 * 24 * 60 * 60 * 1000)); // 9 months before
+        } else if (defaultTask.timeframe.includes("6-9 months")) {
+          dueDate = new Date(weddingDate.getTime() - (210 * 24 * 60 * 60 * 1000)); // 7 months before
+        } else if (defaultTask.timeframe.includes("6-8 months")) {
+          dueDate = new Date(weddingDate.getTime() - (210 * 24 * 60 * 60 * 1000)); // 7 months before
+        } else if (defaultTask.timeframe.includes("6 months")) {
+          dueDate = new Date(weddingDate.getTime() - (180 * 24 * 60 * 60 * 1000)); // 6 months before
+        } else if (defaultTask.timeframe.includes("4-6 months")) {
+          dueDate = new Date(weddingDate.getTime() - (150 * 24 * 60 * 60 * 1000)); // 5 months before
+        } else if (defaultTask.timeframe.includes("3-6 months")) {
+          dueDate = new Date(weddingDate.getTime() - (120 * 24 * 60 * 60 * 1000)); // 4 months before
+        } else if (defaultTask.timeframe.includes("3-4 months")) {
+          dueDate = new Date(weddingDate.getTime() - (105 * 24 * 60 * 60 * 1000)); // 3.5 months before
+        } else if (defaultTask.timeframe.includes("2-3 months")) {
+          dueDate = new Date(weddingDate.getTime() - (75 * 24 * 60 * 60 * 1000)); // 2.5 months before
+        } else if (defaultTask.timeframe.includes("1-2 months")) {
+          dueDate = new Date(weddingDate.getTime() - (45 * 24 * 60 * 60 * 1000)); // 1.5 months before
+        } else if (defaultTask.timeframe.includes("1 month")) {
+          dueDate = new Date(weddingDate.getTime() - (30 * 24 * 60 * 60 * 1000)); // 1 month before
+        } else if (defaultTask.timeframe.includes("weeks")) {
+          const weeksMatch = defaultTask.timeframe.match(/(\d+)/);
+          if (weeksMatch) {
+            const weeks = parseInt(weeksMatch[1]);
+            dueDate = new Date(weddingDate.getTime() - (weeks * 7 * 24 * 60 * 60 * 1000));
+          }
+        } else if (defaultTask.timeframe.includes("days")) {
+          const daysMatch = defaultTask.timeframe.match(/(\d+)/);
+          if (daysMatch) {
+            const days = parseInt(daysMatch[1]);
+            dueDate = new Date(weddingDate.getTime() - (days * 24 * 60 * 60 * 1000));
+          }
+        }
+      }
+
+      return {
+        projectId,
+        title: defaultTask.taskName,
+        description: `${defaultTask.category} task - ${defaultTask.timeframe}`,
+        category: defaultTask.category,
+        priority: 'medium',
+        status: 'pending',
+        dueDate,
+        defaultTimeframe: defaultTask.timeframe,
+        timeframeOrder: defaultTask.timeframeOrder,
+        isFromTemplate: true,
+        defaultTaskId: defaultTask.id,
+        createdBy: userId,
+        notes: null,
+        isCompleted: false,
+      };
+    });
+
+    // Insert all tasks
+    const result = await db.insert(tasks).values(tasksToCreate).returning();
+    return result;
+  }
+
   async createTask(insertTask: InsertTask): Promise<Task> {
     const [task] = await db.insert(tasks).values(insertTask).returning();
     return task;
@@ -688,11 +878,20 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getTasksByProjectId(projectId: number): Promise<Task[]> {
-    return await db.select().from(tasks).where(eq(tasks.projectId, projectId));
+    return await db.select().from(tasks)
+      .where(eq(tasks.projectId, projectId))
+      .orderBy(
+        sql`${tasks.timeframeOrder} ASC NULLS LAST`,
+        tasks.dueDate,
+        tasks.createdAt
+      );
   }
 
   async updateTask(id: number, updates: Partial<InsertTask>): Promise<Task | undefined> {
-    const [task] = await db.update(tasks).set(updates).where(eq(tasks.id, id)).returning();
+    const [task] = await db.update(tasks).set({
+      ...updates,
+      updatedAt: new Date(),
+    }).where(eq(tasks.id, id)).returning();
     return task || undefined;
   }
 
@@ -703,8 +902,10 @@ export class DatabaseStorage implements IStorage {
 
   async completeTask(id: number): Promise<Task | undefined> {
     const [task] = await db.update(tasks).set({ 
-      status: 'completed', 
-      completedAt: new Date() 
+      status: 'completed',
+      isCompleted: true, 
+      completedAt: new Date(),
+      updatedAt: new Date(),
     }).where(eq(tasks.id, id)).returning();
     return task || undefined;
   }
