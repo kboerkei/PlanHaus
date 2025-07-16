@@ -192,8 +192,8 @@ export default function TimelineSimple() {
   // Filter and organize tasks
   const filteredTasks = (tasks || []).filter((task: any) => {
     const matchesSearch = (task?.title || "").toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesPriority = !filterPriority || task?.priority === filterPriority;
-    const matchesCategory = !filterCategory || task?.category === filterCategory;
+    const matchesPriority = !filterPriority || filterPriority === "all" || task?.priority === filterPriority;
+    const matchesCategory = !filterCategory || filterCategory === "all" || task?.category === filterCategory;
     const matchesCompleted = showCompleted || task?.status !== 'completed';
     
     return matchesSearch && matchesPriority && matchesCategory && matchesCompleted;
@@ -290,7 +290,7 @@ export default function TimelineSimple() {
                 <SelectValue placeholder="Priority" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Priorities</SelectItem>
+                <SelectItem value="all">All Priorities</SelectItem>
                 <SelectItem value="high">High</SelectItem>
                 <SelectItem value="medium">Medium</SelectItem>
                 <SelectItem value="low">Low</SelectItem>
@@ -302,7 +302,7 @@ export default function TimelineSimple() {
                 <SelectValue placeholder="Category" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Categories</SelectItem>
+                <SelectItem value="all">All Categories</SelectItem>
                 {taskCategories.map(cat => (
                   <SelectItem key={cat} value={cat}>{cat}</SelectItem>
                 ))}
