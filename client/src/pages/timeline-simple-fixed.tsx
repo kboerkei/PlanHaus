@@ -52,7 +52,7 @@ const taskCategories = [
   "Attire", "Invitations", "Decorations", "Beauty", "Legal", "Other"
 ];
 
-export default function TimelineModern() {
+export default function TimelineSimple() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<any>(null);
@@ -681,21 +681,6 @@ function TaskCard({
   const daysUntil = getDaysUntilDue(task);
   const isOverdue = daysUntil !== null && daysUntil < 0;
   const isDueSoon = daysUntil !== null && daysUntil >= 0 && daysUntil <= 3;
-
-  const priorityConfig = {
-    high: { 
-      color: "bg-red-50 text-red-700 border-red-200",
-      label: "High Priority"
-    },
-    medium: { 
-      color: "bg-amber-50 text-amber-700 border-amber-200",
-      label: "Medium Priority"
-    },
-    low: { 
-      color: "bg-green-50 text-green-700 border-green-200",
-      label: "Low Priority"
-    }
-  };
 
   return (
     <div className={`flex items-center space-x-3 p-4 border rounded-lg hover:bg-gray-50 ${
