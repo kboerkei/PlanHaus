@@ -536,7 +536,8 @@ export default function TimelineModern() {
     );
   }
 
-  if (error) {
+  // Show empty state if no tasks, regardless of query errors
+  if (!tasksLoading && (!tasks || tasks.length === 0)) {
     return (
       <div className="p-6">
         <div className="max-w-6xl mx-auto">

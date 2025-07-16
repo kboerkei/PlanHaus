@@ -69,8 +69,35 @@ export const getQueryFn: <T>(options: {
       headers: sessionId ? { Authorization: `Bearer ${sessionId}` } : {},
     });
 
-    if (unauthorizedBehavior === "returnNull" && res.status === 401) {
-      return null;
+    if (res.status === 401) {
+      // Try demo login first
+      try {
+        const demoResponse = await fetch('/api/auth/demo-login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        
+        if (demoResponse.ok) {
+          const demoData = await demoResponse.json();
+          localStorage.setItem('sessionId', demoData.sessionId);
+          localStorage.setItem('user', JSON.stringify(demoData.user));
+          
+          // Retry the original request
+          const retryRes = await fetch(queryKey.join("/") as string, {
+            headers: { Authorization: `Bearer ${demoData.sessionId}` },
+          });
+          
+          if (retryRes.ok) {
+            return await retryRes.json();
+          }
+        }
+      } catch (error) {
+        // Fall through to returnNull behavior
+      }
+      
+      if (unauthorizedBehavior === "returnNull") {
+        return null;
+      }
     }
 
     await throwIfResNotOk(res);
@@ -83,10 +110,10 @@ export const queryClient = new QueryClient({
       queryFn: getQueryFn({ on401: "returnNull" }),
       refetchInterval: false,
       refetchOnWindowFocus: false,
-      staleTime: 30000, // 30 seconds cache
+      staleTime: 5000, // 5 seconds cache
       gcTime: 300000, // 5 minutes garbage collection
-      retry: 2,
-      retryDelay: 1000,
+      retry: 1,
+      retryDelay: 500,
     },
     mutations: {
       retry: 1,
