@@ -59,7 +59,9 @@ const eventTypes = [
 export default function Schedules() {
   const [isScheduleDialogOpen, setIsScheduleDialogOpen] = useState(false);
   const [isEventDialogOpen, setIsEventDialogOpen] = useState(false);
+  const [isEditEventDialogOpen, setIsEditEventDialogOpen] = useState(false);
   const [selectedSchedule, setSelectedSchedule] = useState<any>(null);
+  const [editingEvent, setEditingEvent] = useState<any>(null);
   const [activeScheduleTab, setActiveScheduleTab] = useState("");
   const { toast } = useToast();
 
@@ -171,12 +173,86 @@ export default function Schedules() {
     }
   });
 
+  const editEventMutation = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: EventFormData }) => 
+      apiRequest(`/api/schedule-events/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+        headers: { 'Content-Type': 'application/json' }
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/schedule-events'] });
+      setIsEditEventDialogOpen(false);
+      setEditingEvent(null);
+      eventForm.reset();
+      toast({
+        title: "Event updated",
+        description: "Event has been updated successfully.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error?.message || "Failed to update event.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteEventMutation = useMutation({
+    mutationFn: (id: number) => apiRequest(`/api/schedule-events/${id}`, {
+      method: 'DELETE',
+    }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/schedule-events'] });
+      toast({
+        title: "Event deleted",
+        description: "Event has been removed from the schedule.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error?.message || "Failed to delete event.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const onScheduleSubmit = (data: ScheduleFormData) => {
     createScheduleMutation.mutate(data);
   };
 
   const onEventSubmit = (data: EventFormData) => {
-    createEventMutation.mutate(data);
+    if (editingEvent) {
+      editEventMutation.mutate({ id: editingEvent.id, data });
+    } else {
+      createEventMutation.mutate(data);
+    }
+  };
+
+  const handleEditEvent = (event: any) => {
+    setEditingEvent(event);
+    // Format time from datetime to HH:MM format
+    const startTime = new Date(event.startTime).toTimeString().slice(0, 5);
+    const endTime = event.endTime ? new Date(event.endTime).toTimeString().slice(0, 5) : "";
+    
+    eventForm.reset({
+      title: event.title,
+      description: event.description || "",
+      startTime: startTime,
+      endTime: endTime,
+      location: event.location || "",
+      type: event.type,
+      notes: event.notes || "",
+    });
+    setIsEditEventDialogOpen(true);
+  };
+
+  const handleDeleteEvent = (id: number) => {
+    if (confirm('Are you sure you want to delete this event?')) {
+      deleteEventMutation.mutate(id);
+    }
   };
 
   // Set initial active tab when schedules load
@@ -610,9 +686,27 @@ export default function Schedules() {
                                 <div className="flex-1">
                                   <div className="flex items-center justify-between mb-2">
                                     <h4 className="font-semibold text-gray-800">{event.title}</h4>
-                                    <Badge className={getEventTypeColor(event.type)}>
-                                      {eventTypes.find(t => t.value === event.type)?.label}
-                                    </Badge>
+                                    <div className="flex items-center space-x-2">
+                                      <Badge className={getEventTypeColor(event.type)}>
+                                        {eventTypes.find(t => t.value === event.type)?.label}
+                                      </Badge>
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={() => handleEditEvent(event)}
+                                        className="h-7 w-7 p-0"
+                                      >
+                                        <Edit size={14} />
+                                      </Button>
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={() => handleDeleteEvent(event.id)}
+                                        className="h-7 w-7 p-0 text-red-500 hover:text-red-700 hover:border-red-300"
+                                      >
+                                        <Trash2 size={14} />
+                                      </Button>
+                                    </div>
                                   </div>
                                   <div className="flex items-center space-x-4 text-sm text-gray-600 mb-2">
                                     <div className="flex items-center">
@@ -681,6 +775,129 @@ export default function Schedules() {
                 ))}
               </Tabs>
             )}
+
+        {/* Edit Event Dialog */}
+        <Dialog open={isEditEventDialogOpen} onOpenChange={setIsEditEventDialogOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Edit Event</DialogTitle>
+              <DialogDescription>
+                Update the event details.
+              </DialogDescription>
+            </DialogHeader>
+            <Form {...eventForm}>
+              <form onSubmit={eventForm.handleSubmit(onEventSubmit)} className="space-y-4">
+                <FormField
+                  control={eventForm.control}
+                  name="title"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Event Title *</FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g., Ceremony" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={eventForm.control}
+                  name="type"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Event Type *</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select type" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {eventTypes.map(type => (
+                            <SelectItem key={type.value} value={type.value}>
+                              {type.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={eventForm.control}
+                    name="startTime"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Start Time *</FormLabel>
+                        <FormControl>
+                          <Input type="time" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={eventForm.control}
+                    name="endTime"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>End Time</FormLabel>
+                        <FormControl>
+                          <Input type="time" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <FormField
+                  control={eventForm.control}
+                  name="location"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Location</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Event location" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={eventForm.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Description</FormLabel>
+                      <FormControl>
+                        <Textarea placeholder="Event details..." {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <div className="flex justify-end space-x-2">
+                  <Button type="button" variant="outline" onClick={() => {
+                    setIsEditEventDialogOpen(false);
+                    setEditingEvent(null);
+                    eventForm.reset();
+                  }}>
+                    Cancel
+                  </Button>
+                  <Button 
+                    type="submit" 
+                    className="gradient-blush-rose text-white"
+                    disabled={editEventMutation.isPending}
+                  >
+                    {editEventMutation.isPending ? "Updating..." : "Update Event"}
+                  </Button>
+                </div>
+              </form>
+            </Form>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

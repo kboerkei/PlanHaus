@@ -292,15 +292,23 @@ export default function Budget() {
     return filteredSortedItems?.filter((item: any) => item.category === category) || [];
   };
 
-  // Calculate totals
-  const totalEstimated = budgetItems?.reduce((sum: number, item: any) => sum + (item.estimatedCost || 0), 0) || 0;
-  const totalActual = budgetItems?.reduce((sum: number, item: any) => sum + (item.actualCost || 0), 0) || 0;
+  // Calculate totals with proper number parsing
+  const totalEstimated = budgetItems?.reduce((sum: number, item: any) => {
+    const cost = parseFloat(item.estimatedCost) || 0;
+    return sum + cost;
+  }, 0) || 0;
+  
+  const totalActual = budgetItems?.reduce((sum: number, item: any) => {
+    const cost = parseFloat(item.actualCost) || 0;
+    return sum + cost;
+  }, 0) || 0;
+  
   const budgetDifference = totalEstimated - totalActual;
   const budgetUsagePercentage = totalEstimated > 0 ? Math.round((totalActual / totalEstimated) * 100) : 0;
 
-  const formatCurrency = (amount: number) => {
-    const num = Number(amount);
-    return isNaN(num) ? "$0" : `$${num.toLocaleString()}`;
+  const formatCurrency = (amount: number | string) => {
+    const num = parseFloat(String(amount)) || 0;
+    return `$${Math.round(num).toLocaleString()}`;
   };
 
   const cleanCurrency = (value: string) => {
@@ -311,8 +319,8 @@ export default function Budget() {
     const items = getBudgetItemsByCategory(category);
     if (items.length === 0) return null;
     
-    const estimatedCost = items.reduce((sum: number, item: any) => sum + (item.estimatedCost || 0), 0);
-    const actualCost = items.reduce((sum: number, item: any) => sum + (item.actualCost || 0), 0);
+    const estimatedCost = items.reduce((sum: number, item: any) => sum + (parseFloat(item.estimatedCost) || 0), 0);
+    const actualCost = items.reduce((sum: number, item: any) => sum + (parseFloat(item.actualCost) || 0), 0);
     
     if (estimatedCost > 0) {
       return {
