@@ -44,7 +44,7 @@ export default function Dashboard() {
         <div className="absolute -top-20 -right-20 w-64 h-64 bg-gradient-to-br from-rose-400/10 to-pink-400/20 rounded-full blur-3xl" />
         <div className="absolute -bottom-10 -left-10 w-48 h-48 bg-gradient-to-tr from-purple-400/5 to-rose-400/10 rounded-full blur-2xl" />
         
-        <div className="relative p-4 sm:p-8">
+        <div className="relative p-3 sm:p-4 lg:p-8 mobile-safe-spacing">
           <MilestoneCelebration />
           <SmartOnboarding />
           

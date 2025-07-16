@@ -84,6 +84,18 @@
     min-height: 44px !important;
     min-width: 44px !important;
   }
+  
+  /* Fix viewport issues on mobile */
+  .mobile-viewport-fix {
+    height: 100dvh !important;
+    min-height: 100dvh !important;
+  }
+  
+  /* Better mobile spacing */
+  .mobile-safe-spacing {
+    padding-left: max(1rem, env(safe-area-inset-left)) !important;
+    padding-right: max(1rem, env(safe-area-inset-right)) !important;
+  }
 }
 
 :root {
@@ -149,6 +161,32 @@
 }
 
 @layer utilities {
+  /* Mobile-first utilities */
+  .mobile-safe-spacing {
+    padding-bottom: calc(env(safe-area-inset-bottom) + 4rem);
+  }
+
+  @media (max-width: 640px) {
+    .mobile-text-sm {
+      font-size: 14px;
+      line-height: 1.25;
+    }
+
+    .mobile-header-responsive {
+      font-size: 1.125rem;
+      line-height: 1.75rem;
+    }
+
+    .mobile-touch-target {
+      min-height: 44px;
+      min-width: 44px;
+    }
+
+    input.mobile-form-input {
+      font-size: 16px; /* Prevents zoom on iOS */
+    }
+  }
+
   .text-blush {
     color: var(--blush);
   }

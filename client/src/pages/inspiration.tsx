@@ -99,7 +99,7 @@ export default function Inspiration() {
 
   if (error || inspirationItems === null) {
     return (
-      <div className="p-6">
+      <div className="p-3 sm:p-6 mobile-safe-spacing">
         <div className="max-w-6xl mx-auto">
           <div className="text-center py-12">
             <Palette className="h-16 w-16 text-gray-400 mx-auto mb-4" />
@@ -116,7 +116,7 @@ export default function Inspiration() {
   }
 
   return (
-    <div className="p-6">
+    <div className="p-3 sm:p-6 mobile-safe-spacing">
       <div className="max-w-6xl mx-auto">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center space-x-3">

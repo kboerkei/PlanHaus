@@ -356,7 +356,7 @@ export default function Budget() {
   console.log('Budget Debug:', { projectsLoading, projects, currentProject, budgetItems });
 
   return (
-    <div className="p-6">
+    <div className="p-3 sm:p-6 mobile-safe-spacing">
       <div className="max-w-7xl mx-auto">
         {/* Header Section - EXACT SAME AS GUEST LIST */}
         <div className="mb-8">

@@ -566,20 +566,20 @@ export default function TimelineModern() {
   }
 
   return (
-    <div className="p-6">
+    <div className="p-3 sm:p-6 mobile-safe-spacing">
       <div className="max-w-7xl mx-auto">
           {/* Enhanced Header with Progress Tracker */}
           <div className="mb-8">
-            <div className="flex flex-col md:flex-row md:items-start md:justify-between mb-6 space-y-4 md:space-y-0">
-              <div className="flex items-center space-x-3 md:space-x-4">
-                <div className="p-2 md:p-3 bg-rose-500 rounded-lg">
-                  <Calendar className="h-6 w-6 md:h-8 md:w-8 text-white" />
+            <div className="flex flex-col space-y-4 mb-6">
+              <div className="flex items-center space-x-3">
+                <div className="p-2 bg-rose-500 rounded-lg">
+                  <Calendar className="h-6 w-6 text-white" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <h1 className="text-xl md:text-4xl font-semibold text-gray-900 tracking-tight">
+                  <h1 className="text-xl sm:text-2xl lg:text-4xl font-semibold text-gray-900 tracking-tight">
                     Timeline
                   </h1>
-                  <p className="text-gray-600 text-xs md:text-lg mt-1">
+                  <p className="text-gray-600 text-sm lg:text-lg mt-1 leading-tight">
                     {daysUntilWedding !== null && daysUntilWedding > 0
                       ? `${daysUntilWedding} days until your special day`
                       : daysUntilWedding === 0 
@@ -592,28 +592,26 @@ export default function TimelineModern() {
                 </div>
               </div>
               
-              <div className="flex items-center space-x-2 md:space-x-3 w-full md:w-auto">
-                <Button 
-                  onClick={() => setIsAddDialogOpen(true)}
-                  className="gradient-blush-rose text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 flex-1 md:flex-none"
-                  size="lg"
-                >
-                  <Plus className="mr-2" size={20} />
-                  Add Task
-                </Button>
-              </div>
+              <Button 
+                onClick={() => setIsAddDialogOpen(true)}
+                className="gradient-blush-rose text-white shadow-lg hover:shadow-xl transition-all duration-200 w-full sm:w-auto"
+                size="lg"
+              >
+                <Plus className="mr-2" size={20} />
+                Add Task
+              </Button>
             </div>
 
             {/* Progress Tracker Section */}
             <Card className="mb-6 border-0 bg-gradient-to-r from-rose-50 to-blush-50 shadow-lg">
-              <CardContent className="p-6">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <CardContent className="p-4 sm:p-6">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
                   {/* Overall Progress */}
                   <div className="lg:col-span-1">
                     <div className="text-center">
                       <h3 className="text-lg font-semibold text-gray-800 mb-4">Overall Progress</h3>
                       <div className="relative inline-flex items-center justify-center">
-                        <svg className="w-32 h-32 transform -rotate-90" viewBox="0 0 100 100">
+                        <svg className="w-24 h-24 sm:w-32 sm:h-32 transform -rotate-90" viewBox="0 0 100 100">
                           <circle
                             cx="50"
                             cy="50"
@@ -638,8 +636,8 @@ export default function TimelineModern() {
                         </svg>
                         <div className="absolute inset-0 flex items-center justify-center">
                           <div className="text-center">
-                            <div className="text-3xl font-bold text-rose-600">{completionPercentage}%</div>
-                            <div className="text-sm text-gray-600">Complete</div>
+                            <div className="text-xl sm:text-3xl font-bold text-rose-600">{completionPercentage}%</div>
+                            <div className="text-xs sm:text-sm text-gray-600">Complete</div>
                           </div>
                         </div>
                       </div>
@@ -700,18 +698,18 @@ export default function TimelineModern() {
           </div>
 
           {/* Enhanced Stats Grid with Quick Filters */}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-4 mb-8">
             <button 
               onClick={() => setFilterScope(filterScope === "all" ? "all" : "all")}
               className={`${filterScope === "all" ? "ring-2 ring-rose-500" : ""}`}
             >
               <Card className="border-0 bg-white/60 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer">
-                <CardContent className="p-4 text-center">
-                  <div className="p-2 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-lg mx-auto w-fit mb-2">
-                    <Target className="h-5 w-5 text-white" />
+                <CardContent className="p-2 sm:p-4 text-center">
+                  <div className="p-1 sm:p-2 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-lg mx-auto w-fit mb-1 sm:mb-2">
+                    <Target className="h-3 w-3 sm:h-5 sm:w-5 text-white" />
                   </div>
-                  <p className="text-xs font-medium text-gray-600 mb-1">All Tasks</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
+                  <p className="text-[10px] sm:text-xs font-medium text-gray-600 mb-1">All Tasks</p>
+                  <p className="text-lg sm:text-2xl font-bold text-gray-900">{stats.total}</p>
                 </CardContent>
               </Card>
             </button>

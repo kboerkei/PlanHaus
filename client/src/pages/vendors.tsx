@@ -335,7 +335,7 @@ export default function VendorsEnhanced() {
 
   if (isLoading) {
     return (
-      <div className="p-6">
+      <div className="p-3 sm:p-6 mobile-safe-spacing">
         <div className="max-w-7xl mx-auto">
           {/* Loading Header */}
           <div className="mb-8 animate-pulse">
@@ -388,7 +388,7 @@ export default function VendorsEnhanced() {
 
   if (error || vendors === null) {
     return (
-      <div className="p-6">
+      <div className="p-3 sm:p-6 mobile-safe-spacing">
         <div className="max-w-6xl mx-auto">
           <div className="text-center py-12">
             <Building className="h-16 w-16 text-gray-400 mx-auto mb-4" />
@@ -416,7 +416,7 @@ export default function VendorsEnhanced() {
 
   return (
     <>
-      <div className="p-6">
+      <div className="p-3 sm:p-6 mobile-safe-spacing">
         <div className="max-w-7xl mx-auto">
           {/* Simple Header Section */}
           <div className="mb-8">

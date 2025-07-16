@@ -122,7 +122,7 @@ export default function ProgressOverview() {
           </span>
         </div>
         
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
           <ProgressRing
             percentage={budgetProgress}
             color="#F43F5E"

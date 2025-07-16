@@ -54,7 +54,7 @@ export default function MobileNav() {
               key={item.name} 
               href={item.href}
               className={cn(
-                "relative flex flex-col items-center py-3 px-2 transition-all duration-300 hover-lift touch-manipulation min-h-[64px] group",
+                "relative flex flex-col items-center py-2 px-1 transition-all duration-300 hover-lift touch-manipulation min-h-[60px] group",
                 isActive ? "text-gray-800" : "text-gray-500"
               )}
             >
@@ -64,13 +64,13 @@ export default function MobileNav() {
               )}
               
               {/* Icon with gradient background */}
-              <div className={`relative p-2 rounded-xl bg-gradient-to-br ${gradient} shadow-lg mb-1 ${
-                isActive ? 'scale-110' : 'scale-90 opacity-60'
-              } transition-all duration-300 group-hover:scale-105`}>
-                <Icon className="h-4 w-4 text-white" />
+              <div className={`relative p-1.5 rounded-lg bg-gradient-to-br ${gradient} shadow-md mb-1 ${
+                isActive ? 'scale-100' : 'scale-90 opacity-70'
+              } transition-all duration-300 group-hover:scale-95`}>
+                <Icon className="h-3.5 w-3.5 text-white" />
               </div>
               
-              <span className={`text-xs font-semibold truncate ${
+              <span className={`text-[10px] font-semibold truncate max-w-[60px] ${
                 isActive ? 'text-gray-800' : 'text-gray-500'
               }`}>
                 {item.name}
@@ -86,11 +86,11 @@ export default function MobileNav() {
         
         <Sheet open={isMoreOpen} onOpenChange={setIsMoreOpen}>
           <SheetTrigger asChild>
-            <button className="relative flex flex-col items-center py-3 px-2 transition-all duration-300 hover-lift text-gray-500 touch-manipulation min-h-[64px] group">
-              <div className="relative p-2 rounded-xl bg-gradient-to-br from-gray-400 to-gray-600 shadow-lg mb-1 scale-90 opacity-60 group-hover:scale-105 transition-all duration-300">
-                <MoreHorizontal className="h-4 w-4 text-white" />
+            <button className="relative flex flex-col items-center py-2 px-1 transition-all duration-300 hover-lift text-gray-500 touch-manipulation min-h-[60px] group">
+              <div className="relative p-1.5 rounded-lg bg-gradient-to-br from-gray-400 to-gray-600 shadow-md mb-1 scale-90 opacity-70 group-hover:scale-95 transition-all duration-300">
+                <MoreHorizontal className="h-3.5 w-3.5 text-white" />
               </div>
-              <span className="text-xs font-semibold">More</span>
+              <span className="text-[10px] font-semibold truncate max-w-[60px]">More</span>
             </button>
           </SheetTrigger>
           <SheetContent side="bottom" className="h-auto glass-wedding backdrop-blur-xl border-t border-white/30">

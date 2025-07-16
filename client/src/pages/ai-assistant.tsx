@@ -193,7 +193,7 @@ export default function AIAssistant() {
   };
 
   return (
-    <div className="p-6">
+    <div className="p-3 sm:p-6 mobile-safe-spacing">
           <div className="max-w-4xl mx-auto">
             <div className="mb-6">
               <h1 className="font-serif text-3xl font-semibold text-gray-800 mb-2">
@@ -205,19 +205,19 @@ export default function AIAssistant() {
             </div>
 
             {/* Quick Actions */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-6">
               {quickActions.map((action, index) => {
                 const Icon = action.icon;
                 return (
                   <Card key={index} className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => handleQuickAction(action.message)}>
-                    <CardContent className="p-4">
-                      <div className="flex items-start space-x-3">
-                        <div className="w-10 h-10 gradient-blush-rose rounded-lg flex items-center justify-center">
-                          <Icon className="text-white" size={20} />
+                    <CardContent className="p-3 sm:p-4">
+                      <div className="flex items-start space-x-2 sm:space-x-3">
+                        <div className="w-8 h-8 sm:w-10 sm:h-10 gradient-blush-rose rounded-lg flex items-center justify-center flex-shrink-0">
+                          <Icon className="text-white" size={16} />
                         </div>
-                        <div>
-                          <h3 className="font-semibold text-gray-800">{action.title}</h3>
-                          <p className="text-sm text-gray-600">{action.description}</p>
+                        <div className="min-w-0">
+                          <h3 className="font-semibold text-gray-800 text-sm sm:text-base">{action.title}</h3>
+                          <p className="text-xs sm:text-sm text-gray-600 leading-tight">{action.description}</p>
                         </div>
                       </div>
                     </CardContent>
@@ -235,10 +235,10 @@ export default function AIAssistant() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="h-96 overflow-y-auto mb-4 space-y-4 border rounded-lg p-4 bg-gray-50">
+                <div className="h-64 sm:h-96 overflow-y-auto mb-4 space-y-4 border rounded-lg p-3 sm:p-4 bg-gray-50">
                   {chatHistory.map((chat) => (
                     <div key={chat.id} className={`flex ${chat.type === 'user' ? 'justify-end' : 'justify-start'}`}>
-                      <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                      <div className={`max-w-[80%] sm:max-w-xs lg:max-w-md px-3 sm:px-4 py-2 rounded-lg text-sm sm:text-base ${
                         chat.type === 'user' 
                           ? 'bg-blush text-white' 
                           : chat.isError

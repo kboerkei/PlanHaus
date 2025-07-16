@@ -319,7 +319,7 @@ export default function Guests() {
   }
 
   return (
-    <div className="p-6">
+    <div className="p-3 sm:p-6 mobile-safe-spacing">
       <div className="max-w-6xl mx-auto">
         {/* Header Section */}
         <div className="mb-8">
