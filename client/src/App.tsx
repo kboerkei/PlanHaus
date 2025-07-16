@@ -26,6 +26,7 @@ import Header from "@/components/layout/header";
 import Footer from "@/components/layout/footer";
 import MobileNav from "@/components/layout/mobile-nav-enhanced";
 import FloatingActions from "@/components/layout/floating-actions";
+import MobileMenu from "@/components/mobile-menu";
 
 function Router({ user, onLogout, isNewUser, onIntakeComplete }: { user: any; onLogout: () => void; isNewUser: boolean; onIntakeComplete: () => void }) {
   // Allow users to access all sections even without completing intake
@@ -33,6 +34,7 @@ function Router({ user, onLogout, isNewUser, onIntakeComplete }: { user: any; on
   return (
     <div className="flex h-screen bg-background">
       <Sidebar />
+      <MobileMenu />
       <div className="flex-1 flex flex-col overflow-hidden lg:ml-64">
         <Header />
         <main className="flex-1 overflow-auto pb-20 lg:pb-0 px-4 lg:px-0">

@@ -14,7 +14,7 @@ interface BudgetItem {
   estimatedCost: number;
   actualCost: number;
   vendor?: string;
-  paymentStatus: 'pending' | 'paid' | 'overdue';
+  isPaid?: boolean;
   notes?: string;
 }
 
@@ -44,7 +44,7 @@ const CATEGORY_COLORS: { [key: string]: string } = {
 };
 
 export default function BudgetCharts({ budgetItems }: BudgetChartsProps) {
-  // Calculate category totals
+  // Calculate category totals with proper number parsing
   const categoryData = React.useMemo(() => {
     const categories: { [key: string]: { estimated: number; actual: number; count: number } } = {};
     
@@ -52,8 +52,11 @@ export default function BudgetCharts({ budgetItems }: BudgetChartsProps) {
       if (!categories[item.category]) {
         categories[item.category] = { estimated: 0, actual: 0, count: 0 };
       }
-      categories[item.category].estimated += item.estimatedCost;
-      categories[item.category].actual += item.actualCost;
+      const estimated = parseFloat(String(item.estimatedCost)) || 0;
+      const actual = parseFloat(String(item.actualCost)) || 0;
+      
+      categories[item.category].estimated += estimated;
+      categories[item.category].actual += actual;
       categories[item.category].count += 1;
     });
 
@@ -67,11 +70,15 @@ export default function BudgetCharts({ budgetItems }: BudgetChartsProps) {
     }));
   }, [budgetItems]);
 
-  // Calculate payment status data
+  // Calculate payment status data with proper number parsing  
   const paymentData = React.useMemo(() => {
     const status = { pending: 0, paid: 0, overdue: 0 };
     budgetItems.forEach(item => {
-      status[item.paymentStatus] += item.actualCost || item.estimatedCost;
+      const actualCost = parseFloat(String(item.actualCost)) || 0;
+      const estimatedCost = parseFloat(String(item.estimatedCost)) || 0;
+      const paymentStatus = item.isPaid ? 'paid' : 'pending'; // Use isPaid field from our schema
+      
+      status[paymentStatus] += actualCost || estimatedCost;
     });
     
     return [
@@ -93,9 +100,9 @@ export default function BudgetCharts({ budgetItems }: BudgetChartsProps) {
     }));
   }, []);
 
-  // Calculate totals
-  const totalEstimated = budgetItems.reduce((sum, item) => sum + item.estimatedCost, 0);
-  const totalActual = budgetItems.reduce((sum, item) => sum + item.actualCost, 0);
+  // Calculate totals with proper number parsing
+  const totalEstimated = budgetItems.reduce((sum, item) => sum + (parseFloat(String(item.estimatedCost)) || 0), 0);
+  const totalActual = budgetItems.reduce((sum, item) => sum + (parseFloat(String(item.actualCost)) || 0), 0);
   const totalVariance = totalActual - totalEstimated;
   const budgetUsage = totalEstimated > 0 ? (totalActual / totalEstimated) * 100 : 0;
 
@@ -114,9 +121,9 @@ export default function BudgetCharts({ budgetItems }: BudgetChartsProps) {
       alerts.push({ type: 'warning', message: 'Budget usage is over 80%. Monitor spending closely.' });
     }
     
-    const overdueItems = budgetItems.filter(item => item.paymentStatus === 'overdue');
-    if (overdueItems.length > 0) {
-      alerts.push({ type: 'error', message: `${overdueItems.length} payment${overdueItems.length > 1 ? 's' : ''} overdue.` });
+    const unpaidItems = budgetItems.filter(item => !item.isPaid && (parseFloat(String(item.actualCost)) || 0) > 0);
+    if (unpaidItems.length > 0) {
+      alerts.push({ type: 'error', message: `${unpaidItems.length} payment${unpaidItems.length > 1 ? 's' : ''} pending.` });
     }
     
     return alerts;
