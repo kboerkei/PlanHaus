@@ -17,18 +17,18 @@ function ProgressRing({ percentage, color, label, sublabel, onClick }: ProgressR
 
   return (
     <div 
-      className={`text-center transition-all duration-200 ${onClick ? 'cursor-pointer hover:scale-105 hover:shadow-lg rounded-lg p-2 hover:bg-gray-50' : ''}`}
+      className={`text-center transition-all duration-200 ${onClick ? 'cursor-pointer hover:scale-105 hover:shadow-lg rounded-lg p-4 hover:bg-gray-50' : ''}`}
       onClick={onClick}
     >
-      <div className="relative w-16 h-16 mx-auto mb-3">
-        <svg className="w-16 h-16 transform -rotate-90" viewBox="0 0 64 64">
+      <div className="relative w-20 h-20 mx-auto mb-4">
+        <svg className="w-20 h-20 transform -rotate-90" viewBox="0 0 64 64">
           <circle
             cx="32"
             cy="32"
             r={radius}
             fill="none"
             stroke="#F3F4F6"
-            strokeWidth="8"
+            strokeWidth="6"
           />
           <circle
             cx="32"
@@ -36,18 +36,20 @@ function ProgressRing({ percentage, color, label, sublabel, onClick }: ProgressR
             r={radius}
             fill="none"
             stroke={color}
-            strokeWidth="8"
+            strokeWidth="6"
             strokeDasharray={circumference}
             strokeDashoffset={strokeDashoffset}
             className="transition-all duration-1000 ease-in-out"
           />
         </svg>
         <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-lg font-semibold text-gray-800">{percentage}%</span>
+          <span className="text-xl font-bold text-gray-800">{percentage}%</span>
         </div>
       </div>
-      <p className="text-sm font-medium text-gray-700">{label}</p>
-      <p className="text-xs text-gray-500">{sublabel}</p>
+      <div className="space-y-1">
+        <p className="text-sm font-semibold text-gray-700">{label}</p>
+        <p className="text-xs text-gray-500 break-words">{sublabel}</p>
+      </div>
     </div>
   );
 }
@@ -120,24 +122,24 @@ export default function ProgressOverview() {
           </span>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
           <ProgressRing
             percentage={budgetProgress}
-            color="var(--blush)"
+            color="#F43F5E"
             label="Budget"
             sublabel={`$${Math.round(totalSpent).toLocaleString()} of $${Math.round(totalBudget).toLocaleString()}`}
             onClick={() => setLocation('/budget')}
           />
           <ProgressRing
             percentage={taskProgress}
-            color="var(--rose-gold)"
+            color="#EC4899"
             label="Tasks"
             sublabel={`${completedTasks} of ${totalTasks} done`}
             onClick={() => setLocation('/timeline')}
           />
           <ProgressRing
             percentage={guestProgress}
-            color="var(--champagne)"
+            color="#F59E0B"
             label="RSVPs"
             sublabel={`${confirmedGuests.length} of ${guests?.length || 0} confirmed`}
             onClick={() => setLocation('/guests')}
