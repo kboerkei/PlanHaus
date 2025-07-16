@@ -576,10 +576,10 @@ export default function TimelineModern() {
                   <Calendar className="h-6 w-6 text-white" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <h1 className="text-xl sm:text-2xl lg:text-4xl font-semibold text-gray-900 tracking-tight">
+                  <h1 className="text-xl sm:text-2xl lg:text-4xl xl:text-5xl font-semibold text-gray-900 tracking-tight">
                     Timeline
                   </h1>
-                  <p className="text-gray-600 text-sm lg:text-lg mt-1 leading-tight">
+                  <p className="text-gray-600 text-sm lg:text-lg xl:text-xl mt-1 leading-tight">
                     {daysUntilWedding !== null && daysUntilWedding > 0
                       ? `${daysUntilWedding} days until your special day`
                       : daysUntilWedding === 0 
@@ -594,7 +594,7 @@ export default function TimelineModern() {
               
               <Button 
                 onClick={() => setIsAddDialogOpen(true)}
-                className="gradient-blush-rose text-white shadow-lg hover:shadow-xl transition-all duration-200 w-full sm:w-auto"
+                className="gradient-blush-rose text-white shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200 w-full sm:w-auto lg:px-8 lg:py-4 lg:text-lg"
                 size="lg"
               >
                 <Plus className="mr-2" size={20} />
@@ -609,7 +609,7 @@ export default function TimelineModern() {
                   {/* Overall Progress */}
                   <div className="lg:col-span-1">
                     <div className="text-center">
-                      <h3 className="text-lg font-semibold text-gray-800 mb-4">Overall Progress</h3>
+                      <h3 className="text-lg lg:text-xl xl:text-2xl font-semibold text-gray-800 mb-4">Overall Progress</h3>
                       <div className="relative inline-flex items-center justify-center">
                         <svg className="w-24 h-24 sm:w-32 sm:h-32 transform -rotate-90" viewBox="0 0 100 100">
                           <circle
@@ -649,7 +649,7 @@ export default function TimelineModern() {
 
                   {/* This Week's Tasks */}
                   <div className="lg:col-span-2">
-                    <h3 className="text-lg font-semibold text-gray-800 mb-4">This Week's Focus</h3>
+                    <h3 className="text-lg lg:text-xl xl:text-2xl font-semibold text-gray-800 mb-4">This Week's Focus</h3>
                     {thisWeeksTasks.length === 0 ? (
                       <div className="text-center py-8">
                         <CheckCircle2 className="h-12 w-12 text-green-500 mx-auto mb-3" />
@@ -698,18 +698,18 @@ export default function TimelineModern() {
           </div>
 
           {/* Enhanced Stats Grid with Quick Filters */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-4 mb-8">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 xl:grid-cols-6 gap-2 sm:gap-4 lg:gap-6 xl:gap-8 mb-8">
             <button 
               onClick={() => setFilterScope(filterScope === "all" ? "all" : "all")}
               className={`${filterScope === "all" ? "ring-2 ring-rose-500" : ""}`}
             >
-              <Card className="border-0 bg-white/60 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer">
-                <CardContent className="p-2 sm:p-4 text-center">
+              <Card className="border-0 bg-white/60 backdrop-blur-sm shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer">
+                <CardContent className="p-2 sm:p-4 lg:p-6 text-center">
                   <div className="p-1 sm:p-2 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-lg mx-auto w-fit mb-1 sm:mb-2">
                     <Target className="h-3 w-3 sm:h-5 sm:w-5 text-white" />
                   </div>
-                  <p className="text-[10px] sm:text-xs font-medium text-gray-600 mb-1">All Tasks</p>
-                  <p className="text-lg sm:text-2xl font-bold text-gray-900">{stats.total}</p>
+                  <p className="text-[10px] sm:text-xs lg:text-sm font-medium text-gray-600 mb-1">All Tasks</p>
+                  <p className="text-lg sm:text-2xl lg:text-3xl xl:text-4xl font-bold text-gray-900">{stats.total}</p>
                 </CardContent>
               </Card>
             </button>

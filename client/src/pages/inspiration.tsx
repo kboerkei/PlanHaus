@@ -124,7 +124,7 @@ export default function Inspiration() {
               <Palette className="h-8 w-8 text-white" />
             </div>
             <div>
-              <h1 className="text-3xl font-semibold text-gray-900 tracking-tight mb-2">
+              <h1 className="text-3xl lg:text-4xl xl:text-5xl font-semibold text-gray-900 tracking-tight mb-2">
                 Inspiration Board
               </h1>
               <p className="text-gray-600">

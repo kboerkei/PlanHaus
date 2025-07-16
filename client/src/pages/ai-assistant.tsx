@@ -196,7 +196,7 @@ export default function AIAssistant() {
     <div className="p-3 sm:p-6 mobile-safe-spacing">
           <div className="max-w-4xl mx-auto">
             <div className="mb-6">
-              <h1 className="font-serif text-3xl font-semibold text-gray-800 mb-2">
+              <h1 className="font-serif text-3xl lg:text-4xl xl:text-5xl font-semibold text-gray-800 mb-2">
                 AI Wedding Assistant
               </h1>
               <p className="text-gray-600">

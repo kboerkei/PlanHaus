@@ -426,10 +426,10 @@ export default function VendorsEnhanced() {
                     <Store className="h-6 w-6 md:h-8 md:w-8 text-white" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <h1 className="text-xl md:text-4xl font-semibold text-gray-900 tracking-tight">
+                    <h1 className="text-xl md:text-4xl xl:text-5xl font-semibold text-gray-900 tracking-tight">
                       Vendor Management
                     </h1>
-                    <p className="text-gray-600 text-xs md:text-lg mt-1">
+                    <p className="text-gray-600 text-xs md:text-lg xl:text-xl mt-1">
                       Organize your wedding vendors and track progress
                     </p>
                   </div>

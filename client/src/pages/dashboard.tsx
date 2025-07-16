@@ -52,7 +52,7 @@ export default function Dashboard() {
           <ProgressOverview />
           
           {/* Main Dashboard Grid with Enhanced Cards */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 xl:gap-10 mb-8">
             <div className="lg:col-span-2">
               <AIAssistantCard />
             </div>
@@ -62,21 +62,21 @@ export default function Dashboard() {
           </div>
 
           {/* Enhanced Tasks and Activity Section */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-            <div className="card-wedding p-6 hover-lift">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 xl:gap-10 mb-8">
+            <div className="card-wedding p-6 lg:p-8 hover-lift hover:scale-[1.02] transition-transform duration-200">
               <UpcomingTasks />
             </div>
-            <div className="card-wedding p-6 hover-lift">
+            <div className="card-wedding p-6 lg:p-8 hover-lift hover:scale-[1.02] transition-transform duration-200">
               <RecentActivity />
             </div>
           </div>
 
           {/* Enhanced Features Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-            <div className="card-wedding p-6 hover-lift">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 xl:gap-10 mb-8">
+            <div className="card-wedding p-6 lg:p-8 hover-lift hover:scale-[1.02] transition-transform duration-200">
               <CollaborativeFeatures />
             </div>
-            <div className="card-wedding p-6 hover-lift">
+            <div className="card-wedding p-6 lg:p-8 hover-lift hover:scale-[1.02] transition-transform duration-200">
               <InspirationPreview />
             </div>
           </div>
@@ -84,8 +84,8 @@ export default function Dashboard() {
           {/* Planning Tools Section */}
           <div className="mb-8 animate-fade-in-up">
             <div className="text-center mb-8">
-              <h2 className="font-heading text-3xl font-bold text-foreground mb-2">Planning Tools</h2>
-              <p className="text-muted-foreground">Everything you need to plan your perfect wedding</p>
+              <h2 className="font-heading text-3xl lg:text-4xl xl:text-5xl font-bold text-foreground mb-2">Planning Tools</h2>
+              <p className="text-muted-foreground text-lg lg:text-xl">Everything you need to plan your perfect wedding</p>
             </div>
             
             <div className="grid md:grid-cols-2 gap-8 max-w-6xl mx-auto">
@@ -103,17 +103,17 @@ export default function Dashboard() {
                           <Link key={item.href} href={item.href}>
                             <Button
                               variant="ghost"
-                              className="w-full justify-start h-auto p-4 hover:bg-rose-50 hover:border-rose-200 border border-transparent transition-all duration-200 group"
+                              className="w-full justify-start h-auto p-4 lg:p-6 hover:bg-rose-50 hover:border-rose-200 border border-transparent transition-all duration-200 group hover:scale-105"
                             >
-                              <div className="flex items-center space-x-3 w-full">
+                              <div className="flex items-center space-x-3 lg:space-x-4 w-full">
                                 <div className="flex-shrink-0">
-                                  <Icon className="h-5 w-5 text-rose-400 group-hover:text-rose-500 transition-colors" />
+                                  <Icon className="h-5 w-5 lg:h-6 lg:w-6 text-rose-400 group-hover:text-rose-500 transition-colors" />
                                 </div>
                                 <div className="flex-1 text-left">
-                                  <div className="font-medium text-foreground group-hover:text-rose-600 transition-colors">
+                                  <div className="font-medium text-foreground group-hover:text-rose-600 transition-colors text-base lg:text-lg">
                                     {item.label}
                                   </div>
-                                  <div className="text-sm text-muted-foreground">
+                                  <div className="text-sm lg:text-base text-muted-foreground">
                                     {item.description}
                                   </div>
                                 </div>

@@ -29,7 +29,7 @@ export default function Sidebar() {
             <Heart className="text-white" size={20} />
           </div>
           <div>
-            <h2 className="font-serif text-xl font-semibold text-gray-800">Gatherly</h2>
+            <h2 className="font-serif text-xl font-semibold text-gray-800">PlanHaus</h2>
             <p className="text-xs text-gray-500">AI Wedding Planning</p>
           </div>
         </div>
@@ -46,7 +46,7 @@ export default function Sidebar() {
                 <Link 
                   href={item.href}
                   className={cn(
-                    "flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors font-medium focus:outline-none focus:ring-2 focus:ring-blush focus:ring-offset-2",
+                    "flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 font-medium focus:outline-none focus:ring-2 focus:ring-blush focus:ring-offset-2 hover:scale-105",
                     isActive 
                       ? "gradient-blush-rose text-white" 
                       : "text-gray-600 hover:bg-gray-50 hover:text-gray-800"

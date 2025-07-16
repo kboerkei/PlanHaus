@@ -187,6 +187,38 @@
     }
   }
 
+  /* Desktop-first utilities */
+  @media (min-width: 1024px) {
+    .desktop-enhanced-spacing {
+      padding: 2rem;
+    }
+
+    .desktop-card-padding {
+      padding: 2rem 2.5rem;
+    }
+
+    .desktop-text-scale {
+      font-size: 1.125rem;
+      line-height: 1.75rem;
+    }
+
+    .desktop-button-lg {
+      padding: 0.75rem 2rem;
+      font-size: 1.125rem;
+    }
+  }
+
+  @media (min-width: 1280px) {
+    .xl-enhanced-spacing {
+      padding: 3rem;
+    }
+
+    .xl-text-scale {
+      font-size: 1.25rem;
+      line-height: 2rem;
+    }
+  }
+
   .text-blush {
     color: var(--blush);
   }
