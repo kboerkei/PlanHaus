@@ -16,7 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Calendar, Plus, CheckCircle2, Clock, AlertTriangle, CalendarDays, Target, Users, TrendingUp, 
   Search, SortAsc, PartyPopper, Heart, MapPin, Clock3, ChevronUp, Filter, Grid, List, 
-  MoreVertical, Edit, Trash2, MessageSquare, ChevronDown, Sparkles
+  MoreVertical, Edit, Trash2, MessageSquare, ChevronDown, Sparkles, FileText
 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
