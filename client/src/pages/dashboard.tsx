@@ -48,10 +48,7 @@ export default function Dashboard() {
           <MilestoneCelebration />
           <SmartOnboarding />
 
-          {/* Enhanced Progress Overview */}
-          <div className="mb-8">
-            <ProjectOverview projectId={15} />
-          </div>
+
           
           {/* Main Dashboard Grid with Enhanced Cards */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
