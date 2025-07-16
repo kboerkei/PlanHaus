@@ -7,6 +7,7 @@ import InspirationPreview from "@/components/dashboard/inspiration-preview";
 import MilestoneCelebration from "@/components/dashboard/milestone-celebration";
 import CollaborativeFeatures from "@/components/dashboard/collaborative-features";
 import SmartOnboarding from "@/components/dashboard/smart-onboarding";
+import ProjectOverview from "@/components/ProjectOverview";
 import { Link } from "wouter";
 import { Calendar, DollarSign, Users, Store, Palette, Bot, Clock, Globe, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -49,7 +50,7 @@ export default function Dashboard() {
 
           {/* Enhanced Progress Overview */}
           <div className="mb-8">
-            <ProgressOverview />
+            <ProjectOverview projectId={15} />
           </div>
           
           {/* Main Dashboard Grid with Enhanced Cards */}

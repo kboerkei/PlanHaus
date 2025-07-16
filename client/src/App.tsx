@@ -7,13 +7,14 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import KeyboardShortcuts from "@/components/ui/keyboard-shortcuts";
 import { ErrorBoundary } from "@/components/error-boundary";
 import LoadingSpinner from "@/components/loading-spinner";
+import ToastProvider from "@/components/ToastProvider";
 import Auth from "@/pages/auth";
 import Profile from "@/pages/profile";
 import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/dashboard";
 import AIAssistant from "@/pages/ai-assistant";
-import Timeline from "@/pages/timeline-enhanced";
-import Budget from "@/pages/budget-working";
+import Timeline from "@/pages/timeline";
+import Budget from "@/pages/budget";
 import Guests from "@/pages/guests";
 import Vendors from "@/pages/vendors";
 import Inspiration from "@/pages/inspiration";
@@ -244,6 +245,7 @@ function App() {
             )}
           </div>
           <Toaster />
+          <ToastProvider />
         </TooltipProvider>
       </QueryClientProvider>
     </ErrorBoundary>

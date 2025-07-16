@@ -1,30 +1,27 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import LoadingSpinner from "@/components/loading-spinner";
+import DragDropTimeline from "@/components/DragDropTimeline";
+import KanbanBoard from "@/components/KanbanBoard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
-import { Separator } from "@/components/ui/separator";
 import { 
   Calendar, Plus, CheckCircle2, Clock, AlertTriangle, CalendarDays, Target, Users, TrendingUp, 
-  MessageSquare, UserPlus, Edit, Trash2, MoreVertical, Bell, CheckSquare, Star, Filter,
-  Sparkles, Zap, ArrowRight, Play, Pause, RotateCcw, Flag, BookOpen, FileText, Send,
-  ChevronDown, ChevronRight, Activity, Timer, Hash, Grid, List, Search, SortAsc, PartyPopper,
-  Heart, Calendar1, Calendar2, Calendar3, Calendar4, MapPin, Clock3, ChevronUp
+  Search, SortAsc, PartyPopper, Heart, MapPin, Clock3, ChevronUp, Filter, Grid, List
 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { toast } from 'react-hot-toast';
 
 const taskSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -87,7 +84,7 @@ export default function TimelineModern() {
   const [showCompleted, setShowCompleted] = useState(true);
   // Enhanced filtering states
   const [filterScope, setFilterScope] = useState<"all" | "overdue" | "upcoming" | "high_priority" | "assigned_to_me">("all");
-  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(["upcoming", "1month", "6months", "12months"]));
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(["upcoming", "oneMonth", "sixMonths", "twelveMonths"]));
   const { toast } = useToast();
 
   // Fetch data
@@ -265,9 +262,9 @@ export default function TimelineModern() {
     if (daysUntilDue >= 0 && daysUntilDue <= 7) return "thisWeek";
     
     // Organize by distance from wedding
-    if (daysFromWedding >= 365) return "12months"; // 12+ months out
-    if (daysFromWedding >= 180) return "6months";  // 6+ months out  
-    if (daysFromWedding >= 30) return "1month";    // 1+ month out
+    if (daysFromWedding >= 365) return "twelveMonths"; // 12+ months out
+    if (daysFromWedding >= 180) return "sixMonths";  // 6+ months out  
+    if (daysFromWedding >= 30) return "oneMonth";    // 1+ month out
     if (daysFromWedding >= 7) return "weekof";     // Week of wedding
     if (daysFromWedding >= 0) return "weddingday"; // Wedding day and after
     
@@ -305,19 +302,19 @@ export default function TimelineModern() {
       color: "border-purple-500 bg-purple-50",
       description: "The big day and honeymoon"
     },
-    1month: { 
+    oneMonth: { 
       title: "📋 1 Month Out", 
       icon: Calendar2, 
       color: "border-green-500 bg-green-50",
       description: "Final month preparations"
     },
-    6months: { 
+    sixMonths: { 
       title: "🎯 6 Months Out", 
       icon: Calendar3, 
       color: "border-indigo-500 bg-indigo-50",
       description: "Mid-stage planning"
     },
-    12months: { 
+    twelveMonths: { 
       title: "🌟 12+ Months Out", 
       icon: Calendar4, 
       color: "border-teal-500 bg-teal-50",
@@ -849,84 +846,130 @@ export default function TimelineModern() {
             </Card>
           </div>
 
-          {/* Wedding Timeline Buckets */}
-          <div className="space-y-6">
-            {["overdue", "thisWeek", "upcoming", "weekof", "weddingday", "1month", "6months", "12months", "noDueDate"].map((bucketKey) => {
-              const bucket = bucketLabels[bucketKey as keyof typeof bucketLabels];
-              const bucketTasks = groupedTasks[bucketKey] || [];
-              
-              if (bucketTasks.length === 0) return null;
-              
-              const Icon = bucket.icon;
-              const isExpanded = expandedSections.has(bucketKey);
-              
-              return (
-                <Card key={bucketKey} className={`border-l-4 ${bucket.color} shadow-lg`}>
-                  <CardHeader 
-                    className="cursor-pointer hover:bg-gray-50/50 transition-colors"
-                    onClick={() => toggleSectionExpanded(bucketKey)}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
-                        <Icon className="h-6 w-6 text-gray-700" />
-                        <div>
-                          <CardTitle className="text-lg">{bucket.title}</CardTitle>
-                          <p className="text-sm text-gray-600 mt-1">{bucket.description}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-3">
-                        <Badge variant="outline" className="bg-white">
-                          {bucketTasks.length} task{bucketTasks.length !== 1 ? 's' : ''}
-                        </Badge>
-                        {isExpanded ? (
-                          <ChevronUp className="h-5 w-5 text-gray-400" />
-                        ) : (
-                          <ChevronDown className="h-5 w-5 text-gray-400" />
-                        )}
-                      </div>
-                    </div>
-                  </CardHeader>
+          {/* Enhanced Timeline Views */}
+          <Tabs defaultValue="timeline" className="w-full">
+            <TabsList className="grid w-full grid-cols-3 mb-6">
+              <TabsTrigger value="timeline" className="flex items-center space-x-2">
+                <Calendar className="h-4 w-4" />
+                <span>Timeline Buckets</span>
+              </TabsTrigger>
+              <TabsTrigger value="drag-drop" className="flex items-center space-x-2">
+                <Grid className="h-4 w-4" />
+                <span>Drag & Drop</span>
+              </TabsTrigger>
+              <TabsTrigger value="kanban" className="flex items-center space-x-2">
+                <List className="h-4 w-4" />
+                <span>Kanban Board</span>
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="drag-drop" className="space-y-6">
+              <DragDropTimeline 
+                tasks={filteredTasks}
+                onTaskUpdate={(taskId, updates) => {
+                  updateTaskMutation.mutate({ id: taskId, data: updates });
+                }}
+                onTaskReorder={(reorderedTasks) => {
+                  // Handle task reordering logic here
+                  console.log('Tasks reordered:', reorderedTasks);
+                }}
+                projectId={currentProject?.id || 0}
+              />
+            </TabsContent>
+
+            <TabsContent value="kanban" className="space-y-6">
+              <KanbanBoard 
+                tasks={filteredTasks}
+                onTaskUpdate={(taskId, updates) => {
+                  updateTaskMutation.mutate({ id: taskId, data: updates });
+                }}
+                onTaskReorder={(reorderedTasks) => {
+                  // Handle task reordering logic here
+                  console.log('Tasks reordered:', reorderedTasks);
+                }}
+                projectId={currentProject?.id || 0}
+              />
+            </TabsContent>
+
+            <TabsContent value="timeline" className="space-y-6">
+              {/* Wedding Timeline Buckets */}
+              <div className="space-y-6">
+                {["overdue", "thisWeek", "upcoming", "weekof", "weddingday", "oneMonth", "sixMonths", "twelveMonths", "noDueDate"].map((bucketKey) => {
+                  const bucket = bucketLabels[bucketKey as keyof typeof bucketLabels];
+                  const bucketTasks = groupedTasks[bucketKey] || [];
                   
-                  {isExpanded && (
-                    <CardContent className="pt-0">
-                      <div className="space-y-4">
-                        {bucketTasks.map((task: any) => (
-                          <div key={task.id} className="bg-white rounded-lg border p-4 hover:shadow-md transition-shadow">
-                            <div className="flex items-start justify-between">
-                              <div className="flex items-start space-x-3 flex-1">
-                                {/* Task Completion Checkbox */}
-                                <button
-                                  onClick={() => handleToggleComplete(task)}
-                                  className="flex-shrink-0 mt-1"
-                                >
-                                  {task.status === 'completed' ? (
-                                    <CheckCircle2 className="h-6 w-6 text-green-500" />
-                                  ) : (
-                                    <div className="h-6 w-6 border-2 border-gray-300 rounded-full hover:border-rose-500 transition-colors" />
-                                  )}
-                                </button>
-                                
-                                <div className="flex-1 min-w-0">
-                                  <h4 className={`font-medium ${task.status === 'completed' ? 'text-gray-500 line-through' : 'text-gray-900'}`}>
-                                    {task.title}
-                                  </h4>
-                                  {task.description && (
-                                    <p className={`text-sm mt-1 ${task.status === 'completed' ? 'text-gray-400' : 'text-gray-600'}`}>
-                                      {task.description}
-                                    </p>
-                                  )}
-                                  
-                                  <div className="flex items-center space-x-4 mt-3">
-                                    {task.dueDate && (
-                                      <div className="flex items-center space-x-1 text-xs text-gray-500">
-                                        <CalendarDays className="h-4 w-4" />
-                                        <span>Due {new Date(task.dueDate).toLocaleDateString()}</span>
-                                      </div>
-                                    )}
+                  if (bucketTasks.length === 0) return null;
+                  
+                  const Icon = bucket.icon;
+                  const isExpanded = expandedSections.has(bucketKey);
+                  
+                  return (
+                    <Card key={bucketKey} className={`border-l-4 ${bucket.color} shadow-lg`}>
+                      <CardHeader 
+                        className="cursor-pointer hover:bg-gray-50/50 transition-colors"
+                        onClick={() => toggleSectionExpanded(bucketKey)}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-3">
+                            <Icon className="h-6 w-6 text-gray-700" />
+                            <div>
+                              <CardTitle className="text-lg">{bucket.title}</CardTitle>
+                              <p className="text-sm text-gray-600 mt-1">{bucket.description}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center space-x-3">
+                            <Badge variant="outline" className="bg-white">
+                              {bucketTasks.length} task{bucketTasks.length !== 1 ? 's' : ''}
+                            </Badge>
+                            {isExpanded ? (
+                              <ChevronUp className="h-5 w-5 text-gray-400" />
+                            ) : (
+                              <ChevronDown className="h-5 w-5 text-gray-400" />
+                            )}
+                          </div>
+                        </div>
+                      </CardHeader>
+                      
+                      {isExpanded && (
+                        <CardContent className="pt-0">
+                          <div className="space-y-4">
+                            {bucketTasks.map((task: any) => (
+                              <div key={task.id} className="bg-white rounded-lg border p-4 hover:shadow-md transition-shadow">
+                                <div className="flex items-start justify-between">
+                                  <div className="flex items-start space-x-3 flex-1">
+                                    {/* Task Completion Checkbox */}
+                                    <button
+                                      onClick={() => handleToggleComplete(task)}
+                                      className="flex-shrink-0 mt-1"
+                                    >
+                                      {task.status === 'completed' ? (
+                                        <CheckCircle2 className="h-6 w-6 text-green-500" />
+                                      ) : (
+                                        <div className="h-6 w-6 border-2 border-gray-300 rounded-full hover:border-rose-500 transition-colors" />
+                                      )}
+                                    </button>
                                     
-                                    {task.category && (
-                                      <Badge variant="outline" className="text-xs">
-                                        {task.category}
+                                    <div className="flex-1 min-w-0">
+                                      <h4 className={`font-medium ${task.status === 'completed' ? 'text-gray-500 line-through' : 'text-gray-900'}`}>
+                                        {task.title}
+                                      </h4>
+                                      {task.description && (
+                                        <p className={`text-sm mt-1 ${task.status === 'completed' ? 'text-gray-400' : 'text-gray-600'}`}>
+                                          {task.description}
+                                        </p>
+                                      )}
+                                      
+                                      <div className="flex items-center space-x-4 mt-3">
+                                        {task.dueDate && (
+                                          <div className="flex items-center space-x-1 text-xs text-gray-500">
+                                            <CalendarDays className="h-4 w-4" />
+                                            <span>Due {new Date(task.dueDate).toLocaleDateString()}</span>
+                                          </div>
+                                        )}
+                                        
+                                        {task.category && (
+                                          <Badge variant="outline" className="text-xs">
+                                            {task.category}
                                       </Badge>
                                     )}
                                     
@@ -982,8 +1025,8 @@ export default function TimelineModern() {
               );
             })}
           </div>
-        </div>
-      </div>
+        </TabsContent>
+      </Tabs>
 
       {/* Add Task Dialog */}
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
@@ -1270,6 +1313,8 @@ export default function TimelineModern() {
           </Form>
         </DialogContent>
       </Dialog>
+      </div>
+    </div>
     </>
   );
 }

@@ -3,6 +3,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import SearchFilterBar from "@/components/ui/search-filter-bar";
 import ExportOptions from "@/components/ui/export-options";
 import LoadingSpinner from "@/components/loading-spinner";
+import BudgetCharts from "@/components/BudgetCharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +22,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const budgetSchema = z.object({
   category: z.string().min(1, "Category is required"),
@@ -439,87 +441,146 @@ export default function Budget() {
             </CardContent>
         </Card>
 
-        {/* Search and Filter Bar */}
-        <div className="flex flex-col md:flex-row gap-4 mb-6">
-          <div className="flex-1">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-              <Input
-                placeholder="Search budget items..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-          </div>
-          <Select value={filterCategory} onValueChange={setFilterCategory}>
-            <SelectTrigger className="w-full md:w-48">
-              <SelectValue placeholder="Filter by category" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Categories</SelectItem>
-              {budgetCategories.map(category => (
-                <SelectItem key={category} value={category}>{category}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        {/* Budget Tabs */}
+        <Tabs defaultValue="list" className="w-full">
+          <TabsList className="grid w-full grid-cols-3 mb-6">
+            <TabsTrigger value="list" className="flex items-center space-x-2">
+              <FileText className="h-4 w-4" />
+              <span>Budget List</span>
+            </TabsTrigger>
+            <TabsTrigger value="charts" className="flex items-center space-x-2">
+              <TrendingUp className="h-4 w-4" />
+              <span>Analytics</span>
+            </TabsTrigger>
+            <TabsTrigger value="insights" className="flex items-center space-x-2">
+              <Target className="h-4 w-4" />
+              <span>Insights</span>
+            </TabsTrigger>
+          </TabsList>
 
-        {/* Budget Items List */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Budget Items ({filteredSortedItems?.length || 0})</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {!filteredSortedItems || filteredSortedItems.length === 0 ? (
-                <div className="text-center py-8">
-                  <DollarSign className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-600">No budget items found matching your criteria.</p>
+          <TabsContent value="list" className="space-y-6">
+            {/* Search and Filter Bar */}
+            <div className="flex flex-col md:flex-row gap-4 mb-6">
+              <div className="flex-1">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                  <Input
+                    placeholder="Search budget items..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
                 </div>
-              ) : (
-                filteredSortedItems.map((item: any) => (
-                  <div key={item.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-3 mb-2">
-                          <h3 className="font-medium text-gray-900">{item.item}</h3>
-                          <Badge variant="outline">{item.category}</Badge>
-                          {item.isPaid && <Badge className="bg-green-100 text-green-800">Paid</Badge>}
-                        </div>
-                        <div className="text-sm text-gray-600 space-y-1">
-                          <p><span className="font-medium">Estimated:</span> {formatCurrency(item.estimatedCost)}</p>
-                          {item.actualCost > 0 && (
-                            <p><span className="font-medium">Actual:</span> {formatCurrency(item.actualCost)}</p>
-                          )}
-                          {item.vendor && <p><span className="font-medium">Vendor:</span> {item.vendor}</p>}
-                          {item.notes && <p><span className="font-medium">Notes:</span> {item.notes}</p>}
+              </div>
+              <Select value={filterCategory} onValueChange={setFilterCategory}>
+                <SelectTrigger className="w-full md:w-48">
+                  <SelectValue placeholder="Filter by category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Categories</SelectItem>
+                  {budgetCategories.map(category => (
+                    <SelectItem key={category} value={category}>{category}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Budget Items List */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Budget Items ({filteredSortedItems?.length || 0})</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {!filteredSortedItems || filteredSortedItems.length === 0 ? (
+                    <div className="text-center py-8">
+                      <DollarSign className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                      <p className="text-gray-600">No budget items found matching your criteria.</p>
+                    </div>
+                  ) : (
+                    filteredSortedItems.map((item: any) => (
+                      <div key={item.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center space-x-3 mb-2">
+                              <h3 className="font-medium text-gray-900">{item.item}</h3>
+                              <Badge variant="outline">{item.category}</Badge>
+                              {item.isPaid && <Badge className="bg-green-100 text-green-800">Paid</Badge>}
+                            </div>
+                            <div className="text-sm text-gray-600 space-y-1">
+                              <p><span className="font-medium">Estimated:</span> {formatCurrency(item.estimatedCost)}</p>
+                              {item.actualCost > 0 && (
+                                <p><span className="font-medium">Actual:</span> {formatCurrency(item.actualCost)}</p>
+                              )}
+                              {item.vendor && <p><span className="font-medium">Vendor:</span> {item.vendor}</p>}
+                              {item.notes && <p><span className="font-medium">Notes:</span> {item.notes}</p>}
+                            </div>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => openEditDialog(item)}
+                            >
+                              <Edit size={16} />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => deleteBudgetMutation.mutate(item.id)}
+                              className="text-red-600 hover:text-red-700"
+                            >
+                              <Trash2 size={16} />
+                            </Button>
+                          </div>
                         </div>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => openEditDialog(item)}
-                        >
-                          <Edit size={16} />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => deleteBudgetMutation.mutate(item.id)}
-                          className="text-red-600 hover:text-red-700"
-                        >
-                          <Trash2 size={16} />
-                        </Button>
-                      </div>
+                    ))
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="charts" className="space-y-6">
+            <BudgetCharts budgetItems={budgetItems || []} />
+          </TabsContent>
+
+          <TabsContent value="insights" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Target className="h-5 w-5 text-purple-600" />
+                  <span>Budget Insights</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="p-4 bg-blue-50 rounded-lg">
+                      <h4 className="font-medium text-blue-900 mb-2">💡 Cost Saving Tip</h4>
+                      <p className="text-sm text-blue-700">
+                        Consider booking vendors during off-peak seasons for potential savings of 15-25%.
+                      </p>
+                    </div>
+                    <div className="p-4 bg-green-50 rounded-lg">
+                      <h4 className="font-medium text-green-900 mb-2">✅ Budget Health</h4>
+                      <p className="text-sm text-green-700">
+                        Your current spending is well within budget. Great job staying on track!
+                      </p>
                     </div>
                   </div>
-                ))
-              )}
-            </div>
-          </CardContent>
-        </Card>
+                  <div className="p-4 bg-amber-50 rounded-lg">
+                    <h4 className="font-medium text-amber-900 mb-2">⚠️ Upcoming Expenses</h4>
+                    <p className="text-sm text-amber-700">
+                      Remember to factor in gratuities (typically 15-20%) and unexpected costs (budget 5-10% buffer).
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
 
         {/* Add Budget Item Dialog */}
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
