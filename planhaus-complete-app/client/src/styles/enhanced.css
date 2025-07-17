@@ -1,0 +1,314 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* Enhanced Wedding Theme Styles */
+:root {
+  /* Sophisticated color palette for luxury wedding theme */
+  --background: 25 100% 99%; /* Pure white with warm undertone */
+  --foreground: 215 25% 27%; /* Rich charcoal */
+  --card: 0 0% 100%;
+  --card-foreground: 215 25% 27%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 215 25% 27%;
+  --primary: 345 83% 47%; /* Rich rose */
+  --primary-foreground: 0 0% 100%;
+  --secondary: 46 100% 94%; /* Champagne */
+  --secondary-foreground: 215 25% 27%;
+  --muted: 25 100% 97%;
+  --muted-foreground: 215 15% 55%;
+  --accent: 345 83% 47%;
+  --accent-foreground: 0 0% 100%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 25 30% 92%;
+  --input: 25 30% 94%;
+  --ring: 345 83% 47%;
+  --radius: 1rem;
+
+  /* Luxury wedding color palette */
+  --blush: 345 83% 47%; /* Rich rose */
+  --rose-gold: 14 65% 70%; /* Warm rose gold */
+  --champagne: 46 100% 94%; /* Elegant champagne */
+  --sage: 80 20% 65%; /* Muted sage */
+  --cream: 25 100% 97%; /* Warm cream */
+  --ivory: 25 100% 99%; /* Pure ivory */
+  --dusty-rose: 345 50% 65%; /* Soft dusty rose */
+  --muted-gold: 45 35% 75%; /* Sophisticated gold */
+  --pearl: 0 0% 95%; /* Pearl white */
+  --mauve: 320 25% 75%; /* Elegant mauve */
+}
+
+/* Enhanced Global Styles */
+* {
+  border-color: hsl(var(--border));
+}
+
+body {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+  font-feature-settings: "rlig" 1, "calt" 1;
+  line-height: 1.6;
+  letter-spacing: 0.01em;
+}
+
+/* Enhanced Typography System */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.025em;
+  color: hsl(var(--foreground));
+}
+
+.font-heading {
+  font-family: 'Playfair Display', Georgia, serif;
+}
+
+.font-body {
+  font-family: 'Inter', sans-serif;
+}
+
+/* Enhanced Button Styles */
+.btn-elegant {
+  @apply inline-flex items-center justify-center rounded-2xl px-8 py-4 text-sm font-semibold;
+  @apply transition-all duration-300 ease-in-out;
+  @apply shadow-lg hover:shadow-xl;
+  background: linear-gradient(135deg, hsl(var(--blush)) 0%, hsl(var(--rose-gold)) 50%, hsl(var(--dusty-rose)) 100%);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+}
+
+.btn-elegant:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 25px rgba(217, 165, 179, 0.4);
+}
+
+.btn-elegant:active {
+  transform: translateY(0);
+}
+
+.btn-secondary {
+  @apply inline-flex items-center justify-center rounded-xl px-6 py-3 text-sm font-medium;
+  @apply transition-all duration-200 ease-in-out;
+  @apply bg-white border border-gray-200 text-gray-700;
+  @apply hover:bg-gray-50 hover:border-gray-300;
+}
+
+/* Enhanced Card Styles */
+.card-elegant {
+  @apply bg-white/95 backdrop-blur-md border border-gray-100/50 rounded-3xl p-8;
+  @apply shadow-lg hover:shadow-xl;
+  @apply transition-all duration-500;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.9) 100%);
+  border: 1px solid rgba(220, 38, 127, 0.1);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08), 0 8px 32px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.card-elegant:hover {
+  box-shadow: 0 12px 40px rgba(220, 38, 127, 0.15), 0 6px 20px rgba(220, 38, 127, 0.08);
+}
+
+.card-wedding {
+  @apply bg-white/95 backdrop-blur-lg border border-rose-100/50 rounded-3xl;
+  @apply shadow-lg hover:shadow-xl;
+  @apply transition-all duration-500;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 252, 252, 0.95) 100%);
+  border: 1px solid rgba(220, 38, 127, 0.08);
+  box-shadow: 0 12px 40px rgba(220, 38, 127, 0.15), 0 6px 20px rgba(220, 38, 127, 0.08);
+}
+
+.card-wedding:hover {
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08), 0 8px 32px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.card-luxury {
+  @apply bg-gradient-to-br from-white via-rose-50/30 to-amber-50/20;
+  @apply backdrop-blur-lg border border-rose-100/40 rounded-3xl;
+  @apply shadow-lg hover:shadow-xl;
+  @apply transition-all duration-500;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08), 0 8px 32px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.card-luxury:hover {
+  box-shadow: 0 12px 40px rgba(220, 38, 127, 0.15), 0 6px 20px rgba(220, 38, 127, 0.08);
+}
+
+
+
+/* Enhanced Form Styles */
+.form-elegant .form-item {
+  @apply space-y-3 mb-6;
+}
+
+.form-elegant label {
+  @apply text-sm font-medium text-gray-700;
+  font-family: 'Inter', sans-serif;
+  letter-spacing: 0.025em;
+}
+
+.form-elegant input,
+.form-elegant textarea,
+.form-elegant select {
+  @apply w-full px-4 py-3 rounded-xl border border-gray-200;
+  @apply focus:border-rose-300 focus:ring-2 focus:ring-rose-200;
+  @apply transition-all duration-200;
+  font-size: 16px;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.form-elegant input:focus,
+.form-elegant textarea:focus,
+.form-elegant select:focus {
+  outline: none;
+  border-color: hsl(var(--dusty-rose));
+  box-shadow: 0 0 0 3px rgba(217, 165, 179, 0.1);
+}
+
+/* Enhanced Shadows */
+.shadow-elegant {
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08), 0 4px 16px rgba(0, 0, 0, 0.04);
+}
+
+.shadow-elegant-hover {
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.12), 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.shadow-luxury {
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08), 0 8px 32px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.shadow-wedding {
+  box-shadow: 0 12px 40px rgba(220, 38, 127, 0.15), 0 6px 20px rgba(220, 38, 127, 0.08);
+}
+
+.shadow-wedding-lg {
+  box-shadow: 0 20px 60px rgba(220, 38, 127, 0.2), 0 12px 40px rgba(220, 38, 127, 0.1);
+}
+
+/* Enhanced Navigation */
+.nav-elegant {
+  @apply bg-white/95 backdrop-blur-md border-b border-gray-100;
+  box-shadow: 0 1px 20px rgba(0, 0, 0, 0.04);
+}
+
+/* Logo Styles */
+.logo {
+  @apply text-2xl font-bold;
+  font-family: 'Playfair Display', Georgia, serif;
+  background: linear-gradient(135deg, hsl(var(--blush)) 0%, hsl(var(--rose-gold)) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Glass Effect Styles */
+.glass-wedding {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+}
+
+/* Text Gradients */
+.text-gradient-wedding {
+  background: linear-gradient(135deg, hsl(var(--blush)) 0%, hsl(var(--rose-gold)) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Hover Effects */
+.hover-lift {
+  @apply transition-all duration-300 ease-in-out;
+}
+
+.hover-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+}
+
+/* Animation Utilities */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.animate-slide-in-right {
+  animation: slideInRight 0.6s ease-out;
+}
+
+/* Progress Bar Styles */
+.progress-bar {
+  @apply w-full bg-gray-100 rounded-full h-2 mb-8;
+}
+
+.progress-fill {
+  @apply h-full rounded-full transition-all duration-500 ease-out;
+  background: linear-gradient(90deg, hsl(var(--dusty-rose)) 0%, hsl(var(--rose-gold)) 100%);
+}
+
+/* Loading and State Styles */
+.loading-elegant {
+  @apply inline-block w-6 h-6 border-2 border-gray-200 border-t-rose-400 rounded-full;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Gradient Utilities */
+.gradient-blush-rose {
+  background: linear-gradient(135deg, hsl(var(--dusty-rose)) 0%, hsl(var(--rose-gold)) 100%);
+  color: white;
+}
+
+.gradient-blush-rose:hover {
+  background: linear-gradient(135deg, hsl(var(--dusty-rose)) 0%, hsl(var(--rose-gold)) 80%);
+}
+
+/* Footer Styles */
+.footer-elegant {
+  @apply bg-gray-50 border-t border-gray-100 text-center py-8 text-sm text-gray-600;
+  font-family: 'Inter', sans-serif;
+}
+
+.footer-elegant a {
+  @apply text-rose-400 hover:text-rose-500 transition-colors;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .form-elegant input,
+  .form-elegant textarea,
+  .form-elegant select {
+    @apply py-4;
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+  
+  .card-elegant {
+    @apply mx-2 rounded-xl;
+  }
+}

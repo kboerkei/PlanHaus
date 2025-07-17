@@ -1,0 +1,390 @@
+@import './styles/enhanced.css';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Safe area for mobile devices */
+@layer utilities {
+  .safe-area-pb {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  
+  .safe-area-pt {
+    padding-top: env(safe-area-inset-top);
+  }
+  
+  .gradient-blush-rose {
+    background: linear-gradient(135deg, var(--blush) 0%, var(--rose-gold) 100%);
+  }
+  
+  .gradient-sunset {
+    background: linear-gradient(135deg, #FF8A80 0%, #FFAB91 50%, #FFCC80 100%);
+  }
+  
+  .shadow-soft {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  }
+  
+  .shadow-medium {
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+  }
+  
+  .shadow-strong {
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.16);
+  }
+  
+  .backdrop-blur-glass {
+    backdrop-filter: blur(20px);
+    background-color: rgba(255, 255, 255, 0.85);
+  }
+  
+  .text-gradient {
+    background: linear-gradient(135deg, var(--blush) 0%, var(--rose-gold) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+}
+
+/* Mobile-specific optimizations */
+@media (max-width: 1024px) {
+  body {
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    overflow-x: hidden;
+  }
+  
+  /* Prevent zoom on input focus */
+  input, select, textarea {
+    font-size: 16px;
+  }
+  
+  /* Mobile layout adjustments */
+  .lg\:hidden {
+    display: none !important;
+  }
+  
+  /* Mobile form optimization */
+  .mobile-form {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 1rem !important;
+  }
+  
+  /* Mobile dialog optimization */
+  .mobile-dialog {
+    margin: 0.5rem !important;
+    max-height: calc(100vh - 2rem) !important;
+    overflow-y: auto !important;
+  }
+  
+  /* Touch-friendly buttons */
+  .mobile-touch {
+    min-height: 44px !important;
+    min-width: 44px !important;
+  }
+  
+  /* Fix viewport issues on mobile */
+  .mobile-viewport-fix {
+    height: 100dvh !important;
+    min-height: 100dvh !important;
+  }
+  
+  /* Better mobile spacing */
+  .mobile-safe-spacing {
+    padding-left: max(1rem, env(safe-area-inset-left)) !important;
+    padding-right: max(1rem, env(safe-area-inset-right)) !important;
+  }
+}
+
+:root {
+  --background: hsl(0, 0%, 100%);
+  --foreground: hsl(20, 14.3%, 4.1%);
+  --muted: hsl(60, 4.8%, 95.9%);
+  --muted-foreground: hsl(25, 5.3%, 44.7%);
+  --popover: hsl(0, 0%, 100%);
+  --popover-foreground: hsl(20, 14.3%, 4.1%);
+  --card: hsl(0, 0%, 100%);
+  --card-foreground: hsl(20, 14.3%, 4.1%);
+  --border: hsl(20, 5.9%, 90%);
+  --input: hsl(20, 5.9%, 90%);
+  --primary: hsl(330, 81%, 85%);
+  --primary-foreground: hsl(330, 30%, 25%);
+  --secondary: hsl(60, 4.8%, 95.9%);
+  --secondary-foreground: hsl(24, 9.8%, 10%);
+  --accent: hsl(60, 4.8%, 95.9%);
+  --accent-foreground: hsl(24, 9.8%, 10%);
+  --destructive: hsl(0, 84.2%, 60.2%);
+  --destructive-foreground: hsl(60, 9.1%, 97.8%);
+  --ring: hsl(20, 14.3%, 4.1%);
+  --radius: 0.75rem;
+  
+  /* Wedding color palette */
+  --blush: hsl(330, 81%, 85%);
+  --rose-gold: hsl(12, 47%, 82%);
+  --cream: hsl(60, 29%, 98%);
+  --champagne: hsl(48, 87%, 55%);
+  --soft-gold: hsl(45, 61%, 92%);
+}
+
+.dark {
+  --background: hsl(240, 10%, 3.9%);
+  --foreground: hsl(0, 0%, 98%);
+  --muted: hsl(240, 3.7%, 15.9%);
+  --muted-foreground: hsl(240, 5%, 64.9%);
+  --popover: hsl(240, 10%, 3.9%);
+  --popover-foreground: hsl(0, 0%, 98%);
+  --card: hsl(240, 10%, 3.9%);
+  --card-foreground: hsl(0, 0%, 98%);
+  --border: hsl(240, 3.7%, 15.9%);
+  --input: hsl(240, 3.7%, 15.9%);
+  --primary: hsl(330, 81%, 85%);
+  --primary-foreground: hsl(330, 30%, 25%);
+  --secondary: hsl(240, 3.7%, 15.9%);
+  --secondary-foreground: hsl(0, 0%, 98%);
+  --accent: hsl(240, 3.7%, 15.9%);
+  --accent-foreground: hsl(0, 0%, 98%);
+  --destructive: hsl(0, 62.8%, 30.6%);
+  --destructive-foreground: hsl(0, 0%, 98%);
+  --ring: hsl(240, 4.9%, 83.9%);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-cream text-foreground;
+  }
+}
+
+@layer utilities {
+  /* Mobile-first utilities */
+  .mobile-safe-spacing {
+    padding-bottom: calc(env(safe-area-inset-bottom) + 4rem);
+  }
+
+  @media (max-width: 640px) {
+    .mobile-text-sm {
+      font-size: 14px;
+      line-height: 1.25;
+    }
+
+    .mobile-header-responsive {
+      font-size: 1.125rem;
+      line-height: 1.75rem;
+    }
+
+    .mobile-touch-target {
+      min-height: 44px;
+      min-width: 44px;
+    }
+
+    input.mobile-form-input {
+      font-size: 16px; /* Prevents zoom on iOS */
+    }
+  }
+
+  /* Desktop-first utilities */
+  @media (min-width: 1024px) {
+    .desktop-enhanced-spacing {
+      padding: 2rem;
+    }
+
+    .desktop-card-padding {
+      padding: 2rem 2.5rem;
+    }
+
+    .desktop-text-scale {
+      font-size: 1.125rem;
+      line-height: 1.75rem;
+    }
+
+    .desktop-button-lg {
+      padding: 0.75rem 2rem;
+      font-size: 1.125rem;
+    }
+  }
+
+  @media (min-width: 1280px) {
+    .xl-enhanced-spacing {
+      padding: 3rem;
+    }
+
+    .xl-text-scale {
+      font-size: 1.25rem;
+      line-height: 2rem;
+    }
+  }
+
+  .text-blush {
+    color: var(--blush);
+  }
+  .bg-blush {
+    background-color: var(--blush);
+  }
+  .text-rose-gold {
+    color: var(--rose-gold);
+  }
+  .bg-rose-gold {
+    background-color: var(--rose-gold);
+  }
+  .bg-cream {
+    background-color: var(--cream);
+  }
+  .text-champagne {
+    color: var(--champagne);
+  }
+  .bg-champagne {
+    background-color: var(--champagne);
+  }
+  .bg-soft-gold {
+    background-color: var(--soft-gold);
+  }
+  
+  .gradient-blush-rose {
+    background: linear-gradient(to bottom right, var(--blush), var(--rose-gold));
+  }
+  
+  .font-serif {
+    font-family: 'Playfair Display', serif;
+  }
+
+  /* Enhanced countdown animations */
+  @keyframes spin-slow {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  
+  @keyframes fade-in {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  @keyframes slide-in-up {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-20px); }
+  }
+  
+  .animate-spin-slow {
+    animation: spin-slow 8s linear infinite;
+  }
+  
+  .animate-fade-in {
+    animation: fade-in 1s ease-out;
+  }
+  
+  .animate-slide-in-up {
+    animation: slide-in-up 0.8s ease-out 0.3s both;
+  }
+  
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  /* Countdown-specific styles */
+  .countdown-glow {
+    box-shadow: 
+      0 0 20px rgba(244, 165, 185, 0.4),
+      0 0 40px rgba(244, 165, 185, 0.2),
+      0 0 60px rgba(244, 165, 185, 0.1);
+  }
+
+  .text-gradient-rainbow {
+    background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, #ffa726);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: gradient-shift 3s ease-in-out infinite;
+  }
+  
+  @keyframes gradient-shift {
+    0%, 100% { filter: hue-rotate(0deg); }
+    50% { filter: hue-rotate(45deg); }
+  }
+
+  /* Mobile safe area utilities */
+  .safe-area-pb {
+    padding-bottom: max(env(safe-area-inset-bottom), 1rem);
+  }
+  
+  .safe-area-pt {
+    padding-top: env(safe-area-inset-top);
+  }
+  
+  .safe-area-pl {
+    padding-left: env(safe-area-inset-left);
+  }
+  
+  .safe-area-pr {
+    padding-right: env(safe-area-inset-right);
+  }
+
+  /* Mobile touch improvements */
+  .touch-manipulation {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: rgba(244, 165, 185, 0.3);
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  /* Mobile-specific improvements */
+  @media (max-width: 768px) {
+    .mobile-optimized {
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+    
+    /* Improve button accessibility on mobile */
+    button, .button, [role="button"] {
+      min-height: 44px;
+      min-width: 44px;
+    }
+    
+    /* Fix input zoom on iOS */
+    input[type="text"], input[type="email"], input[type="password"], input[type="number"], textarea, select {
+      font-size: 16px;
+    }
+    
+    /* Prevent horizontal scrolling on mobile */
+    body {
+      overflow-x: hidden;
+    }
+    
+    /* Improve text readability on mobile */
+    h1, h2, h3 {
+      word-break: break-word;
+      hyphens: auto;
+    }
+    
+    /* Better mobile spacing */
+    .mobile-padding {
+      padding-left: 1rem;
+      padding-right: 1rem;
+    }
+  }
+
+  /* Desktop improvements */
+  @media (min-width: 1024px) {
+    /* Smoother scrolling on desktop */
+    html {
+      scroll-behavior: smooth;
+    }
+    
+    /* Better focus states */
+    button:focus, a:focus, input:focus, textarea:focus, select:focus {
+      outline: 2px solid #f4a5b9;
+      outline-offset: 2px;
+    }
+  }
+}
