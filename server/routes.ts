@@ -643,8 +643,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/projects/:id/guests", requireAuth, async (req, res) => {
     try {
       const projectId = parseInt(req.params.id);
-      const guestData = insertGuestSchema.parse({
+      
+      // Clean empty strings to null for optional fields
+      const cleanedBody = {
         ...req.body,
+        email: req.body.email || null,
+        phone: req.body.phone || null,
+        address: req.body.address || null,
+        mealPreference: req.body.mealPreference || null,
+        hotel: req.body.hotel || null,
+        hotelAddress: req.body.hotelAddress || null,
+        notes: req.body.notes || null,
+        checkInDate: req.body.checkInDate || null,
+        checkOutDate: req.body.checkOutDate || null
+      };
+      
+      const guestData = insertGuestSchema.parse({
+        ...cleanedBody,
         projectId,
         addedBy: (req as any).userId
       });
@@ -665,7 +680,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json(guest);
     } catch (error) {
-      res.status(400).json({ message: "Invalid guest data" });
+      console.error('Guest creation error:', error);
+      res.status(400).json({ message: "Invalid guest data", error: error.message });
     }
   });
 
