@@ -86,21 +86,28 @@ export default function ProgressOverview() {
     enabled: !!currentProject?.id
   });
 
-  // Calculate real progress using dashboard stats for tasks
+  // Use dashboard stats for consistent calculations
   const project = currentProject;
   const confirmedGuests = guests?.filter(g => g.rsvpStatus === 'confirmed') || [];
   const bookedVendors = vendors?.filter(v => v.status === 'booked') || [];
   const paidBudgetItems = budgetItems?.filter(b => b.isPaid) || [];
   
-  // Calculate budget spent vs total budget
-  const totalBudget = project?.budget ? parseFloat(project.budget) : 0;
-  const totalSpent = budgetItems?.reduce((sum, item) => sum + (parseFloat(item.actualCost || '0')), 0) || 0;
+  // Use dashboard stats budget calculations
+  const totalBudget = dashboardStats?.budget?.total || 0;
+  const totalSpent = dashboardStats?.budget?.spent || 0;
   
-  // Use dashboard stats for task progress
+  // Progress calculations using dashboard stats
   const totalTasks = dashboardStats?.tasks?.total || 0;
   const completedTasks = dashboardStats?.tasks?.completed || 0;
   const taskProgress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
-  const guestProgress = guests?.length ? Math.round((confirmedGuests.length / guests.length) * 100) : 0;
+  
+  // RSVP progress: count guests who have responded (confirmed + declined) vs total
+  const confirmedCount = dashboardStats?.guests?.confirmed || 0;
+  const declinedCount = dashboardStats?.guests?.declined || 0;
+  const totalGuests = dashboardStats?.guests?.total || 0;
+  const respondedGuests = confirmedCount + declinedCount;
+  const guestProgress = totalGuests > 0 ? Math.round((respondedGuests / totalGuests) * 100) : 0;
+  
   const vendorProgress = vendors?.length ? Math.round((bookedVendors.length / vendors.length) * 100) : 0;
   const budgetProgress = totalBudget > 0 ? Math.round((totalSpent / totalBudget) * 100) : 0;
   
@@ -141,7 +148,7 @@ export default function ProgressOverview() {
             percentage={guestProgress}
             color="#F59E0B"
             label="RSVPs"
-            sublabel={`${confirmedGuests.length} of ${guests?.length || 0} confirmed`}
+            sublabel={`${respondedGuests} of ${totalGuests} responded`}
             onClick={() => setLocation('/guests')}
           />
           <ProgressRing
