@@ -311,9 +311,13 @@ The application uses a comprehensive schema covering:
 - **FIXED**: Guest management API endpoints now use project-specific routes
   - Changed from `/api/guests` to `/api/projects/{id}/guests` for proper data isolation
   - Guest mutations now correctly target current project instead of mixing all projects
+  - Fixed guest creation form validation by converting empty strings to null for optional fields
 - **FIXED**: Schedule management hardcoded project ID issue
   - Removed hardcoded project ID '1' and now uses current project dynamically
   - Schedule queries now properly fetch data for the active wedding project
+- **FIXED**: Dashboard stats API project mismatch
+  - Dashboard was showing stats from wrong project (Sarah & Alex's vs Emma & Jake's Wedding)
+  - Now correctly uses Emma & Jake's Wedding as active project for consistent data display
 - **RESULT**: All major sections now correctly isolate data by project and show accurate progress
 
 ### Complete DELETE API Routes Implementation (January 16, 2025)

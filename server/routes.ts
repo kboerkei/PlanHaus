@@ -2011,7 +2011,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const projectId = projects[0].id;
+      // Use Emma & Jake's Wedding project as the current active project
+      const currentProject = projects.find(p => p.name === "Emma & Jake's Wedding") || projects[0];
+      const projectId = currentProject.id;
       
       // Get task statistics
       const tasks = await storage.getTasksByProjectId(projectId);
@@ -2038,7 +2040,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const budgetItems = await storage.getBudgetItemsByProjectId(projectId);
       const budgetStats = {
         spent: budgetItems.reduce((sum, item) => sum + (parseFloat(item.actualCost || '0')), 0),
-        total: parseFloat(projects[0].budget || '0')
+        total: parseFloat(currentProject.budget || '0')
       };
 
       // Get guest statistics
@@ -2079,8 +2081,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         budget: budgetStats,
         guests: guestStats,
         vendors: vendorStats,
-        weddingDate: projects[0].date,
-        guestCount: projects[0].guestCount,
+        weddingDate: currentProject.date,
+        guestCount: currentProject.guestCount,
         nextMilestone
       });
     } catch (error) {
