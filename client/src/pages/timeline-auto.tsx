@@ -509,21 +509,9 @@ export default function TimelineAuto() {
                       <SelectValue placeholder="Select category" />
                     </SelectTrigger>
                     <SelectContent>
-                      {categories.map(category => (
+                      {[...new Set([...categories, "Budget & Planning", "Guest List & Invitations", "Ceremony", "Reception", "Decor & Design", "Attire & Beauty", "Photography & Videography", "Transportation & Logistics", "Legal & Documentation", "Honeymoon & Travel", "Post Wedding", "Gifts & Favors"])].map(category => (
                         <SelectItem key={category} value={category}>{category}</SelectItem>
                       ))}
-                      <SelectItem value="Budget & Planning">Budget & Planning</SelectItem>
-                      <SelectItem value="Guest List & Invitations">Guest List & Invitations</SelectItem>
-                      <SelectItem value="Ceremony">Ceremony</SelectItem>
-                      <SelectItem value="Reception">Reception</SelectItem>
-                      <SelectItem value="Decor & Design">Decor & Design</SelectItem>
-                      <SelectItem value="Attire & Beauty">Attire & Beauty</SelectItem>
-                      <SelectItem value="Photography & Videography">Photography & Videography</SelectItem>
-                      <SelectItem value="Transportation & Logistics">Transportation & Logistics</SelectItem>
-                      <SelectItem value="Legal & Documentation">Legal & Documentation</SelectItem>
-                      <SelectItem value="Honeymoon & Travel">Honeymoon & Travel</SelectItem>
-                      <SelectItem value="Post Wedding">Post Wedding</SelectItem>
-                      <SelectItem value="Gifts & Favors">Gifts & Favors</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -817,21 +805,9 @@ export default function TimelineAuto() {
                     <SelectValue placeholder="Select category" />
                   </SelectTrigger>
                   <SelectContent>
-                    {categories.map(category => (
-                      <SelectItem key={category} value={category}>{category}</SelectItem>
+                    {[...new Set([...categories, "Budget & Planning", "Guest List & Invitations", "Ceremony", "Reception", "Decor & Design", "Attire & Beauty", "Photography & Videography", "Transportation & Logistics", "Legal & Documentation", "Honeymoon & Travel", "Post Wedding", "Gifts & Favors"])].map(category => (
+                      <SelectItem key={`edit-${category}`} value={category}>{category}</SelectItem>
                     ))}
-                    <SelectItem value="Budget & Planning">Budget & Planning</SelectItem>
-                    <SelectItem value="Guest List & Invitations">Guest List & Invitations</SelectItem>
-                    <SelectItem value="Ceremony">Ceremony</SelectItem>
-                    <SelectItem value="Reception">Reception</SelectItem>
-                    <SelectItem value="Decor & Design">Decor & Design</SelectItem>
-                    <SelectItem value="Attire & Beauty">Attire & Beauty</SelectItem>
-                    <SelectItem value="Photography & Videography">Photography & Videography</SelectItem>
-                    <SelectItem value="Transportation & Logistics">Transportation & Logistics</SelectItem>
-                    <SelectItem value="Legal & Documentation">Legal & Documentation</SelectItem>
-                    <SelectItem value="Honeymoon & Travel">Honeymoon & Travel</SelectItem>
-                    <SelectItem value="Post Wedding">Post Wedding</SelectItem>
-                    <SelectItem value="Gifts & Favors">Gifts & Favors</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
