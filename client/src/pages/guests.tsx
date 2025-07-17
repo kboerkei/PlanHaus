@@ -55,11 +55,14 @@ export default function Guests() {
   const { toast } = useToast();
 
   const { data: projects } = useQuery({
-    queryKey: ['/api/wedding-projects']
+    queryKey: ['/api/projects']
   });
 
+  const currentProject = projects?.find(p => p.name === "Emma & Jake's Wedding") || projects?.[0];
+
   const { data: guests = [], isLoading, error } = useQuery({
-    queryKey: ['/api/guests']
+    queryKey: ['/api/projects', currentProject?.id, 'guests'],
+    enabled: !!currentProject?.id
   });
 
   const form = useForm<GuestFormData>({
@@ -115,13 +118,13 @@ export default function Guests() {
   const noResponseGuests = guests?.filter((guest: any) => guest.rsvpStatus === 'no_response').length || 0;
 
   const createGuestMutation = useMutation({
-    mutationFn: (data: GuestFormData) => apiRequest('/api/guests', {
+    mutationFn: (data: GuestFormData) => apiRequest(`/api/projects/${currentProject?.id}/guests`, {
       method: 'POST',
       body: JSON.stringify(data),
       headers: { 'Content-Type': 'application/json' }
     }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/guests'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/projects', currentProject?.id, 'guests'] });
       form.reset();
       setIsAddDialogOpen(false);
       toast({ title: "Guest added successfully!" });
@@ -146,7 +149,7 @@ export default function Guests() {
         body: JSON.stringify(data),
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/guests'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/projects', currentProject?.id, 'guests'] });
       toast({
         title: "Success",
         description: "Guest updated successfully",

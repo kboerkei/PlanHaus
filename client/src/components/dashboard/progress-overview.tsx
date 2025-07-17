@@ -92,18 +92,9 @@ export default function ProgressOverview() {
   const bookedVendors = vendors?.filter(v => v.status === 'booked') || [];
   const paidBudgetItems = budgetItems?.filter(b => b.isPaid) || [];
   
-  // Calculate budget from actual project data
-  const totalBudget = project?.budget ? parseFloat(project.budget) : 0;
+  // Calculate budget progress based on estimated vs actual (not total budget)
+  const totalEstimated = budgetItems?.reduce((sum, item) => sum + (parseFloat(item.estimatedCost || '0')), 0) || 0;
   const totalSpent = budgetItems?.reduce((sum, item) => sum + (parseFloat(item.actualCost || '0')), 0) || 0;
-  
-  // Debug budget calculation
-  console.log('Budget Debug:', {
-    project: project?.name,
-    totalBudget,
-    totalSpent,
-    budgetItems: budgetItems?.length,
-    dashboardStatsBudget: dashboardStats?.budget
-  });
   
   // Progress calculations using dashboard stats
   const totalTasks = dashboardStats?.tasks?.total || 0;
@@ -118,7 +109,7 @@ export default function ProgressOverview() {
   const guestProgress = totalGuests > 0 ? Math.round((respondedGuests / totalGuests) * 100) : 0;
   
   const vendorProgress = vendors?.length ? Math.round((bookedVendors.length / vendors.length) * 100) : 0;
-  const budgetProgress = totalBudget > 0 ? Math.round((totalSpent / totalBudget) * 100) : 0;
+  const budgetProgress = totalEstimated > 0 ? Math.round((totalSpent / totalEstimated) * 100) : 0;
   
   const overallProgress = Math.round((taskProgress + guestProgress + vendorProgress + budgetProgress) / 4);
 
@@ -143,7 +134,7 @@ export default function ProgressOverview() {
             percentage={budgetProgress}
             color="#F43F5E"
             label="Budget"
-            sublabel={`$${Math.round(totalSpent).toLocaleString()} of $${Math.round(totalBudget).toLocaleString()}`}
+            sublabel={`$${Math.round(totalSpent).toLocaleString()} of $${Math.round(totalEstimated).toLocaleString()}`}
             onClick={() => setLocation('/budget')}
           />
           <ProgressRing

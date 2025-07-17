@@ -66,11 +66,14 @@ export default function Schedules() {
   const { toast } = useToast();
 
   const { data: projects } = useQuery({
-    queryKey: ['/api/wedding-projects']
+    queryKey: ['/api/projects']
   });
 
+  const currentProject = projects?.find(p => p.name === "Emma & Jake's Wedding") || projects?.[0];
+
   const { data: schedules = [], isLoading, error } = useQuery({
-    queryKey: ['/api/projects', '1', 'schedules']
+    queryKey: ['/api/projects', currentProject?.id, 'schedules'],
+    enabled: !!currentProject?.id
   });
 
   const { data: events = [] } = useQuery({

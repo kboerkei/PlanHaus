@@ -303,6 +303,19 @@ The application uses a comprehensive schema covering:
 - Real-time data integration to surface actionable insights for couples
 - Modern card-based layout with proper spacing and visual hierarchy
 
+### Critical API Endpoint and Progress Calculation Fixes (January 17, 2025)
+- **FIXED**: Budget progress calculation that was showing incorrect percentages
+  - Changed from total budget vs spent to estimated budget vs actual spent for accurate progress tracking
+  - Progress now correctly shows: $18,850 spent of $21,850 estimated = 86.3% progress
+  - Dashboard budget ring now accurately reflects actual spending progress against planned budget items
+- **FIXED**: Guest management API endpoints now use project-specific routes
+  - Changed from `/api/guests` to `/api/projects/{id}/guests` for proper data isolation
+  - Guest mutations now correctly target current project instead of mixing all projects
+- **FIXED**: Schedule management hardcoded project ID issue
+  - Removed hardcoded project ID '1' and now uses current project dynamically
+  - Schedule queries now properly fetch data for the active wedding project
+- **RESULT**: All major sections now correctly isolate data by project and show accurate progress
+
 ### Complete DELETE API Routes Implementation (January 16, 2025)
 - Fixed critical missing DELETE /api/tasks/:id endpoint that was causing JSON parsing errors
 - Added comprehensive DELETE routes for all data types:
