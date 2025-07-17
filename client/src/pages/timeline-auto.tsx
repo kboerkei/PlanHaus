@@ -330,6 +330,7 @@ export default function TimelineAuto() {
 
   // Function to start editing a task
   const startEditing = (task: Task) => {
+    console.log("Starting to edit task:", task);
     setEditingTask(task);
     setValueEdit("title", task.title);
     setValueEdit("description", task.description || "");
@@ -339,6 +340,7 @@ export default function TimelineAuto() {
     setValueEdit("dueDate", task.dueDate ? format(new Date(task.dueDate), "yyyy-MM-dd") : "");
     setValueEdit("assignedTo", task.assignedTo || "");
     setValueEdit("notes", task.notes || "");
+    console.log("Opening edit dialog");
     setIsEditDialogOpen(true);
   };
 
