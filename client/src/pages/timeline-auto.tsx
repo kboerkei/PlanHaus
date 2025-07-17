@@ -14,6 +14,7 @@ import { Separator } from "@/components/ui/separator";
 import { toast } from "react-hot-toast";
 import { useForm } from "react-hook-form";
 import { format, isToday, isBefore, isAfter, addDays } from "date-fns";
+import { apiRequest } from "@/lib/queryClient";
 
 interface Task {
   id: number;
@@ -115,18 +116,12 @@ export default function TimelineAuto() {
   const weddingDate = currentProject?.date ? new Date(currentProject.date) : null;
   const daysUntilWedding = weddingDate ? Math.ceil((weddingDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)) : null;
 
-  // Create task mutation
+  // Create task mutation using apiRequest from queryClient
   const createTaskMutation = useMutation({
-    mutationFn: async (taskData: any) => {
-      const response = await fetch("/api/tasks", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: 'include',
-        body: JSON.stringify(taskData)
-      });
-      if (!response.ok) throw new Error("Failed to create task");
-      return response.json();
-    },
+    mutationFn: (taskData: any) => apiRequest("/api/tasks", {
+      method: "POST",
+      body: JSON.stringify(taskData)
+    }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/tasks"] });
       setIsAddDialogOpen(false);
@@ -138,18 +133,13 @@ export default function TimelineAuto() {
     }
   });
 
-  // Update task mutation
+  // Update task mutation using apiRequest from queryClient
   const updateTaskMutation = useMutation({
-    mutationFn: async ({ id, updates }: { id: number; updates: Partial<Task> }) => {
-      const response = await fetch(`/api/tasks/${id}`, {
+    mutationFn: ({ id, updates }: { id: number; updates: Partial<Task> }) => 
+      apiRequest(`/api/tasks/${id}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        credentials: 'include',
         body: JSON.stringify(updates)
-      });
-      if (!response.ok) throw new Error("Failed to update task");
-      return response.json();
-    },
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/tasks"] });
       setIsEditDialogOpen(false);
@@ -162,16 +152,11 @@ export default function TimelineAuto() {
     }
   });
 
-  // Delete task mutation
+  // Delete task mutation using apiRequest from queryClient
   const deleteTaskMutation = useMutation({
-    mutationFn: async (id: number) => {
-      const response = await fetch(`/api/tasks/${id}`, {
-        method: "DELETE",
-        credentials: 'include'
-      });
-      if (!response.ok) throw new Error("Failed to delete task");
-      return response.json();
-    },
+    mutationFn: (id: number) => apiRequest(`/api/tasks/${id}`, {
+      method: "DELETE"
+    }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/tasks"] });
       toast.success("Task deleted successfully!");
