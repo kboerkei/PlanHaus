@@ -127,16 +127,7 @@ export default function EnhancedDashboardStats() {
     : 0;
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-      <StatCard
-        title="Days Until Wedding"
-        value={daysUntil > 0 ? daysUntil : "Today!"}
-        subtitle={daysUntil > 0 ? `${weddingDate.toLocaleDateString()}` : "Your big day!"}
-        icon={Calendar}
-        urgency={daysUntil <= 30 && daysUntil > 0 ? 'high' : daysUntil <= 60 ? 'medium' : 'low'}
-        trend={daysUntil <= 30 ? 'down' : 'neutral'}
-      />
-      
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
       <StatCard
         title="Tasks Progress"
         value={`${dashboardStats.tasks?.completed || 0}/${dashboardStats.tasks?.total || 0}`}
