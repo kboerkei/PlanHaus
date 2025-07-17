@@ -151,7 +151,7 @@ export default function EnhancedDashboardStats() {
       <StatCard
         title="Guest RSVPs"
         value={`${(dashboardStats.guests?.confirmed || 0) + (dashboardStats.guests?.declined || 0)}/${dashboardStats.guests?.total || 0}`}
-        subtitle={`${rsvpRate}% confirmed`}
+        subtitle={`${rsvpRate}% responded`}
         progress={rsvpRate}
         icon={Users}
         urgency={dashboardStats.guests?.pending > 10 ? 'high' : dashboardStats.guests?.pending > 5 ? 'medium' : 'low'}
