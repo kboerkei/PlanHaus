@@ -330,7 +330,6 @@ export default function TimelineAuto() {
 
   // Function to start editing a task
   const startEditing = (task: Task) => {
-    console.log("Starting to edit task:", task);
     setEditingTask(task);
     setValueEdit("title", task.title);
     setValueEdit("description", task.description || "");
@@ -340,7 +339,6 @@ export default function TimelineAuto() {
     setValueEdit("dueDate", task.dueDate ? format(new Date(task.dueDate), "yyyy-MM-dd") : "");
     setValueEdit("assignedTo", task.assignedTo || "");
     setValueEdit("notes", task.notes || "");
-    console.log("Opening edit dialog");
     setIsEditDialogOpen(true);
   };
 
@@ -356,20 +354,50 @@ export default function TimelineAuto() {
 
   // Submit new task
   const onSubmit = (data: any) => {
+    const newTimeframe = calculateTimeframeFromDate(data.dueDate);
     createTaskMutation.mutate({
       ...data,
-      dueDate: data.dueDate ? new Date(data.dueDate).toISOString() : null
+      dueDate: data.dueDate ? new Date(data.dueDate).toISOString() : null,
+      defaultTimeframe: newTimeframe.timeframe,
+      timeframeOrder: newTimeframe.order
     });
+  };
+
+  // Calculate timeframe based on due date
+  const calculateTimeframeFromDate = (dueDate: string | null): { timeframe: string; order: number } => {
+    if (!dueDate || !weddingDate) return { timeframe: "Custom Tasks", order: 999 };
+    
+    const due = new Date(dueDate);
+    const wedding = new Date(weddingDate);
+    const daysDiff = Math.ceil((wedding.getTime() - due.getTime()) / (1000 * 60 * 60 * 24));
+    
+    if (daysDiff < -30) return { timeframe: "After Wedding", order: 13 };
+    if (daysDiff < -7) return { timeframe: "1-2 months after", order: 12 };
+    if (daysDiff < 0) return { timeframe: "1-4 weeks after", order: 11 };
+    if (daysDiff === 0) return { timeframe: "Wedding Day", order: 10 };
+    if (daysDiff <= 1) return { timeframe: "Day Before", order: 9 };
+    if (daysDiff <= 3) return { timeframe: "2-3 days before", order: 8 };
+    if (daysDiff <= 7) return { timeframe: "1 week before", order: 7 };
+    if (daysDiff <= 14) return { timeframe: "1-2 weeks before", order: 6 };
+    if (daysDiff <= 28) return { timeframe: "2-4 weeks before", order: 5 };
+    if (daysDiff <= 90) return { timeframe: "1-3 months before", order: 4 };
+    if (daysDiff <= 180) return { timeframe: "3-6 months before", order: 3 };
+    if (daysDiff <= 270) return { timeframe: "6-9 months before", order: 2 };
+    if (daysDiff <= 365) return { timeframe: "9-12 months before", order: 1 };
+    return { timeframe: "12+ months before", order: 0 };
   };
 
   // Submit edited task
   const onEditSubmit = (data: any) => {
     if (editingTask) {
+      const newTimeframe = calculateTimeframeFromDate(data.dueDate);
       updateTaskMutation.mutate({
         id: editingTask.id,
         updates: {
           ...data,
-          dueDate: data.dueDate ? new Date(data.dueDate).toISOString() : null
+          dueDate: data.dueDate ? new Date(data.dueDate).toISOString() : null,
+          defaultTimeframe: newTimeframe.timeframe,
+          timeframeOrder: newTimeframe.order
         }
       });
     }
