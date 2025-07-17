@@ -121,6 +121,7 @@ export default function TimelineAuto() {
       const response = await fetch("/api/tasks", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: 'include',
         body: JSON.stringify(taskData)
       });
       if (!response.ok) throw new Error("Failed to create task");
@@ -143,6 +144,7 @@ export default function TimelineAuto() {
       const response = await fetch(`/api/tasks/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
+        credentials: 'include',
         body: JSON.stringify(updates)
       });
       if (!response.ok) throw new Error("Failed to update task");
@@ -164,7 +166,8 @@ export default function TimelineAuto() {
   const deleteTaskMutation = useMutation({
     mutationFn: async (id: number) => {
       const response = await fetch(`/api/tasks/${id}`, {
-        method: "DELETE"
+        method: "DELETE",
+        credentials: 'include'
       });
       if (!response.ok) throw new Error("Failed to delete task");
       return response.json();
