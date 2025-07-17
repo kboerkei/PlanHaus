@@ -4,7 +4,7 @@ import EnhancedQuickActions from "@/components/dashboard/enhanced-quick-actions"
 import UpcomingTasks from "@/components/dashboard/upcoming-tasks";
 import RecentActivity from "@/components/dashboard/recent-activity";
 import InspirationPreview from "@/components/dashboard/inspiration-preview";
-import MilestoneCelebration from "@/components/dashboard/milestone-celebration";
+
 import CollaborativeFeatures from "@/components/dashboard/collaborative-features";
 import SmartOnboarding from "@/components/dashboard/smart-onboarding";
 import ProjectOverview from "@/components/ProjectOverview";
@@ -45,7 +45,6 @@ export default function Dashboard() {
         <div className="absolute -bottom-10 -left-10 w-48 h-48 bg-gradient-to-tr from-purple-400/5 to-rose-400/10 rounded-full blur-2xl" />
         
         <div className="relative p-3 sm:p-4 lg:p-8 mobile-safe-spacing">
-          <MilestoneCelebration />
           <SmartOnboarding />
           
           {/* Progress Overview */}
