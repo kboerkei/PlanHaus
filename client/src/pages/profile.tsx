@@ -1,7 +1,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { User, Mail, Camera, Save, LogOut, Edit, Heart } from "lucide-react";
+import { User, Mail, Camera, Save, LogOut, Edit, Heart, Calendar, Gift, Users, Utensils, Building } from "lucide-react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -62,6 +62,49 @@ export default function Profile({ user, onLogout }: ProfileProps) {
       });
     },
   });
+
+  const changeEventTypeMutation = useMutation({
+    mutationFn: async (eventType: string) => {
+      const response = await fetch('/api/auth/select-event-type', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('sessionId')}`
+        },
+        body: JSON.stringify({ eventType })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to change event type');
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Event type changed",
+        description: "Your event type has been updated successfully.",
+      });
+      // Reload the page to refresh the entire app with new event type
+      window.location.reload();
+    },
+    onError: () => {
+      toast({
+        title: "Change failed",
+        description: "Unable to change event type. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const eventTypes = [
+    { id: 'wedding', name: 'Wedding', icon: Heart, color: 'text-rose-600' },
+    { id: 'birthday', name: 'Birthday Party', icon: Calendar, color: 'text-purple-600' },
+    { id: 'baby_shower', name: 'Baby Shower', icon: Gift, color: 'text-blue-600' },
+    { id: 'reunion', name: 'Reunion', icon: Users, color: 'text-green-600' },
+    { id: 'dinner_party', name: 'Dinner Party', icon: Utensils, color: 'text-orange-600' },
+    { id: 'corporate', name: 'Corporate Event', icon: Building, color: 'text-slate-600' },
+  ];
 
   const logoutMutation = useMutation({
     mutationFn: () =>
@@ -208,23 +251,64 @@ export default function Profile({ user, onLogout }: ProfileProps) {
               </CardContent>
             </Card>
 
+            {/* Event Type Selection */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Calendar size={20} />
+                  Event Type (Demo Mode)
+                </CardTitle>
+                <CardDescription>
+                  Switch between different event types to explore all planning features
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {eventTypes.map((event) => {
+                    const Icon = event.icon;
+                    const isCurrentType = user?.eventType === event.id;
+                    
+                    return (
+                      <Button
+                        key={event.id}
+                        variant={isCurrentType ? "default" : "outline"}
+                        className={`h-auto p-4 flex flex-col items-center gap-2 ${
+                          isCurrentType 
+                            ? 'gradient-blush-rose text-white' 
+                            : 'hover:bg-gray-50'
+                        }`}
+                        onClick={() => changeEventTypeMutation.mutate(event.id)}
+                        disabled={changeEventTypeMutation.isPending || isCurrentType}
+                      >
+                        <Icon className={`w-5 h-5 ${isCurrentType ? 'text-white' : event.color}`} />
+                        <span className="text-sm font-medium">{event.name}</span>
+                      </Button>
+                    );
+                  })}
+                </div>
+                <p className="text-xs text-gray-500 mt-3">
+                  Current: {eventTypes.find(e => e.id === user?.eventType)?.name || 'None selected'}
+                </p>
+              </CardContent>
+            </Card>
+
             {/* Wedding Details */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Heart size={20} />
-                  Wedding Information
+                  Planning Information
                 </CardTitle>
                 <CardDescription>
-                  Manage your wedding planning details and preferences
+                  Manage your event planning details and preferences
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between p-4 bg-blush/5 rounded-lg border border-blush/20">
                     <div>
-                      <h4 className="font-medium">Wedding Intake Form</h4>
-                      <p className="text-sm text-gray-600">Update your couple details, preferences, and wedding vision</p>
+                      <h4 className="font-medium">Event Intake Form</h4>
+                      <p className="text-sm text-gray-600">Update your event details, preferences, and vision</p>
                     </div>
                     <Link href="/intake">
                       <Button variant="outline" className="border-blush text-blush hover:bg-blush hover:text-white">

@@ -127,6 +127,9 @@ export default function EventSelection({ onEventTypeSelected }: EventSelectionPr
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
             Choose your event type to get started with personalized planning tools and AI-powered recommendations
           </p>
+          <p className="text-sm text-gray-500 mt-2">
+            Demo Mode: You can change event types anytime from your profile
+          </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
