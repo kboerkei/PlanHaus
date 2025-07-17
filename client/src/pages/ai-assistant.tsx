@@ -72,7 +72,7 @@ export default function AIAssistant() {
       icon: Users,
       title: "Vendor Suggestions",
       description: "Find recommended vendors in your area",
-      message: "Can you suggest reliable wedding vendors in my area? I need a photographer, florist, and caterer."
+      message: "Can you help me find wedding vendors in Austin, Texas? I need recommendations for photographers, caterers, and florists with good reviews and reasonable pricing."
     },
     {
       icon: Sparkles,
@@ -133,10 +133,7 @@ export default function AIAssistant() {
         },
         body: JSON.stringify({ 
           message: currentMessage,
-          context: 'wedding_planning_assistant',
-          summary: formSummary, // Include wedding context from intake form
-          // Future enhancement: include recent conversation history for better context
-          // conversationHistory: chatHistory.slice(-6).map(msg => ({ type: msg.type, message: msg.message }))
+          context: 'wedding_planning_assistant'
         })
       });
       

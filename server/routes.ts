@@ -1359,7 +1359,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json(item);
     } catch (error) {
-      res.status(400).json({ message: "Invalid inspiration data" });
+      console.error('Inspiration creation error (project-specific):', error);
+      res.status(400).json({ message: "Failed to add inspiration item", error: error.message });
     }
   });
 
@@ -1399,7 +1400,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json(item);
     } catch (error) {
-      res.status(400).json({ message: "Invalid inspiration data" });
+      console.error('Inspiration creation error (generic):', error);
+      res.status(400).json({ message: "Failed to add inspiration item", error: error.message });
     }
   });
 
@@ -2966,6 +2968,167 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('AI timeline generation error:', error);
       res.status(500).json({ message: "Failed to generate timeline" });
+    }
+  });
+
+  // AI-powered vendor search endpoint
+  app.post("/api/vendors/ai-search", requireAuth, async (req, res) => {
+    try {
+      const { location, vendorType, budget, style } = req.body;
+      
+      if (!location || !vendorType) {
+        return res.status(400).json({ message: "Location and vendor type are required" });
+      }
+
+      // Create a comprehensive search prompt for OpenAI
+      const searchPrompt = `You are a wedding planning assistant helping find real wedding vendors. 
+
+Search for: ${vendorType} vendors in ${location}
+${budget ? `Budget range: $${budget}` : ''}
+${style ? `Style preference: ${style}` : ''}
+
+Please provide 5-8 real, current wedding vendors in this area with the following information:
+- Business name
+- Contact information (phone, email, website)
+- Address/location
+- Specialties or services offered
+- Approximate price range
+- Brief description
+- Any notable reviews or awards
+
+Format the response as a JSON array with this structure:
+[
+  {
+    "name": "Business Name",
+    "phone": "(555) 123-4567",
+    "email": "contact@business.com",
+    "website": "https://business.com",
+    "address": "123 Main St, City, State",
+    "category": "${vendorType}",
+    "services": "Specific services offered",
+    "priceRange": "$1,000 - $3,000",
+    "description": "Brief description of the vendor",
+    "specialties": ["Specialty 1", "Specialty 2"],
+    "rating": "4.8/5"
+  }
+]
+
+Focus on providing accurate, real businesses that are currently operating. Include diverse options across different price points.`;
+
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [
+          {
+            role: "system",
+            content: "You are a wedding planning expert with access to current vendor information. Provide accurate, helpful vendor recommendations."
+          },
+          {
+            role: "user",
+            content: searchPrompt
+          }
+        ],
+        temperature: 0.7,
+        max_tokens: 2000
+      });
+
+      const aiResponse = response.choices[0]?.message?.content;
+      
+      if (!aiResponse) {
+        return res.status(500).json({ message: "Failed to get AI response" });
+      }
+
+      // Try to parse the JSON response
+      let vendors;
+      try {
+        // Extract JSON from the response if it's wrapped in markdown or other text
+        const jsonMatch = aiResponse.match(/\[[\s\S]*\]/);
+        const jsonString = jsonMatch ? jsonMatch[0] : aiResponse;
+        vendors = JSON.parse(jsonString);
+      } catch (parseError) {
+        // If JSON parsing fails, create structured data from the text response
+        vendors = [{
+          name: "AI Search Results",
+          description: aiResponse,
+          category: vendorType,
+          location: location,
+          searchQuery: `${vendorType} in ${location}`,
+          note: "Please review these AI-generated recommendations and verify contact details before reaching out."
+        }];
+      }
+
+      res.json({
+        vendors,
+        searchQuery: { location, vendorType, budget, style },
+        timestamp: new Date().toISOString()
+      });
+
+    } catch (error) {
+      console.error('AI vendor search error:', error);
+      res.status(500).json({ message: "Failed to search for vendors" });
+    }
+  });
+
+  // Enhanced AI assistant endpoint for vendor search and general assistance
+  app.post("/api/ai/chat", requireAuth, async (req, res) => {
+    try {
+      const { message, context } = req.body;
+      const userId = (req as any).userId;
+      
+      // Get user's wedding project for context
+      const projects = await storage.getWeddingProjectsByUserId(userId);
+      const currentProject = projects.find(p => p.name === "Emma & Jake's Wedding") || projects[0];
+      
+      let systemContext = "You are a helpful wedding planning assistant. Provide practical, actionable advice for wedding planning.";
+      
+      if (currentProject) {
+        const projectContext = `Wedding Details:
+- Date: ${currentProject.date ? new Date(currentProject.date).toLocaleDateString() : 'Not set'}
+- Location: ${currentProject.location || 'Not specified'}
+- Budget: $${currentProject.budget || 'Not set'}
+- Guest Count: ${currentProject.guestCount || 'Not set'}
+- Style: ${currentProject.style || 'Not specified'}`;
+        
+        systemContext += `\n\nCurrent Wedding Project:\n${projectContext}`;
+      }
+      
+      // Check if the message is about vendor search
+      const isVendorQuery = /vendor|photographer|caterer|florist|dj|music|venue|baker|makeup|hair/i.test(message);
+      
+      if (isVendorQuery && currentProject?.location) {
+        systemContext += `\n\nThe user is asking about vendors. You can help them find specific vendors in ${currentProject.location}. Provide practical vendor recommendations and suggest they use the AI vendor search feature for detailed results.`;
+      }
+
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [
+          {
+            role: "system",
+            content: systemContext
+          },
+          {
+            role: "user",
+            content: message
+          }
+        ],
+        temperature: 0.7,
+        max_tokens: 1000
+      });
+
+      const aiResponse = response.choices[0]?.message?.content;
+      
+      if (!aiResponse) {
+        return res.status(500).json({ message: "Failed to get AI response" });
+      }
+
+      res.json({
+        response: aiResponse,
+        timestamp: new Date().toISOString(),
+        context: context || 'general'
+      });
+
+    } catch (error) {
+      console.error('AI chat error:', error);
+      res.status(500).json({ message: "Failed to process AI request" });
     }
   });
 

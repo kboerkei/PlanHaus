@@ -73,6 +73,9 @@ export default function VendorsEnhanced() {
   const [filterStatus, setFilterStatus] = useState("all");
   const [viewMode, setViewMode] = useState<"grid" | "list">("list");
   const [sortBy, setSortBy] = useState("name");
+  const [isAiSearchOpen, setIsAiSearchOpen] = useState(false);
+  const [aiSearchLoading, setAiSearchLoading] = useState(false);
+  const [aiSearchResults, setAiSearchResults] = useState<any[]>([]);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isSearchDialogOpen, setIsSearchDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -198,14 +201,18 @@ export default function VendorsEnhanced() {
   });
 
   const searchVendorsMutation = useMutation({
-    mutationFn: (searchData: { location: string; category: string }) => 
+    mutationFn: (searchData: { location: string; vendorType: string; budget?: string; style?: string }) => 
       apiRequest('/api/vendors/ai-search', {
         method: 'POST',
         body: JSON.stringify(searchData),
       }),
     onSuccess: (data) => {
-      setSearchResults(data.vendors || []);
-      setIsSearching(false);
+      setAiSearchResults(data.vendors || []);
+      setAiSearchLoading(false);
+      toast({
+        title: "AI Search Complete",
+        description: `Found ${data.vendors?.length || 0} vendor recommendations`,
+      });
     },
     onError: (error: Error) => {
       toast({
@@ -213,9 +220,50 @@ export default function VendorsEnhanced() {
         description: error.message || "Failed to search for vendors",
         variant: "destructive",
       });
-      setIsSearching(false);
+      setAiSearchLoading(false);
     }
   });
+
+  const handleAiSearch = async (location: string, vendorType: string, budget?: string, style?: string) => {
+    if (!location || !vendorType) {
+      toast({
+        title: "Missing Information",
+        description: "Please provide both location and vendor type",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setAiSearchLoading(true);
+    searchVendorsMutation.mutate({ location, vendorType, budget, style });
+  };
+
+  const addVendorFromSearch = async (vendor: any) => {
+    try {
+      const vendorData = {
+        name: vendor.name,
+        category: vendor.category,
+        email: vendor.email || '',
+        phone: vendor.phone || '',
+        website: vendor.website || '',
+        address: vendor.address || '',
+        notes: `AI Search Result - ${vendor.description || ''}\nPrice Range: ${vendor.priceRange || 'Not specified'}`,
+        status: 'pending'
+      };
+
+      await createVendorMutation.mutateAsync(vendorData);
+      toast({
+        title: "Vendor Added",
+        description: `${vendor.name} has been added to your vendor list`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to add vendor",
+        variant: "destructive",
+      });
+    }
+  };
 
   // Enhanced filtering logic with better category and status handling
   const filteredVendors = (vendors || []).filter((vendor: any) => {
