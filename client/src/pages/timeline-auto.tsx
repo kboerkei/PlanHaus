@@ -196,14 +196,34 @@ export default function TimelineAuto() {
       groups[timeframe].tasks.push(task);
     });
 
-    // Sort groups by order (chronological - furthest to closest to wedding, then post-wedding)
+    // Sort groups chronologically (furthest to closest to wedding, then post-wedding)
     return Object.values(groups).sort((a, b) => {
-      // Post-wedding tasks go to the bottom
-      if (a.timeframe.toLowerCase().includes('post') || a.timeframe.toLowerCase().includes('after')) return 1;
-      if (b.timeframe.toLowerCase().includes('post') || b.timeframe.toLowerCase().includes('after')) return -1;
+      // Post-wedding tasks always go to the bottom
+      const aIsPost = a.timeframe.toLowerCase().includes('post') || a.timeframe.toLowerCase().includes('after');
+      const bIsPost = b.timeframe.toLowerCase().includes('post') || b.timeframe.toLowerCase().includes('after');
       
-      // Sort by timeframe order (higher order = further from wedding = shown first)
+      if (aIsPost && !bIsPost) return 1;  // a goes after b
+      if (!aIsPost && bIsPost) return -1; // a goes before b
+      if (aIsPost && bIsPost) return 0;   // both post-wedding, keep original order
+      
+      // For pre-wedding tasks: sort by timeframe order (higher order = further from wedding = shown first)
       return b.order - a.order;
+    }).map(group => {
+      // Sort tasks within each group chronologically by due date
+      const sortedTasks = [...group.tasks].sort((a, b) => {
+        // Tasks without due dates go to the end
+        if (!a.dueDate && !b.dueDate) return 0;
+        if (!a.dueDate) return 1;
+        if (!b.dueDate) return -1;
+        
+        // Sort by due date (earliest first within each timeframe)
+        return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+      });
+      
+      return {
+        ...group,
+        tasks: sortedTasks
+      };
     });
   })() : [];
 
