@@ -1225,6 +1225,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update budget item
+  app.patch("/api/budget-items/:id", requireAuth, async (req, res) => {
+    try {
+      const budgetItemId = parseInt(req.params.id);
+      const userId = (req as any).userId;
+      
+      // Get budget item first by checking all user's projects
+      const projects = await storage.getWeddingProjectsByUserId(userId);
+      let budgetItem = null;
+      
+      for (const project of projects) {
+        const budgetItems = await storage.getBudgetItemsByProjectId(project.id);
+        budgetItem = budgetItems.find(b => b.id === budgetItemId);
+        if (budgetItem) break;
+      }
+      
+      if (!budgetItem) {
+        return res.status(404).json({ message: "Budget item not found" });
+      }
+
+      const updateData = req.body;
+      const updatedItem = await storage.updateBudgetItem(budgetItemId, updateData);
+      
+      if (!updatedItem) {
+        return res.status(404).json({ message: "Budget item not found" });
+      }
+
+      // Create activity
+      await storage.createActivity({
+        projectId: budgetItem.projectId,
+        userId,
+        action: 'updated budget item',
+        target: 'budget',
+        targetId: budgetItemId,
+        details: { item: budgetItem.item, category: budgetItem.category }
+      });
+
+      websocketService?.notifyBudgetUpdate(budgetItem.projectId, updatedItem, 'updated', userId);
+
+      res.json(updatedItem);
+    } catch (error) {
+      console.error('Error updating budget item:', error);
+      res.status(500).json({ message: "Failed to update budget item" });
+    }
+  });
+
   // Delete budget item endpoint
   app.delete("/api/budget-items/:id", requireAuth, async (req, res) => {
     try {
