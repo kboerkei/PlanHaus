@@ -76,10 +76,20 @@ export default function EventSelection({ onEventTypeSelected }: EventSelectionPr
 
   const selectEventMutation = useMutation({
     mutationFn: async (eventType: string) => {
-      return await apiRequest(`/api/auth/select-event-type`, {
+      const response = await fetch('/api/auth/select-event-type', {
         method: 'POST',
-        body: { eventType }
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('sessionId')}`
+        },
+        body: JSON.stringify({ eventType })
       });
+      
+      if (!response.ok) {
+        throw new Error('Failed to select event type');
+      }
+      
+      return response.json();
     },
     onSuccess: (data, eventType) => {
       toast({
