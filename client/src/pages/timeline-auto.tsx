@@ -178,46 +178,66 @@ export default function TimelineAuto() {
     }
   });
 
+  // Timeframe to numeric order mapping
+  const getTimeOrder = (timeframe: string): number => {
+    const timeOrderMap: { [key: string]: number } = {
+      "12+ months before": 0,
+      "9-12 months before": 1,
+      "6-9 months before": 2,
+      "3-6 months before": 3,
+      "4-6 months before": 3, // alias
+      "1-3 months before": 4,
+      "2-4 weeks before": 5,
+      "1-2 weeks before": 6,
+      "1 week before": 7,
+      "2-3 days before": 8,
+      "Day Before": 9,
+      "Wedding Day": 10,
+      "1-4 weeks after": 11,
+      "1-2 months after": 12,
+      "After Wedding": 13,
+      "Post Wedding": 13, // alias
+      "As needed": 99,
+      "Ongoing": 99
+    };
+    return timeOrderMap[timeframe] || 999;
+  };
+
   // Group tasks by timeframe with chronological ordering
   const groupedTasks: TimelineGroup[] = tasks ? (() => {
     const groups: { [key: string]: TimelineGroup } = {};
     
     tasks.forEach((task: Task) => {
       const timeframe = task.defaultTimeframe || "Custom Tasks";
-      const order = task.timeframeOrder || 999;
+      const timeOrder = getTimeOrder(timeframe);
       
       if (!groups[timeframe]) {
         groups[timeframe] = {
           timeframe,
-          order,
+          order: timeOrder,
           tasks: []
         };
       }
       groups[timeframe].tasks.push(task);
     });
 
-    // Sort groups chronologically (furthest to closest to wedding, then post-wedding)
+    // Sort groups by time_order (0 = furthest from wedding = shown first)
     return Object.values(groups).sort((a, b) => {
-      // Post-wedding tasks always go to the bottom
-      const aIsPost = a.timeframe.toLowerCase().includes('post') || a.timeframe.toLowerCase().includes('after');
-      const bIsPost = b.timeframe.toLowerCase().includes('post') || b.timeframe.toLowerCase().includes('after');
-      
-      if (aIsPost && !bIsPost) return 1;  // a goes after b
-      if (!aIsPost && bIsPost) return -1; // a goes before b
-      if (aIsPost && bIsPost) return 0;   // both post-wedding, keep original order
-      
-      // For pre-wedding tasks: sort by timeframe order (higher order = further from wedding = shown first)
-      return b.order - a.order;
+      return a.order - b.order;
     }).map(group => {
-      // Sort tasks within each group chronologically by due date
+      // Sort tasks within each group by custom_date if set, otherwise by due date
       const sortedTasks = [...group.tasks].sort((a, b) => {
-        // Tasks without due dates go to the end
-        if (!a.dueDate && !b.dueDate) return 0;
-        if (!a.dueDate) return 1;
-        if (!b.dueDate) return -1;
+        // Use custom_date if available, otherwise fall back to dueDate
+        const aDate = a.customDate || a.dueDate;
+        const bDate = b.customDate || b.dueDate;
         
-        // Sort by due date (earliest first within each timeframe)
-        return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+        // Tasks without dates go to the end
+        if (!aDate && !bDate) return 0;
+        if (!aDate) return 1;
+        if (!bDate) return -1;
+        
+        // Sort by date (earliest first within each timeframe)
+        return new Date(aDate).getTime() - new Date(bDate).getTime();
       });
       
       return {
@@ -535,9 +555,12 @@ export default function TimelineAuto() {
         </Dialog>
       </div>
 
-      {/* Stats Cards */}
+      {/* Stats Cards - Clickable for filtering */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
+        <Card 
+          className={`cursor-pointer transition-all hover:shadow-md ${filter === "all" ? "ring-2 ring-blue-500" : ""}`}
+          onClick={() => setFilter("all")}
+        >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Tasks</CardTitle>
             <CalendarDays className="h-4 w-4 text-muted-foreground" />
@@ -550,7 +573,10 @@ export default function TimelineAuto() {
           </CardContent>
         </Card>
         
-        <Card>
+        <Card 
+          className={`cursor-pointer transition-all hover:shadow-md ${filter === "completed" ? "ring-2 ring-green-500" : ""}`}
+          onClick={() => setFilter("completed")}
+        >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Completed</CardTitle>
             <CheckCircle2 className="h-4 w-4 text-green-500" />
@@ -560,7 +586,10 @@ export default function TimelineAuto() {
           </CardContent>
         </Card>
         
-        <Card>
+        <Card 
+          className={`cursor-pointer transition-all hover:shadow-md ${filter === "pending" ? "ring-2 ring-blue-500" : ""}`}
+          onClick={() => setFilter("pending")}
+        >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Pending</CardTitle>
             <Circle className="h-4 w-4 text-gray-400" />
@@ -570,7 +599,10 @@ export default function TimelineAuto() {
           </CardContent>
         </Card>
         
-        <Card>
+        <Card 
+          className={`cursor-pointer transition-all hover:shadow-md ${filter === "overdue" ? "ring-2 ring-red-500" : ""}`}
+          onClick={() => setFilter("overdue")}
+        >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Overdue</CardTitle>
             <AlertCircle className="h-4 w-4 text-red-500" />
@@ -656,7 +688,10 @@ export default function TimelineAuto() {
                           </button>
                           
                           <div className="flex-1 min-w-0">
-                            <div className={`font-medium ${task.status === "completed" ? "line-through text-gray-500" : ""}`}>
+                            <div 
+                              className={`font-medium cursor-pointer hover:text-blue-600 transition-colors ${task.status === "completed" ? "line-through text-gray-500" : ""}`}
+                              onClick={() => startEditing(task)}
+                            >
                               {task.title}
                             </div>
                             {task.description && (
