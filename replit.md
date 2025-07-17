@@ -390,6 +390,10 @@ The application uses a comprehensive schema covering:
 - **FIXED**: Inspiration item creation error by correcting field name from `createdBy` to `addedBy`
   - Enhanced error logging for better debugging of API validation issues
   - Improved error messages with detailed error information for user feedback
+- **FIXED**: Wedding countdown inconsistency between header and dashboard stats
+  - Standardized countdown calculation using `differenceInDays` from date-fns across all components
+  - Header and dashboard now show consistent countdown numbers (e.g., both showing 89 days instead of 89 vs 90)
+  - Ensures accurate and synchronized wedding planning timeline display
 
 ### AI Assistant Enhanced Functionality (January 15, 2025)
 - Implemented intake form context injection for personalized AI responses

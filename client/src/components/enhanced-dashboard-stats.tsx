@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
+import { differenceInDays } from "date-fns";
 import { 
   TrendingUp, 
   TrendingDown, 
@@ -102,10 +103,8 @@ export default function EnhancedDashboardStats() {
     );
   }
 
-  // Calculate days until wedding
-  const weddingDate = new Date(currentProject.date);
-  const today = new Date();
-  const daysUntil = Math.ceil((weddingDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+  // Calculate days until wedding using same method as header for consistency
+  const daysUntil = currentProject?.date ? differenceInDays(new Date(currentProject.date), new Date()) : 0;
 
   // Task completion rate
   const taskCompletionRate = dashboardStats.tasks?.total > 0 
