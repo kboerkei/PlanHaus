@@ -63,15 +63,45 @@ export async function setupDemoData() {
 
   // Add comprehensive demo tasks (75% complete) only if none exist
   if (existingTasks.length === 0) {
-    // Completed tasks (showing progress)
+    // 12+ months before tasks (first to show)
+    await storage.createTask({
+      title: "Set overall wedding budget",
+      description: "Establish total budget and allocate by category",
+      status: "completed",
+      category: "Budget & Planning",
+      priority: "high",
+      dueDate: new Date("2024-12-01T00:00:00.000Z"),
+      completedAt: new Date("2024-11-28T00:00:00.000Z"),
+      defaultTimeframe: "12+ months before",
+      timeframeOrder: 13,
+      createdBy: demoUser.id,
+      projectId: demoProject.id,
+    });
+
     await storage.createTask({
       title: "Book venue - Sunset Ranch Austin",
       description: "Secured our dream farmhouse venue in Austin Hills",
       status: "completed",
-      category: "Venue",
+      category: "Ceremony",
       priority: "high",
       dueDate: new Date("2025-01-15T00:00:00.000Z"),
       completedAt: new Date("2025-01-12T00:00:00.000Z"),
+      defaultTimeframe: "12+ months before",
+      timeframeOrder: 13,
+      createdBy: demoUser.id,
+      projectId: demoProject.id,
+    });
+
+    await storage.createTask({
+      title: "Draft initial guest list",
+      description: "Create preliminary list of family and friends to invite",
+      status: "completed",
+      category: "Guest List & Invitations",
+      priority: "medium",
+      dueDate: new Date("2024-12-15T00:00:00.000Z"),
+      completedAt: new Date("2024-12-10T00:00:00.000Z"),
+      defaultTimeframe: "12+ months before",
+      timeframeOrder: 13,
       createdBy: demoUser.id,
       projectId: demoProject.id,
     });
@@ -80,10 +110,12 @@ export async function setupDemoData() {
       title: "Hire photographer - Sarah Chen Photography",
       description: "Booked Austin-based photographer specializing in natural farmhouse style",
       status: "completed",
-      category: "Photography",
+      category: "Photography & Videography",
       priority: "high",
       dueDate: new Date("2025-02-01T00:00:00.000Z"),
       completedAt: new Date("2025-01-28T00:00:00.000Z"),
+      defaultTimeframe: "9-12 months before",
+      timeframeOrder: 10,
       createdBy: demoUser.id,
       projectId: demoProject.id,
     });
@@ -92,10 +124,12 @@ export async function setupDemoData() {
       title: "Order save-the-dates",
       description: "Rustic kraft paper save-the-dates with barn illustration",
       status: "completed",
-      category: "Invitations",
+      category: "Guest List & Invitations",
       priority: "medium",
       dueDate: new Date("2025-03-15T00:00:00.000Z"),
       completedAt: new Date("2025-03-10T00:00:00.000Z"),
+      defaultTimeframe: "8-10 months before",
+      timeframeOrder: 9,
       createdBy: demoUser.id,
       projectId: demoProject.id,
     });
@@ -104,10 +138,12 @@ export async function setupDemoData() {
       title: "Book caterer - Hill Country Catering",
       description: "Secured Texas BBQ and southern comfort food menu",
       status: "completed",
-      category: "Catering",
+      category: "Reception",
       priority: "high",
       dueDate: new Date("2025-04-01T00:00:00.000Z"),
       completedAt: new Date("2025-03-25T00:00:00.000Z"),
+      defaultTimeframe: "6-9 months before",
+      timeframeOrder: 7,
       createdBy: demoUser.id,
       projectId: demoProject.id,
     });
@@ -116,10 +152,12 @@ export async function setupDemoData() {
       title: "Hire DJ - Austin Groove Mobile",
       description: "Booked DJ for ceremony and reception music",
       status: "completed",
-      category: "Music",
+      category: "Reception",
       priority: "medium",
       dueDate: new Date("2025-04-15T00:00:00.000Z"),
       completedAt: new Date("2025-04-10T00:00:00.000Z"),
+      defaultTimeframe: "9-12 months before",
+      timeframeOrder: 10,
       createdBy: demoUser.id,
       projectId: demoProject.id,
     });
@@ -129,9 +167,11 @@ export async function setupDemoData() {
       title: "Order wedding invitations",
       description: "Design and order formal wedding invitations with RSVP cards",
       status: "pending",
-      category: "Invitations",
+      category: "Guest List & Invitations",
       priority: "high",
       dueDate: new Date("2025-07-15T00:00:00.000Z"),
+      defaultTimeframe: "4-6 months before",
+      timeframeOrder: 5,
       createdBy: demoUser.id,
       projectId: demoProject.id,
     });
@@ -140,9 +180,11 @@ export async function setupDemoData() {
       title: "Wedding dress final fitting",
       description: "Schedule final dress fitting and alterations",
       status: "pending",
-      category: "Attire",
+      category: "Attire & Beauty",
       priority: "high",
       dueDate: new Date("2025-09-15T00:00:00.000Z"),
+      defaultTimeframe: "1-2 months before",
+      timeframeOrder: 2,
       createdBy: demoUser.id,
       projectId: demoProject.id,
     });

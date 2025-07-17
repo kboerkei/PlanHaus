@@ -648,7 +648,12 @@ export default function TimelineAuto() {
                       
                       return (
                         <div key={task.id} className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50 transition-colors">
-                          <StatusIcon className={`h-4 w-4 flex-shrink-0 ${statusColors[task.status]}`} />
+                          <button
+                            onClick={() => toggleTaskCompletion(task)}
+                            className={`h-4 w-4 flex-shrink-0 ${statusColors[task.status]} hover:scale-110 transition-transform cursor-pointer`}
+                          >
+                            <StatusIcon className="w-full h-full" />
+                          </button>
                           
                           <div className="flex-1 min-w-0">
                             <div className={`font-medium ${task.status === "completed" ? "line-through text-gray-500" : ""}`}>
