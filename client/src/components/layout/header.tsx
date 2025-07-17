@@ -28,15 +28,10 @@ export default function Header() {
             <Heart className="h-4 w-4 sm:h-6 sm:w-6 text-rose-500" fill="currentColor" />
           </div>
           
-          {/* Wedding date and countdown */}
+          {/* Wedding date */}
           {currentProject?.date && (
             <div className="text-xs sm:text-sm md:text-base text-gray-600 px-2">
               <span className="block sm:inline">{format(new Date(currentProject.date), 'MMMM d, yyyy')}</span>
-              {daysUntilWedding > 0 && (
-                <span className="block sm:inline sm:ml-2 text-rose-600 font-semibold">
-                  <span className="hidden sm:inline">• </span>{daysUntilWedding} days to go!
-                </span>
-              )}
             </div>
           )}
         </div>
