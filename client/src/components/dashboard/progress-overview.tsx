@@ -92,9 +92,18 @@ export default function ProgressOverview() {
   const bookedVendors = vendors?.filter(v => v.status === 'booked') || [];
   const paidBudgetItems = budgetItems?.filter(b => b.isPaid) || [];
   
-  // Use dashboard stats budget calculations
-  const totalBudget = dashboardStats?.budget?.total || 0;
-  const totalSpent = dashboardStats?.budget?.spent || 0;
+  // Calculate budget from actual project data
+  const totalBudget = project?.budget ? parseFloat(project.budget) : 0;
+  const totalSpent = budgetItems?.reduce((sum, item) => sum + (parseFloat(item.actualCost || '0')), 0) || 0;
+  
+  // Debug budget calculation
+  console.log('Budget Debug:', {
+    project: project?.name,
+    totalBudget,
+    totalSpent,
+    budgetItems: budgetItems?.length,
+    dashboardStatsBudget: dashboardStats?.budget
+  });
   
   // Progress calculations using dashboard stats
   const totalTasks = dashboardStats?.tasks?.total || 0;
