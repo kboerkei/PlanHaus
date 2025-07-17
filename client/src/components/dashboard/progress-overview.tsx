@@ -97,7 +97,7 @@ export default function ProgressOverview() {
   const totalEstimated = budgetItems?.reduce((sum, item) => sum + (parseFloat(item.estimatedCost || '0')), 0) || 0;
   const totalSpent = budgetItems?.reduce((sum, item) => sum + (parseFloat(item.actualCost || '0')), 0) || 0;
   
-  // Progress calculations using dashboard stats
+  // Progress calculations using dashboard stats with debugging
   const totalTasks = dashboardStats?.tasks?.total || 0;
   const completedTasks = dashboardStats?.tasks?.completed || 0;
   const taskProgress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;

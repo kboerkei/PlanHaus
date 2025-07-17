@@ -116,9 +116,9 @@ export default function EnhancedDashboardStats() {
     ? Math.round((dashboardStats.budget.spent / dashboardStats.budget.total) * 100)
     : 0;
 
-  // RSVP rate
+  // RSVP rate: guests who have responded (confirmed + declined) vs total
   const rsvpRate = dashboardStats.guests?.total > 0
-    ? Math.round((dashboardStats.guests.confirmed / dashboardStats.guests.total) * 100)
+    ? Math.round(((dashboardStats.guests.confirmed + dashboardStats.guests.declined) / dashboardStats.guests.total) * 100)
     : 0;
 
   // Vendor completion rate
@@ -159,7 +159,7 @@ export default function EnhancedDashboardStats() {
       
       <StatCard
         title="Guest RSVPs"
-        value={`${dashboardStats.guests?.confirmed || 0}/${dashboardStats.guests?.total || 0}`}
+        value={`${(dashboardStats.guests?.confirmed || 0) + (dashboardStats.guests?.declined || 0)}/${dashboardStats.guests?.total || 0}`}
         subtitle={`${rsvpRate}% confirmed`}
         progress={rsvpRate}
         icon={Users}
