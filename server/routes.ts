@@ -2088,7 +2088,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const budgetItems = await storage.getBudgetItemsByProjectId(projectId);
       const budgetStats = {
         spent: budgetItems.reduce((sum, item) => sum + (parseFloat(item.actualCost || '0')), 0),
-        total: parseFloat(currentProject.budget || '0')
+        total: budgetItems.reduce((sum, item) => sum + (parseFloat(item.estimatedCost || '0')), 0)
       };
 
       // Get guest statistics

@@ -29,7 +29,7 @@ export default function MobileMenu() {
     <div className="lg:hidden">
       <Sheet open={isOpen} onOpenChange={setIsOpen}>
         <SheetTrigger asChild>
-          <Button variant="outline" size="icon" className="fixed top-4 left-4 z-50 bg-white shadow-lg">
+          <Button variant="outline" size="icon" className="fixed top-4 left-4 z-50 bg-white shadow-lg lg:hidden">
             <Menu size={20} />
           </Button>
         </SheetTrigger>

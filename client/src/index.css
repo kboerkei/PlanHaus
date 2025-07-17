@@ -66,9 +66,9 @@
     font-size: 16px;
   }
   
-  /* Mobile layout adjustments */
+  /* Mobile layout adjustments - show mobile elements on small screens */
   .lg\:hidden {
-    display: none !important;
+    display: block !important;
   }
   
   /* Mobile form optimization */

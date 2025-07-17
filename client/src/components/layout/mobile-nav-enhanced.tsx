@@ -42,7 +42,7 @@ export default function MobileNav() {
   ];
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 glass-wedding backdrop-blur-xl border-t border-white/30 shadow-wedding-lg lg:hidden z-50 safe-area-pb">
+    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg lg:hidden z-50 safe-area-pb">
       <div className="grid grid-cols-5 py-2">
         {primaryNavigation.map((item, index) => {
           const Icon = item.icon;
