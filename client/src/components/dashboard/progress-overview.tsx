@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import EnhancedDashboardStats from "@/components/enhanced-dashboard-stats";
+import ElegantCountdown from "@/components/ui/elegant-countdown";
 
 interface ProgressRingProps {
   percentage: number;
@@ -114,7 +115,11 @@ export default function ProgressOverview() {
   const overallProgress = Math.round((taskProgress + guestProgress + vendorProgress + budgetProgress) / 4);
 
   return (
-    <div className="mb-8">
+    <div className="mb-8 space-y-8">
+      {/* Elegant Wedding Countdown */}
+      <ElegantCountdown />
+      
+      {/* Wedding Planning Progress */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
         <div className="flex items-center justify-between mb-6">
           <h2 className="font-serif text-xl font-semibold text-gray-800">
