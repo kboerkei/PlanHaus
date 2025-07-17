@@ -118,27 +118,35 @@ export default function Guests() {
   const noResponseGuests = guests?.filter((guest: any) => guest.rsvpStatus === 'no_response').length || 0;
 
   const createGuestMutation = useMutation({
-    mutationFn: (data: GuestFormData) => apiRequest(`/api/projects/${currentProject?.id}/guests`, {
-      method: 'POST',
-      body: JSON.stringify(data),
-      headers: { 'Content-Type': 'application/json' }
-    }),
+    mutationFn: (data: GuestFormData) => {
+      if (!currentProject?.id) {
+        throw new Error('No project selected');
+      }
+      return apiRequest(`/api/projects/${currentProject.id}/guests`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+        headers: { 'Content-Type': 'application/json' }
+      });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/projects', currentProject?.id, 'guests'] });
       form.reset();
       setIsAddDialogOpen(false);
       toast({ title: "Guest added successfully!" });
     },
-    onError: () => {
+    onError: (error: any) => {
+      console.error('Guest creation error:', error);
       toast({ 
         title: "Error", 
-        description: "Failed to add guest", 
+        description: error?.message || "Failed to add guest", 
         variant: "destructive" 
       });
     }
   });
 
   const onSubmit = (data: GuestFormData) => {
+    console.log('Submitting guest data:', data);
+    console.log('Current project:', currentProject?.id);
     createGuestMutation.mutate(data);
   };
 
