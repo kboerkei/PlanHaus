@@ -9,6 +9,7 @@ export const users = pgTable("users", {
   email: text("email").notNull().unique(),
   password: text("password").notNull(),
   avatar: text("avatar"),
+  eventType: text("event_type"), // 'wedding', 'birthday', 'baby_shower', 'reunion', 'dinner_party', 'corporate'
   hasCompletedIntake: boolean("has_completed_intake").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
@@ -23,6 +24,7 @@ export const weddingProjects = pgTable("wedding_projects", {
   guestCount: integer("guest_count"),
   style: text("style"),
   description: text("description"),
+  eventType: text("event_type").default('wedding').notNull(), // 'wedding', 'birthday', 'baby_shower', 'reunion', 'dinner_party', 'corporate'
   createdBy: integer("created_by").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });

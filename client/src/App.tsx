@@ -9,6 +9,7 @@ import { ErrorBoundary } from "@/components/error-boundary";
 import LoadingSpinner from "@/components/loading-spinner";
 import ToastProvider from "@/components/ToastProvider";
 import Auth from "@/pages/auth";
+import EventSelection from "@/pages/event-selection";
 import Profile from "@/pages/profile";
 import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/dashboard";
@@ -28,8 +29,17 @@ import MobileNav from "@/components/layout/mobile-nav-enhanced";
 import FloatingActions from "@/components/layout/floating-actions";
 import MobileMenu from "@/components/mobile-menu";
 
-function Router({ user, onLogout, isNewUser, onIntakeComplete }: { user: any; onLogout: () => void; isNewUser: boolean; onIntakeComplete: () => void }) {
-  // Allow users to access all sections even without completing intake
+function Router({ user, onLogout, isNewUser, onIntakeComplete, onEventTypeSelected }: { 
+  user: any; 
+  onLogout: () => void; 
+  isNewUser: boolean; 
+  onIntakeComplete: () => void;
+  onEventTypeSelected: (eventType: string) => void;
+}) {
+  // Check if user needs to select event type
+  if (!user.eventType) {
+    return <EventSelection onEventTypeSelected={onEventTypeSelected} />;
+  }
 
   return (
     <div className="flex h-screen bg-background">
@@ -214,6 +224,15 @@ function App() {
     }
   };
 
+  const handleEventTypeSelected = (eventType: string) => {
+    // Update user with selected event type
+    if (user) {
+      const updatedUser = { ...user, eventType };
+      setUser(updatedUser);
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -241,6 +260,7 @@ function App() {
                 onLogout={handleLogout} 
                 isNewUser={isNewUser}
                 onIntakeComplete={handleIntakeComplete}
+                onEventTypeSelected={handleEventTypeSelected}
               />
             ) : (
               <Auth onAuth={handleAuth} />
