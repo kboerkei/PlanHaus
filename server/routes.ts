@@ -2063,19 +2063,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const currentProject = projects.find(p => p.name === "Emma & Jake's Wedding") || projects[0];
       const projectId = currentProject.id;
       
-      // Get task statistics
-      const tasks = await storage.getTasksByProjectId(projectId);
+      // Get ALL task statistics across all user projects for comprehensive view
+      let allTasks = [];
+      for (const project of projects) {
+        const projectTasks = await storage.getTasksByProjectId(project.id);
+        allTasks = allTasks.concat(projectTasks);
+      }
       const taskStats = {
-        completed: tasks.filter(t => t.status === 'completed').length,
-        total: tasks.length,
-        pending: tasks.filter(t => t.status === 'pending').length,
-        overdue: tasks.filter(t => {
+        completed: allTasks.filter(t => t.status === 'completed').length,
+        total: allTasks.length,
+        pending: allTasks.filter(t => t.status === 'pending').length,
+        overdue: allTasks.filter(t => {
           if (!t.dueDate) return false;
           const dueDate = new Date(t.dueDate);
           const today = new Date();
           return dueDate < today && t.status !== 'completed';
         }).length,
-        upcoming: tasks.filter(t => {
+        upcoming: allTasks.filter(t => {
           if (!t.dueDate) return false;
           const dueDate = new Date(t.dueDate);
           const today = new Date();
@@ -2091,11 +2095,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         total: budgetItems.reduce((sum, item) => sum + (parseFloat(item.estimatedCost || '0')), 0)
       };
 
-      // Get guest statistics
+      // Get guest statistics - include both "confirmed" and "attending" as responded
       const guests = await storage.getGuestsByProjectId(projectId);
       const guestStats = {
-        confirmed: guests.filter(g => g.rsvpStatus === 'confirmed').length,
-        pending: guests.filter(g => g.rsvpStatus === 'pending').length,
+        confirmed: guests.filter(g => g.rsvpStatus === 'confirmed' || g.rsvpStatus === 'attending').length,
+        pending: guests.filter(g => g.rsvpStatus === 'pending' || !g.rsvpStatus).length,
         declined: guests.filter(g => g.rsvpStatus === 'declined').length,
         total: guests.length
       };
@@ -2110,7 +2114,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
 
       // Find next milestone (upcoming task with highest priority)
-      const upcomingTasks = tasks
+      const upcomingTasks = allTasks
         .filter(t => t.status !== 'completed' && t.dueDate)
         .sort((a, b) => {
           const dateA = new Date(a.dueDate!);
