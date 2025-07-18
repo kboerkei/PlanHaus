@@ -1385,8 +1385,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/projects/:id/inspiration", requireAuth, async (req, res) => {
     try {
       const projectId = parseInt(req.params.id);
+      // Convert tags string to array if provided
+      const processedBody = { ...req.body };
+      if (processedBody.tags && typeof processedBody.tags === 'string') {
+        processedBody.tags = processedBody.tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
+      }
+      
       const itemData = insertInspirationItemSchema.parse({
-        ...req.body,
+        ...processedBody,
         projectId,
         addedBy: (req as any).userId
       });
@@ -1426,8 +1432,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         projects = [defaultProject];
       }
       
+      // Convert tags string to array if provided
+      const processedBody = { ...req.body };
+      if (processedBody.tags && typeof processedBody.tags === 'string') {
+        processedBody.tags = processedBody.tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
+      }
+      
       const itemData = insertInspirationItemSchema.parse({
-        ...req.body,
+        ...processedBody,
         projectId: projects[0].id,
         addedBy: userId
       });
