@@ -87,42 +87,6 @@ export default function EventDashboard({ eventType, user }: EventDashboardProps)
 
   return (
     <div className="space-y-6">
-      {/* Event Header */}
-      <div className="bg-gradient-to-r from-rose-50 to-pink-50 rounded-lg p-6 border border-rose-100">
-        <div className="flex items-center gap-4 mb-4">
-          <div className={`w-12 h-12 bg-gradient-to-br from-${config.primaryColor}-100 to-${config.primaryColor}-200 rounded-full flex items-center justify-center`}>
-            <Icon className={`w-6 h-6 text-${config.primaryColor}-600`} />
-          </div>
-          <div>
-            <h1 className="text-2xl font-serif font-bold text-gray-800">
-              {config.title}
-            </h1>
-            <p className="text-gray-600">{config.welcomeMessage}</p>
-          </div>
-        </div>
-        
-        {currentProject && eventDate && (
-          <div className="flex items-center gap-6 text-sm text-gray-600">
-            <div className="flex items-center gap-2">
-              <Calendar className="w-4 h-4" />
-              <span>{format(eventDate, 'MMMM d, yyyy')}</span>
-            </div>
-            {daysUntil !== null && (
-              <div className="flex items-center gap-2">
-                <Clock className="w-4 h-4" />
-                <span>
-                  {daysUntil > 0 ? `${daysUntil} days to go` : 
-                   daysUntil === 0 ? 'Today!' : 
-                   `${Math.abs(daysUntil)} days ago`}
-                </span>
-              </div>
-            )}
-            <Badge variant="outline" className={`text-${config.primaryColor}-600 border-${config.primaryColor}-200`}>
-              {getEventDisplayName(eventType)}
-            </Badge>
-          </div>
-        )}
-      </div>
 
       {/* Quick Actions */}
       <Card>
