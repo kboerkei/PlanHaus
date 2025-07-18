@@ -263,7 +263,7 @@ export default function DragDropTimeline({ tasks, onTaskUpdate, onTaskReorder, p
 
       onTaskUpdate(taskId, { completed, status: completed ? 'completed' : 'pending' });
     } catch (error) {
-      console.error('Error updating task:', error);
+
       toast.error('Failed to update task');
     }
   };

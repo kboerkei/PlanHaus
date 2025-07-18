@@ -155,7 +155,7 @@ export default function AIAssistant() {
         return [...filteredHistory, aiResponse];
       });
     } catch (error) {
-      console.error('Chat error:', error);
+
       // Remove typing indicator and show error message
       setChatHistory(prev => {
         const filteredHistory = prev.filter(msg => msg.id !== typingId);

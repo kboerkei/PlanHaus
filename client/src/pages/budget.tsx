@@ -361,7 +361,7 @@ export default function Budget() {
   };
 
   // Always render header - even when loading
-  console.log('Budget Debug:', { projectsLoading, projects, currentProject, budgetItems });
+
 
   return (
     <div className="p-3 sm:p-6 mobile-safe-spacing">

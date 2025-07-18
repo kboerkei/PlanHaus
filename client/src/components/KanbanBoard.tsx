@@ -328,7 +328,7 @@ export default function KanbanBoard({ tasks, onTaskUpdate, onTaskReorder, projec
             completed: newStatus === 'completed' 
           });
         } catch (error) {
-          console.error('Error updating task:', error);
+
           toast.error('Failed to update task');
         }
       }

@@ -135,7 +135,7 @@ export default function Guests() {
       toast({ title: "Guest added successfully!" });
     },
     onError: (error: any) => {
-      console.error('Guest creation error:', error);
+
       toast({ 
         title: "Error", 
         description: error?.message || "Failed to add guest", 
@@ -145,8 +145,7 @@ export default function Guests() {
   });
 
   const onSubmit = (data: GuestFormData) => {
-    console.log('Submitting guest data:', data);
-    console.log('Current project:', currentProject?.id);
+
     createGuestMutation.mutate(data);
   };
 

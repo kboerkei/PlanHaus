@@ -356,7 +356,7 @@ export default function Intake({ onComplete }: IntakeProps) {
       }, 1000);
     },
     onError: (error: any) => {
-      console.error('Intake submission error:', error);
+
       toast({
         title: "Error saving intake",
         description: "Please try again or contact support.",
