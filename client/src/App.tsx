@@ -9,7 +9,6 @@ import { ErrorBoundary } from "@/components/error-boundary";
 import LoadingSpinner from "@/components/loading-spinner";
 import ToastProvider from "@/components/ToastProvider";
 import Auth from "@/pages/auth";
-import EventSelection from "@/pages/event-selection";
 import Profile from "@/pages/profile";
 import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/dashboard";
@@ -22,7 +21,6 @@ import Inspiration from "@/pages/inspiration";
 import Resources from "@/pages/resources";
 import Schedules from "@/pages/schedules";
 import Intake from "@/pages/intake";
-import DynamicIntake from "@/pages/dynamic-intake";
 import Sidebar from "@/components/layout/sidebar-enhanced";
 import Header from "@/components/layout/header";
 import Footer from "@/components/layout/footer";
@@ -30,30 +28,22 @@ import MobileNav from "@/components/layout/mobile-nav-enhanced";
 import FloatingActions from "@/components/layout/floating-actions";
 import MobileMenu from "@/components/mobile-menu";
 
-function Router({ user, onLogout, isNewUser, onIntakeComplete, onEventTypeSelected }: { 
-  user: any; 
-  onLogout: () => void; 
-  isNewUser: boolean; 
-  onIntakeComplete: () => void;
-  onEventTypeSelected: (eventType: string) => void;
-}) {
-  // Check if user needs to select event type
-  if (!user.eventType) {
-    return <EventSelection onEventTypeSelected={onEventTypeSelected} />;
-  }
+function Router({ user, onLogout, isNewUser, onIntakeComplete }: { user: any; onLogout: () => void; isNewUser: boolean; onIntakeComplete: () => void }) {
+  // Allow users to access all sections even without completing intake
 
   return (
     <div className="flex h-screen bg-background">
       <Sidebar />
       <MobileMenu />
       <div className="flex-1 flex flex-col overflow-hidden lg:ml-64">
+        <Header />
         <main className="flex-1 overflow-auto pb-20 lg:pb-0 px-4 lg:px-0">
           <div className="min-h-full flex flex-col max-w-full">
             <div className="flex-1 w-full">
               <Switch>
                 <Route path="/" component={Dashboard} />
                 <Route path="/intake">
-                  <DynamicIntake onComplete={onIntakeComplete} />
+                  <Intake onComplete={onIntakeComplete} />
                 </Route>
                 <Route path="/ai-assistant" component={AIAssistant} />
                 <Route path="/timeline" component={Timeline} />
@@ -224,15 +214,6 @@ function App() {
     }
   };
 
-  const handleEventTypeSelected = (eventType: string) => {
-    // Update user with selected event type
-    if (user) {
-      const updatedUser = { ...user, eventType };
-      setUser(updatedUser);
-      localStorage.setItem('user', JSON.stringify(updatedUser));
-    }
-  };
-
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -260,7 +241,6 @@ function App() {
                 onLogout={handleLogout} 
                 isNewUser={isNewUser}
                 onIntakeComplete={handleIntakeComplete}
-                onEventTypeSelected={handleEventTypeSelected}
               />
             ) : (
               <Auth onAuth={handleAuth} />

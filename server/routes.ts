@@ -93,14 +93,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       sessions.set(sessionId, { userId: user.id });
 
       res.json({ 
-        user: { 
-          id: user.id, 
-          username: user.username, 
-          email: user.email, 
-          avatar: user.avatar,
-          eventType: user.eventType,
-          hasCompletedIntake: user.hasCompletedIntake || false
-        },
+        user: { id: user.id, username: user.username, email: user.email, avatar: user.avatar },
         sessionId 
       });
     } catch (error) {
@@ -121,14 +114,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       sessions.set(sessionId, { userId: user.id });
 
       res.json({ 
-        user: { 
-          id: user.id, 
-          username: user.username, 
-          email: user.email, 
-          avatar: user.avatar,
-          eventType: user.eventType,
-          hasCompletedIntake: user.hasCompletedIntake || false
-        },
+        user: { id: user.id, username: user.username, email: user.email, avatar: user.avatar },
         sessionId 
       });
     } catch (error) {
@@ -148,32 +134,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       sessions.set(sessionId, { userId: user.id });
 
       res.json({ 
-        user: { 
-          id: user.id, 
-          username: user.username, 
-          email: user.email, 
-          avatar: user.avatar,
-          eventType: user.eventType,
-          hasCompletedIntake: user.hasCompletedIntake || false
-        },
+        user: { id: user.id, username: user.username, email: user.email, avatar: user.avatar },
         sessionId 
       });
     } catch (error) {
       res.status(500).json({ message: "Demo login failed" });
-    }
-  });
-
-  app.post("/api/auth/select-event-type", requireAuth, async (req: any, res) => {
-    try {
-      const { eventType } = req.body;
-      const userId = req.userId;
-      
-      // Update user's event type in database
-      await db.update(users).set({ eventType }).where(eq(users.id, userId));
-      
-      res.json({ message: "Event type updated successfully", eventType });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to update event type" });
     }
   });
 
@@ -196,7 +161,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         username: user.username, 
         email: user.email, 
         avatar: user.avatar,
-        eventType: user.eventType,
         hasCompletedIntake: user.hasCompletedIntake || false
       });
     } catch (error) {
