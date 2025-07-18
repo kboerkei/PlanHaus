@@ -47,7 +47,6 @@ function Router({ user, onLogout, isNewUser, onIntakeComplete, onEventTypeSelect
       <Sidebar />
       <MobileMenu />
       <div className="flex-1 flex flex-col overflow-hidden lg:ml-64">
-        <Header />
         <main className="flex-1 overflow-auto pb-20 lg:pb-0 px-4 lg:px-0">
           <div className="min-h-full flex flex-col max-w-full">
             <div className="flex-1 w-full">
