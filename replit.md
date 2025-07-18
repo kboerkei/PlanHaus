@@ -169,9 +169,12 @@ The application uses a comprehensive schema covering:
 - **NEW**: Event selection flow appears immediately after authentication before any other screens
 - **NEW**: Database schema updated to support event types in users and wedding_projects tables
 - **NEW**: Backend API endpoint `/api/auth/select-event-type` for saving user's selected event type
+- **NEW**: Dynamic intake form system with event-specific questions and configurations
+- **NEW**: Event intake configurations file with tailored fields for each event type
 - **PRESERVED**: Wedding flow remains completely unchanged and serves as reference template for other event types
 - **ENHANCED**: All authentication endpoints now include eventType in user responses
-- **FOUNDATION**: Multi-event platform architecture ready for event-specific intake forms and dashboards
+- **ENHANCED**: Intake form now dynamically adapts based on selected event type
+- **FOUNDATION**: Multi-event platform architecture with complete event-specific intake forms and dashboards
 
 ### Production Readiness Achieved
 - All forms working correctly with proper validation

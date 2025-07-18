@@ -22,6 +22,7 @@ import Inspiration from "@/pages/inspiration";
 import Resources from "@/pages/resources";
 import Schedules from "@/pages/schedules";
 import Intake from "@/pages/intake";
+import DynamicIntake from "@/pages/dynamic-intake";
 import Sidebar from "@/components/layout/sidebar-enhanced";
 import Header from "@/components/layout/header";
 import Footer from "@/components/layout/footer";
@@ -53,7 +54,7 @@ function Router({ user, onLogout, isNewUser, onIntakeComplete, onEventTypeSelect
               <Switch>
                 <Route path="/" component={Dashboard} />
                 <Route path="/intake">
-                  <Intake onComplete={onIntakeComplete} />
+                  <DynamicIntake onComplete={onIntakeComplete} />
                 </Route>
                 <Route path="/ai-assistant" component={AIAssistant} />
                 <Route path="/timeline" component={Timeline} />
