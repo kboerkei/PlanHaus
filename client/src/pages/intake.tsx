@@ -16,7 +16,7 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 
 interface CoupleInfo {
   partner1: {
@@ -168,6 +168,8 @@ export default function Intake({ onComplete }: IntakeProps) {
   const [newMustHave, setNewMustHave] = useState("");
   const [newPinterestBoard, setNewPinterestBoard] = useState("");
   const [newColorPalette, setNewColorPalette] = useState("");
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [autoSaveTimer, setAutoSaveTimer] = useState<NodeJS.Timeout | null>(null);
 
   // Validation functions
   const validateStep = (step: number): boolean => {
@@ -341,19 +343,19 @@ export default function Intake({ onComplete }: IntakeProps) {
     },
     onSuccess: () => {
       toast({
-        title: "Wedding intake completed!",
-        description: "Your information has been saved. Let's start planning your perfect day!",
+        title: "Changes saved!",
+        description: "Your wedding information has been updated successfully.",
       });
+      
+      // Invalidate queries to refresh data throughout the app
+      queryClient.invalidateQueries({ queryKey: ['/api/projects'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/dashboard/stats'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/intake'] });
       
       // Call the completion callback to update the app state
       if (onComplete) {
         onComplete();
       }
-      
-      // Navigate to dashboard
-      setTimeout(() => {
-        window.location.href = "/";
-      }, 1000);
     },
     onError: (error: any) => {
 
@@ -364,6 +366,75 @@ export default function Intake({ onComplete }: IntakeProps) {
       });
     },
   });
+
+  // Auto-save mutation for real-time updates
+  const autoSaveMutation = useMutation({
+    mutationFn: (data: IntakeFormData) => {
+      const apiData = {
+        userId: 0,
+        partner1FirstName: data.coupleInfo.partner1.firstName,
+        partner1LastName: data.coupleInfo.partner1.lastName,
+        partner1Email: data.coupleInfo.partner1.email,
+        partner1Role: data.coupleInfo.partner1.role,
+        partner2FirstName: data.coupleInfo.partner2.firstName,
+        partner2LastName: data.coupleInfo.partner2.lastName,
+        partner2Email: data.coupleInfo.partner2.email,
+        partner2Role: data.coupleInfo.partner2.role,
+        hasWeddingPlanner: data.coupleInfo.hasWeddingPlanner,
+        weddingDate: data.weddingBasics.weddingDate ? new Date(data.weddingBasics.weddingDate) : null,
+        ceremonyLocation: data.weddingBasics.ceremonyLocation,
+        receptionLocation: data.weddingBasics.receptionLocation,
+        estimatedGuests: data.weddingBasics.estimatedGuests || null,
+        totalBudget: data.weddingBasics.totalBudget ? data.weddingBasics.totalBudget.toString() : "",
+        overallVibe: data.styleVision.overallVibe,
+        colorPalette: data.styleVision.colorPalette,
+        mustHaveElements: data.styleVision.mustHaveElements,
+        pinterestBoards: data.styleVision.pinterestBoards,
+        topPriorities: data.priorities.topPriorities,
+        nonNegotiables: data.priorities.nonNegotiables,
+        vips: data.keyPeople.vips,
+        weddingParty: data.keyPeople.weddingParty,
+        officiantStatus: data.keyPeople.officiantStatus
+      };
+      
+      return apiRequest("/api/intake", {
+        method: "POST",
+        body: JSON.stringify(apiData),
+        headers: { "Content-Type": "application/json" },
+      });
+    },
+    onSuccess: () => {
+      setLastSaved(new Date());
+      // Silently invalidate queries to refresh data throughout the app
+      queryClient.invalidateQueries({ queryKey: ['/api/projects'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/dashboard/stats'] });
+    },
+    onError: (error: any) => {
+      console.error('Auto-save error:', error);
+    },
+  });
+
+  // Auto-save function with debouncing
+  const scheduleAutoSave = (data: IntakeFormData) => {
+    if (autoSaveTimer) {
+      clearTimeout(autoSaveTimer);
+    }
+    
+    const timer = setTimeout(() => {
+      autoSaveMutation.mutate(data);
+    }, 2000); // Save after 2 seconds of inactivity
+    
+    setAutoSaveTimer(timer);
+  };
+
+  // Update form data and trigger auto-save
+  const updateFormData = (updates: Partial<IntakeFormData> | ((prev: IntakeFormData) => IntakeFormData)) => {
+    setFormData(prev => {
+      const newData = typeof updates === 'function' ? updates(prev) : { ...prev, ...updates };
+      scheduleAutoSave(newData);
+      return newData;
+    });
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -397,7 +468,7 @@ export default function Intake({ onComplete }: IntakeProps) {
         : [];
       const updatedColors = [...currentColors, newColorPalette.trim()];
       
-      setFormData(prev => ({
+      updateFormData(prev => ({
         ...prev,
         styleVision: { ...prev.styleVision, colorPalette: updatedColors.join(', ') }
       }));
@@ -411,14 +482,14 @@ export default function Intake({ onComplete }: IntakeProps) {
       : [];
     const updatedColors = currentColors.filter((_, index) => index !== indexToRemove);
     
-    setFormData(prev => ({
+    updateFormData(prev => ({
       ...prev,
       styleVision: { ...prev.styleVision, colorPalette: updatedColors.join(', ') }
     }));
   };
 
   const clearColorPalette = () => {
-    setFormData(prev => ({
+    updateFormData(prev => ({
       ...prev,
       styleVision: { ...prev.styleVision, colorPalette: "" }
     }));
@@ -426,7 +497,7 @@ export default function Intake({ onComplete }: IntakeProps) {
 
   const addMustHaveElement = () => {
     if (newMustHave.trim()) {
-      setFormData(prev => ({
+      updateFormData(prev => ({
         ...prev,
         styleVision: {
           ...prev.styleVision,
@@ -438,7 +509,7 @@ export default function Intake({ onComplete }: IntakeProps) {
   };
 
   const removeMustHaveElement = (index: number) => {
-    setFormData(prev => ({
+    updateFormData(prev => ({
       ...prev,
       styleVision: {
         ...prev.styleVision,
@@ -598,6 +669,24 @@ export default function Intake({ onComplete }: IntakeProps) {
             <p className="text-gray-600 text-lg max-w-2xl mx-auto">
               Let's gather the essential information to create your perfect wedding plan
             </p>
+            {/* Auto-save indicator */}
+            <div className="mt-4 flex items-center justify-center gap-2 text-sm">
+              {autoSaveMutation.isPending ? (
+                <>
+                  <div className="w-3 h-3 border border-blue-300 border-t-blue-600 rounded-full animate-spin" />
+                  <span className="text-blue-600">Saving changes...</span>
+                </>
+              ) : lastSaved ? (
+                <>
+                  <CheckCircle className="w-3 h-3 text-green-600" />
+                  <span className="text-green-600">
+                    Last saved at {format(lastSaved, 'h:mm a')}
+                  </span>
+                </>
+              ) : (
+                <span className="text-gray-500">Changes auto-save as you type</span>
+              )}
+            </div>
           </div>
         </div>
 
@@ -688,7 +777,7 @@ export default function Intake({ onComplete }: IntakeProps) {
                   <Input
                     id="p1-firstName"
                     value={formData.coupleInfo.partner1.firstName}
-                    onChange={(e) => setFormData(prev => ({
+                    onChange={(e) => updateFormData(prev => ({
                       ...prev,
                       coupleInfo: {
                         ...prev.coupleInfo,
@@ -710,7 +799,7 @@ export default function Intake({ onComplete }: IntakeProps) {
                   <Input
                     id="p1-lastName"
                     value={formData.coupleInfo.partner1.lastName}
-                    onChange={(e) => setFormData(prev => ({
+                    onChange={(e) => updateFormData(prev => ({
                       ...prev,
                       coupleInfo: {
                         ...prev.coupleInfo,
@@ -725,7 +814,7 @@ export default function Intake({ onComplete }: IntakeProps) {
                     id="p1-email"
                     type="email"
                     value={formData.coupleInfo.partner1.email}
-                    onChange={(e) => setFormData(prev => ({
+                    onChange={(e) => updateFormData(prev => ({
                       ...prev,
                       coupleInfo: {
                         ...prev.coupleInfo,
@@ -746,7 +835,7 @@ export default function Intake({ onComplete }: IntakeProps) {
                   <Label htmlFor="p1-role">Role</Label>
                   <Select
                     value={formData.coupleInfo.partner1.role}
-                    onValueChange={(value) => setFormData(prev => ({
+                    onValueChange={(value) => updateFormData(prev => ({
                       ...prev,
                       coupleInfo: {
                         ...prev.coupleInfo,

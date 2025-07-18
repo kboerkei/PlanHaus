@@ -193,9 +193,9 @@ export default function Inspiration() {
                 )}
                 {item.tags && (
                   <div className="flex flex-wrap gap-1">
-                    {item.tags.split(',').map((tag: string, index: number) => (
+                    {(Array.isArray(item.tags) ? item.tags : item.tags.split(',')).map((tag: string, index: number) => (
                       <Badge key={index} variant="outline" className="text-xs">
-                        {tag.trim()}
+                        {typeof tag === 'string' ? tag.trim() : tag}
                       </Badge>
                     ))}
                   </div>
