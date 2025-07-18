@@ -1,0 +1,48 @@
+// PROMPT FOR REPLIT AI:
+
+Now that the intake form is working per event type, I need to build the front-end for **dynamic dashboards** and **section modules** that change depending on the selected event (e.g., Wedding, Birthday, Dinner Party).
+
+1. 🧭 GOAL
+- After a user completes (or skips through) the intake form, they should be routed to a dashboard that reflects their selected event type.
+- Each event should have:
+  - A customized dashboard view (title, welcome message, layout)
+  - A specific set of planning sections (e.g., checklist, budget, timeline, vendors, design ideas, etc.)
+  - AI suggestions populated based on the intake responses (can be mocked or left as placeholder for now)
+
+2. 🗂️ CONFIG FILE SETUP
+- Create a new config file: `eventDashboardConfigs.js`
+- This should export an object that defines the layout and modules per event type.
+- Each event should define:
+  - `title`
+  - `welcomeMessage`
+  - `sections`: an array of section IDs (used to render components)
+
+Example:
+```js
+export const eventDashboardConfigs = {
+  wedding: {
+    title: "Your Wedding HQ",
+    welcomeMessage: "Let’s make your big day unforgettable.",
+    sections: ['countdown', 'checklist', 'budget', 'guestList', 'vendors', 'designBoard']
+  },
+  birthday: {
+    title: "Birthday Bash Builder",
+    welcomeMessage: "Time to celebrate in style!",
+    sections: ['countdown', 'checklist', 'budget', 'activities', 'designBoard']
+  },
+  dinnerParty: {
+    title: "Dinner Party Planner",
+    welcomeMessage: "Hosting has never been easier.",
+    sections: ['timeline', 'menuPlanner', 'guestList', 'seatingChart', 'notes']
+  },
+  babyShower: {
+    title: "Baby Shower Studio",
+    welcomeMessage: "Let’s celebrate the little one on the way!",
+    sections: ['countdown', 'checklist', 'budget', 'registry', 'games', 'designBoard']
+  },
+  proposal: {
+    title: "Proposal Planning Hub",
+    welcomeMessage: "Let’s make the moment unforgettable.",
+    sections: ['timeline', 'locationIdeas', 'vendorSupport', 'scriptIdeas', 'surprisePlan']
+  }
+}

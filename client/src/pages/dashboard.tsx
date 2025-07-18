@@ -1,10 +1,12 @@
+import { useQuery } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import EventDashboard from "@/components/dashboard/event-dashboard";
 import ProgressOverview from "@/components/dashboard/progress-overview";
 import AIAssistantCard from "@/components/dashboard/ai-assistant-card";
 import EnhancedQuickActions from "@/components/dashboard/enhanced-quick-actions";
 import UpcomingTasks from "@/components/dashboard/upcoming-tasks";
 import RecentActivity from "@/components/dashboard/recent-activity";
 import InspirationPreview from "@/components/dashboard/inspiration-preview";
-
 import CollaborativeFeatures from "@/components/dashboard/collaborative-features";
 import SmartOnboarding from "@/components/dashboard/smart-onboarding";
 import ProjectOverview from "@/components/ProjectOverview";
@@ -37,6 +39,41 @@ const navigationSections = [
 ];
 
 export default function Dashboard() {
+  // Get current user to determine event type
+  const { data: user, isLoading: userLoading } = useQuery({
+    queryKey: ['/api/auth/me'],
+    queryFn: () => apiRequest('/api/auth/me')
+  });
+
+  if (userLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-rose-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading your dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // If user has an event type, show the dynamic dashboard
+  if (user?.eventType) {
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="relative overflow-hidden">
+          {/* Background decorations */}
+          <div className="absolute -top-20 -right-20 w-64 h-64 bg-gradient-to-br from-rose-400/10 to-pink-400/20 rounded-full blur-3xl" />
+          <div className="absolute -bottom-10 -left-10 w-48 h-48 bg-gradient-to-tr from-purple-400/5 to-rose-400/10 rounded-full blur-2xl" />
+          
+          <div className="relative p-3 sm:p-4 lg:p-8 mobile-safe-spacing">
+            <EventDashboard eventType={user.eventType} user={user} />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Fallback to original wedding dashboard for users without event type
   return (
     <div className="min-h-screen bg-background">
       <div className="relative overflow-hidden">
