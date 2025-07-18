@@ -85,8 +85,13 @@ export default function Profile({ user, onLogout }: ProfileProps) {
         title: "Event type changed",
         description: "Your event type has been updated successfully.",
       });
-      // Reload the page to refresh the entire app with new event type
-      window.location.reload();
+      // Invalidate queries to refresh user data
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
+      // Small delay then reload to ensure UI updates
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
     },
     onError: () => {
       toast({
@@ -277,8 +282,11 @@ export default function Profile({ user, onLogout }: ProfileProps) {
                             ? 'gradient-blush-rose text-white' 
                             : 'hover:bg-gray-50'
                         }`}
-                        onClick={() => changeEventTypeMutation.mutate(event.id)}
-                        disabled={changeEventTypeMutation.isPending || isCurrentType}
+                        onClick={() => {
+                          console.log('Changing event type to:', event.id);
+                          changeEventTypeMutation.mutate(event.id);
+                        }}
+                        disabled={changeEventTypeMutation.isPending}
                       >
                         <Icon className={`w-5 h-5 ${isCurrentType ? 'text-white' : event.color}`} />
                         <span className="text-sm font-medium">{event.name}</span>
