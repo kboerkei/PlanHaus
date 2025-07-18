@@ -37,7 +37,7 @@ function Router({ user, onLogout, isNewUser, onIntakeComplete }: { user: any; on
       <MobileMenu />
       <div className="flex-1 flex flex-col overflow-hidden lg:ml-64">
         <Header />
-        <main className="flex-1 overflow-auto pb-20 lg:pb-0 px-4 lg:px-0">
+        <main className="flex-1 overflow-auto pb-20 lg:pb-0 px-4 lg:px-0 touch-manipulation">
           <div className="min-h-full flex flex-col max-w-full">
             <div className="flex-1 w-full">
               <Switch>

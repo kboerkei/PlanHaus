@@ -58,6 +58,11 @@
     -ms-text-size-adjust: 100%;
     text-size-adjust: 100%;
     overflow-x: hidden;
+    /* Enhanced mobile scrolling */
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    /* Remove momentum scrolling issues */
+    position: relative;
   }
   
   /* Prevent zoom on input focus */
@@ -162,6 +167,13 @@
 
   body {
     @apply font-sans antialiased bg-cream text-foreground;
+    /* Disable hyphenation globally */
+    hyphens: none;
+    -webkit-hyphens: none;
+    -ms-hyphens: none;
+    /* Improve mobile scrolling */
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
   }
 }
 
@@ -169,6 +181,14 @@
   /* Mobile-first utilities */
   .mobile-safe-spacing {
     padding-bottom: calc(env(safe-area-inset-bottom) + 4rem);
+  }
+  
+  /* Global hyphenation disable */
+  * {
+    hyphens: none !important;
+    -webkit-hyphens: none !important;
+    -ms-hyphens: none !important;
+    word-break: normal !important;
   }
 
   @media (max-width: 640px) {
@@ -338,6 +358,9 @@
     -webkit-tap-highlight-color: rgba(244, 165, 185, 0.3);
     -webkit-user-select: none;
     user-select: none;
+    /* Improve scrolling performance */
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
   }
 
   /* Mobile-specific improvements */
@@ -348,6 +371,8 @@
       -webkit-touch-callout: none;
       -webkit-user-select: none;
       user-select: none;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
     }
     
     /* Improve button accessibility on mobile */
@@ -366,16 +391,32 @@
       overflow-x: hidden;
     }
     
-    /* Improve text readability on mobile */
-    h1, h2, h3 {
-      word-break: break-word;
-      hyphens: auto;
+    /* Improve text readability on mobile - no hyphenation */
+    h1, h2, h3, p, span, div {
+      word-break: normal;
+      hyphens: none;
+      -webkit-hyphens: none;
+      -ms-hyphens: none;
+      overflow-wrap: break-word;
     }
     
     /* Better mobile spacing */
     .mobile-padding {
       padding-left: 1rem;
       padding-right: 1rem;
+    }
+    
+    /* Enhanced scrollable containers for mobile */
+    main, .overflow-auto, .overflow-y-auto {
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+      scroll-behavior: smooth;
+    }
+    
+    /* Fix momentum scrolling in iOS */
+    .touch-manipulation {
+      transform: translateZ(0);
+      will-change: scroll-position;
     }
   }
 
