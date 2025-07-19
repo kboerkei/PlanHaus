@@ -690,6 +690,7 @@ export default function Intake({ onComplete }: IntakeProps) {
               <button
                 type="button"
                 onClick={() => {
+                  alert(`Current step: ${currentStep}, Moving to: ${currentStep + 1}`);
                   setCurrentStep(currentStep + 1);
                 }}
                 className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 text-white font-medium rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl cursor-pointer"
