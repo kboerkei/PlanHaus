@@ -695,10 +695,14 @@ export default function Intake({ onComplete }: IntakeProps) {
             {currentStep < 5 ? (
               <Button
                 type="button"
-                onClick={nextStep}
+                onClick={() => {
+                  console.log('NEXT CLICKED - Current:', currentStep);
+                  setCurrentStep(currentStep + 1);
+                  console.log('NEXT CLICKED - New:', currentStep + 1);
+                }}
                 className="flex items-center gap-2 bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700"
               >
-                Next
+                Next (Step {currentStep + 1})
                 <ArrowRight className="w-4 h-4" />
               </Button>
             ) : (
