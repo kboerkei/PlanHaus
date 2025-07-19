@@ -25,6 +25,7 @@ export interface IStorage {
   getWeddingProjectsByUserId(userId: number): Promise<WeddingProject[]>;
   getWeddingProjectByUserId(userId: number): Promise<WeddingProject | undefined>;
   updateWeddingProject(id: number, updates: Partial<InsertWeddingProject>): Promise<WeddingProject | undefined>;
+  deleteWeddingProject(id: number): Promise<boolean>;
 
   // Collaborators
   addCollaborator(collaborator: InsertCollaborator): Promise<Collaborator>;
@@ -638,6 +639,11 @@ export class DatabaseStorage implements IStorage {
   async updateWeddingProject(id: number, updates: Partial<InsertWeddingProject>): Promise<WeddingProject | undefined> {
     const [project] = await db.update(weddingProjects).set(updates).where(eq(weddingProjects.id, id)).returning();
     return project || undefined;
+  }
+
+  async deleteWeddingProject(id: number): Promise<boolean> {
+    const result = await db.delete(weddingProjects).where(eq(weddingProjects.id, id));
+    return result.rowCount > 0;
   }
 
   async addCollaborator(insertCollaborator: InsertCollaborator): Promise<Collaborator> {

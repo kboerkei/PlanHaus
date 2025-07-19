@@ -167,7 +167,7 @@ export const inspirationItems = pgTable("inspiration_items", {
   id: serial("id").primaryKey(),
   projectId: integer("project_id").notNull(),
   title: text("title"),
-  imageUrl: text("image_url").notNull(),
+  imageUrl: text("image_url"), // Made optional to allow text-only inspiration items
   category: text("category"), // 'venue', 'dress', 'flowers', 'cake', etc.
   notes: text("notes"),
   colors: text("colors").array(),

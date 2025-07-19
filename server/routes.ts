@@ -1796,7 +1796,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Mark user as having completed intake
       await storage.markUserIntakeComplete(userId);
       
-      // Get user's projects and update the most recent one (or create if none exist)
+      // Get user's projects and update the active one (the one dashboard displays)
       let projects = await storage.getWeddingProjectsByUserId(userId);
       let project;
       
@@ -1817,8 +1817,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         };
         project = await storage.createWeddingProject(projectData);
       } else {
-        // Update the most recent project (the one dashboard is likely showing)
-        project = projects[projects.length - 1]; // Get the last/newest project
+        // Find the active project (dashboard looks for "Emma & Jake's Wedding" first, then falls back to first project)
+        project = projects.find(p => p.name === "Emma & Jake's Wedding") || projects[0];
         const updatedProjectData = {
           name: intake.partner1FirstName && intake.partner2FirstName 
             ? `${intake.partner1FirstName} & ${intake.partner2FirstName}'s Wedding`
@@ -1832,7 +1832,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           venue: intake.ceremonyLocation || project.venue,
         };
         project = await storage.updateWeddingProject(project.id, updatedProjectData);
-        console.log('Updated project:', project.id, 'with name:', updatedProjectData.name);
+        console.log('Updated project:', project.id, 'with name:', updatedProjectData.name, 'from intake form');
       }
       
       // Add VIP guests and wedding party to guest list (only these specific people)

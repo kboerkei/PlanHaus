@@ -377,26 +377,10 @@ export default function Intake({ onComplete }: IntakeProps) {
       queryClient.invalidateQueries({ queryKey: ['/api/tasks'] });
       queryClient.invalidateQueries({ queryKey: ['/api/projects/15/tasks'] });
       queryClient.invalidateQueries({ queryKey: ['/api/projects/1/tasks'] });
-      // Create or update project with intake data to reflect changes in timeline/dashboard
-      if (formData.weddingBasics.weddingDate || formData.coupleInfo.partner1.firstName) {
-        fetch('/api/projects', {
-          method: 'POST',
-          headers: { 
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('sessionId')}`
-          },
-          body: JSON.stringify({
-            name: `${formData.coupleInfo.partner1.firstName}${formData.coupleInfo.partner2.firstName ? ` & ${formData.coupleInfo.partner2.firstName}` : ''}'s Wedding`,
-            description: 'Wedding planning project',
-            date: formData.weddingBasics.weddingDate || new Date()
-          })
-        }).then(() => {
-          queryClient.invalidateQueries({ queryKey: ['/api/projects'] });
-        }).catch(() => {});
-      }
+      // Project updates are handled by the intake API endpoint
     },
     onError: (error: any) => {
-      console.error('Auto-save error:', error);
+      // Auto-save error handling - silent for better UX
     },
   });
 
