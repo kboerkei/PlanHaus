@@ -673,68 +673,58 @@ export default function Intake({ onComplete }: IntakeProps) {
           {renderStepContent()}
         </div>
 
+        {/* DEBUG TEST AREA */}
+        <div style={{ padding: '20px', backgroundColor: '#f0f0f0', margin: '20px 0', textAlign: 'center' }}>
+          <p>DEBUG: Can you click anywhere in this gray area?</p>
+          <div 
+            onClick={() => alert('Gray area clicked!')}
+            style={{ 
+              padding: '20px', 
+              backgroundColor: '#yellow', 
+              cursor: 'pointer',
+              margin: '10px 0'
+            }}
+          >
+            CLICK THIS YELLOW BOX
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div 
+              onClick={() => alert('Left side clicked!')}
+              style={{ 
+                padding: '15px 30px', 
+                backgroundColor: '#blue', 
+                color: 'white', 
+                cursor: 'pointer',
+                fontSize: '18px'
+              }}
+            >
+              TEST LEFT
+            </div>
+            <div 
+              onClick={() => {
+                alert('RIGHT SIDE CLICKED - ADVANCING STEP!');
+                setCurrentStep(currentStep + 1);
+              }}
+              style={{ 
+                padding: '15px 30px', 
+                backgroundColor: '#red', 
+                color: 'white', 
+                cursor: 'pointer',
+                fontSize: '18px'
+              }}
+            >
+              TEST RIGHT (NEXT)
+            </div>
+          </div>
+        </div>
+
         {/* Navigation Buttons */}
         <div className="flex justify-between items-center py-4">
           <div>
-            <input 
-              type="button" 
-              value="← Previous" 
-              onClick={prevStep}
-              disabled={currentStep === 1}
-              style={{
-                padding: '12px 24px',
-                border: '2px solid #d1d5db',
-                backgroundColor: '#ffffff',
-                color: '#374151',
-                borderRadius: '8px',
-                cursor: currentStep === 1 ? 'not-allowed' : 'pointer',
-                opacity: currentStep === 1 ? 0.5 : 1,
-                fontSize: '16px',
-                fontWeight: '600'
-              }}
-            />
+            Previous (Step {currentStep})
           </div>
-
           <div>
-            {currentStep < 5 ? (
-              <input 
-                type="button" 
-                value={`Next (Step ${currentStep + 1}) →`}
-                onClick={() => {
-                  alert(`Button clicked! Moving from step ${currentStep} to ${currentStep + 1}`);
-                  setCurrentStep(currentStep + 1);
-                }}
-                style={{
-                  padding: '12px 24px',
-                  border: 'none',
-                  background: 'linear-gradient(to right, #f43f5e, #ec4899)',
-                  color: 'white',
-                  borderRadius: '8px',
-                  cursor: 'pointer',
-                  fontSize: '16px',
-                  fontWeight: '600',
-                  minWidth: '180px'
-                }}
-              />
-            ) : (
-              <input 
-                type="button" 
-                value={submitIntakeMutation.isPending ? "Saving..." : "✓ Complete Intake"}
-                onClick={handleSubmit}
-                disabled={submitIntakeMutation.isPending}
-                style={{
-                  padding: '12px 24px',
-                  border: 'none',
-                  background: 'linear-gradient(to right, #10b981, #059669)',
-                  color: 'white',
-                  borderRadius: '8px',
-                  cursor: submitIntakeMutation.isPending ? 'not-allowed' : 'pointer',
-                  opacity: submitIntakeMutation.isPending ? 0.7 : 1,
-                  fontSize: '16px',
-                  fontWeight: '600'
-                }}
-              />
-            )}
+            Next (Step {currentStep + 1})
           </div>
         </div>
       </div>
