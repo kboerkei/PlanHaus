@@ -58,15 +58,16 @@ export default function Timeline() {
       
       const matchesPriority = !filterPriority || task.priority === filterPriority;
       const matchesCategory = !filterCategory || task.category === filterCategory;
-      const matchesCompletion = showCompleted || !task.isCompleted;
+      const isCompleted = task.status === 'completed' || task.isCompleted;
+      const matchesCompletion = showCompleted || !isCompleted;
       
       return matchesSearch && matchesPriority && matchesCategory && matchesCompletion;
     });
   }, [tasks, searchTerm, filterPriority, filterCategory, showCompleted]);
 
   // Categorize tasks
-  const pendingTasks = filteredTasks.filter(task => !task.isCompleted);
-  const completedTasks = filteredTasks.filter(task => task.isCompleted);
+  const pendingTasks = filteredTasks.filter(task => task.status !== 'completed' && !task.isCompleted);
+  const completedTasks = filteredTasks.filter(task => task.status === 'completed' || task.isCompleted);
   const overdueTasks = pendingTasks.filter(task => 
     task.dueDate && new Date(task.dueDate) < new Date()
   );

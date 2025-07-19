@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, UserPlus } from "lucide-react";
+import { UserPlus } from "lucide-react";
 import { guestSchema, GuestFormData } from "@/schemas";
 import { useCreateGuest, useUpdateGuest } from "@/hooks/useGuests";
 import { useToast } from "@/hooks/use-toast";
@@ -20,9 +20,34 @@ interface GuestFormDialogProps {
   onClose?: () => void;
 }
 
+const guestGroups = [
+  { value: "wedding_party", label: "Wedding Party" },
+  { value: "family", label: "Family" },
+  { value: "friends", label: "Friends" },
+  { value: "colleagues", label: "Colleagues" },
+  { value: "other", label: "Other" }
+];
+
+const rsvpStatuses = [
+  { value: "pending", label: "Pending" },
+  { value: "yes", label: "Attending" },
+  { value: "no", label: "Not Attending" },
+  { value: "maybe", label: "Maybe" }
+];
+
+const mealChoices = [
+  { value: "", label: "No preference" },
+  { value: "vegetarian", label: "Vegetarian" },
+  { value: "vegan", label: "Vegan" },
+  { value: "gluten_free", label: "Gluten Free" },
+  { value: "chicken", label: "Chicken" },
+  { value: "beef", label: "Beef" },
+  { value: "fish", label: "Fish" },
+  { value: "kids_meal", label: "Kids Meal" }
+];
+
 export default function GuestFormDialog({ projectId, guest, trigger, onClose }: GuestFormDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [useCustomGroup, setUseCustomGroup] = useState(false);
   const { toast } = useToast();
   const createGuest = useCreateGuest(projectId);
   const updateGuest = useUpdateGuest(projectId);
@@ -33,11 +58,11 @@ export default function GuestFormDialog({ projectId, guest, trigger, onClose }: 
       name: guest?.name || "",
       email: guest?.email || "",
       phone: guest?.phone || "",
-      group: guest?.group || "friends",
+      group: guest?.group || "other",
       customGroup: guest?.customGroup || "",
       rsvpStatus: guest?.rsvpStatus || "pending",
       attendingCount: guest?.attendingCount || 1,
-      mealChoice: guest?.mealChoice || undefined,
+      mealChoice: guest?.mealChoice || "",
       dietaryRestrictions: guest?.dietaryRestrictions || "",
       hotelInfo: guest?.hotelInfo || "",
       notes: guest?.notes || "",
@@ -48,13 +73,6 @@ export default function GuestFormDialog({ projectId, guest, trigger, onClose }: 
 
   const onSubmit = async (data: GuestFormData) => {
     try {
-      // If using custom group, clear the predefined group
-      if (useCustomGroup && data.customGroup) {
-        data.group = "other";
-      } else {
-        data.customGroup = "";
-      }
-
       if (guest) {
         await updateGuest.mutateAsync({ id: guest.id, data });
         toast({ title: "Guest updated successfully!" });
@@ -74,53 +92,37 @@ export default function GuestFormDialog({ projectId, guest, trigger, onClose }: 
     }
   };
 
-  const defaultTrigger = (
-    <Button className="gradient-blush-rose text-white">
-      <Plus className="w-4 h-4 mr-2" />
-      Add Guest
-    </Button>
-  );
-
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        {trigger || defaultTrigger}
+        {trigger || (
+          <Button>
+            <UserPlus className="w-4 h-4 mr-2" />
+            Add Guest
+          </Button>
+        )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto" aria-describedby="guest-form-description">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <UserPlus className="w-5 h-5" />
-            {guest ? "Edit Guest" : "Add New Guest"}
+          <DialogTitle>
+            {guest ? "Edit Guest" : "Add Guest"}
           </DialogTitle>
-          <DialogDescription id="guest-form-description">
-            {guest ? "Update the guest details below." : "Add a new guest to your wedding list."}
+          <DialogDescription>
+            {guest ? "Update the guest information." : "Add a new guest to your wedding list."}
           </DialogDescription>
         </DialogHeader>
+
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Name *</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Guest name..." {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name="email"
+                name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel>Full Name</FormLabel>
                     <FormControl>
-                      <Input type="email" placeholder="guest@email.com" {...field} />
+                      <Input placeholder="John Doe" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -129,10 +131,26 @@ export default function GuestFormDialog({ projectId, guest, trigger, onClose }: 
 
               <FormField
                 control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email (Optional)</FormLabel>
+                    <FormControl>
+                      <Input type="email" placeholder="john@example.com" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
                 name="phone"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Phone</FormLabel>
+                    <FormLabel>Phone (Optional)</FormLabel>
                     <FormControl>
                       <Input placeholder="(555) 123-4567" {...field} />
                     </FormControl>
@@ -140,63 +158,34 @@ export default function GuestFormDialog({ projectId, guest, trigger, onClose }: 
                   </FormItem>
                 )}
               />
-            </div>
 
-            <div className="space-y-3">
-              <FormLabel>Group</FormLabel>
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="custom-group"
-                  checked={useCustomGroup}
-                  onCheckedChange={setUseCustomGroup}
-                />
-                <label htmlFor="custom-group" className="text-sm">
-                  Use custom group name
-                </label>
-              </div>
-
-              {useCustomGroup ? (
-                <FormField
-                  control={form.control}
-                  name="customGroup"
-                  render={({ field }) => (
-                    <FormItem>
+              <FormField
+                control={form.control}
+                name="group"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Group</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
-                        <Input placeholder="Enter custom group name..." {...field} />
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select group" />
+                        </SelectTrigger>
                       </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              ) : (
-                <FormField
-                  control={form.control}
-                  name="group"
-                  render={({ field }) => (
-                    <FormItem>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select group" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="family">Family</SelectItem>
-                          <SelectItem value="friends">Friends</SelectItem>
-                          <SelectItem value="coworkers">Coworkers</SelectItem>
-                          <SelectItem value="wedding_party">Wedding Party</SelectItem>
-                          <SelectItem value="plus_ones">Plus Ones</SelectItem>
-                          <SelectItem value="other">Other</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              )}
+                      <SelectContent>
+                        {guestGroups.map(group => (
+                          <SelectItem key={group.value} value={group.value}>
+                            {group.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="rsvpStatus"
@@ -210,10 +199,11 @@ export default function GuestFormDialog({ projectId, guest, trigger, onClose }: 
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="pending">Pending</SelectItem>
-                        <SelectItem value="yes">Yes</SelectItem>
-                        <SelectItem value="no">No</SelectItem>
-                        <SelectItem value="maybe">Maybe</SelectItem>
+                        {rsvpStatuses.map(status => (
+                          <SelectItem key={status.value} value={status.value}>
+                            {status.label}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -226,13 +216,12 @@ export default function GuestFormDialog({ projectId, guest, trigger, onClose }: 
                 name="attendingCount"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Attending Count</FormLabel>
+                    <FormLabel>Number Attending</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
                         min="0"
                         max="10"
-                        placeholder="1"
                         {...field}
                         onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
                       />
@@ -243,68 +232,55 @@ export default function GuestFormDialog({ projectId, guest, trigger, onClose }: 
               />
             </div>
 
-            <FormField
-              control={form.control}
-              name="mealChoice"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Meal Choice</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select meal preference" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="chicken">Chicken</SelectItem>
-                      <SelectItem value="beef">Beef</SelectItem>
-                      <SelectItem value="fish">Fish</SelectItem>
-                      <SelectItem value="vegetarian">Vegetarian</SelectItem>
-                      <SelectItem value="vegan">Vegan</SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="mealChoice"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Meal Choice (Optional)</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select meal preference" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {mealChoices.map(choice => (
+                          <SelectItem key={choice.value} value={choice.value}>
+                            {choice.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            <FormField
-              control={form.control}
-              name="dietaryRestrictions"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Dietary Restrictions</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g., Gluten-free, nut allergy..." {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+              <FormField
+                control={form.control}
+                name="dietaryRestrictions"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Dietary Restrictions (Optional)</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Allergies, preferences..." {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
             <FormField
               control={form.control}
               name="hotelInfo"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Hotel Information</FormLabel>
+                  <FormLabel>Hotel Information (Optional)</FormLabel>
                   <FormControl>
-                    <Input placeholder="Hotel name, room number..." {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="tags"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Tags</FormLabel>
-                  <FormControl>
-                    <Input placeholder="VIP, elderly, child-friendly..." {...field} />
+                    <Input placeholder="Hotel name, room details..." {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -316,43 +292,66 @@ export default function GuestFormDialog({ projectId, guest, trigger, onClose }: 
               name="notes"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Notes</FormLabel>
+                  <FormLabel>Notes (Optional)</FormLabel>
                   <FormControl>
-                    <Textarea placeholder="Additional notes..." {...field} />
+                    <Textarea 
+                      placeholder="Additional notes about this guest..."
+                      className="min-h-[80px]"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="inviteSent"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                  <FormControl>
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                  <div className="space-y-1 leading-none">
-                    <FormLabel>Invitation sent</FormLabel>
-                  </div>
-                </FormItem>
-              )}
-            />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="tags"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Tags (Optional)</FormLabel>
+                    <FormControl>
+                      <Input placeholder="VIP, local, out-of-town..." {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            <div className="flex justify-end space-x-2 pt-4">
-              <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>
+              <FormField
+                control={form.control}
+                name="inviteSent"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 pt-6">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel>Invitation Sent</FormLabel>
+                    </div>
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="flex justify-end gap-2 pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsOpen(false)}
+              >
                 Cancel
               </Button>
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 disabled={createGuest.isPending || updateGuest.isPending}
-                className="gradient-blush-rose text-white"
               >
-                {createGuest.isPending || updateGuest.isPending ? "Saving..." : (guest ? "Update Guest" : "Add Guest")}
+                {guest ? "Update" : "Add"} Guest
               </Button>
             </div>
           </form>

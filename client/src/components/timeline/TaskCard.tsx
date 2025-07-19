@@ -22,12 +22,13 @@ export default function TaskCard({ task, projectId }: TaskCardProps) {
 
   const handleToggleComplete = async () => {
     try {
+      const isCurrentlyCompleted = task.status === 'completed' || task.isCompleted;
       await completeTask.mutateAsync({ 
         id: task.id, 
-        isCompleted: !task.isCompleted 
+        isCompleted: !isCurrentlyCompleted 
       });
       toast({ 
-        title: task.isCompleted ? "Task marked as incomplete" : "Task completed!" 
+        title: isCurrentlyCompleted ? "Task marked as incomplete" : "Task completed!" 
       });
     } catch (error) {
       toast({
@@ -75,23 +76,24 @@ export default function TaskCard({ task, projectId }: TaskCardProps) {
     return colors[category] || colors.other;
   };
 
-  const isOverdue = task.dueDate && new Date(task.dueDate) < new Date() && !task.isCompleted;
+  const isCompleted = task.status === 'completed' || task.isCompleted;
+  const isOverdue = task.dueDate && new Date(task.dueDate) < new Date() && !isCompleted;
 
   return (
-    <Card className={`transition-all hover:shadow-md ${task.isCompleted ? 'opacity-75' : ''} ${isOverdue ? 'border-red-200 bg-red-50' : ''}`}>
+    <Card className={`transition-all hover:shadow-md ${isCompleted ? 'opacity-75' : ''} ${isOverdue ? 'border-red-200 bg-red-50' : ''}`}>
       <CardContent className="p-4">
         <div className="flex items-start gap-3">
           <Checkbox
-            checked={task.isCompleted}
+            checked={isCompleted}
             onCheckedChange={handleToggleComplete}
             disabled={completeTask.isPending}
             className="mt-1"
-            aria-label={`Mark task "${task.title}" as ${task.isCompleted ? 'incomplete' : 'complete'}`}
+            aria-label={`Mark task "${task.title}" as ${isCompleted ? 'incomplete' : 'complete'}`}
           />
           
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-2">
-              <h3 className={`font-medium text-gray-900 ${task.isCompleted ? 'line-through text-gray-500' : ''}`}>
+              <h3 className={`font-medium text-gray-900 ${isCompleted ? 'line-through text-gray-500' : ''}`}>
                 {task.title}
               </h3>
               

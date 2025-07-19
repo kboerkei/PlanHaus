@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, DollarSign } from "lucide-react";
+import { Plus } from "lucide-react";
 import { budgetSchema, BudgetFormData } from "@/schemas";
 import { useCreateBudgetItem, useUpdateBudgetItem } from "@/hooks/useBudget";
 import { useToast } from "@/hooks/use-toast";
@@ -19,6 +19,12 @@ interface BudgetEntryDialogProps {
   trigger?: React.ReactNode;
   onClose?: () => void;
 }
+
+const budgetCategories = [
+  "venue", "catering", "photography", "videography", "flowers", "music",
+  "transportation", "attire", "rings", "invitations", "decorations",
+  "beauty", "favors", "other"
+];
 
 export default function BudgetEntryDialog({ projectId, budgetItem, trigger, onClose }: BudgetEntryDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -47,7 +53,7 @@ export default function BudgetEntryDialog({ projectId, budgetItem, trigger, onCl
         toast({ title: "Budget item updated successfully!" });
       } else {
         await createBudgetItem.mutateAsync(data);
-        toast({ title: "Budget item added successfully!" });
+        toast({ title: "Budget item created successfully!" });
       }
       form.reset();
       setIsOpen(false);
@@ -55,76 +61,72 @@ export default function BudgetEntryDialog({ projectId, budgetItem, trigger, onCl
     } catch (error) {
       toast({
         title: "Error",
-        description: budgetItem ? "Failed to update budget item" : "Failed to add budget item",
+        description: budgetItem ? "Failed to update budget item" : "Failed to create budget item",
         variant: "destructive"
       });
     }
   };
 
-  const defaultTrigger = (
-    <Button className="gradient-blush-rose text-white">
-      <Plus className="w-4 h-4 mr-2" />
-      Add Budget Item
-    </Button>
-  );
-
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        {trigger || defaultTrigger}
+        {trigger || (
+          <Button>
+            <Plus className="w-4 h-4 mr-2" />
+            Add Budget Item
+          </Button>
+        )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[525px]" aria-describedby="budget-form-description">
+      <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>{budgetItem ? "Edit Budget Item" : "Add Budget Item"}</DialogTitle>
-          <DialogDescription id="budget-form-description">
-            {budgetItem ? "Update the budget item details below." : "Add a new expense to your wedding budget."}
+          <DialogTitle>
+            {budgetItem ? "Edit Budget Item" : "Add Budget Item"}
+          </DialogTitle>
+          <DialogDescription>
+            {budgetItem ? "Update the budget item details." : "Add a new item to your wedding budget."}
           </DialogDescription>
         </DialogHeader>
+
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="category"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Category *</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select category" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="venue">Venue</SelectItem>
-                        <SelectItem value="catering">Catering</SelectItem>
-                        <SelectItem value="photography">Photography</SelectItem>
-                        <SelectItem value="flowers">Flowers</SelectItem>
-                        <SelectItem value="music">Music</SelectItem>
-                        <SelectItem value="attire">Attire</SelectItem>
-                        <SelectItem value="transportation">Transportation</SelectItem>
-                        <SelectItem value="other">Other</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="item"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Item Name *</FormLabel>
+            <FormField
+              control={form.control}
+              name="category"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Category</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
-                      <Input placeholder="e.g., Wedding dress" {...field} />
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select category" />
+                      </SelectTrigger>
                     </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+                    <SelectContent>
+                      {budgetCategories.map(category => (
+                        <SelectItem key={category} value={category}>
+                          {category.charAt(0).toUpperCase() + category.slice(1)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="item"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Item Name</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Wedding dress, venue rental, etc." {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <div className="grid grid-cols-2 gap-4">
               <FormField
@@ -132,20 +134,16 @@ export default function BudgetEntryDialog({ projectId, budgetItem, trigger, onCl
                 name="estimatedCost"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Estimated Cost *</FormLabel>
+                    <FormLabel>Estimated Cost</FormLabel>
                     <FormControl>
-                      <div className="relative">
-                        <DollarSign className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                        <Input
-                          type="number"
-                          step="0.01"
-                          min="0"
-                          placeholder="0.00"
-                          className="pl-9"
-                          {...field}
-                          onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                        />
-                      </div>
+                      <Input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        placeholder="0.00"
+                        {...field}
+                        onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -159,18 +157,14 @@ export default function BudgetEntryDialog({ projectId, budgetItem, trigger, onCl
                   <FormItem>
                     <FormLabel>Actual Cost</FormLabel>
                     <FormControl>
-                      <div className="relative">
-                        <DollarSign className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                        <Input
-                          type="number"
-                          step="0.01"
-                          min="0"
-                          placeholder="0.00"
-                          className="pl-9"
-                          {...field}
-                          onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                        />
-                      </div>
+                      <Input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        placeholder="0.00"
+                        {...field}
+                        onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -183,9 +177,9 @@ export default function BudgetEntryDialog({ projectId, budgetItem, trigger, onCl
               name="vendor"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Vendor</FormLabel>
+                  <FormLabel>Vendor (Optional)</FormLabel>
                   <FormControl>
-                    <Input placeholder="Vendor name..." {...field} />
+                    <Input placeholder="Vendor name" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -197,16 +191,20 @@ export default function BudgetEntryDialog({ projectId, budgetItem, trigger, onCl
               name="notes"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Notes</FormLabel>
+                  <FormLabel>Notes (Optional)</FormLabel>
                   <FormControl>
-                    <Textarea placeholder="Additional notes..." {...field} />
+                    <Textarea 
+                      placeholder="Additional details..."
+                      className="min-h-[80px]"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
-            <div className="flex gap-6">
+            <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="isPaid"
@@ -244,16 +242,19 @@ export default function BudgetEntryDialog({ projectId, budgetItem, trigger, onCl
               />
             </div>
 
-            <div className="flex justify-end space-x-2 pt-4">
-              <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>
+            <div className="flex justify-end gap-2 pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsOpen(false)}
+              >
                 Cancel
               </Button>
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 disabled={createBudgetItem.isPending || updateBudgetItem.isPending}
-                className="gradient-blush-rose text-white"
               >
-                {createBudgetItem.isPending || updateBudgetItem.isPending ? "Saving..." : (budgetItem ? "Update Item" : "Add Item")}
+                {budgetItem ? "Update" : "Add"} Item
               </Button>
             </div>
           </form>
