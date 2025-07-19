@@ -674,66 +674,66 @@ export default function Intake({ onComplete }: IntakeProps) {
         </div>
 
         {/* Navigation Buttons */}
-        <div className="flex justify-between items-center">
-          <button
-            type="button"
-            onClick={prevStep}
-            disabled={currentStep === 1}
-            className="flex items-center justify-center gap-2 px-6 py-3 border border-gray-300 bg-white hover:bg-gray-50 text-gray-700 font-medium rounded-lg transition-all duration-200 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed min-w-[120px] h-[48px]"
-            style={{
-              WebkitTapHighlightColor: 'transparent',
-              touchAction: 'manipulation',
-              userSelect: 'none'
-            }}
-          >
-            <ArrowLeft className="w-4 h-4 pointer-events-none" />
-            <span className="pointer-events-none">Previous</span>
-          </button>
+        <div className="flex justify-between items-center py-4">
+          <div>
+            <input 
+              type="button" 
+              value="← Previous" 
+              onClick={prevStep}
+              disabled={currentStep === 1}
+              style={{
+                padding: '12px 24px',
+                border: '2px solid #d1d5db',
+                backgroundColor: '#ffffff',
+                color: '#374151',
+                borderRadius: '8px',
+                cursor: currentStep === 1 ? 'not-allowed' : 'pointer',
+                opacity: currentStep === 1 ? 0.5 : 1,
+                fontSize: '16px',
+                fontWeight: '600'
+              }}
+            />
+          </div>
 
-          <div className="flex gap-3">
+          <div>
             {currentStep < 5 ? (
-              <div
+              <input 
+                type="button" 
+                value={`Next (Step ${currentStep + 1}) →`}
                 onClick={() => {
-                  alert(`Current step: ${currentStep}, Moving to: ${currentStep + 1}`);
+                  alert(`Button clicked! Moving from step ${currentStep} to ${currentStep + 1}`);
                   setCurrentStep(currentStep + 1);
                 }}
-                className="relative flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 text-white font-medium rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl cursor-pointer min-w-[160px] h-[48px] select-none"
                 style={{
-                  WebkitTapHighlightColor: 'transparent',
-                  touchAction: 'manipulation',
-                  userSelect: 'none',
-                  zIndex: 10
+                  padding: '12px 24px',
+                  border: 'none',
+                  background: 'linear-gradient(to right, #f43f5e, #ec4899)',
+                  color: 'white',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontSize: '16px',
+                  fontWeight: '600',
+                  minWidth: '180px'
                 }}
-              >
-                <div className="absolute inset-0 w-full h-full cursor-pointer" 
-                     onClick={(e) => {
-                       e.stopPropagation();
-                       alert(`Clicked! Step: ${currentStep}`);
-                       setCurrentStep(currentStep + 1);
-                     }}
-                />
-                <span>Next (Step {currentStep + 1})</span>
-                <ArrowRight className="w-4 h-4" />
-              </div>
+              />
             ) : (
-              <button
-                type="button"
+              <input 
+                type="button" 
+                value={submitIntakeMutation.isPending ? "Saving..." : "✓ Complete Intake"}
                 onClick={handleSubmit}
                 disabled={submitIntakeMutation.isPending}
-                className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white font-medium rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50"
-              >
-                {submitIntakeMutation.isPending ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-                    Saving...
-                  </>
-                ) : (
-                  <>
-                    <CheckCircle className="w-4 h-4" />
-                    Complete Intake
-                  </>
-                )}
-              </button>
+                style={{
+                  padding: '12px 24px',
+                  border: 'none',
+                  background: 'linear-gradient(to right, #10b981, #059669)',
+                  color: 'white',
+                  borderRadius: '8px',
+                  cursor: submitIntakeMutation.isPending ? 'not-allowed' : 'pointer',
+                  opacity: submitIntakeMutation.isPending ? 0.7 : 1,
+                  fontSize: '16px',
+                  fontWeight: '600'
+                }}
+              />
             )}
           </div>
         </div>
