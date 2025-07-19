@@ -692,22 +692,29 @@ export default function Intake({ onComplete }: IntakeProps) {
 
           <div className="flex gap-3">
             {currentStep < 5 ? (
-              <button
-                type="button"
+              <div
                 onClick={() => {
                   alert(`Current step: ${currentStep}, Moving to: ${currentStep + 1}`);
                   setCurrentStep(currentStep + 1);
                 }}
-                className="flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 text-white font-medium rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl cursor-pointer min-w-[140px] h-[48px]"
+                className="relative flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 text-white font-medium rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl cursor-pointer min-w-[160px] h-[48px] select-none"
                 style={{
                   WebkitTapHighlightColor: 'transparent',
                   touchAction: 'manipulation',
-                  userSelect: 'none'
+                  userSelect: 'none',
+                  zIndex: 10
                 }}
               >
-                <span className="pointer-events-none">Next (Step {currentStep + 1})</span>
-                <ArrowRight className="w-4 h-4 pointer-events-none" />
-              </button>
+                <div className="absolute inset-0 w-full h-full cursor-pointer" 
+                     onClick={(e) => {
+                       e.stopPropagation();
+                       alert(`Clicked! Step: ${currentStep}`);
+                       setCurrentStep(currentStep + 1);
+                     }}
+                />
+                <span>Next (Step {currentStep + 1})</span>
+                <ArrowRight className="w-4 h-4" />
+              </div>
             ) : (
               <button
                 type="button"
