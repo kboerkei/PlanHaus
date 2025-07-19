@@ -178,56 +178,12 @@ export default function Intake({ onComplete }: IntakeProps) {
     retry: false,
   });
 
-  // Validation functions
+  // Relaxed validation for flexible form - allow progression with minimal data
   const validateStep = (step: number): boolean => {
-    const errors: Record<string, string> = {};
-    
-    switch (step) {
-      case 1: // Couple Info
-        if (!formData.coupleInfo.partner1.firstName.trim()) {
-          errors.partner1FirstName = "First partner's name is required";
-        }
-        if (!formData.coupleInfo.partner1.email.trim()) {
-          errors.partner1Email = "First partner's email is required";
-        } else if (!/\S+@\S+\.\S+/.test(formData.coupleInfo.partner1.email)) {
-          errors.partner1Email = "Please enter a valid email address";
-        }
-        break;
-        
-      case 2: // Wedding Basics
-        if (!formData.weddingBasics.weddingDate) {
-          errors.weddingDate = "Wedding date is required";
-        }
-        if (!formData.weddingBasics.ceremonyLocation.trim()) {
-          errors.ceremonyLocation = "Ceremony location is required";
-        }
-        if (formData.weddingBasics.estimatedGuests <= 0) {
-          errors.estimatedGuests = "Please enter estimated number of guests";
-        }
-        break;
-        
-      case 3: // Style & Vision
-        if (!formData.styleVision.overallVibe) {
-          errors.overallVibe = "Please select your overall wedding vibe";
-        }
-        break;
-        
-      case 4: // Priorities
-        if (formData.priorities.topPriorities.length === 0) {
-          errors.topPriorities = "Please select at least one priority";
-        }
-        break;
-        
-      case 5: // Key People
-        const hasValidVIP = formData.keyPeople.vips.some(vip => vip.name.trim());
-        if (!hasValidVIP) {
-          errors.vips = "Please add at least one VIP";
-        }
-        break;
-    }
-    
-    setValidationErrors(errors);
-    return Object.keys(errors).length === 0;
+    // No strict validation - allow form progression with any data
+    // Auto-save handles data persistence, validation is optional
+    setValidationErrors({});
+    return true;
   };
 
   const nextStep = () => {
@@ -330,7 +286,7 @@ export default function Intake({ onComplete }: IntakeProps) {
         ceremonyLocation: data.weddingBasics.ceremonyLocation,
         receptionLocation: data.weddingBasics.receptionLocation,
         estimatedGuests: data.weddingBasics.estimatedGuests || null,
-        totalBudget: data.weddingBasics.totalBudget ? data.weddingBasics.totalBudget.toString() : "",
+        totalBudget: data.weddingBasics.totalBudget ? data.weddingBasics.totalBudget.toString() : null,
         overallVibe: data.styleVision.overallVibe,
         colorPalette: data.styleVision.colorPalette,
         mustHaveElements: data.styleVision.mustHaveElements,
@@ -395,7 +351,7 @@ export default function Intake({ onComplete }: IntakeProps) {
         ceremonyLocation: data.weddingBasics.ceremonyLocation,
         receptionLocation: data.weddingBasics.receptionLocation,
         estimatedGuests: data.weddingBasics.estimatedGuests || null,
-        totalBudget: data.weddingBasics.totalBudget ? data.weddingBasics.totalBudget.toString() : "",
+        totalBudget: data.weddingBasics.totalBudget ? data.weddingBasics.totalBudget.toString() : null,
         overallVibe: data.styleVision.overallVibe,
         colorPalette: data.styleVision.colorPalette,
         mustHaveElements: data.styleVision.mustHaveElements,
@@ -470,25 +426,7 @@ export default function Intake({ onComplete }: IntakeProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validate all steps before submission
-    let allValid = true;
-    for (let i = 1; i <= 5; i++) {
-      if (!validateStep(i)) {
-        allValid = false;
-        setCurrentStep(i);
-        break;
-      }
-    }
-    
-    if (!allValid) {
-      toast({
-        title: "Please complete all required fields",
-        description: "Some steps have missing or invalid information.",
-        variant: "destructive",
-      });
-      return;
-    }
-
+    // Submit form with current data - no strict validation required
     submitIntakeMutation.mutate(formData);
   };
 

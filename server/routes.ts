@@ -1757,11 +1757,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('Intake API - User ID:', userId);
       console.log('Intake API - Request body:', JSON.stringify(req.body, null, 2));
       
-      // Transform the request body to handle date conversion
+      // Transform the request body to handle date conversion and clean empty strings
       const requestData = {
         ...req.body,
         userId,
-        weddingDate: req.body.weddingDate ? new Date(req.body.weddingDate) : null
+        weddingDate: req.body.weddingDate ? new Date(req.body.weddingDate) : null,
+        totalBudget: req.body.totalBudget === "" ? null : req.body.totalBudget,
+        estimatedGuests: req.body.estimatedGuests === "" ? null : req.body.estimatedGuests,
+        // Clean empty string arrays and objects
+        mustHaveElements: Array.isArray(req.body.mustHaveElements) && req.body.mustHaveElements.length === 0 ? null : req.body.mustHaveElements,
+        pinterestBoards: Array.isArray(req.body.pinterestBoards) && req.body.pinterestBoards.length === 0 ? null : req.body.pinterestBoards,
+        topPriorities: Array.isArray(req.body.topPriorities) && req.body.topPriorities.length === 0 ? null : req.body.topPriorities,
+        vips: Array.isArray(req.body.vips) && req.body.vips.length === 1 && req.body.vips[0].name === "" ? null : req.body.vips,
+        weddingParty: Array.isArray(req.body.weddingParty) && req.body.weddingParty.length === 1 && req.body.weddingParty[0].name === "" ? null : req.body.weddingParty
       };
       
       // Flexible validation for partial form submissions (auto-save)
