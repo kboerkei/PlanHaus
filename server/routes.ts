@@ -168,6 +168,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // File upload endpoint for mood board images
+  app.post("/api/upload", requireAuth, upload.array('images', 10), async (req, res) => {
+    try {
+      if (!req.files || !Array.isArray(req.files)) {
+        return res.status(400).json({ message: "No files uploaded" });
+      }
+
+      const files = req.files as Express.Multer.File[];
+      const urls = files.map(file => `/uploads/${file.filename}`);
+      
+      res.json({ urls });
+    } catch (error) {
+      console.error('Upload error:', error);
+      res.status(500).json({ message: "Failed to upload files" });
+    }
+  });
+
   app.patch("/api/auth/profile", requireAuth, async (req: any, res) => {
     try {
       const { username, email, avatar } = req.body;

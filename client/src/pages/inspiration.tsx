@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,12 +8,13 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Palette, Plus, Search } from "lucide-react";
+import { Palette, Plus, Search, Upload, Grid3x3 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import MoodBoard from "@/components/mood-board";
 
 const inspirationSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -29,6 +30,7 @@ export default function Inspiration() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<'grid' | 'mood-board'>('mood-board');
   const { toast } = useToast();
 
   const { data: inspirationItems, isLoading, error } = useQuery({
@@ -132,87 +134,123 @@ export default function Inspiration() {
               </p>
             </div>
           </div>
-          
-          <Button onClick={() => setIsAddDialogOpen(true)} className="gradient-blush-rose text-white">
-            <Plus size={16} className="mr-2" />
-            Add Inspiration
-          </Button>
-        </div>
 
-        {/* Search and filter */}
-        <div className="flex space-x-4 mb-6">
-          <div className="flex-1">
-            <Input
-              placeholder="Search inspiration..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="max-w-md"
-            />
+          {/* View Mode Toggle */}
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 bg-white border rounded-lg p-1">
+              <Button
+                variant={viewMode === 'mood-board' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setViewMode('mood-board')}
+                className="flex items-center gap-2"
+              >
+                <Upload className="w-4 h-4" />
+                Mood Board
+              </Button>
+              <Button
+                variant={viewMode === 'grid' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setViewMode('grid')}
+                className="flex items-center gap-2"
+              >
+                <Grid3x3 className="w-4 h-4" />
+                Grid View
+              </Button>
+            </div>
+            
+            {viewMode === 'grid' && (
+              <Button onClick={() => setIsAddDialogOpen(true)} className="gradient-blush-rose text-white">
+                <Plus size={16} className="mr-2" />
+                Add Inspiration
+              </Button>
+            )}
           </div>
-          <Select value={filterCategory} onValueChange={setFilterCategory}>
-            <SelectTrigger className="w-48">
-              <SelectValue placeholder="All categories" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All categories</SelectItem>
-              {categories.map((category) => (
-                <SelectItem key={category} value={category}>
-                  {category}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
         </div>
 
-        {/* Inspiration grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredItems.map((item: any) => (
-            <Card key={item.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-              <div className="aspect-video bg-gray-200">
-                {item.imageUrl ? (
-                  <img 
-                    src={item.imageUrl} 
-                    alt={item.title}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <Palette className="h-12 w-12 text-gray-400" />
-                  </div>
-                )}
+        {/* Conditional rendering based on view mode */}
+        {viewMode === 'mood-board' ? (
+          <MoodBoard 
+            inspirationItems={inspirationItems || []} 
+            onItemsChange={() => queryClient.invalidateQueries({ queryKey: ['/api/inspiration'] })}
+          />
+        ) : (
+          <>
+            {/* Search and filter */}
+            <div className="flex space-x-4 mb-6">
+              <div className="flex-1">
+                <Input
+                  placeholder="Search inspiration..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="max-w-md"
+                />
               </div>
-              <CardContent className="p-4">
-                <h3 className="font-semibold text-gray-800 mb-2">{item.title}</h3>
-                {item.category && (
-                  <Badge variant="outline" className="mb-2">
-                    {item.category}
-                  </Badge>
-                )}
-                {item.notes && (
-                  <p className="text-sm text-gray-600 mb-3 line-clamp-2">{item.notes}</p>
-                )}
-                {item.tags && (
-                  <div className="flex flex-wrap gap-1">
-                    {(Array.isArray(item.tags) ? item.tags : item.tags.split(',')).map((tag: string, index: number) => (
-                      <Badge key={index} variant="outline" className="text-xs">
-                        {typeof tag === 'string' ? tag.trim() : tag}
-                      </Badge>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+              <Select value={filterCategory} onValueChange={setFilterCategory}>
+                <SelectTrigger className="w-48">
+                  <SelectValue placeholder="All categories" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All categories</SelectItem>
+                  {categories.map((category) => (
+                    <SelectItem key={category} value={category}>
+                      {category}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-        {filteredItems.length === 0 && (
-          <div className="text-center py-12">
-            <Palette className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-800 mb-2">No inspiration items found</h3>
-            <p className="text-gray-600">
-              {searchTerm || filterCategory ? 'Try adjusting your search or filters.' : 'Add your first inspiration item to get started.'}
-            </p>
-          </div>
+            {/* Inspiration grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredItems.map((item: any) => (
+                <Card key={item.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                  <div className="aspect-video bg-gray-200">
+                    {item.imageUrl ? (
+                      <img 
+                        src={item.imageUrl} 
+                        alt={item.title}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <Palette className="h-12 w-12 text-gray-400" />
+                      </div>
+                    )}
+                  </div>
+                  <CardContent className="p-4">
+                    <h3 className="font-semibold text-gray-800 mb-2">{item.title}</h3>
+                    {item.category && (
+                      <Badge variant="outline" className="mb-2">
+                        {item.category}
+                      </Badge>
+                    )}
+                    {item.notes && (
+                      <p className="text-sm text-gray-600 mb-3 line-clamp-2">{item.notes}</p>
+                    )}
+                    {item.tags && (
+                      <div className="flex flex-wrap gap-1">
+                        {(Array.isArray(item.tags) ? item.tags : item.tags.split(',')).map((tag: string, index: number) => (
+                          <Badge key={index} variant="outline" className="text-xs">
+                            {typeof tag === 'string' ? tag.trim() : tag}
+                          </Badge>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            {filteredItems.length === 0 && (
+              <div className="text-center py-12">
+                <Palette className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-gray-800 mb-2">No inspiration items found</h3>
+                <p className="text-gray-600">
+                  {searchTerm || filterCategory ? 'Try adjusting your search or filters.' : 'Add your first inspiration item to get started.'}
+                </p>
+              </div>
+            )}
+          </>
         )}
       </div>
 
