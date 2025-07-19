@@ -350,10 +350,10 @@ export const intakeData = pgTable("intake_data", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull().unique(),
   
-  // Couple Information
-  partner1FirstName: text("partner1_first_name").notNull(),
+  // Couple Information  
+  partner1FirstName: text("partner1_first_name"),
   partner1LastName: text("partner1_last_name"),
-  partner1Email: text("partner1_email").notNull(),
+  partner1Email: text("partner1_email"),
   partner1Role: text("partner1_role"),
   
   partner2FirstName: text("partner2_first_name"),
@@ -389,13 +389,17 @@ export const intakeData = pgTable("intake_data", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-// Schema validations
+// Schema validations - All fields optional for flexible form saving
 export const insertIntakeDataSchema = createInsertSchema(intakeData).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
 }).extend({
-  // Make optional fields truly optional for validation
+  // Make all fields optional for progressive form filling
+  partner1FirstName: z.string().optional(),
+  partner1LastName: z.string().optional(),
+  partner1Email: z.string().optional(),
+  partner1Role: z.string().optional(),
   partner2FirstName: z.string().optional(),
   partner2LastName: z.string().optional(),
   partner2Email: z.string().optional(),

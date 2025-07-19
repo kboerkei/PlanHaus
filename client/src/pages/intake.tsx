@@ -15,7 +15,7 @@ import { CalendarIcon, Heart, Users, Palette, ListChecks, UserPlus, Plus, Trash2
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 
 interface CoupleInfo {
@@ -170,6 +170,13 @@ export default function Intake({ onComplete }: IntakeProps) {
   const [newColorPalette, setNewColorPalette] = useState("");
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [autoSaveTimer, setAutoSaveTimer] = useState<NodeJS.Timeout | null>(null);
+
+  // Load existing intake data
+  const { data: existingIntake, isLoading: intakeLoading } = useQuery({
+    queryKey: ['/api/intake'],
+    queryFn: () => apiRequest('/api/intake'),
+    retry: false,
+  });
 
   // Validation functions
   const validateStep = (step: number): boolean => {
@@ -347,10 +354,13 @@ export default function Intake({ onComplete }: IntakeProps) {
         description: "Your wedding information has been updated successfully.",
       });
       
-      // Invalidate queries to refresh data throughout the app
+      // Comprehensive invalidation to reflect intake changes throughout the app
       queryClient.invalidateQueries({ queryKey: ['/api/projects'] });
       queryClient.invalidateQueries({ queryKey: ['/api/dashboard/stats'] });
       queryClient.invalidateQueries({ queryKey: ['/api/intake'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/tasks'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/projects/15/tasks'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/projects/1/tasks'] });
       
       // Call the completion callback to update the app state
       if (onComplete) {
@@ -405,9 +415,30 @@ export default function Intake({ onComplete }: IntakeProps) {
     },
     onSuccess: () => {
       setLastSaved(new Date());
-      // Silently invalidate queries to refresh data throughout the app
+      // Comprehensive query invalidation for real-time updates throughout the app
       queryClient.invalidateQueries({ queryKey: ['/api/projects'] });
       queryClient.invalidateQueries({ queryKey: ['/api/dashboard/stats'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/intake'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/tasks'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/projects/15/tasks'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/projects/1/tasks'] });
+      // Create or update project with intake data to reflect changes in timeline/dashboard
+      if (formData.weddingBasics.weddingDate || formData.coupleInfo.partner1.firstName) {
+        fetch('/api/projects', {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('sessionId')}`
+          },
+          body: JSON.stringify({
+            name: `${formData.coupleInfo.partner1.firstName}${formData.coupleInfo.partner2.firstName ? ` & ${formData.coupleInfo.partner2.firstName}` : ''}'s Wedding`,
+            description: 'Wedding planning project',
+            date: formData.weddingBasics.weddingDate || new Date()
+          })
+        }).then(() => {
+          queryClient.invalidateQueries({ queryKey: ['/api/projects'] });
+        }).catch(() => {});
+      }
     },
     onError: (error: any) => {
       console.error('Auto-save error:', error);

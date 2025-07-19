@@ -1764,6 +1764,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         weddingDate: req.body.weddingDate ? new Date(req.body.weddingDate) : null
       };
       
+      // Flexible validation for partial form submissions (auto-save)
       const intakeData = insertIntakeDataSchema.parse(requestData);
       
       console.log('Intake API - Parsed data:', JSON.stringify(intakeData, null, 2));
