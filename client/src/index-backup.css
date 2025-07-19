@@ -11,7 +11,7 @@
 /* Safe area for mobile devices */
 @layer utilities {
   .safe-area-pb {
-    padding-bottom: max(env(safe-area-inset-bottom), 1rem);
+    padding-bottom: env(safe-area-inset-bottom);
   }
   
   .safe-area-pt {
@@ -19,8 +19,7 @@
   }
   
   .gradient-blush-rose {
-    background: linear-gradient(135deg, hsl(330, 81%, 85%) 0%, hsl(12, 47%, 82%) 100%); /* fallback */
-    background: linear-gradient(135deg, var(--blush, hsl(330, 81%, 85%)) 0%, var(--rose-gold, hsl(12, 47%, 82%)) 100%);
+    background: linear-gradient(135deg, var(--blush) 0%, var(--rose-gold) 100%);
   }
   
   .gradient-sunset {
@@ -40,38 +39,15 @@
   }
   
   .backdrop-blur-glass {
-    -webkit-backdrop-filter: blur(20px);
     backdrop-filter: blur(20px);
     background-color: rgba(255, 255, 255, 0.85);
   }
   
   .text-gradient {
-    background: linear-gradient(135deg, hsl(330, 81%, 85%) 0%, hsl(12, 47%, 82%) 100%); /* fallback */
-    background: linear-gradient(135deg, var(--blush, hsl(330, 81%, 85%)) 0%, var(--rose-gold, hsl(12, 47%, 82%)) 100%);
+    background: linear-gradient(135deg, var(--blush) 0%, var(--rose-gold) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-  }
-
-  /* Add individual color utilities with fallbacks */
-  .text-blush {
-    color: hsl(330, 81%, 85%); /* fallback */
-    color: var(--blush, hsl(330, 81%, 85%));
-  }
-  
-  .bg-blush {
-    background-color: hsl(330, 81%, 85%); /* fallback */
-    background-color: var(--blush, hsl(330, 81%, 85%));
-  }
-  
-  .text-rose-gold {
-    color: hsl(12, 47%, 82%); /* fallback */
-    color: var(--rose-gold, hsl(12, 47%, 82%));
-  }
-  
-  .bg-rose-gold {
-    background-color: hsl(12, 47%, 82%); /* fallback */
-    background-color: var(--rose-gold, hsl(12, 47%, 82%));
   }
 }
 
@@ -94,7 +70,10 @@
     font-size: 16px;
   }
   
-  /* Mobile layout adjustments - removed dangerous override that breaks responsive design */
+  /* Mobile layout adjustments - show mobile elements on small screens */
+  .lg\:hidden {
+    display: block !important;
+  }
   
   /* Mobile form optimization */
   .mobile-form {
@@ -110,17 +89,15 @@
     overflow-y: auto !important;
   }
   
-  /* Touch-friendly buttons - improved accessibility */
-  .mobile-touch-target {
-    min-height: 48px !important;
-    min-width: 48px !important;
+  /* Touch-friendly buttons */
+  .mobile-touch {
+    min-height: 44px !important;
+    min-width: 44px !important;
   }
   
-  /* Fix viewport issues on mobile with fallback */
+  /* Fix viewport issues on mobile */
   .mobile-viewport-fix {
-    height: 100vh; /* fallback */
     height: 100dvh !important;
-    min-height: 100vh; /* fallback */
     min-height: 100dvh !important;
   }
   
@@ -210,7 +187,13 @@
     padding-bottom: calc(env(safe-area-inset-bottom) + 4rem);
   }
   
-  /* Removed duplicate hyphenation rules - already defined in @layer base */
+  /* Global hyphenation disable */
+  * {
+    hyphens: none !important;
+    -webkit-hyphens: none !important;
+    -ms-hyphens: none !important;
+    word-break: normal !important;
+  }
 
   @media (max-width: 640px) {
     .mobile-text-sm {
@@ -266,74 +249,37 @@
   }
 
   .text-blush {
-    color: hsl(330, 81%, 85%); /* fallback */
-    color: var(--blush, hsl(330, 81%, 85%));
+    color: var(--blush);
   }
   .bg-blush {
-    background-color: hsl(330, 81%, 85%); /* fallback */
-    background-color: var(--blush, hsl(330, 81%, 85%));
+    background-color: var(--blush);
   }
   .text-rose-gold {
-    color: hsl(12, 47%, 82%); /* fallback */
-    color: var(--rose-gold, hsl(12, 47%, 82%));
+    color: var(--rose-gold);
   }
   .bg-rose-gold {
-    background-color: hsl(12, 47%, 82%); /* fallback */
-    background-color: var(--rose-gold, hsl(12, 47%, 82%));
+    background-color: var(--rose-gold);
   }
   .bg-cream {
-    background-color: hsl(60, 29%, 98%); /* fallback */
-    background-color: var(--cream, hsl(60, 29%, 98%));
+    background-color: var(--cream);
   }
   .text-champagne {
-    color: hsl(48, 87%, 55%); /* fallback */
-    color: var(--champagne, hsl(48, 87%, 55%));
+    color: var(--champagne);
   }
   .bg-champagne {
-    background-color: hsl(48, 87%, 55%); /* fallback */
-    background-color: var(--champagne, hsl(48, 87%, 55%));
+    background-color: var(--champagne);
   }
   .bg-soft-gold {
-    background-color: hsl(45, 61%, 92%); /* fallback */
-    background-color: var(--soft-gold, hsl(45, 61%, 92%));
+    background-color: var(--soft-gold);
   }
   
   .gradient-blush-rose {
-    background: linear-gradient(to bottom right, hsl(330, 81%, 85%), hsl(12, 47%, 82%)); /* fallback */
-    background: linear-gradient(to bottom right, var(--blush, hsl(330, 81%, 85%)), var(--rose-gold, hsl(12, 47%, 82%)));
+    background: linear-gradient(to bottom right, var(--blush), var(--rose-gold));
   }
   
   .font-serif {
     font-family: 'Playfair Display', serif;
   }
-
-/* Accessibility improvements - focus states for all devices */
-button:focus-visible, 
-a:focus-visible, 
-input:focus-visible, 
-textarea:focus-visible, 
-select:focus-visible {
-  outline: 2px solid var(--blush, hsl(330, 81%, 85%));
-  outline-offset: 2px;
-}
-
-/* Reduced motion support - respect user preferences */
-@media (prefers-reduced-motion: reduce) {
-  .animate-spin-slow,
-  .animate-fade-in,
-  .animate-slide-in-up,
-  .animate-float,
-  .animate-pulse,
-  .animate-bounce {
-    animation: none;
-  }
-  
-  * {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
-}
 
   /* Enhanced countdown animations */
   @keyframes spin-slow {
@@ -393,7 +339,10 @@ select:focus-visible {
     50% { filter: hue-rotate(45deg); }
   }
 
-  /* Remove duplicate - already defined in @layer utilities above */
+  /* Mobile safe area utilities */
+  .safe-area-pb {
+    padding-bottom: max(env(safe-area-inset-bottom), 1rem);
+  }
   
   .safe-area-pt {
     padding-top: env(safe-area-inset-top);
@@ -432,8 +381,8 @@ select:focus-visible {
     
     /* Improve button accessibility on mobile */
     button, .button, [role="button"] {
-      min-height: 48px;
-      min-width: 48px;
+      min-height: 44px;
+      min-width: 44px;
     }
     
     /* Fix input zoom on iOS */

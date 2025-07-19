@@ -1,0 +1,156 @@
+# Wedding App CSS Fixes - Replit Prompt
+
+Hey Replit! I need you to fix several critical issues in my wedding planning app's CSS file (`index.css`). Please implement these changes:
+
+## 🔧 Critical Fixes Required
+
+### 1. Fix Import Order Issue
+**Current Problem:** `@import './styles/enhanced.css';` is imported before Tailwind, causing conflicts.
+
+**Fix:** Move this import AFTER the Tailwind imports, or remove it if the file doesn't exist. The correct order should be:
+```css
+@import '@fontsource/playfair-display/400.css';
+@import '@fontsource/playfair-display/500.css';
+@import '@fontsource/playfair-display/600.css';
+@import '@fontsource/playfair-display/700.css';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@import './styles/enhanced.css'; /* Move to here, or remove if file doesn't exist */
+```
+
+### 2. Remove Dangerous Mobile Override
+**Current Problem:** This code breaks responsive design:
+```css
+.lg\:hidden {
+  display: block !important;
+}
+```
+
+**Fix:** Remove this entire rule - it's overriding Tailwind's responsive utilities incorrectly.
+
+### 3. Fix Duplicate Safe Area Utilities
+**Current Problem:** `.safe-area-pb` is defined twice with different values.
+
+**Fix:** Consolidate into one consistent definition:
+```css
+.safe-area-pb {
+  padding-bottom: max(env(safe-area-inset-bottom), 1rem);
+}
+```
+
+### 4. Add CSS Variable Fallbacks
+**Current Problem:** CSS variables have no fallbacks, could cause invisible elements.
+
+**Fix:** Add fallbacks to all custom properties:
+```css
+.text-blush {
+  color: hsl(330, 81%, 85%); /* fallback */
+  color: var(--blush, hsl(330, 81%, 85%));
+}
+.bg-blush {
+  background-color: hsl(330, 81%, 85%); /* fallback */
+  background-color: var(--blush, hsl(330, 81%, 85%));
+}
+/* Apply same pattern to all color utilities */
+```
+
+### 5. Fix Browser Compatibility
+**Current Problem:** Missing vendor prefixes for `backdrop-filter`.
+
+**Fix:** Add webkit prefix:
+```css
+.backdrop-blur-glass {
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  background-color: rgba(255, 255, 255, 0.85);
+}
+```
+
+### 6. Improve Touch Targets
+**Current Problem:** Touch targets are 44px but should be 48px for better accessibility.
+
+**Fix:** Update to 48px:
+```css
+.mobile-touch-target {
+  min-height: 48px;
+  min-width: 48px;
+}
+
+button, .button, [role="button"] {
+  min-height: 48px;
+  min-width: 48px;
+}
+```
+
+### 7. Add Reduced Motion Support
+**Current Problem:** Animations always run, ignoring user preferences.
+
+**Fix:** Add this media query to respect user preferences:
+```css
+@media (prefers-reduced-motion: reduce) {
+  .animate-spin-slow,
+  .animate-fade-in,
+  .animate-slide-in-up,
+  .animate-float {
+    animation: none;
+  }
+}
+```
+
+### 8. Remove Redundant Hyphenation Rules
+**Current Problem:** Hyphenation is disabled multiple times redundantly.
+
+**Fix:** Keep only the global rule in the `* {}` selector and remove duplicates from media queries and other places.
+
+### 9. Add Viewport Height Fallback
+**Current Problem:** `100dvh` isn't supported in all browsers.
+
+**Fix:** Add fallback:
+```css
+.mobile-viewport-fix {
+  height: 100vh; /* fallback */
+  height: 100dvh !important;
+  min-height: 100vh; /* fallback */
+  min-height: 100dvh !important;
+}
+```
+
+### 10. Improve Focus States for All Devices
+**Current Problem:** Focus states only work on desktop.
+
+**Fix:** Make focus states work on all devices:
+```css
+button:focus-visible, 
+a:focus-visible, 
+input:focus-visible, 
+textarea:focus-visible, 
+select:focus-visible {
+  outline: 2px solid var(--blush, hsl(330, 81%, 85%));
+  outline-offset: 2px;
+}
+```
+
+## 📝 Instructions for Replit
+
+1. **Back up the current file first** - make a copy called `index-backup.css`
+2. **Apply all fixes above** in the order listed
+3. **Test the changes** by checking if:
+   - The app still loads without errors
+   - Mobile responsive design works correctly
+   - Colors display properly
+   - Animations respect user preferences
+4. **Remove any unused or redundant CSS** you find while making these changes
+5. **Ensure the file is properly formatted** and organized
+
+## ✅ Expected Outcome
+
+After these fixes:
+- No more import conflicts or missing files
+- Proper responsive design behavior
+- Better browser compatibility
+- Improved accessibility
+- Cleaner, more maintainable CSS
+- Faster loading and better performance
+
+Please implement these changes systematically and let me know if you encounter any issues or need clarification on any of the fixes!
