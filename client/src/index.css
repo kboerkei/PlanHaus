@@ -167,10 +167,14 @@
 
   body {
     @apply font-sans antialiased bg-cream text-foreground;
-    /* Disable hyphenation globally */
-    hyphens: none;
-    -webkit-hyphens: none;
-    -ms-hyphens: none;
+    /* Disable hyphenation globally - CRITICAL FOR MOBILE */
+    hyphens: none !important;
+    -webkit-hyphens: none !important;
+    -moz-hyphens: none !important;
+    -ms-hyphens: none !important;
+    word-break: normal !important;
+    word-wrap: normal !important;
+    overflow-wrap: normal !important;
     /* Improve mobile scrolling */
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
