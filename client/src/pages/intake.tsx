@@ -679,7 +679,7 @@ export default function Intake({ onComplete }: IntakeProps) {
         </div>
 
         {/* Navigation Buttons */}
-        <div className="flex justify-between items-center">
+        <div className="flex justify-between items-center relative z-10">
           <Button
             type="button"
             variant="outline"
@@ -692,6 +692,26 @@ export default function Intake({ onComplete }: IntakeProps) {
           </Button>
 
           <div className="flex gap-3">
+            {/* Debug test button */}
+            <button
+              onClick={() => {
+                alert('Test button works!');
+                setCurrentStep(2);
+              }}
+              style={{
+                background: 'red',
+                color: 'white',
+                padding: '8px 16px',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                zIndex: 9999,
+                position: 'relative'
+              }}
+            >
+              TEST BUTTON
+            </button>
+            
             {currentStep < 5 ? (
               <Button
                 type="button"
@@ -700,7 +720,8 @@ export default function Intake({ onComplete }: IntakeProps) {
                   setCurrentStep(currentStep + 1);
                   console.log('NEXT CLICKED - New:', currentStep + 1);
                 }}
-                className="flex items-center gap-2 bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700"
+                className="flex items-center gap-2 bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 relative z-50"
+                style={{ zIndex: 9999, position: 'relative' }}
               >
                 Next (Step {currentStep + 1})
                 <ArrowRight className="w-4 h-4" />
