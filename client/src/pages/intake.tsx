@@ -679,10 +679,15 @@ export default function Intake({ onComplete }: IntakeProps) {
             type="button"
             onClick={prevStep}
             disabled={currentStep === 1}
-            className="flex items-center gap-2 px-6 py-3 border border-gray-300 bg-white hover:bg-gray-50 text-gray-700 font-medium rounded-lg transition-all duration-200 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center justify-center gap-2 px-6 py-3 border border-gray-300 bg-white hover:bg-gray-50 text-gray-700 font-medium rounded-lg transition-all duration-200 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed min-w-[120px] h-[48px]"
+            style={{
+              WebkitTapHighlightColor: 'transparent',
+              touchAction: 'manipulation',
+              userSelect: 'none'
+            }}
           >
-            <ArrowLeft className="w-4 h-4" />
-            Previous
+            <ArrowLeft className="w-4 h-4 pointer-events-none" />
+            <span className="pointer-events-none">Previous</span>
           </button>
 
           <div className="flex gap-3">
@@ -693,10 +698,15 @@ export default function Intake({ onComplete }: IntakeProps) {
                   alert(`Current step: ${currentStep}, Moving to: ${currentStep + 1}`);
                   setCurrentStep(currentStep + 1);
                 }}
-                className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 text-white font-medium rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl cursor-pointer"
+                className="flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 text-white font-medium rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl cursor-pointer min-w-[140px] h-[48px]"
+                style={{
+                  WebkitTapHighlightColor: 'transparent',
+                  touchAction: 'manipulation',
+                  userSelect: 'none'
+                }}
               >
-                Next (Step {currentStep + 1})
-                <ArrowRight className="w-4 h-4" />
+                <span className="pointer-events-none">Next (Step {currentStep + 1})</span>
+                <ArrowRight className="w-4 h-4 pointer-events-none" />
               </button>
             ) : (
               <button
