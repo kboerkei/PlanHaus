@@ -187,9 +187,13 @@ export default function Intake({ onComplete }: IntakeProps) {
   };
 
   const nextStep = () => {
-    if (validateStep(currentStep)) {
-      setCurrentStep(prev => Math.min(prev + 1, 5));
-    }
+    console.log('Next step clicked, current step:', currentStep);
+    setValidationErrors({}); // Clear any validation errors
+    setCurrentStep(prev => {
+      const newStep = Math.min(prev + 1, 5);
+      console.log('Moving to step:', newStep);
+      return newStep;
+    });
   };
 
   const prevStep = () => {
