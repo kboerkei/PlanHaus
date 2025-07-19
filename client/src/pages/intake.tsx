@@ -673,58 +673,60 @@ export default function Intake({ onComplete }: IntakeProps) {
           {renderStepContent()}
         </div>
 
-        {/* DEBUG TEST AREA */}
-        <div style={{ padding: '20px', backgroundColor: '#f0f0f0', margin: '20px 0', textAlign: 'center' }}>
-          <p>DEBUG: Can you click anywhere in this gray area?</p>
-          <div 
-            onClick={() => alert('Gray area clicked!')}
-            style={{ 
-              padding: '20px', 
-              backgroundColor: '#yellow', 
-              cursor: 'pointer',
-              margin: '10px 0'
-            }}
-          >
-            CLICK THIS YELLOW BOX
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div 
-              onClick={() => alert('Left side clicked!')}
-              style={{ 
-                padding: '15px 30px', 
-                backgroundColor: '#blue', 
-                color: 'white', 
-                cursor: 'pointer',
-                fontSize: '18px'
-              }}
-            >
-              TEST LEFT
-            </div>
-            <div 
-              onClick={() => {
-                alert('RIGHT SIDE CLICKED - ADVANCING STEP!');
-                setCurrentStep(currentStep + 1);
-              }}
-              style={{ 
-                padding: '15px 30px', 
-                backgroundColor: '#red', 
-                color: 'white', 
-                cursor: 'pointer',
-                fontSize: '18px'
-              }}
-            >
-              TEST RIGHT (NEXT)
-            </div>
-          </div>
-        </div>
-
         {/* Navigation Buttons */}
         <div className="flex justify-between items-center py-4">
-          <div>
-            Previous (Step {currentStep})
+          <div 
+            onClick={prevStep}
+            style={{ 
+              padding: '12px 24px', 
+              border: '2px solid #d1d5db',
+              backgroundColor: currentStep === 1 ? '#f9fafb' : '#ffffff',
+              color: '#374151',
+              borderRadius: '8px',
+              cursor: currentStep === 1 ? 'not-allowed' : 'pointer',
+              opacity: currentStep === 1 ? 0.5 : 1,
+              fontSize: '16px',
+              fontWeight: '600'
+            }}
+          >
+            ← Previous
           </div>
+          
           <div>
-            Next (Step {currentStep + 1})
+            {currentStep < 5 ? (
+              <div 
+                onClick={() => setCurrentStep(currentStep + 1)}
+                style={{ 
+                  padding: '12px 24px', 
+                  background: 'linear-gradient(to right, #f43f5e, #ec4899)',
+                  color: 'white',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontSize: '16px',
+                  fontWeight: '600',
+                  minWidth: '160px',
+                  textAlign: 'center'
+                }}
+              >
+                Next (Step {currentStep + 1}) →
+              </div>
+            ) : (
+              <div 
+                onClick={handleSubmit}
+                style={{ 
+                  padding: '12px 24px', 
+                  background: submitIntakeMutation.isPending ? '#6b7280' : 'linear-gradient(to right, #10b981, #059669)',
+                  color: 'white',
+                  borderRadius: '8px',
+                  cursor: submitIntakeMutation.isPending ? 'not-allowed' : 'pointer',
+                  fontSize: '16px',
+                  fontWeight: '600',
+                  textAlign: 'center'
+                }}
+              >
+                {submitIntakeMutation.isPending ? 'Saving...' : '✓ Complete Intake'}
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -843,7 +845,7 @@ export default function Intake({ onComplete }: IntakeProps) {
                   <Input
                     id="p2-firstName"
                     value={formData.coupleInfo.partner2.firstName}
-                    onChange={(e) => setFormData(prev => ({
+                    onChange={(e) => updateFormData(prev => ({
                       ...prev,
                       coupleInfo: {
                         ...prev.coupleInfo,
@@ -857,7 +859,7 @@ export default function Intake({ onComplete }: IntakeProps) {
                   <Input
                     id="p2-lastName"
                     value={formData.coupleInfo.partner2.lastName}
-                    onChange={(e) => setFormData(prev => ({
+                    onChange={(e) => updateFormData(prev => ({
                       ...prev,
                       coupleInfo: {
                         ...prev.coupleInfo,
@@ -872,7 +874,7 @@ export default function Intake({ onComplete }: IntakeProps) {
                     id="p2-email"
                     type="email"
                     value={formData.coupleInfo.partner2.email}
-                    onChange={(e) => setFormData(prev => ({
+                    onChange={(e) => updateFormData(prev => ({
                       ...prev,
                       coupleInfo: {
                         ...prev.coupleInfo,
@@ -885,7 +887,7 @@ export default function Intake({ onComplete }: IntakeProps) {
                   <Label htmlFor="p2-role">Role</Label>
                   <Select
                     value={formData.coupleInfo.partner2.role}
-                    onValueChange={(value) => setFormData(prev => ({
+                    onValueChange={(value) => updateFormData(prev => ({
                       ...prev,
                       coupleInfo: {
                         ...prev.coupleInfo,
@@ -911,7 +913,7 @@ export default function Intake({ onComplete }: IntakeProps) {
               <Checkbox
                 id="hasWeddingPlanner"
                 checked={formData.coupleInfo.hasWeddingPlanner}
-                onCheckedChange={(checked) => setFormData(prev => ({
+                onCheckedChange={(checked) => updateFormData(prev => ({
                   ...prev,
                   coupleInfo: { ...prev.coupleInfo, hasWeddingPlanner: checked as boolean }
                 }))}
@@ -965,7 +967,7 @@ export default function Intake({ onComplete }: IntakeProps) {
                   <Calendar
                     mode="single"
                     selected={formData.weddingBasics.weddingDate}
-                    onSelect={(date) => setFormData(prev => ({
+                    onSelect={(date) => updateFormData(prev => ({
                       ...prev,
                       weddingBasics: { ...prev.weddingBasics, weddingDate: date }
                     }))}
@@ -987,7 +989,7 @@ export default function Intake({ onComplete }: IntakeProps) {
                 id="estimatedGuests"
                 type="number"
                 value={formData.weddingBasics.estimatedGuests || ""}
-                onChange={(e) => setFormData(prev => ({
+                onChange={(e) => updateFormData(prev => ({
                   ...prev,
                   weddingBasics: { ...prev.weddingBasics, estimatedGuests: parseInt(e.target.value) || 0 }
                 }))}
@@ -1008,7 +1010,7 @@ export default function Intake({ onComplete }: IntakeProps) {
             <Input
               id="ceremonyLocation"
               value={formData.weddingBasics.ceremonyLocation}
-              onChange={(e) => setFormData(prev => ({
+              onChange={(e) => updateFormData(prev => ({
                 ...prev,
                 weddingBasics: { ...prev.weddingBasics, ceremonyLocation: e.target.value }
               }))}
@@ -1028,7 +1030,7 @@ export default function Intake({ onComplete }: IntakeProps) {
             <Input
               id="receptionLocation"
               value={formData.weddingBasics.receptionLocation}
-              onChange={(e) => setFormData(prev => ({
+              onChange={(e) => updateFormData(prev => ({
                 ...prev,
                 weddingBasics: { ...prev.weddingBasics, receptionLocation: e.target.value }
               }))}
@@ -1042,7 +1044,7 @@ export default function Intake({ onComplete }: IntakeProps) {
               id="totalBudget"
               type="number"
               value={formData.weddingBasics.totalBudget || ""}
-              onChange={(e) => setFormData(prev => ({
+              onChange={(e) => updateFormData(prev => ({
                 ...prev,
                 weddingBasics: { ...prev.weddingBasics, totalBudget: parseInt(e.target.value) || 0 }
               }))}
@@ -1073,7 +1075,7 @@ export default function Intake({ onComplete }: IntakeProps) {
             <Label>Overall Wedding Vibe *</Label>
             <RadioGroup
               value={formData.styleVision.overallVibe}
-              onValueChange={(value) => setFormData(prev => ({
+              onValueChange={(value) => updateFormData(prev => ({
                 ...prev,
                 styleVision: { ...prev.styleVision, overallVibe: value }
               }))}
@@ -1297,7 +1299,7 @@ export default function Intake({ onComplete }: IntakeProps) {
                 <div key={index} className="flex gap-3 items-center p-3 bg-gray-50 rounded-lg">
                   <Input
                     value={vip.name}
-                    onChange={(e) => setFormData(prev => ({
+                    onChange={(e) => updateFormData(prev => ({
                       ...prev,
                       keyPeople: {
                         ...prev.keyPeople,
@@ -1310,7 +1312,7 @@ export default function Intake({ onComplete }: IntakeProps) {
                   />
                   <Input
                     value={vip.role}
-                    onChange={(e) => setFormData(prev => ({
+                    onChange={(e) => updateFormData(prev => ({
                       ...prev,
                       keyPeople: {
                         ...prev.keyPeople,
@@ -1353,7 +1355,7 @@ export default function Intake({ onComplete }: IntakeProps) {
                 <div key={index} className="flex gap-3 items-center p-3 bg-gray-50 rounded-lg">
                   <Input
                     value={member.name}
-                    onChange={(e) => setFormData(prev => ({
+                    onChange={(e) => updateFormData(prev => ({
                       ...prev,
                       keyPeople: {
                         ...prev.keyPeople,
@@ -1366,7 +1368,7 @@ export default function Intake({ onComplete }: IntakeProps) {
                   />
                   <Input
                     value={member.role}
-                    onChange={(e) => setFormData(prev => ({
+                    onChange={(e) => updateFormData(prev => ({
                       ...prev,
                       keyPeople: {
                         ...prev.keyPeople,
@@ -1394,7 +1396,7 @@ export default function Intake({ onComplete }: IntakeProps) {
             <Label>Officiant Status</Label>
             <RadioGroup
               value={formData.keyPeople.officiantStatus}
-              onValueChange={(value) => setFormData(prev => ({
+              onValueChange={(value) => updateFormData(prev => ({
                 ...prev,
                 keyPeople: { ...prev.keyPeople, officiantStatus: value }
               }))}
