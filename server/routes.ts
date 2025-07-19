@@ -1796,12 +1796,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Mark user as having completed intake
       await storage.markUserIntakeComplete(userId);
       
-      // Create default wedding project for the user
-      let project = await storage.getWeddingProjectByUserId(userId);
-      if (!project) {
+      // Get user's projects and update the most recent one (or create if none exist)
+      let projects = await storage.getWeddingProjectsByUserId(userId);
+      let project;
+      
+      if (projects.length === 0) {
+        // Create new project if none exist
         const projectData = {
-          name: `${intake.partner1FirstName || 'Our'} Wedding`,
-          date: intake.weddingDate || new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // Default to 1 year from now if no date
+          name: intake.partner1FirstName && intake.partner2FirstName 
+            ? `${intake.partner1FirstName} & ${intake.partner2FirstName}'s Wedding`
+            : intake.partner1FirstName 
+            ? `${intake.partner1FirstName}'s Wedding`
+            : 'Our Wedding',
+          date: intake.weddingDate || new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
           createdBy: userId,
           budget: intake.totalBudget ? parseFloat(intake.totalBudget) : null,
           guestCount: intake.estimatedGuests || null,
@@ -1809,6 +1816,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
           venue: intake.ceremonyLocation || null,
         };
         project = await storage.createWeddingProject(projectData);
+      } else {
+        // Update the most recent project (the one dashboard is likely showing)
+        project = projects[projects.length - 1]; // Get the last/newest project
+        const updatedProjectData = {
+          name: intake.partner1FirstName && intake.partner2FirstName 
+            ? `${intake.partner1FirstName} & ${intake.partner2FirstName}'s Wedding`
+            : intake.partner1FirstName 
+            ? `${intake.partner1FirstName}'s Wedding`
+            : project.name,
+          date: intake.weddingDate || project.date,
+          budget: intake.totalBudget ? parseFloat(intake.totalBudget) : project.budget,
+          guestCount: intake.estimatedGuests || project.guestCount,
+          theme: intake.overallVibe || project.theme,
+          venue: intake.ceremonyLocation || project.venue,
+        };
+        project = await storage.updateWeddingProject(project.id, updatedProjectData);
+        console.log('Updated project:', project.id, 'with name:', updatedProjectData.name);
       }
       
       // Add VIP guests and wedding party to guest list (only these specific people)
