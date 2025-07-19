@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import SearchFilterBar from "@/components/ui/search-filter-bar";
 import ExportOptions from "@/components/ui/export-options";
-import LoadingSpinner from "@/components/loading-spinner";
+import LoadingSpinner from "@/components/ui/loading-spinner";
 import BudgetCharts from "@/components/BudgetCharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";

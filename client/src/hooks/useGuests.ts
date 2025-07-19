@@ -11,52 +11,97 @@ export function useGuests(projectId?: string) {
 
 export function useCreateGuest(projectId: string) {
   return useMutation({
-    mutationFn: (data: GuestFormData) => 
-      apiRequest(`/api/projects/${projectId}/guests`, {
-        method: 'POST',
-        body: JSON.stringify(data),
-        headers: { 'Content-Type': 'application/json' }
+    mutationFn: (data: GuestFormData) => apiRequest(`/api/projects/${projectId}/guests`, {
+      method: 'POST',
+      body: JSON.stringify({
+        ...data,
+        projectId: parseInt(projectId),
       }),
+    }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'guests'] });
-    }
+      queryClient.invalidateQueries({ queryKey: ['/api/guests'] });
+    },
   });
 }
 
 export function useUpdateGuest(projectId: string) {
   return useMutation({
-    mutationFn: ({ id, data }: { id: string, data: Partial<GuestFormData> }) => 
+    mutationFn: ({ id, data }: { id: number; data: Partial<GuestFormData> }) =>
       apiRequest(`/api/guests/${id}`, {
         method: 'PATCH',
         body: JSON.stringify(data),
-        headers: { 'Content-Type': 'application/json' }
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'guests'] });
-    }
+      queryClient.invalidateQueries({ queryKey: ['/api/guests'] });
+    },
   });
 }
 
 export function useDeleteGuest(projectId: string) {
   return useMutation({
-    mutationFn: (id: string) => 
-      apiRequest(`/api/guests/${id}`, { method: 'DELETE' }),
+    mutationFn: (id: number) => apiRequest(`/api/guests/${id}`, {
+      method: 'DELETE',
+    }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'guests'] });
-    }
+      queryClient.invalidateQueries({ queryKey: ['/api/guests'] });
+    },
   });
 }
 
 export function useBulkUpdateGuests(projectId: string) {
   return useMutation({
-    mutationFn: (updates: { ids: string[], data: Partial<GuestFormData> }) => 
-      apiRequest(`/api/projects/${projectId}/guests/bulk`, {
+    mutationFn: ({ guestIds, updates }: { guestIds: number[]; updates: Partial<GuestFormData> }) =>
+      apiRequest(`/api/projects/${projectId}/guests/bulk-update`, {
         method: 'PATCH',
-        body: JSON.stringify(updates),
-        headers: { 'Content-Type': 'application/json' }
+        body: JSON.stringify({ guestIds, updates }),
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'guests'] });
-    }
+      queryClient.invalidateQueries({ queryKey: ['/api/guests'] });
+    },
   });
+}
+
+export function useGuestStats(projectId?: string) {
+  const { data: guests } = useGuests(projectId);
+  
+  if (!guests) return null;
+  
+  const stats = guests.reduce((acc: any, guest: any) => {
+    acc.total += 1;
+    acc.totalAttending += guest.attendingCount || 1;
+    
+    switch (guest.rsvpStatus) {
+      case 'yes':
+        acc.confirmed += 1;
+        break;
+      case 'no':
+        acc.declined += 1;
+        break;
+      case 'maybe':
+        acc.maybe += 1;
+        break;
+      default:
+        acc.pending += 1;
+    }
+    
+    if (guest.inviteSent) {
+      acc.invitesSent += 1;
+    }
+    
+    return acc;
+  }, {
+    total: 0,
+    totalAttending: 0,
+    confirmed: 0,
+    declined: 0,
+    maybe: 0,
+    pending: 0,
+    invitesSent: 0,
+  });
+  
+  return stats;
 }

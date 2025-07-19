@@ -1,73 +1,99 @@
 import { z } from "zod";
 
-// Task schema
+// Task Schema
 export const taskSchema = z.object({
-  title: z.string().min(1, "Title is required").max(100, "Title must be under 100 characters"),
-  description: z.string().max(500, "Description must be under 500 characters").optional(),
-  dueDate: z.string().optional(),
+  title: z.string().min(1, "Title is required").max(100, "Title must be less than 100 characters"),
+  description: z.string().max(500, "Description must be less than 500 characters").optional(),
+  category: z.string().optional(),
   priority: z.enum(["low", "medium", "high"]).default("medium"),
-  category: z.enum(["venue", "catering", "photography", "flowers", "music", "attire", "planning", "other"]).default("planning"),
-  assignedTo: z.string().optional(),
+  dueDate: z.string().optional(),
+  assignedTo: z.string().max(50, "Assigned to must be less than 50 characters").optional(),
   isCompleted: z.boolean().default(false),
 });
 
-// Vendor schema
-export const vendorSchema = z.object({
-  name: z.string().min(1, "Name is required").max(100, "Name must be under 100 characters"),
-  type: z.enum(["venue", "catering", "photography", "flowers", "music", "planning", "transportation", "other"]),
-  contactPerson: z.string().max(100, "Contact person must be under 100 characters").optional(),
-  email: z.string().email("Invalid email").optional().or(z.literal("")),
-  phone: z.string().max(20, "Phone must be under 20 characters").optional(),
-  website: z.string().url("Invalid website URL").optional().or(z.literal("")),
-  address: z.string().max(200, "Address must be under 200 characters").optional(),
-  notes: z.string().max(500, "Notes must be under 500 characters").optional(),
-  tags: z.string().max(200, "Tags must be under 200 characters").optional(),
-  rating: z.number().min(1).max(5).optional(),
-  estimatedCost: z.number().min(0).optional(),
-  isBooked: z.boolean().default(false),
-});
+export type TaskFormData = z.infer<typeof taskSchema>;
 
-// Budget schema
+// Budget Schema
 export const budgetSchema = z.object({
-  category: z.enum(["venue", "catering", "photography", "flowers", "music", "attire", "transportation", "other"]),
-  item: z.string().min(1, "Item is required").max(100, "Item must be under 100 characters"),
-  estimatedCost: z.number().min(0, "Cost must be positive"),
-  actualCost: z.number().min(0, "Cost must be positive").optional(),
-  vendor: z.string().max(100, "Vendor must be under 100 characters").optional(),
-  notes: z.string().max(300, "Notes must be under 300 characters").optional(),
+  category: z.string().min(1, "Category is required"),
+  item: z.string().min(1, "Item name is required").max(100, "Item name must be less than 100 characters"),
+  estimatedCost: z.number().min(0, "Estimated cost must be positive"),
+  actualCost: z.number().min(0, "Actual cost must be positive").optional(),
+  vendor: z.string().max(100, "Vendor name must be less than 100 characters").optional(),
+  notes: z.string().max(500, "Notes must be less than 500 characters").optional(),
   isPaid: z.boolean().default(false),
   isRecurring: z.boolean().default(false),
 });
 
-// Guest schema
+export type BudgetFormData = z.infer<typeof budgetSchema>;
+
+// Guest Schema
 export const guestSchema = z.object({
-  name: z.string().min(1, "Name is required").max(100, "Name must be under 100 characters"),
-  email: z.string().email("Invalid email").optional().or(z.literal("")),
-  phone: z.string().max(20, "Phone must be under 20 characters").optional(),
-  group: z.enum(["family", "friends", "coworkers", "wedding_party", "plus_ones", "other"]).default("friends"),
-  customGroup: z.string().max(50, "Custom group must be under 50 characters").optional(),
+  name: z.string().min(1, "Name is required").max(100, "Name must be less than 100 characters"),
+  email: z.string().email("Invalid email address").optional().or(z.literal("")),
+  phone: z.string().max(20, "Phone number must be less than 20 characters").optional(),
+  group: z.string().min(1, "Group is required"),
+  customGroup: z.string().max(50, "Custom group must be less than 50 characters").optional(),
   rsvpStatus: z.enum(["pending", "yes", "no", "maybe"]).default("pending"),
   attendingCount: z.number().min(0).max(10).default(1),
-  mealChoice: z.enum(["chicken", "beef", "fish", "vegetarian", "vegan", "other"]).optional(),
-  dietaryRestrictions: z.string().max(200, "Dietary restrictions must be under 200 characters").optional(),
-  hotelInfo: z.string().max(200, "Hotel info must be under 200 characters").optional(),
-  notes: z.string().max(300, "Notes must be under 300 characters").optional(),
-  tags: z.string().max(100, "Tags must be under 100 characters").optional(),
+  mealChoice: z.string().optional(),
+  dietaryRestrictions: z.string().max(200, "Dietary restrictions must be less than 200 characters").optional(),
+  hotelInfo: z.string().max(200, "Hotel info must be less than 200 characters").optional(),
+  notes: z.string().max(500, "Notes must be less than 500 characters").optional(),
+  tags: z.string().max(100, "Tags must be less than 100 characters").optional(),
   inviteSent: z.boolean().default(false),
 });
 
-// Inspiration schema
-export const inspirationSchema = z.object({
-  title: z.string().min(1, "Title is required").max(100, "Title must be under 100 characters"),
-  category: z.enum(["decor", "flowers", "venues", "dresses", "cakes", "colors", "themes", "other"]).default("other"),
-  imageUrl: z.string().url("Invalid image URL").optional().or(z.literal("")),
-  notes: z.string().max(500, "Notes must be under 500 characters").optional(),
-  tags: z.string().max(200, "Tags must be under 200 characters").optional(),
+export type GuestFormData = z.infer<typeof guestSchema>;
+
+// Vendor Schema
+export const vendorSchema = z.object({
+  name: z.string().min(1, "Vendor name is required").max(100, "Vendor name must be less than 100 characters"),
+  type: z.string().min(1, "Vendor type is required"),
+  contactPerson: z.string().max(100, "Contact person must be less than 100 characters").optional(),
+  email: z.string().email("Invalid email address").optional().or(z.literal("")),
+  phone: z.string().max(20, "Phone number must be less than 20 characters").optional(),
+  website: z.string().max(200, "Website URL must be less than 200 characters").optional(),
+  address: z.string().max(200, "Address must be less than 200 characters").optional(),
+  notes: z.string().max(500, "Notes must be less than 500 characters").optional(),
+  tags: z.string().max(100, "Tags must be less than 100 characters").optional(),
+  rating: z.number().min(1).max(5).optional(),
+  estimatedCost: z.number().min(0, "Cost must be positive").optional(),
+  isBooked: z.boolean().default(false),
 });
 
-// Type exports
-export type TaskFormData = z.infer<typeof taskSchema>;
 export type VendorFormData = z.infer<typeof vendorSchema>;
-export type BudgetFormData = z.infer<typeof budgetSchema>;
-export type GuestFormData = z.infer<typeof guestSchema>;
+
+// Inspiration Schema
+export const inspirationSchema = z.object({
+  title: z.string().min(1, "Title is required").max(100, "Title must be less than 100 characters"),
+  description: z.string().max(500, "Description must be less than 500 characters").optional(),
+  imageUrl: z.string().optional(),
+  category: z.string().optional(),
+  tags: z.string().max(100, "Tags must be less than 100 characters").optional(),
+  notes: z.string().max(500, "Notes must be less than 500 characters").optional(),
+  source: z.string().max(200, "Source must be less than 200 characters").optional(),
+});
+
 export type InspirationFormData = z.infer<typeof inspirationSchema>;
+
+// Schedule Schema
+export const scheduleSchema = z.object({
+  title: z.string().min(1, "Title is required").max(100, "Title must be less than 100 characters"),
+  description: z.string().max(500, "Description must be less than 500 characters").optional(),
+  startTime: z.string().min(1, "Start time is required"),
+  endTime: z.string().min(1, "End time is required"),
+  location: z.string().max(200, "Location must be less than 200 characters").optional(),
+  notes: z.string().max(500, "Notes must be less than 500 characters").optional(),
+});
+
+export type ScheduleFormData = z.infer<typeof scheduleSchema>;
+
+// Common validation patterns
+export const emailValidation = z.string().email("Invalid email address").optional().or(z.literal(""));
+export const phoneValidation = z.string().max(20, "Phone number must be less than 20 characters").optional();
+export const urlValidation = z.string().max(200, "URL must be less than 200 characters").optional();
+export const textValidation = (maxLength: number, fieldName: string) => 
+  z.string().max(maxLength, `${fieldName} must be less than ${maxLength} characters`).optional();
+export const requiredTextValidation = (maxLength: number, fieldName: string) => 
+  z.string().min(1, `${fieldName} is required`).max(maxLength, `${fieldName} must be less than ${maxLength} characters`);

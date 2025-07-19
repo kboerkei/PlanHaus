@@ -1,5 +1,7 @@
-import { useState } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useState, useMemo, Suspense } from "react";
+import { useGuests, useBulkUpdateGuests } from "@/hooks/useGuests";
+import { useProjects } from "@/hooks/useProjects";
+import GuestFormDialog from "@/components/guests/GuestFormDialog";
 import SearchFilterBar from "@/components/ui/search-filter-bar";
 import ExportOptions from "@/components/ui/export-options";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

@@ -1,0 +1,44 @@
+Please implement the following improvements and enhancements across the codebase for the wedding planning app:
+
+🔧 GENERAL IMPROVEMENTS (ALL PAGES)
+- Break up monolithic page files into modular components (e.g., forms, dialogs, cards, chart sections).
+- Move all zod schemas to a dedicated `/schemas` directory and use `z.infer` to type form values.
+- Add loading and error states for all `useQuery` calls using `LoadingSpinner` and error messaging.
+- Ensure all dialogs and tabbed UIs follow accessibility best practices (aria labels, focus traps, etc.).
+- Create reusable data-fetching hooks (e.g., `useVendors.ts`, `useGuests.ts`, `useBudget.ts`, `useTimeline.ts`) for query and mutation logic.
+
+📆 TIMELINE PAGE
+- Add type inference to form using `z.infer<typeof taskSchema>`.
+- Extract form and task components into subcomponents like `TaskFormDialog.tsx` and `TaskCard.tsx`.
+- Introduce filtering by category, priority, or due date.
+- Use `React.lazy()` and `Suspense` to lazy-load pages.
+- Optionally add drag-and-drop task ordering and AI-based task recommendations.
+
+🤝 VENDORS PAGE
+- Modularize the vendor dialog, upload section, and vendor card into their own components.
+- Add support for vendor tags (e.g., “boho”, “budget-friendly”, “luxury”) and notes.
+- Add external link buttons for vendor websites, maps, and social profiles.
+- Include sorting and filtering by vendor type and booking status.
+- Consider adding a 5-star rating system or vendor comparison view.
+- Eventually integrate AI-based vendor suggestions based on user input and budget.
+
+💰 BUDGET PAGE
+- Display budget summary: total budget, estimated, actual, and remaining.
+- Add `BudgetEntryDialog`, `BudgetCategorySummary`, and a visual `BudgetProgressBar`.
+- Introduce support for recurring budget items and spending trend visualizations.
+- Implement CSV/PDF upload (optional: auto-extract line items via AI/OCR).
+- Support budget forecasting and smart alerts for overspending.
+
+👥 GUESTS PAGE
+- Expand schema to include:
+  - RSVP status (yes/no/maybe)
+  - Meal choice
+  - Attending count (for +1s)
+  - Tags and notes per guest
+- Replace free-text group field with a dropdown supporting both custom and predefined group types.
+- Add filtering by group and RSVP status.
+- Add bulk actions: edit RSVP, export filtered list, mark as “invite sent”.
+- Add CSV import to bulk-upload guest lists with header mapping.
+- Ensure all user inputs are validated with character limits and friendly error messaging.
+
+Once these changes are implemented, the app will be more modular, user-friendly, scalable, and future-proof.
