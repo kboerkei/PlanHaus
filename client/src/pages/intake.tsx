@@ -187,13 +187,8 @@ export default function Intake({ onComplete }: IntakeProps) {
   };
 
   const nextStep = () => {
-    console.log('Next step clicked, current step:', currentStep);
-    setValidationErrors({}); // Clear any validation errors
-    setCurrentStep(prev => {
-      const newStep = Math.min(prev + 1, 5);
-      console.log('Moving to step:', newStep);
-      return newStep;
-    });
+    setValidationErrors({});
+    setCurrentStep(prev => Math.min(prev + 1, 5));
   };
 
   const prevStep = () => {
@@ -679,58 +674,35 @@ export default function Intake({ onComplete }: IntakeProps) {
         </div>
 
         {/* Navigation Buttons */}
-        <div className="flex justify-between items-center relative z-10">
-          <Button
+        <div className="flex justify-between items-center">
+          <button
             type="button"
-            variant="outline"
             onClick={prevStep}
             disabled={currentStep === 1}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 px-6 py-3 border border-gray-300 bg-white hover:bg-gray-50 text-gray-700 font-medium rounded-lg transition-all duration-200 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <ArrowLeft className="w-4 h-4" />
             Previous
-          </Button>
+          </button>
 
           <div className="flex gap-3">
-            {/* Debug test button */}
-            <button
-              onClick={() => {
-                alert('Test button works!');
-                setCurrentStep(2);
-              }}
-              style={{
-                background: 'red',
-                color: 'white',
-                padding: '8px 16px',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                zIndex: 9999,
-                position: 'relative'
-              }}
-            >
-              TEST BUTTON
-            </button>
-            
             {currentStep < 5 ? (
-              <Button
+              <button
                 type="button"
                 onClick={() => {
-                  console.log('NEXT CLICKED - Current:', currentStep);
                   setCurrentStep(currentStep + 1);
-                  console.log('NEXT CLICKED - New:', currentStep + 1);
                 }}
-                className="flex items-center gap-2 bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 relative z-50"
-                style={{ zIndex: 9999, position: 'relative' }}
+                className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 text-white font-medium rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl cursor-pointer"
               >
                 Next (Step {currentStep + 1})
                 <ArrowRight className="w-4 h-4" />
-              </Button>
+              </button>
             ) : (
-              <Button
+              <button
+                type="button"
                 onClick={handleSubmit}
                 disabled={submitIntakeMutation.isPending}
-                className="flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700"
+                className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white font-medium rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50"
               >
                 {submitIntakeMutation.isPending ? (
                   <>
@@ -743,7 +715,7 @@ export default function Intake({ onComplete }: IntakeProps) {
                     Complete Intake
                   </>
                 )}
-              </Button>
+              </button>
             )}
           </div>
         </div>
