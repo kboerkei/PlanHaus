@@ -36,7 +36,7 @@ const rsvpStatuses = [
 ];
 
 const mealChoices = [
-  { value: "", label: "No preference" },
+  { value: "no_preference", label: "No preference" },
   { value: "vegetarian", label: "Vegetarian" },
   { value: "vegan", label: "Vegan" },
   { value: "gluten_free", label: "Gluten Free" },

@@ -12,7 +12,7 @@ import BudgetCategorySummary from "@/components/budget/BudgetCategorySummary";
 import LoadingSpinner from "@/components/ui/loading-spinner";
 
 const categoryFilters = [
-  { value: "", label: "All Categories" },
+  { value: "all", label: "All Categories" },
   { value: "venue", label: "Venue" },
   { value: "catering", label: "Catering" },
   { value: "photography", label: "Photography" },
@@ -26,7 +26,7 @@ const categoryFilters = [
 
 export default function Budget() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterCategory, setFilterCategory] = useState("");
+  const [filterCategory, setFilterCategory] = useState("all");
   const [showPaidOnly, setShowPaidOnly] = useState(false);
 
   // Fetch data using hooks
@@ -47,7 +47,7 @@ export default function Budget() {
         item.category?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         item.vendor?.toLowerCase().includes(searchTerm.toLowerCase());
       
-      const matchesCategory = !filterCategory || item.category === filterCategory;
+      const matchesCategory = filterCategory === "all" || item.category === filterCategory;
       const matchesPaid = !showPaidOnly || item.isPaid;
       
       return matchesSearch && matchesCategory && matchesPaid;

@@ -12,7 +12,7 @@ import GuestFormDialog from "@/components/guests/GuestFormDialog";
 import LoadingSpinner from "@/components/ui/loading-spinner";
 
 const groupFilters = [
-  { value: "", label: "All Groups" },
+  { value: "all", label: "All Groups" },
   { value: "wedding_party", label: "Wedding Party" },
   { value: "family", label: "Family" },
   { value: "friends", label: "Friends" },
@@ -21,7 +21,7 @@ const groupFilters = [
 ];
 
 const rsvpFilters = [
-  { value: "", label: "All RSVP Status" },
+  { value: "all", label: "All RSVP Status" },
   { value: "pending", label: "Pending" },
   { value: "yes", label: "Attending" },
   { value: "no", label: "Not Attending" },
@@ -37,8 +37,8 @@ const rsvpStatusColors = {
 
 export default function Guests() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterGroup, setFilterGroup] = useState("");
-  const [filterRsvp, setFilterRsvp] = useState("");
+  const [filterGroup, setFilterGroup] = useState("all");
+  const [filterRsvp, setFilterRsvp] = useState("all");
   const [selectedGuests, setSelectedGuests] = useState<number[]>([]);
 
   // Fetch data using hooks
@@ -60,8 +60,8 @@ export default function Guests() {
         guest.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         guest.group?.toLowerCase().includes(searchTerm.toLowerCase());
       
-      const matchesGroup = !filterGroup || guest.group === filterGroup;
-      const matchesRsvp = !filterRsvp || guest.rsvpStatus === filterRsvp;
+      const matchesGroup = filterGroup === "all" || guest.group === filterGroup;
+      const matchesRsvp = filterRsvp === "all" || guest.rsvpStatus === filterRsvp;
       
       return matchesSearch && matchesGroup && matchesRsvp;
     });

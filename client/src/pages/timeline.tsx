@@ -15,14 +15,14 @@ import TaskCard from "@/components/timeline/TaskCard";
 import LoadingSpinner from "@/components/ui/loading-spinner";
 
 const priorityFilters = [
-  { value: "", label: "All Priorities" },
+  { value: "all", label: "All Priorities" },
   { value: "high", label: "High Priority" },
   { value: "medium", label: "Medium Priority" },
   { value: "low", label: "Low Priority" }
 ];
 
 const categoryFilters = [
-  { value: "", label: "All Categories" },
+  { value: "all", label: "All Categories" },
   { value: "venue", label: "Venue" },
   { value: "catering", label: "Catering" },
   { value: "photography", label: "Photography" },
@@ -35,8 +35,8 @@ const categoryFilters = [
 
 export default function Timeline() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterPriority, setFilterPriority] = useState("");
-  const [filterCategory, setFilterCategory] = useState("");
+  const [filterPriority, setFilterPriority] = useState("all");
+  const [filterCategory, setFilterCategory] = useState("all");
   const [showCompleted, setShowCompleted] = useState(true);
 
   // Fetch data using hooks
@@ -56,8 +56,8 @@ export default function Timeline() {
         task.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         task.description?.toLowerCase().includes(searchTerm.toLowerCase());
       
-      const matchesPriority = !filterPriority || task.priority === filterPriority;
-      const matchesCategory = !filterCategory || task.category === filterCategory;
+      const matchesPriority = filterPriority === "all" || task.priority === filterPriority;
+      const matchesCategory = filterCategory === "all" || task.category === filterCategory;
       const isCompleted = task.status === 'completed' || task.isCompleted;
       const matchesCompletion = showCompleted || !isCompleted;
       

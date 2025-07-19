@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, DollarSign, Star } from "lucide-react";
+import { Building } from "lucide-react";
 import { vendorSchema, VendorFormData } from "@/schemas";
 import { useCreateVendor, useUpdateVendor } from "@/hooks/useVendors";
 import { useToast } from "@/hooks/use-toast";
@@ -20,6 +20,31 @@ interface VendorFormDialogProps {
   onClose?: () => void;
 }
 
+const vendorCategories = [
+  { value: "venue", label: "Venue" },
+  { value: "catering", label: "Catering" },
+  { value: "photography", label: "Photography" },
+  { value: "videography", label: "Videography" },
+  { value: "flowers", label: "Flowers" },
+  { value: "music", label: "Music & DJ" },
+  { value: "transportation", label: "Transportation" },
+  { value: "beauty", label: "Beauty & Hair" },
+  { value: "cake", label: "Cake & Desserts" },
+  { value: "rentals", label: "Rentals" },
+  { value: "planning", label: "Planning" },
+  { value: "other", label: "Other" }
+];
+
+const bookingStatuses = [
+  { value: "researching", label: "Researching" },
+  { value: "contacted", label: "Contacted" },
+  { value: "meeting_scheduled", label: "Meeting Scheduled" },
+  { value: "proposal_received", label: "Proposal Received" },
+  { value: "contract_sent", label: "Contract Sent" },
+  { value: "booked", label: "Booked" },
+  { value: "cancelled", label: "Cancelled" }
+];
+
 export default function VendorFormDialog({ projectId, vendor, trigger, onClose }: VendorFormDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const { toast } = useToast();
@@ -30,17 +55,18 @@ export default function VendorFormDialog({ projectId, vendor, trigger, onClose }
     resolver: zodResolver(vendorSchema),
     defaultValues: {
       name: vendor?.name || "",
-      type: vendor?.type || "other",
-      contactPerson: vendor?.contactPerson || "",
+      category: vendor?.category || "other",
       email: vendor?.email || "",
       phone: vendor?.phone || "",
       website: vendor?.website || "",
       address: vendor?.address || "",
+      contactPerson: vendor?.contactPerson || "",
+      priceRange: vendor?.priceRange || "",
+      bookingStatus: vendor?.bookingStatus || "researching",
+      rating: vendor?.rating || 0,
       notes: vendor?.notes || "",
-      tags: vendor?.tags || "",
-      rating: vendor?.rating || undefined,
-      estimatedCost: vendor?.estimatedCost || undefined,
       isBooked: vendor?.isBooked || false,
+      contractSigned: vendor?.contractSigned || false,
     },
   });
 
@@ -65,36 +91,37 @@ export default function VendorFormDialog({ projectId, vendor, trigger, onClose }
     }
   };
 
-  const defaultTrigger = (
-    <Button className="gradient-blush-rose text-white">
-      <Plus className="w-4 h-4 mr-2" />
-      Add Vendor
-    </Button>
-  );
-
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        {trigger || defaultTrigger}
+        {trigger || (
+          <Button>
+            <Building className="w-4 h-4 mr-2" />
+            Add Vendor
+          </Button>
+        )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto" aria-describedby="vendor-form-description">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{vendor ? "Edit Vendor" : "Add New Vendor"}</DialogTitle>
-          <DialogDescription id="vendor-form-description">
-            {vendor ? "Update the vendor details below." : "Add a new vendor to your wedding planning list."}
+          <DialogTitle>
+            {vendor ? "Edit Vendor" : "Add Vendor"}
+          </DialogTitle>
+          <DialogDescription>
+            {vendor ? "Update the vendor information." : "Add a new vendor to your wedding list."}
           </DialogDescription>
         </DialogHeader>
+
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Vendor Name *</FormLabel>
+                    <FormLabel>Vendor Name</FormLabel>
                     <FormControl>
-                      <Input placeholder="Vendor name..." {...field} />
+                      <Input placeholder="ABC Photography Studio" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -103,25 +130,22 @@ export default function VendorFormDialog({ projectId, vendor, trigger, onClose }
 
               <FormField
                 control={form.control}
-                name="type"
+                name="category"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Type *</FormLabel>
+                    <FormLabel>Category</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select vendor type" />
+                          <SelectValue placeholder="Select category" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="venue">Venue</SelectItem>
-                        <SelectItem value="catering">Catering</SelectItem>
-                        <SelectItem value="photography">Photography</SelectItem>
-                        <SelectItem value="flowers">Flowers</SelectItem>
-                        <SelectItem value="music">Music</SelectItem>
-                        <SelectItem value="planning">Planning</SelectItem>
-                        <SelectItem value="transportation">Transportation</SelectItem>
-                        <SelectItem value="other">Other</SelectItem>
+                        {vendorCategories.map(category => (
+                          <SelectItem key={category.value} value={category.value}>
+                            {category.label}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -130,15 +154,15 @@ export default function VendorFormDialog({ projectId, vendor, trigger, onClose }
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name="contactPerson"
+                name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Contact Person</FormLabel>
+                    <FormLabel>Email (Optional)</FormLabel>
                     <FormControl>
-                      <Input placeholder="Contact name..." {...field} />
+                      <Input type="email" placeholder="info@vendor.com" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -150,7 +174,7 @@ export default function VendorFormDialog({ projectId, vendor, trigger, onClose }
                 name="phone"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Phone</FormLabel>
+                    <FormLabel>Phone (Optional)</FormLabel>
                     <FormControl>
                       <Input placeholder="(555) 123-4567" {...field} />
                     </FormControl>
@@ -160,15 +184,43 @@ export default function VendorFormDialog({ projectId, vendor, trigger, onClose }
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="website"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Website (Optional)</FormLabel>
+                  <FormControl>
+                    <Input placeholder="https://vendor-website.com" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="address"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Address (Optional)</FormLabel>
+                  <FormControl>
+                    <Input placeholder="123 Main St, City, State" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name="email"
+                name="contactPerson"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel>Contact Person (Optional)</FormLabel>
                     <FormControl>
-                      <Input type="email" placeholder="vendor@email.com" {...field} />
+                      <Input placeholder="John Doe" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -177,12 +229,12 @@ export default function VendorFormDialog({ projectId, vendor, trigger, onClose }
 
               <FormField
                 control={form.control}
-                name="website"
+                name="priceRange"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Website</FormLabel>
+                    <FormLabel>Price Range (Optional)</FormLabel>
                     <FormControl>
-                      <Input placeholder="https://vendor-website.com" {...field} />
+                      <Input placeholder="$1,000 - $3,000" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -190,41 +242,27 @@ export default function VendorFormDialog({ projectId, vendor, trigger, onClose }
               />
             </div>
 
-            <FormField
-              control={form.control}
-              name="address"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Address</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Street address, city, state, zip..." {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name="estimatedCost"
+                name="bookingStatus"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Estimated Cost</FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <DollarSign className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                        <Input
-                          type="number"
-                          step="0.01"
-                          min="0"
-                          placeholder="0.00"
-                          className="pl-9"
-                          {...field}
-                          onChange={(e) => field.onChange(parseFloat(e.target.value) || undefined)}
-                        />
-                      </div>
-                    </FormControl>
+                    <FormLabel>Booking Status</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select booking status" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {bookingStatuses.map(status => (
+                          <SelectItem key={status.value} value={status.value}>
+                            {status.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -235,21 +273,17 @@ export default function VendorFormDialog({ projectId, vendor, trigger, onClose }
                 name="rating"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Rating (1-5 stars)</FormLabel>
+                    <FormLabel>Rating (1-5)</FormLabel>
                     <FormControl>
-                      <div className="relative">
-                        <Star className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                        <Input
-                          type="number"
-                          min="1"
-                          max="5"
-                          step="0.1"
-                          placeholder="5.0"
-                          className="pl-9"
-                          {...field}
-                          onChange={(e) => field.onChange(parseFloat(e.target.value) || undefined)}
-                        />
-                      </div>
+                      <Input
+                        type="number"
+                        min="0"
+                        max="5"
+                        step="0.1"
+                        placeholder="4.5"
+                        {...field}
+                        onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -259,60 +293,73 @@ export default function VendorFormDialog({ projectId, vendor, trigger, onClose }
 
             <FormField
               control={form.control}
-              name="tags"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Tags</FormLabel>
-                  <FormControl>
-                    <Input placeholder="boho, luxury, budget-friendly, local..." {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
               name="notes"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Notes</FormLabel>
+                  <FormLabel>Notes (Optional)</FormLabel>
                   <FormControl>
-                    <Textarea placeholder="Additional notes about this vendor..." {...field} />
+                    <Textarea 
+                      placeholder="Additional notes about this vendor..."
+                      className="min-h-[80px]"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="isBooked"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                  <FormControl>
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                  <div className="space-y-1 leading-none">
-                    <FormLabel>Vendor is booked</FormLabel>
-                  </div>
-                </FormItem>
-              )}
-            />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="isBooked"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel>Booked</FormLabel>
+                    </div>
+                  </FormItem>
+                )}
+              />
 
-            <div className="flex justify-end space-x-2 pt-4">
-              <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>
+              <FormField
+                control={form.control}
+                name="contractSigned"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel>Contract Signed</FormLabel>
+                    </div>
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="flex justify-end gap-2 pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsOpen(false)}
+              >
                 Cancel
               </Button>
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 disabled={createVendor.isPending || updateVendor.isPending}
-                className="gradient-blush-rose text-white"
               >
-                {createVendor.isPending || updateVendor.isPending ? "Saving..." : (vendor ? "Update Vendor" : "Add Vendor")}
+                {vendor ? "Update" : "Add"} Vendor
               </Button>
             </div>
           </form>
