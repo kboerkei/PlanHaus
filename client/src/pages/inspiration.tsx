@@ -207,22 +207,20 @@ export default function Inspiration() {
               </Button>
             </div>
             
-            {viewMode === 'grid' && (
-              <div className="flex gap-2">
-                <Button onClick={() => setIsAddDialogOpen(true)} className="gradient-blush-rose text-white">
-                  <Plus size={16} className="mr-2" />
-                  Add Inspiration
-                </Button>
-                <Button 
-                  onClick={() => setIsPinterestDialogOpen(true)} 
-                  variant="outline" 
-                  className="border-rose-200 text-rose-600 hover:bg-rose-50"
-                >
-                  <ExternalLink size={16} className="mr-2" />
-                  Pinterest Board
-                </Button>
-              </div>
-            )}
+            <div className="flex gap-2">
+              <Button onClick={() => setIsAddDialogOpen(true)} className="gradient-blush-rose text-white">
+                <Plus size={16} className="mr-2" />
+                Add Inspiration
+              </Button>
+              <Button 
+                onClick={() => setIsPinterestDialogOpen(true)} 
+                variant="outline" 
+                className="border-rose-200 text-rose-600 hover:bg-rose-50"
+              >
+                <ExternalLink size={16} className="mr-2" />
+                Pinterest Board
+              </Button>
+            </div>
           </div>
         </div>
 
