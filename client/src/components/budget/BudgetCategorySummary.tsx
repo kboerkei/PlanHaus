@@ -49,6 +49,7 @@ export default function BudgetCategorySummary({
       return [];
     }
     
+    // Direct category matching - both the category from summary and item.category should match exactly
     return budgetItems.filter(item => 
       item && 
       item.category && 
@@ -181,6 +182,10 @@ export default function BudgetCategorySummary({
           const isOverCategory = category.actual > category.estimated;
           const isExpanded = expandedCategories.has(category.category);
           const categoryItems = getCategoryItems(category.category);
+          
+          // Debug logging
+          console.log(`Category: ${category.category}, Items found: ${categoryItems.length}`, categoryItems);
+          console.log('All budgetItems:', budgetItems);
           
           return (
             <Card key={category.category} className="hover:shadow-md transition-shadow">
