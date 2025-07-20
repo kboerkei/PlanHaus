@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Palette, Plus, Search, Upload, Grid3x3 } from "lucide-react";
+import { Palette, Plus, Search, Upload, Grid3x3, ExternalLink } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -24,12 +24,19 @@ const inspirationSchema = z.object({
   tags: z.string().optional(),
 });
 
+const pinterestImportSchema = z.object({
+  boardUrl: z.string().min(1, "Pinterest board URL is required").url("Invalid URL"),
+  category: z.string().optional(),
+});
+
 type InspirationFormData = z.infer<typeof inspirationSchema>;
+type PinterestImportData = z.infer<typeof pinterestImportSchema>;
 
 export default function Inspiration() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isPinterestDialogOpen, setIsPinterestDialogOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'mood-board'>('mood-board');
   const { toast } = useToast();
 
@@ -65,6 +72,30 @@ export default function Inspiration() {
     }
   });
 
+  const pinterestImportMutation = useMutation({
+    mutationFn: (data: PinterestImportData) => apiRequest('/api/pinterest/import-board', {
+      method: 'POST',
+      body: JSON.stringify(data),
+      headers: { 'Content-Type': 'application/json' }
+    }),
+    onSuccess: (response) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/inspiration'] });
+      pinterestForm.reset();
+      setIsPinterestDialogOpen(false);
+      toast({ 
+        title: "Pinterest Board Imported!", 
+        description: response.message 
+      });
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: "Import Failed", 
+        description: error.error || "Failed to import Pinterest board", 
+        variant: "destructive" 
+      });
+    }
+  });
+
   const form = useForm<InspirationFormData>({
     resolver: zodResolver(inspirationSchema),
     defaultValues: {
@@ -76,8 +107,20 @@ export default function Inspiration() {
     },
   });
 
+  const pinterestForm = useForm<PinterestImportData>({
+    resolver: zodResolver(pinterestImportSchema),
+    defaultValues: {
+      boardUrl: "",
+      category: "decor",
+    },
+  });
+
   const onSubmit = (data: InspirationFormData) => {
     createInspirationMutation.mutate(data);
+  };
+
+  const onPinterestImport = (data: PinterestImportData) => {
+    pinterestImportMutation.mutate(data);
   };
 
   const filteredItems = (inspirationItems || []).filter((item: any) => {
@@ -107,10 +150,16 @@ export default function Inspiration() {
             <Palette className="h-16 w-16 text-gray-400 mx-auto mb-4" />
             <h3 className="text-xl font-semibold text-gray-800 mb-2">Start Building Your Inspiration Board</h3>
             <p className="text-gray-600 mb-6">Collect and organize ideas for your perfect wedding day.</p>
-            <Button onClick={() => setIsAddDialogOpen(true)} className="gradient-blush-rose text-white">
-              <Plus size={16} className="mr-2" />
-              Add First Inspiration
-            </Button>
+            <div className="flex gap-3">
+              <Button onClick={() => setIsAddDialogOpen(true)} className="gradient-blush-rose text-white">
+                <Plus size={16} className="mr-2" />
+                Add Inspiration
+              </Button>
+              <Button onClick={() => setIsPinterestDialogOpen(true)} variant="outline" className="border-rose-200 text-rose-600 hover:bg-rose-50">
+                <ExternalLink size={16} className="mr-2" />
+                Import Pinterest Board
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -159,10 +208,20 @@ export default function Inspiration() {
             </div>
             
             {viewMode === 'grid' && (
-              <Button onClick={() => setIsAddDialogOpen(true)} className="gradient-blush-rose text-white">
-                <Plus size={16} className="mr-2" />
-                Add Inspiration
-              </Button>
+              <div className="flex gap-2">
+                <Button onClick={() => setIsAddDialogOpen(true)} className="gradient-blush-rose text-white">
+                  <Plus size={16} className="mr-2" />
+                  Add Inspiration
+                </Button>
+                <Button 
+                  onClick={() => setIsPinterestDialogOpen(true)} 
+                  variant="outline" 
+                  className="border-rose-200 text-rose-600 hover:bg-rose-50"
+                >
+                  <ExternalLink size={16} className="mr-2" />
+                  Pinterest Board
+                </Button>
+              </div>
             )}
           </div>
         </div>
@@ -337,6 +396,87 @@ export default function Inspiration() {
                 </Button>
                 <Button type="submit" disabled={createInspirationMutation.isPending} className="gradient-blush-rose text-white">
                   {createInspirationMutation.isPending ? "Adding..." : "Add Inspiration"}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Pinterest Import Dialog */}
+      <Dialog open={isPinterestDialogOpen} onOpenChange={setIsPinterestDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ExternalLink className="h-5 w-5 text-rose-500" />
+              Import Pinterest Board
+            </DialogTitle>
+            <DialogDescription>
+              Import wedding inspiration from your Pinterest board. We'll create inspiration items based on your board.
+            </DialogDescription>
+          </DialogHeader>
+          <Form {...pinterestForm}>
+            <form onSubmit={pinterestForm.handleSubmit(onPinterestImport)} className="space-y-4">
+              <FormField
+                control={pinterestForm.control}
+                name="boardUrl"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Pinterest Board URL *</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="https://www.pinterest.com/username/board-name/" 
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Copy the URL from your Pinterest board (e.g., https://www.pinterest.com/yourname/wedding-ideas/)
+                    </p>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={pinterestForm.control}
+                name="category"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Default Category</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select category" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="decor">Decor</SelectItem>
+                        <SelectItem value="flowers">Flowers</SelectItem>
+                        <SelectItem value="ceremony">Ceremony</SelectItem>
+                        <SelectItem value="reception">Reception</SelectItem>
+                        <SelectItem value="attire">Attire</SelectItem>
+                        <SelectItem value="cake">Cake</SelectItem>
+                        <SelectItem value="photography">Photography</SelectItem>
+                        <SelectItem value="other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <div className="flex justify-end space-x-2">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => setIsPinterestDialogOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  type="submit" 
+                  disabled={pinterestImportMutation.isPending} 
+                  className="gradient-blush-rose text-white"
+                >
+                  {pinterestImportMutation.isPending ? "Importing..." : "Import Board"}
                 </Button>
               </div>
             </form>

@@ -4,12 +4,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { DollarSign, PieChart, TrendingUp, AlertTriangle, Filter } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { DollarSign, PieChart, TrendingUp, TrendingDown, AlertTriangle, Filter, Target, CreditCard, Calendar } from "lucide-react";
 import { useProjects } from "@/hooks/useProjects";
 import { useBudget, useBudgetSummary } from "@/hooks/useBudget";
 import BudgetEntryDialog from "@/components/budget/BudgetEntryDialog";
 import BudgetCategorySummary from "@/components/budget/BudgetCategorySummary";
 import LoadingSpinner from "@/components/ui/loading-spinner";
+import { PieChart as RechartsPieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
 const categoryFilters = [
   { value: "all", label: "All Categories" },
@@ -123,7 +127,7 @@ export default function Budget() {
   }
 
   return (
-    <div className="space-y-4 sm:space-y-6 pb-20 sm:pb-6 px-2 sm:px-4">
+    <div className="space-y-4 sm:space-y-6 pb-20 sm:pb-6 px-2 sm:px-4 animate-fade-in-up">
       {/* Header */}
       <div className="bg-white rounded-lg p-4 sm:p-6 border border-gray-200">
         <div className="flex items-center justify-between mb-4">
@@ -226,13 +230,10 @@ export default function Budget() {
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
-          {budgetSummary && (
-            <BudgetCategorySummary
-              categories={budgetSummary.categories}
-              totalBudget={budgetSummary.totalEstimated}
-              totalSpent={budgetSummary.totalActual}
-            />
-          )}
+          <BudgetOverviewAnalytics 
+            budgetItems={budgetItems || []}
+            budgetSummary={budgetSummary}
+          />
         </TabsContent>
 
         <TabsContent value="items" className="space-y-3 sm:space-y-4">
@@ -327,6 +328,344 @@ export default function Budget() {
           )}
         </TabsContent>
       </Tabs>
+    </div>
+  );
+}
+
+// Budget Overview Analytics Component
+function BudgetOverviewAnalytics({ budgetItems, budgetSummary }: { 
+  budgetItems: any[], 
+  budgetSummary: any 
+}) {
+  const formatCurrency = (amount: number | undefined | null) => {
+    const safeAmount = parseFloat(String(amount)) || 0;
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(safeAmount);
+  };
+
+  // Calculate analytics data
+  const totalEstimated = budgetSummary?.totalEstimated || 0;
+  const totalActual = budgetSummary?.totalActual || 0;
+  const totalVariance = totalActual - totalEstimated;
+  const budgetUsage = totalEstimated > 0 ? (totalActual / totalEstimated) * 100 : 0;
+
+  // Category data for charts
+  const categoryData = useMemo(() => {
+    if (!budgetSummary?.categories) return [];
+    
+    const colors = [
+      '#8b5cf6', '#06b6d4', '#10b981', '#f59e0b', '#ef4444',
+      '#8b5cf6', '#06b6d4', '#10b981', '#f59e0b', '#ef4444'
+    ];
+    
+    return budgetSummary.categories.map((cat: any, index: number) => ({
+      category: cat.category,
+      estimated: cat.estimated,
+      actual: cat.actual,
+      variance: cat.actual - cat.estimated,
+      count: cat.items,
+      color: colors[index % colors.length]
+    }));
+  }, [budgetSummary]);
+
+  // Payment status data
+  const paymentData = useMemo(() => {
+    if (!budgetItems) return [];
+    
+    const paid = budgetItems.filter(item => item.isPaid).reduce((sum, item) => sum + (parseFloat(item.actualCost) || 0), 0);
+    const unpaid = totalActual - paid;
+    
+    return [
+      { name: 'Paid', value: paid, color: '#10b981' },
+      { name: 'Unpaid', value: unpaid, color: '#f59e0b' }
+    ];
+  }, [budgetItems, totalActual]);
+
+  // Budget alerts
+  const alerts = useMemo(() => {
+    const alertList = [];
+    
+    if (budgetUsage > 100) {
+      alertList.push({
+        type: 'error',
+        message: `You're ${(budgetUsage - 100).toFixed(1)}% over budget! Consider reviewing expenses.`
+      });
+    } else if (budgetUsage > 90) {
+      alertList.push({
+        type: 'warning',
+        message: `You've used ${budgetUsage.toFixed(1)}% of your budget. Watch your remaining expenses.`
+      });
+    }
+    
+    // Check for categories over budget
+    categoryData.forEach(cat => {
+      if (cat.variance > 0) {
+        alertList.push({
+          type: 'warning',
+          message: `${cat.category} is ${formatCurrency(cat.variance)} over budget.`
+        });
+      }
+    });
+    
+    return alertList;
+  }, [budgetUsage, categoryData]);
+
+  // Top spending categories
+  const topCategories = useMemo(() => {
+    return categoryData
+      .filter(cat => cat.actual > 0)
+      .sort((a, b) => b.actual - a.actual)
+      .slice(0, 5);
+  }, [categoryData]);
+
+  if (!budgetSummary) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <LoadingSpinner size="lg" text="Loading analytics..." />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Budget Alerts */}
+      {alerts.length > 0 && (
+        <div className="space-y-3">
+          {alerts.map((alert, index) => (
+            <Alert key={index} variant={alert.type === 'error' ? 'destructive' : 'default'} className="animate-scale-in">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription>{alert.message}</AlertDescription>
+            </Alert>
+          ))}
+        </div>
+      )}
+
+      {/* Key Metrics */}
+      <Card className="card-elegant animate-scale-in">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-3 font-heading">
+            <div className="p-2 rounded-xl bg-gradient-to-br from-purple-400 to-purple-600 shadow-sm">
+              <Target className="h-5 w-5 text-white" />
+            </div>
+            Budget Performance Overview
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+            <div className="text-center p-4 rounded-xl bg-gradient-to-br from-purple-50 to-purple-100">
+              <div className="text-3xl font-bold text-purple-600 mb-1">{formatCurrency(totalEstimated)}</div>
+              <div className="text-sm font-medium text-purple-700">Total Budget</div>
+            </div>
+            <div className="text-center p-4 rounded-xl bg-gradient-to-br from-blue-50 to-blue-100">
+              <div className="text-3xl font-bold text-blue-600 mb-1">{formatCurrency(totalActual)}</div>
+              <div className="text-sm font-medium text-blue-700">Total Spent</div>
+            </div>
+            <div className="text-center p-4 rounded-xl bg-gradient-to-br from-rose-50 to-rose-100">
+              <div className={`text-3xl font-bold mb-1 ${totalVariance > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                {formatCurrency(Math.abs(totalVariance))}
+              </div>
+              <div className="text-sm font-medium text-gray-700">
+                {totalVariance > 0 ? 'Over Budget' : 'Under Budget'}
+              </div>
+            </div>
+            <div className="text-center p-4 rounded-xl bg-gradient-to-br from-gray-50 to-gray-100">
+              <div className="text-3xl font-bold text-gray-800 mb-1">{budgetUsage.toFixed(1)}%</div>
+              <div className="text-sm font-medium text-gray-700">Budget Used</div>
+            </div>
+          </div>
+          
+          <div className="space-y-3">
+            <div className="flex justify-between text-sm font-medium">
+              <span>Budget Usage Progress</span>
+              <span>{budgetUsage.toFixed(1)}%</span>
+            </div>
+            <Progress 
+              value={Math.min(budgetUsage, 100)} 
+              className="h-4"
+            />
+            {budgetUsage > 100 && (
+              <div className="text-sm text-red-600 font-medium">
+                Over budget by {formatCurrency(totalVariance)}
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Charts Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Spending by Category Pie Chart */}
+        <Card className="card-elegant animate-slide-in-left">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-3 font-heading">
+              <div className="p-2 rounded-xl bg-gradient-to-br from-emerald-400 to-green-600 shadow-sm">
+                <PieChart className="h-5 w-5 text-white" />
+              </div>
+              Spending by Category
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {categoryData.filter(item => item.actual > 0).length > 0 ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <RechartsPieChart>
+                  <Pie
+                    data={categoryData.filter(item => item.actual > 0)}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={({ category, actual, percent }) => 
+                      percent > 10 ? `${category}: ${formatCurrency(actual)}` : ''
+                    }
+                    outerRadius={100}
+                    fill="#8884d8"
+                    dataKey="actual"
+                  >
+                    {categoryData.filter(item => item.actual > 0).map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip formatter={(value) => formatCurrency(value as number)} />
+                  <Legend 
+                    verticalAlign="bottom" 
+                    height={36}
+                    formatter={(value, entry) => 
+                      `${value}: ${formatCurrency(entry.payload.actual)}`
+                    }
+                  />
+                </RechartsPieChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex items-center justify-center h-[300px] text-gray-500">
+                No spending data to display
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Payment Status */}
+        <Card className="card-elegant animate-slide-in-right">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-3 font-heading">
+              <div className="p-2 rounded-xl bg-gradient-to-br from-blue-400 to-blue-600 shadow-sm">
+                <CreditCard className="h-5 w-5 text-white" />
+              </div>
+              Payment Status
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {paymentData.some(item => item.value > 0) ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <RechartsPieChart>
+                  <Pie
+                    data={paymentData.filter(item => item.value > 0)}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={({ name, value, percent }) => 
+                      percent > 10 ? `${name}: ${formatCurrency(value)}` : ''
+                    }
+                    outerRadius={100}
+                    fill="#8884d8"
+                    dataKey="value"
+                  >
+                    {paymentData.filter(item => item.value > 0).map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip formatter={(value) => formatCurrency(value as number)} />
+                  <Legend 
+                    verticalAlign="bottom" 
+                    height={36}
+                    formatter={(value, entry) => 
+                      `${value}: ${formatCurrency(entry.payload.value)}`
+                    }
+                  />
+                </RechartsPieChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex items-center justify-center h-[300px] text-gray-500">
+                No payment data to display
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Budget vs Actual Chart */}
+      <Card className="card-elegant animate-fade-in-up">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-3 font-heading">
+            <div className="p-2 rounded-xl bg-gradient-to-br from-indigo-400 to-indigo-600 shadow-sm">
+              <TrendingUp className="h-5 w-5 text-white" />
+            </div>
+            Budget vs Actual by Category
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {categoryData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={categoryData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="category" />
+                <YAxis tickFormatter={(value) => `$${value}`} />
+                <Tooltip formatter={(value) => formatCurrency(value as number)} />
+                <Legend />
+                <Bar dataKey="estimated" fill="#8b5cf6" name="Estimated" />
+                <Bar dataKey="actual" fill="#06b6d4" name="Actual" />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex items-center justify-center h-[300px] text-gray-500">
+              No category data to display
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Top Spending Categories */}
+      <Card className="card-elegant animate-scale-in">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-3 font-heading">
+            <div className="p-2 rounded-xl bg-gradient-to-br from-orange-400 to-orange-600 shadow-sm">
+              <TrendingDown className="h-5 w-5 text-white" />
+            </div>
+            Top Spending Categories
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {topCategories.length > 0 ? (
+            <div className="space-y-4">
+              {topCategories.map((category, index) => (
+                <div key={category.category} className="flex items-center justify-between p-3 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors">
+                  <div className="flex items-center space-x-3">
+                    <div className="text-lg font-bold text-gray-700 bg-white rounded-full w-8 h-8 flex items-center justify-center">
+                      #{index + 1}
+                    </div>
+                    <div>
+                      <div className="font-semibold text-gray-900 capitalize">{category.category}</div>
+                      <div className="text-sm text-gray-600">{category.count} items</div>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="font-bold text-lg text-gray-900">{formatCurrency(category.actual)}</div>
+                    <Badge variant={category.variance > 0 ? 'destructive' : 'default'} className="text-xs">
+                      {category.variance > 0 ? '+' : ''}{formatCurrency(category.variance)}
+                    </Badge>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center text-gray-500 py-8">
+              No spending data available yet
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

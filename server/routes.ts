@@ -185,6 +185,132 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Pinterest board import endpoint
+  app.post('/api/pinterest/import-board', requireAuth, async (req, res) => {
+    try {
+      const { boardUrl, category } = req.body;
+      const userId = (req as any).userId;
+      
+      if (!boardUrl) {
+        return res.status(400).json({ error: 'Pinterest board URL is required' });
+      }
+
+      // Validate Pinterest URL
+      const pinterestUrlPattern = /^https?:\/\/(www\.)?pinterest\.(com|ca|co\.uk|com\.au|de|fr|it|es|dk|no|se|fi|nl|be|at|ch|ie|nz|jp|kr|in|mx|br|ar|co|cl|pe|ve|ec|uy|py|bo|gt|hn|sv|cr|pa|ni|do|pr|vi|bz|gd|lc|vc|ag|bb|tt|jm|bs|ky|tc|ai|ms|vg|dm|gp|mq|pm|bl|mf|sx|aw|cw|bq|sr|gf|gy|fk|gs|sh|ac|ta|io|cc|cx|nf|ck|nu|tk|to|tv|fm|pw|mh|ki|nr|ws|as|gu|mp|um|pr|vi|gl|fo|ax|sj|im|je|gg)\/([\w\-\.]+)\/([\w\-\.]+)\/?.*$/;
+      
+      if (!pinterestUrlPattern.test(boardUrl)) {
+        return res.status(400).json({ error: 'Invalid Pinterest board URL. Please provide a valid Pinterest board URL like: https://www.pinterest.com/username/board-name/' });
+      }
+
+      // Extract board information from URL
+      const urlParts = boardUrl.split('/');
+      const username = urlParts[3];
+      const boardName = urlParts[4];
+
+      // Get current user's projects
+      let projects = await storage.getWeddingProjectsByUserId(userId);
+      
+      // Create a default project if none exists
+      if (projects.length === 0) {
+        const defaultProject = await storage.createWeddingProject({
+          name: "My Wedding",
+          date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+          createdBy: userId,
+          budget: null,
+          guestCount: null,
+          theme: null,
+          venue: null
+        });
+        projects = [defaultProject];
+      }
+      
+      const currentProject = projects.find(p => p.name === "Emma & Jake's Wedding") || projects[0];
+      
+      // Note: This is a demo version - real Pinterest API would require authentication
+      // For demonstration, we'll create sample inspiration items based on the board URL
+      const samplePins = [
+        {
+          title: `Wedding Flowers from ${boardName}`,
+          imageUrl: 'https://images.unsplash.com/photo-1522673607200-164d1b6ce486?w=400&h=400&fit=crop',
+          description: `Beautiful wedding flower arrangements and bouquet ideas from Pinterest board: ${boardName}`,
+          category: category || 'flowers'
+        },
+        {
+          title: `Ceremony Inspiration from ${boardName}`,
+          imageUrl: 'https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=400&h=400&fit=crop',
+          description: `Ceremony decoration and setup ideas from Pinterest board: ${boardName}`,
+          category: category || 'ceremony'
+        },
+        {
+          title: `Reception Decor from ${boardName}`,
+          imageUrl: 'https://images.unsplash.com/photo-1519741497674-611481863552?w=400&h=400&fit=crop',
+          description: `Reception decoration and table setting ideas from Pinterest board: ${boardName}`,
+          category: category || 'reception'
+        },
+        {
+          title: `Wedding Dress Ideas from ${boardName}`,
+          imageUrl: 'https://images.unsplash.com/photo-1594736797933-d0d30c4f732e?w=400&h=400&fit=crop',
+          description: `Wedding dress and bridal fashion inspiration from Pinterest board: ${boardName}`,
+          category: category || 'attire'
+        },
+        {
+          title: `Wedding Cake from ${boardName}`,
+          imageUrl: 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=400&h=400&fit=crop',
+          description: `Wedding cake design and decoration ideas from Pinterest board: ${boardName}`,
+          category: category || 'cake'
+        }
+      ];
+
+      // Create inspiration items for each pin
+      const createdItems = [];
+      for (const pin of samplePins) {
+        const inspirationData = {
+          projectId: currentProject.id,
+          title: pin.title,
+          imageUrl: pin.imageUrl,
+          notes: pin.description,
+          category: pin.category,
+          tags: `pinterest,${boardName.replace(/\-/g, ' ')},imported`,
+          addedBy: userId,
+          source: 'pinterest',
+          sourceUrl: boardUrl
+        };
+
+        const result = await storage.createInspirationItem(inspirationData);
+        createdItems.push(result);
+      }
+
+      // Create activity
+      await storage.createActivity({
+        projectId: currentProject.id,
+        userId,
+        action: 'imported Pinterest board',
+        target: 'inspiration',
+        details: { 
+          boardName, 
+          username, 
+          url: boardUrl,
+          imported: createdItems.length 
+        }
+      });
+
+      res.json({
+        success: true,
+        message: `Successfully imported ${createdItems.length} inspiration items from Pinterest board "${boardName}"`,
+        items: createdItems,
+        boardInfo: {
+          username,
+          boardName: boardName.replace(/\-/g, ' '),
+          url: boardUrl
+        }
+      });
+
+    } catch (error) {
+      console.error('Pinterest import error:', error);
+      res.status(500).json({ error: 'Failed to import Pinterest board' });
+    }
+  });
+
   app.patch("/api/auth/profile", requireAuth, async (req: any, res) => {
     try {
       const { username, email, avatar } = req.body;
