@@ -140,12 +140,14 @@ export default function BudgetCategorySummary({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in-up">
       {/* Overall Budget Summary */}
-      <Card className="border-2">
+      <Card className="card-elegant border-2 animate-scale-in">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <DollarSign className="w-5 h-5" />
+          <CardTitle className="flex items-center gap-3 font-heading">
+            <div className="p-2 rounded-xl bg-gradient-to-br from-emerald-400 to-green-600 shadow-sm">
+              <DollarSign className="w-5 h-5 text-white" />
+            </div>
             Overall Budget Summary
           </CardTitle>
         </CardHeader>
@@ -194,17 +196,18 @@ export default function BudgetCategorySummary({
       </Card>
 
       {/* Category Breakdown - Mobile First */}
-      <div className="space-y-4 md:grid md:grid-cols-2 xl:grid-cols-3 md:gap-4 md:space-y-0">
-        {categories.map((category) => {
+      <div className="space-y-4 md:grid md:grid-cols-2 xl:grid-cols-3 md:gap-6 md:space-y-0">
+        {categories.map((category, index) => {
           const categoryProgress = getProgressPercentage(category.actual, category.estimated);
           const isOverCategory = category.actual > category.estimated;
           const isExpanded = expandedCategories.has(category.category);
           const categoryItems = getCategoryItems(category.category);
           
-
-          
           return (
-            <Card key={category.category} className="w-full hover:shadow-md transition-shadow">
+            <Card 
+              key={category.category} 
+              className={`card-elegant hover:scale-[1.02] transition-all duration-300 animate-slide-in-left stagger-${(index % 5) + 1}`}
+            >
               <CardHeader 
                 className="pb-3 cursor-pointer" 
                 onClick={() => toggleCategory(category.category)}

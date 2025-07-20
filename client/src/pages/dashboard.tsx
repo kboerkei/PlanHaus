@@ -38,11 +38,12 @@ const navigationSections = [
 
 export default function Dashboard() {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-background via-cream/50 to-background">
       <div className="relative overflow-hidden">
-        {/* Background decorations */}
-        <div className="absolute -top-20 -right-20 w-64 h-64 bg-gradient-to-br from-rose-400/10 to-pink-400/20 rounded-full blur-3xl" />
-        <div className="absolute -bottom-10 -left-10 w-48 h-48 bg-gradient-to-tr from-purple-400/5 to-rose-400/10 rounded-full blur-2xl" />
+        {/* Enhanced background decorations */}
+        <div className="absolute -top-32 -right-32 w-96 h-96 bg-gradient-to-br from-rose-400/8 to-pink-400/15 rounded-full blur-3xl animate-float" />
+        <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-gradient-to-tr from-purple-400/5 to-rose-400/10 rounded-full blur-2xl" />
+        <div className="absolute top-1/4 right-1/4 w-32 h-32 bg-gradient-to-r from-champagne/20 to-rose-400/10 rounded-full blur-xl" />
         
         <div className="relative p-3 sm:p-4 lg:p-8 mobile-safe-spacing">
           <SmartOnboarding />
@@ -62,37 +63,41 @@ export default function Dashboard() {
 
           {/* Enhanced Tasks and Activity Section */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 xl:gap-10 mb-8">
-            <div className="card-wedding p-6 lg:p-8 hover-lift hover:scale-[1.02] transition-transform duration-200">
+            <div className="card-elegant hover:scale-[1.02] transition-all duration-300">
               <UpcomingTasks />
             </div>
-            <div className="card-wedding p-6 lg:p-8 hover-lift hover:scale-[1.02] transition-transform duration-200">
+            <div className="card-elegant hover:scale-[1.02] transition-all duration-300">
               <RecentActivity />
             </div>
           </div>
 
           {/* Enhanced Features Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 xl:gap-10 mb-8">
-            <div className="card-wedding p-6 lg:p-8 hover-lift hover:scale-[1.02] transition-transform duration-200">
+            <div className="card-elegant hover:scale-[1.02] transition-all duration-300">
               <CollaborativeFeatures />
             </div>
-            <div className="card-wedding p-6 lg:p-8 hover-lift hover:scale-[1.02] transition-transform duration-200">
+            <div className="card-elegant hover:scale-[1.02] transition-all duration-300">
               <InspirationPreview />
             </div>
           </div>
 
           {/* Planning Tools Section */}
           <div className="mb-8 animate-fade-in-up">
-            <div className="text-center mb-8">
-              <h2 className="font-heading text-3xl lg:text-4xl xl:text-5xl font-bold text-foreground mb-2">Planning Tools</h2>
-              <p className="text-muted-foreground text-lg lg:text-xl">Everything you need to plan your perfect wedding</p>
+            <div className="text-center mb-8 animate-fade-in-up">
+              <h2 className="font-heading text-3xl lg:text-4xl xl:text-5xl font-bold bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 bg-clip-text text-transparent mb-3">Planning Tools</h2>
+              <p className="text-muted-foreground text-lg lg:text-xl font-medium">Everything you need to plan your perfect wedding</p>
+              <div className="w-24 h-1 bg-gradient-to-r from-rose-400 to-pink-500 rounded-full mx-auto mt-4"></div>
             </div>
             
             <div className="grid md:grid-cols-2 gap-8 max-w-6xl mx-auto">
               {navigationSections.map((section, sectionIndex) => (
-                <Card key={section.title} className="card-elegant animate-slide-in-right" style={{ animationDelay: `${sectionIndex * 100}ms` }}>
+                <Card key={section.title} className={`card-elegant animate-slide-in-right stagger-${sectionIndex + 1} hover:scale-[1.02] transition-all duration-300`}>
                   <CardHeader>
-                    <CardTitle className="font-heading text-xl text-foreground">{section.title}</CardTitle>
-                    <p className="text-muted-foreground text-sm">{section.description}</p>
+                    <CardTitle className="font-heading text-2xl text-foreground flex items-center gap-3">
+                      <div className="w-2 h-8 bg-gradient-to-b from-rose-400 to-pink-500 rounded-full"></div>
+                      {section.title}
+                    </CardTitle>
+                    <p className="text-muted-foreground text-base font-medium">{section.description}</p>
                   </CardHeader>
                   <CardContent>
                     <div className="grid grid-cols-1 gap-3">

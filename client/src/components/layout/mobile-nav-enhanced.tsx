@@ -42,8 +42,8 @@ export default function MobileNav() {
   ];
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg lg:hidden z-50 safe-area-pb">
-      <div className="grid grid-cols-5 py-2">
+    <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-xl border-t border-gray-200/50 shadow-lg lg:hidden z-50 safe-area-pb">
+      <div className="grid grid-cols-5 py-3">
         {primaryNavigation.map((item, index) => {
           const Icon = item.icon;
           const isActive = location === item.href;
@@ -63,9 +63,9 @@ export default function MobileNav() {
                 <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-8 h-1 bg-gradient-to-r from-rose-400 to-pink-600 rounded-b-full" />
               )}
               
-              {/* Icon with gradient background */}
-              <div className={`relative p-1.5 rounded-lg bg-gradient-to-br ${gradient} shadow-md mb-1 ${
-                isActive ? 'scale-100' : 'scale-90 opacity-70'
+              {/* Icon with enhanced styling */}
+              <div className={`relative p-2 rounded-xl bg-gradient-to-br ${gradient} shadow-md mb-1.5 transition-all duration-300 ${
+                isActive ? 'scale-105 shadow-lg' : 'scale-95 opacity-80'
               } transition-all duration-300 group-hover:scale-95`}>
                 <Icon className="h-3.5 w-3.5 text-white" />
               </div>

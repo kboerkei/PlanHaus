@@ -34,23 +34,23 @@ export default function Sidebar() {
   ];
 
   return (
-    <aside className="fixed left-0 top-0 h-full w-64 bg-white border-r border-gray-100 shadow-sm hidden lg:block z-30">
-      {/* Clean Logo Section */}
-      <div className="p-6 border-b border-gray-100">
+    <aside className="fixed left-0 top-0 h-full w-64 bg-white/98 backdrop-blur-xl border-r border-gray-100/50 shadow-lg hidden lg:block z-30">
+      {/* Enhanced Logo Section */}
+      <div className="p-6 border-b border-gray-100/50">
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-rose-400 to-pink-500 flex items-center justify-center shadow-sm">
-            <Heart className="h-5 w-5 text-white" />
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-rose-400 via-pink-500 to-rose-600 flex items-center justify-center shadow-md ring-2 ring-white ring-opacity-20">
+            <Heart className="h-6 w-6 text-white" fill="currentColor" />
           </div>
           <div>
-            <h2 className="text-lg font-bold text-gray-800 tracking-tight">PlanHaus</h2>
-            <p className="text-xs text-gray-500 font-medium">Wedding Planning</p>
+            <h2 className="text-xl font-bold text-gray-800 tracking-tight font-heading">PlanHaus</h2>
+            <p className="text-xs text-gray-500 font-medium tracking-wide">Wedding Planning</p>
           </div>
         </div>
       </div>
       
       {/* Enhanced Navigation */}
-      <nav className="p-4 flex-1 overflow-y-auto">
-        <ul className="space-y-2">
+      <nav className="p-6 flex-1 overflow-y-auto">
+        <ul className="space-y-3">
           {navigation.map((item, index) => {
             const Icon = item.icon;
             const isActive = location === item.href;
@@ -61,29 +61,33 @@ export default function Sidebar() {
                 <Link 
                   href={item.href}
                   className={cn(
-                    "relative group flex items-center space-x-4 px-4 py-3 rounded-2xl transition-all duration-300 hover-lift font-semibold",
+                    "relative group flex items-center space-x-4 px-5 py-4 rounded-2xl transition-all duration-300 font-medium",
                     isActive 
-                      ? "glass-wedding shadow-wedding text-gray-800" 
-                      : "text-gray-600 hover:text-gray-800 hover:bg-white/50"
+                      ? "bg-gradient-to-r from-rose-50 to-pink-50 text-gray-800 shadow-md border border-rose-100/50" 
+                      : "text-gray-600 hover:text-gray-800 hover:bg-white/80 hover:shadow-sm"
                   )}
                 >
                   {/* Active indicator */}
                   {isActive && (
-                    <>
-                      <div className="absolute inset-0 bg-gradient-to-r from-white/80 to-white/60 rounded-2xl" />
-                      <div className="absolute left-0 top-1/2 transform -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-rose-400 to-pink-600 rounded-r-full" />
-                    </>
+                    <div className="absolute left-0 top-1/2 transform -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-rose-400 to-pink-500 rounded-r-full" />
                   )}
                   
-                  {/* Icon with gradient background */}
-                  <div className={`relative p-2.5 rounded-xl bg-gradient-to-br ${gradient} shadow-lg group-hover:scale-110 transition-transform duration-300`}>
-                    <Icon className="h-4 w-4 text-white" />
+                  {/* Icon with enhanced styling */}
+                  <div className={cn(
+                    "relative p-2.5 rounded-xl shadow-sm transition-all duration-300 group-hover:scale-105",
+                    isActive 
+                      ? `bg-gradient-to-br ${gradient} shadow-md` 
+                      : "bg-gray-100 group-hover:bg-gray-200"
+                  )}>
+                    <Icon className={cn("h-5 w-5", isActive ? "text-white" : "text-gray-600")} />
                   </div>
                   
-                  <span className="relative z-10 text-sm">{item.name}</span>
+                  <span className="relative text-sm font-medium">{item.name}</span>
                   
-                  {/* Hover shimmer effect */}
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 rounded-2xl" />
+                  {/* Subtle hover effect */}
+                  {!isActive && (
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-rose-50/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl" />
+                  )}
                 </Link>
               </li>
             );
