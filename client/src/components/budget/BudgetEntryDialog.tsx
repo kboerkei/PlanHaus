@@ -48,17 +48,25 @@ export default function BudgetEntryDialog({ projectId, budgetItem, trigger, onCl
 
   const onSubmit = async (data: BudgetFormData) => {
     try {
+      // Convert numbers to strings for backend decimal fields
+      const backendData = {
+        ...data,
+        estimatedCost: data.estimatedCost.toString(),
+        actualCost: data.actualCost?.toString() || "0"
+      };
+
       if (budgetItem) {
-        await updateBudgetItem.mutateAsync({ id: budgetItem.id, data });
+        await updateBudgetItem.mutateAsync({ id: budgetItem.id, data: backendData });
         toast({ title: "Budget item updated successfully!" });
       } else {
-        await createBudgetItem.mutateAsync(data);
+        await createBudgetItem.mutateAsync(backendData);
         toast({ title: "Budget item created successfully!" });
       }
       form.reset();
       setIsOpen(false);
       onClose?.();
     } catch (error) {
+      console.error("Budget item error:", error);
       toast({
         title: "Error",
         description: budgetItem ? "Failed to update budget item" : "Failed to create budget item",

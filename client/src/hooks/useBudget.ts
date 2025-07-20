@@ -11,7 +11,7 @@ export function useBudget(projectId?: string) {
 
 export function useCreateBudgetItem(projectId: string) {
   return useMutation({
-    mutationFn: (data: BudgetFormData) => apiRequest('/api/budget-items', {
+    mutationFn: (data: any) => apiRequest('/api/budget-items', {
       method: 'POST',
       body: JSON.stringify({
         ...data,
@@ -27,7 +27,7 @@ export function useCreateBudgetItem(projectId: string) {
 
 export function useUpdateBudgetItem(projectId: string) {
   return useMutation({
-    mutationFn: ({ id, data }: { id: number; data: Partial<BudgetFormData> }) =>
+    mutationFn: ({ id, data }: { id: number; data: any }) =>
       apiRequest(`/api/budget-items/${id}`, {
         method: 'PATCH',
         body: JSON.stringify(data),
