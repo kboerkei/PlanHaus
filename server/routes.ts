@@ -270,10 +270,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           imageUrl: pin.imageUrl,
           notes: pin.description,
           category: pin.category,
-          tags: `pinterest,${boardName.replace(/\-/g, ' ')},imported`,
-          addedBy: userId,
-          source: 'pinterest',
-          sourceUrl: boardUrl
+          tags: ['pinterest', boardName.replace(/\-/g, ' '), 'imported'],
+          addedBy: userId
         };
 
         const result = await storage.createInspirationItem(inspirationData);
