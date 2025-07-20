@@ -45,7 +45,7 @@ export default function BudgetCategorySummary({
   };
 
   const getCategoryItems = (category: string) => {
-    return budgetItems.filter(item => item.category === category);
+    return (budgetItems || []).filter(item => item.category === category);
   };
 
   const handleDeleteItem = async (itemId: number, itemName: string) => {
@@ -95,6 +95,21 @@ export default function BudgetCategorySummary({
   const safeTotalBudget = parseFloat(String(totalBudget)) || 0;
   const overallProgress = getProgressPercentage(safeTotalSpent, safeTotalBudget);
   const isOverBudget = safeTotalSpent > safeTotalBudget;
+
+  // Early return if no categories
+  if (!categories || categories.length === 0) {
+    return (
+      <Card>
+        <CardContent className="text-center py-12">
+          <DollarSign className="mx-auto mb-4 w-16 h-16 text-gray-400" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">No budget categories yet</h3>
+          <p className="text-gray-600">
+            Add budget items to see your category breakdown and spending analysis.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <div className="space-y-6">
