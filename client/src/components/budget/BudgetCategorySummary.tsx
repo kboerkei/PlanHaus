@@ -30,20 +30,16 @@ export default function BudgetCategorySummary({
   budgetItems = [],
   projectId
 }: BudgetCategorySummaryProps) {
+  // Debug the props being passed  
+  console.log('BudgetCategorySummary received:');
+  console.log('- budgetItems length:', budgetItems?.length);
+  console.log('- categories length:', categories?.length);
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const { toast } = useToast();
   const deleteBudgetItem = useDeleteBudgetItem(projectId);
   
   // Use the passed budget items directly - no need to re-fetch
   const actualBudgetItems = budgetItems || [];
-  
-  // Debug category items
-  console.log('Category Summary Debug:');
-  console.log('- actualBudgetItems:', actualBudgetItems.length, actualBudgetItems);
-  console.log('- categories:', categories.length, categories);
-  if (categories.length > 0) {
-    console.log('- sample category items for', categories[0].category, ':', getCategoryItems(categories[0].category));
-  }
   
 
   
@@ -64,16 +60,28 @@ export default function BudgetCategorySummary({
       return [];
     }
     
-    // Direct category matching - both the category from summary and item.category should match exactly
+    // The issue is category case mismatch - categories are mixed case (Venue, Photography) vs lowercase (catering)
+    // Let's try both exact match and lowercase match
+    const exactMatch = actualBudgetItems.filter(item => 
+      item && item.category && item.category === category
+    );
+    
+    if (exactMatch.length > 0) {
+      return exactMatch;
+    }
+    
+    // Fallback to case-insensitive match
     return actualBudgetItems.filter(item => 
       item && 
       item.category && 
       item.category.toLowerCase() === category.toLowerCase()
     );
   };
+  
 
-  const handleDeleteItem = async (itemId: number, itemName: string) => {
-    if (window.confirm(`Are you sure you want to delete "${itemName}"?`)) {
+
+  const handleDeleteItem = async (itemId: number) => {
+    if (window.confirm(`Are you sure you want to delete this budget item?`)) {
       try {
         await deleteBudgetItem.mutateAsync(itemId);
         toast({ title: "Budget item deleted successfully!" });
