@@ -35,8 +35,17 @@ export default function BudgetCategorySummary({
   const deleteBudgetItem = useDeleteBudgetItem(projectId);
   
   // Re-fetch budget items directly to ensure we have the data
-  const { data: freshBudgetItems } = useBudget(projectId);
+  const { data: freshBudgetItems, error, isLoading } = useBudget(projectId);
   const actualBudgetItems = freshBudgetItems || budgetItems || [];
+  
+  // Temporary debug to see exactly what we're getting
+  console.log('=== BUDGET DEBUG ===');
+  console.log('projectId:', projectId);
+  console.log('freshBudgetItems:', freshBudgetItems);
+  console.log('budgetItems prop:', budgetItems);
+  console.log('actualBudgetItems:', actualBudgetItems);
+  console.log('query error:', error);
+  console.log('query isLoading:', isLoading);
   
 
 
