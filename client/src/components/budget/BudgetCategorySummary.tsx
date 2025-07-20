@@ -8,7 +8,9 @@ import BudgetEntryDialog from "./BudgetEntryDialog";
 import { useDeleteBudgetItem, useBudget } from "@/hooks/useBudget";
 import { useToast } from "@/hooks/use-toast";
 
-interface Category {
+
+
+interface BudgetCategory {
   category: string;
   estimated: number;
   actual: number;
@@ -16,7 +18,7 @@ interface Category {
 }
 
 interface BudgetCategorySummaryProps {
-  categories: Category[];
+  categories: BudgetCategory[];
   totalBudget: number;
   totalSpent: number;
   budgetItems: any[];
@@ -44,7 +46,7 @@ export default function BudgetCategorySummary({
   // Test category items for first category
   if (categories.length > 0 && actualBudgetItems.length > 0) {
     const firstCategory = categories[0].category;
-    const itemsInCategory = actualBudgetItems.filter(item => 
+    const itemsInCategory = actualBudgetItems.filter((item: any) => 
       item && item.category && (
         item.category === firstCategory || 
         item.category.toLowerCase() === firstCategory.toLowerCase()
