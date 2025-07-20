@@ -37,11 +37,7 @@ export default function BudgetCategorySummary({
   // Use the passed budget items directly - no need to re-fetch
   const actualBudgetItems = budgetItems || [];
   
-  // Debug the final data
-  console.log('=== FINAL BUDGET DATA ===');
-  console.log('projectId:', projectId);
-  console.log('budgetItems received:', budgetItems?.length, budgetItems);
-  console.log('actualBudgetItems for filtering:', actualBudgetItems?.length);
+
   
 
 
@@ -187,7 +183,7 @@ export default function BudgetCategorySummary({
       </Card>
 
       {/* Category Breakdown */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
         {categories.map((category) => {
           const categoryProgress = getProgressPercentage(category.actual, category.estimated);
           const isOverCategory = category.actual > category.estimated;

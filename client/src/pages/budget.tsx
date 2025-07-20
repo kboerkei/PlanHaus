@@ -40,11 +40,7 @@ export default function Budget() {
   // Ensure we have budget items data for the category summary
   const actualBudgetItems = budgetItems || [];
   
-  // Debug project selection
-  console.log('Budget page passing to categories:');
-  console.log('- projectId:', projectId);
-  console.log('- budgetItems length:', budgetItems?.length);
-  console.log('- budgetSummary categories:', budgetSummary?.categories?.length);
+
 
   // Filter logic
   const filteredItems = useMemo(() => {
@@ -125,21 +121,23 @@ export default function Budget() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 pb-20 sm:pb-6 px-2 sm:px-4">
       {/* Header */}
-      <div className="bg-white rounded-lg p-6 border border-gray-200">
+      <div className="bg-white rounded-lg p-4 sm:p-6 border border-gray-200">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Budget</h1>
-            <p className="text-gray-600">
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Budget</h1>
+            <p className="text-sm sm:text-base text-gray-600 hidden sm:block">
               Track your wedding expenses and stay on budget
             </p>
           </div>
-          <BudgetEntryDialog projectId={projectId} />
+          <div className="flex-shrink-0">
+            <BudgetEntryDialog projectId={projectId} />
+          </div>
         </div>
 
         {/* Quick Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 mb-4 sm:mb-6">
           <Card className="border-blue-200">
             <CardContent className="p-4 text-center">
               <div className="text-2xl font-bold text-blue-600">
@@ -177,7 +175,7 @@ export default function Budget() {
         </div>
 
         {/* Filters */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
           <div className="relative">
             <Input
               placeholder="Search budget items..."
@@ -219,10 +217,10 @@ export default function Budget() {
       </div>
 
       <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="items">Items</TabsTrigger>
-          <TabsTrigger value="categories">Categories</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-3 mb-4">
+          <TabsTrigger value="overview" className="text-xs sm:text-sm">Overview</TabsTrigger>
+          <TabsTrigger value="items" className="text-xs sm:text-sm">Items</TabsTrigger>
+          <TabsTrigger value="categories" className="text-xs sm:text-sm">Categories</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
@@ -235,12 +233,12 @@ export default function Budget() {
           )}
         </TabsContent>
 
-        <TabsContent value="items" className="space-y-4">
+        <TabsContent value="items" className="space-y-3 sm:space-y-4">
           {filteredItems.length === 0 ? (
             <Card>
-              <CardContent className="text-center py-12">
-                <DollarSign className="mx-auto mb-4 w-16 h-16 text-gray-400" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No budget items found</h3>
+              <CardContent className="text-center py-8 sm:py-12">
+                <DollarSign className="mx-auto mb-4 w-12 h-12 sm:w-16 sm:h-16 text-gray-400" />
+                <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">No budget items found</h3>
                 <p className="text-gray-600 mb-4">
                   {searchTerm || filterCategory 
                     ? "Try adjusting your filters to see more items."
@@ -312,17 +310,17 @@ export default function Budget() {
         </TabsContent>
 
         <TabsContent value="categories">
-          {projectId && budgetItems?.length >= 0 ? (
+          {projectId ? (
             <BudgetCategorySummary
               categories={budgetSummary?.categories || []}
               totalBudget={budgetSummary?.totalEstimated || 0}
               totalSpent={budgetSummary?.totalActual || 0}
-              budgetItems={budgetItems}
+              budgetItems={budgetItems || []}
               projectId={projectId}
             />
           ) : (
             <div className="flex items-center justify-center p-8">
-              <p className="text-gray-500">Loading budget data...</p>
+              <p className="text-gray-500">Loading project data...</p>
             </div>
           )}
         </TabsContent>
