@@ -50,16 +50,6 @@ export default function BudgetCategorySummary({
   
 
 
-  const toggleCategory = (category: string) => {
-    const newExpanded = new Set(expandedCategories);
-    if (newExpanded.has(category)) {
-      newExpanded.delete(category);
-    } else {
-      newExpanded.add(category);
-    }
-    setExpandedCategories(newExpanded);
-  };
-
   const getCategoryItems = (category: string) => {
     if (!actualBudgetItems || !Array.isArray(actualBudgetItems)) {
       return [];
@@ -71,6 +61,16 @@ export default function BudgetCategorySummary({
       item.category && 
       item.category.toLowerCase() === category.toLowerCase()
     );
+  };
+
+  const toggleCategory = (category: string) => {
+    const newExpanded = new Set(expandedCategories);
+    if (newExpanded.has(category)) {
+      newExpanded.delete(category);
+    } else {
+      newExpanded.add(category);
+    }
+    setExpandedCategories(newExpanded);
   };
   
 
