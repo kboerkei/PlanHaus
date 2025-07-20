@@ -45,9 +45,11 @@ export default function BudgetCategorySummary({
   };
 
   const getCategoryItems = (category: string) => {
-    return (budgetItems || []).filter(item => 
+    const items = (budgetItems || []).filter(item => 
       (item.category || 'other').toLowerCase() === category.toLowerCase()
     );
+    console.log('getCategoryItems for category:', category, 'found items:', items.length, 'items:', items);
+    return items;
   };
 
   const handleDeleteItem = async (itemId: number, itemName: string) => {
@@ -237,7 +239,10 @@ export default function BudgetCategorySummary({
                 {isExpanded && (
                   <div className="mt-4 pt-4 border-t space-y-3">
                     <h4 className="font-medium text-sm text-gray-900 mb-2">Individual Items:</h4>
-                    {categoryItems.map((item) => (
+                    {categoryItems.length === 0 ? (
+                      <p className="text-sm text-gray-500 italic">No items found for this category</p>
+                    ) : (
+                      categoryItems.map((item) => (
                       <div key={item.id} className="bg-gray-50 rounded-lg p-3 space-y-2">
                         <div className="flex items-center justify-between">
                           <h5 className="font-medium text-sm">{item.item}</h5>
@@ -291,7 +296,8 @@ export default function BudgetCategorySummary({
                           <p className="text-xs text-gray-600 italic">{item.notes}</p>
                         )}
                       </div>
-                    ))}
+                      ))
+                    )}
                   </div>
                 )}
               </CardContent>
