@@ -30,16 +30,21 @@ export default function BudgetCategorySummary({
   budgetItems = [],
   projectId
 }: BudgetCategorySummaryProps) {
-  // Debug the props being passed  
-  console.log('BudgetCategorySummary received:');
-  console.log('- budgetItems length:', budgetItems?.length);
+  // Re-fetch the budget items directly in this component to ensure we have data
+  const { data: freshBudgetItems } = useBudget(projectId);
+  const actualBudgetItems = freshBudgetItems || budgetItems || [];
+  
+  console.log('BudgetCategorySummary Debug:');
+  console.log('- projectId:', projectId);
+  console.log('- freshBudgetItems length:', freshBudgetItems?.length);
+  console.log('- passed budgetItems length:', budgetItems?.length);
+  console.log('- actualBudgetItems length:', actualBudgetItems?.length);
   console.log('- categories length:', categories?.length);
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const { toast } = useToast();
   const deleteBudgetItem = useDeleteBudgetItem(projectId);
   
-  // Use the passed budget items directly - no need to re-fetch
-  const actualBudgetItems = budgetItems || [];
+
   
 
   
