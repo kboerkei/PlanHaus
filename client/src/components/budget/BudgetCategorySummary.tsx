@@ -34,18 +34,14 @@ export default function BudgetCategorySummary({
   const { toast } = useToast();
   const deleteBudgetItem = useDeleteBudgetItem(projectId);
   
-  // Re-fetch budget items directly to ensure we have the data
-  const { data: freshBudgetItems, error, isLoading } = useBudget(projectId);
-  const actualBudgetItems = freshBudgetItems || budgetItems || [];
+  // Use the passed budget items directly - no need to re-fetch
+  const actualBudgetItems = budgetItems || [];
   
-  // Temporary debug to see exactly what we're getting
-  console.log('=== BUDGET CATEGORY SUMMARY DEBUG ===');
-  console.log('projectId received:', projectId);
-  console.log('freshBudgetItems:', freshBudgetItems);
-  console.log('budgetItems prop:', budgetItems);
-  console.log('actualBudgetItems:', actualBudgetItems);
-  console.log('query error:', error);
-  console.log('query isLoading:', isLoading);
+  // Debug the final data
+  console.log('=== FINAL BUDGET DATA ===');
+  console.log('projectId:', projectId);
+  console.log('budgetItems received:', budgetItems?.length, budgetItems);
+  console.log('actualBudgetItems for filtering:', actualBudgetItems?.length);
   
 
 
