@@ -39,30 +39,7 @@ export default function BudgetCategorySummary({
   const { data: freshBudgetItems } = useBudget(actualProjectId);
   const actualBudgetItems = freshBudgetItems || budgetItems || [];
   
-  console.log('BudgetCategorySummary Fixed Debug:');
-  console.log('- original projectId:', projectId, typeof projectId);
-  console.log('- actualProjectId used:', actualProjectId);
-  console.log('- freshBudgetItems length:', freshBudgetItems?.length);
-  console.log('- actualBudgetItems length:', actualBudgetItems?.length);
-  console.log('- categories length:', categories?.length);
-  
-  // Show first few items for debugging
-  if (actualBudgetItems?.length > 0) {
-    console.log('- First budget item:', actualBudgetItems[0]);
-    console.log('- All categories in budget items:', actualBudgetItems.map((item: any) => item.category));
-  }
-  
-  // Test category items for first category
-  if (categories.length > 0 && actualBudgetItems.length > 0) {
-    const firstCategory = categories[0].category;
-    const itemsInCategory = actualBudgetItems.filter((item: any) => 
-      item && item.category && (
-        item.category === firstCategory || 
-        item.category.toLowerCase() === firstCategory.toLowerCase()
-      )
-    );
-    console.log(`Items in "${firstCategory}":`, itemsInCategory.length, itemsInCategory);
-  }
+  // Production ready - debug logs removed
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const { toast } = useToast();
   const deleteBudgetItem = useDeleteBudgetItem(actualProjectId);
@@ -85,21 +62,15 @@ export default function BudgetCategorySummary({
 
   const getCategoryItems = (category: string) => {
     if (!actualBudgetItems || !Array.isArray(actualBudgetItems)) {
-      console.log(`No items for category "${category}" - actualBudgetItems is not valid array`);
       return [];
     }
     
     // Always use case-insensitive matching to handle mixed case categories
-    const allMatches = actualBudgetItems.filter((item: any) => 
+    return actualBudgetItems.filter((item: any) => 
       item && 
       item.category && 
       item.category.toLowerCase() === category.toLowerCase()
     );
-    
-    console.log(`Looking for items in category: "${category}" (case-insensitive)`);
-    console.log(`Found ${allMatches.length} matches:`, allMatches.map((item: any) => `${item.item} (${item.category})`));
-    
-    return allMatches;
   };
   
 
@@ -222,50 +193,53 @@ export default function BudgetCategorySummary({
         </CardContent>
       </Card>
 
-      {/* Category Breakdown */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+      {/* Category Breakdown - Mobile First */}
+      <div className="space-y-4 md:grid md:grid-cols-2 xl:grid-cols-3 md:gap-4 md:space-y-0">
         {categories.map((category) => {
           const categoryProgress = getProgressPercentage(category.actual, category.estimated);
           const isOverCategory = category.actual > category.estimated;
           const isExpanded = expandedCategories.has(category.category);
           const categoryItems = getCategoryItems(category.category);
           
-          console.log(`Rendering category "${category.category}": ${categoryItems.length} items`, categoryItems.map((item: any) => item.item));
+
           
           return (
-            <Card key={category.category} className="hover:shadow-md transition-shadow">
+            <Card key={category.category} className="w-full hover:shadow-md transition-shadow">
               <CardHeader 
                 className="pb-3 cursor-pointer" 
                 onClick={() => toggleCategory(category.category)}
               >
-                <CardTitle className="text-lg capitalize flex items-center justify-between">
-                  <div className="flex items-center gap-2">
+                <CardTitle className="text-base md:text-lg capitalize flex items-center justify-between">
+                  <div className="flex items-center gap-2 min-w-0 flex-1">
                     {isExpanded ? (
-                      <ChevronDown className="w-4 h-4" />
+                      <ChevronDown className="w-4 h-4 shrink-0" />
                     ) : (
-                      <ChevronRight className="w-4 h-4" />
+                      <ChevronRight className="w-4 h-4 shrink-0" />
                     )}
-                    {category.category}
+                    <span className="truncate">{category.category}</span>
                   </div>
-                  <span className="text-sm font-normal text-gray-500">
+                  <span className="text-xs md:text-sm font-normal text-gray-500 shrink-0 ml-2">
                     {category.items} item{category.items !== 1 ? 's' : ''}
                   </span>
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Estimated:</span>
-                  <span className="font-medium">{formatCurrency(category.estimated)}</span>
+                {/* Mobile: Stack costs vertically, Desktop: Side by side */}
+                <div className="space-y-2 md:space-y-3">
+                  <div className="flex justify-between text-xs md:text-sm">
+                    <span className="text-gray-600">Estimated:</span>
+                    <span className="font-medium">{formatCurrency(category.estimated)}</span>
+                  </div>
+                  
+                  <div className="flex justify-between text-xs md:text-sm">
+                    <span className="text-gray-600">Actual:</span>
+                    <span className={`font-medium ${isOverCategory ? 'text-red-600' : 'text-green-600'}`}>
+                      {formatCurrency(category.actual)}
+                    </span>
+                  </div>
                 </div>
                 
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Actual:</span>
-                  <span className={`font-medium ${isOverCategory ? 'text-red-600' : 'text-green-600'}`}>
-                    {formatCurrency(category.actual)}
-                  </span>
-                </div>
-                
-                <div className="flex justify-between text-sm">
+                <div className="flex justify-between text-xs md:text-sm">
                   <span className="text-gray-600">
                     {isOverCategory ? 'Over:' : 'Under:'}
                   </span>
@@ -274,10 +248,10 @@ export default function BudgetCategorySummary({
                   </span>
                 </div>
                 
-                <div className="space-y-1">
+                <div className="space-y-2">
                   <div className="flex justify-between text-xs">
                     <span>Spent</span>
-                    <span>{Math.round(categoryProgress)}%</span>
+                    <span className="font-medium">{Math.round(categoryProgress)}%</span>
                   </div>
                   <Progress 
                     value={categoryProgress} 
@@ -297,58 +271,62 @@ export default function BudgetCategorySummary({
                     {categoryItems.length === 0 ? (
                       <p className="text-sm text-gray-500 italic">No items found for this category</p>
                     ) : (
-                      categoryItems.map((item) => (
-                      <div key={item.id} className="bg-gray-50 rounded-lg p-3 space-y-2">
-                        <div className="flex items-center justify-between">
-                          <h5 className="font-medium text-sm">{item.item}</h5>
-                          <div className="flex gap-1">
+                      categoryItems.map((item: any) => (
+                      <div key={item.id} className="bg-gray-50 rounded-lg p-3 space-y-3">
+                        {/* Mobile-optimized header */}
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex-1 min-w-0">
+                            <h5 className="font-medium text-sm truncate pr-2">{item.item}</h5>
+                            {item.isPaid && (
+                              <Badge className="text-xs bg-green-100 text-green-800 mt-1">
+                                Paid
+                              </Badge>
+                            )}
+                          </div>
+                          
+                          {/* Mobile-friendly action buttons */}
+                          <div className="flex gap-1 shrink-0">
                             <BudgetEntryDialog
-                              projectId={projectId}
+                              projectId={actualProjectId}
                               budgetItem={item}
                               trigger={
-                                <Button variant="ghost" size="sm" className="p-1">
+                                <button className="p-2 hover:bg-blue-100 rounded-lg bg-blue-50 text-blue-600">
                                   <Edit className="w-3 h-3" />
-                                </Button>
+                                </button>
                               }
                             />
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              className="p-1 hover:bg-red-50"
-                              onClick={() => handleDeleteItem(item.id, item.item)}
-                              disabled={deleteBudgetItem.isPending}
+                            <button 
+                              onClick={() => handleDeleteItem(item.id)}
+                              className="p-2 hover:bg-red-100 rounded-lg bg-red-50 text-red-600"
                             >
-                              <Trash2 className="w-3 h-3 text-red-600" />
-                            </Button>
+                              <Trash2 className="w-3 h-3" />
+                            </button>
                           </div>
                         </div>
                         
-                        <div className="grid grid-cols-2 gap-2 text-xs">
+                        {/* Mobile-optimized cost display */}
+                        <div className="space-y-2">
                           <div className="flex justify-between">
-                            <span className="text-gray-600">Estimated:</span>
-                            <span className="font-medium">{formatCurrency(parseFloat(item.estimatedCost) || 0)}</span>
+                            <span className="text-xs text-gray-600">Estimated:</span>
+                            <span className="text-sm font-medium">{formatCurrency(parseFloat(item.estimatedCost) || 0)}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-gray-600">Actual:</span>
-                            <span className="font-medium">{formatCurrency(parseFloat(item.actualCost) || 0)}</span>
+                            <span className="text-xs text-gray-600">Actual:</span>
+                            <span className="text-sm font-medium">{formatCurrency(parseFloat(item.actualCost) || 0)}</span>
                           </div>
                         </div>
                         
                         {item.vendor && (
-                          <div className="flex items-center gap-1">
+                          <div className="flex items-center gap-2">
                             <span className="text-xs text-gray-600">Vendor:</span>
                             <Badge variant="outline" className="text-xs">{item.vendor}</Badge>
                           </div>
                         )}
                         
-                        {item.isPaid && (
-                          <Badge className="text-xs bg-green-100 text-green-800">
-                            Paid
-                          </Badge>
-                        )}
-                        
                         {item.notes && (
-                          <p className="text-xs text-gray-600 italic">{item.notes}</p>
+                          <div className="bg-white p-2 rounded border">
+                            <p className="text-xs text-gray-600">{item.notes}</p>
+                          </div>
                         )}
                       </div>
                       ))

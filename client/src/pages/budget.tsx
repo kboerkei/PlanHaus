@@ -34,11 +34,7 @@ export default function Budget() {
   const currentProject = projects?.find(p => p.name === "Emma & Jake's Wedding") || projects?.[0];
   const projectId = currentProject?.id?.toString();
   
-  // Debug project selection
-  console.log('Budget page project selection:');
-  console.log('- projects:', projects?.length);
-  console.log('- currentProject:', currentProject);
-  console.log('- projectId:', projectId);
+
   
   const { data: budgetItems = [], isLoading: budgetLoading, error: budgetError } = useBudget(projectId);
   const budgetSummary = useBudgetSummary(projectId);
