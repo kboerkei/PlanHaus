@@ -305,8 +305,8 @@ export default function Budget() {
         <TabsContent value="categories">
           <BudgetCategorySummary
             categories={budgetSummary?.categories || []}
-            totalBudget={budgetSummary?.totalBudget || 0}
-            totalSpent={budgetSummary?.totalSpent || 0}
+            totalBudget={budgetSummary?.totalEstimated || 0}
+            totalSpent={budgetSummary?.totalActual || 0}
             budgetItems={budgetItems || []}
             projectId={projectId || ''}
           />

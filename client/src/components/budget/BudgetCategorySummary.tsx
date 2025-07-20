@@ -184,8 +184,16 @@ export default function BudgetCategorySummary({
           const categoryItems = getCategoryItems(category.category);
           
           // Debug logging
-          console.log(`Category: ${category.category}, Items found: ${categoryItems.length}`, categoryItems);
-          console.log('All budgetItems:', budgetItems);
+          if (isExpanded) {
+            console.log(`EXPANDED - Category: ${category.category}, Items found: ${categoryItems.length}`);
+            console.log('Available budgetItems:', budgetItems?.length || 0, budgetItems);
+            console.log('Looking for items with category matching:', category.category);
+            if (budgetItems) {
+              budgetItems.forEach(item => {
+                console.log(`Item: ${item.item}, Category: "${item.category}", Match: ${item.category?.toLowerCase() === category.category.toLowerCase()}`);
+              });
+            }
+          }
           
           return (
             <Card key={category.category} className="hover:shadow-md transition-shadow">
