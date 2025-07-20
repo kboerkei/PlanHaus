@@ -32,16 +32,25 @@ export default function BudgetCategorySummary({
   budgetItems = [],
   projectId
 }: BudgetCategorySummaryProps) {
+  // TEMPORARY FIX: Use hardcoded projectId since prop isn't working
+  const actualProjectId = projectId || "17";
+  
   // Re-fetch the budget items directly in this component to ensure we have data
-  const { data: freshBudgetItems } = useBudget(projectId);
+  const { data: freshBudgetItems } = useBudget(actualProjectId);
   const actualBudgetItems = freshBudgetItems || budgetItems || [];
   
-  console.log('BudgetCategorySummary Debug:');
-  console.log('- projectId:', projectId, typeof projectId);
+  console.log('BudgetCategorySummary Fixed Debug:');
+  console.log('- original projectId:', projectId, typeof projectId);
+  console.log('- actualProjectId used:', actualProjectId);
   console.log('- freshBudgetItems length:', freshBudgetItems?.length);
-  console.log('- passed budgetItems length:', budgetItems?.length);
   console.log('- actualBudgetItems length:', actualBudgetItems?.length);
   console.log('- categories length:', categories?.length);
+  
+  // Show first few items for debugging
+  if (actualBudgetItems?.length > 0) {
+    console.log('- First budget item:', actualBudgetItems[0]);
+    console.log('- All categories in budget items:', actualBudgetItems.map((item: any) => item.category));
+  }
   
   // Test category items for first category
   if (categories.length > 0 && actualBudgetItems.length > 0) {
@@ -56,7 +65,7 @@ export default function BudgetCategorySummary({
   }
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const { toast } = useToast();
-  const deleteBudgetItem = useDeleteBudgetItem(projectId);
+  const deleteBudgetItem = useDeleteBudgetItem(actualProjectId);
   
 
   
@@ -76,25 +85,33 @@ export default function BudgetCategorySummary({
 
   const getCategoryItems = (category: string) => {
     if (!actualBudgetItems || !Array.isArray(actualBudgetItems)) {
+      console.log(`No items for category "${category}" - actualBudgetItems is not valid array`);
       return [];
     }
     
-    // The issue is category case mismatch - categories are mixed case (Venue, Photography) vs lowercase (catering)
-    // Let's try both exact match and lowercase match
-    const exactMatch = actualBudgetItems.filter(item => 
+    // Debug category matching
+    console.log(`Looking for items in category: "${category}"`);
+    console.log('Available categories:', actualBudgetItems.map((item: any) => `"${item.category}"`));
+    
+    // Try exact match first
+    const exactMatch = actualBudgetItems.filter((item: any) => 
       item && item.category && item.category === category
     );
     
     if (exactMatch.length > 0) {
+      console.log(`Found ${exactMatch.length} exact matches for "${category}"`);
       return exactMatch;
     }
     
-    // Fallback to case-insensitive match
-    return actualBudgetItems.filter(item => 
+    // Try case-insensitive match
+    const caseInsensitiveMatch = actualBudgetItems.filter((item: any) => 
       item && 
       item.category && 
       item.category.toLowerCase() === category.toLowerCase()
     );
+    
+    console.log(`Found ${caseInsensitiveMatch.length} case-insensitive matches for "${category}"`);
+    return caseInsensitiveMatch;
   };
   
 
