@@ -89,29 +89,17 @@ export default function BudgetCategorySummary({
       return [];
     }
     
-    // Debug category matching
-    console.log(`Looking for items in category: "${category}"`);
-    console.log('Available categories:', actualBudgetItems.map((item: any) => `"${item.category}"`));
-    
-    // Try exact match first
-    const exactMatch = actualBudgetItems.filter((item: any) => 
-      item && item.category && item.category === category
-    );
-    
-    if (exactMatch.length > 0) {
-      console.log(`Found ${exactMatch.length} exact matches for "${category}"`);
-      return exactMatch;
-    }
-    
-    // Try case-insensitive match
-    const caseInsensitiveMatch = actualBudgetItems.filter((item: any) => 
+    // Always use case-insensitive matching to handle mixed case categories
+    const allMatches = actualBudgetItems.filter((item: any) => 
       item && 
       item.category && 
       item.category.toLowerCase() === category.toLowerCase()
     );
     
-    console.log(`Found ${caseInsensitiveMatch.length} case-insensitive matches for "${category}"`);
-    return caseInsensitiveMatch;
+    console.log(`Looking for items in category: "${category}" (case-insensitive)`);
+    console.log(`Found ${allMatches.length} matches:`, allMatches.map((item: any) => `${item.item} (${item.category})`));
+    
+    return allMatches;
   };
   
 
@@ -242,7 +230,7 @@ export default function BudgetCategorySummary({
           const isExpanded = expandedCategories.has(category.category);
           const categoryItems = getCategoryItems(category.category);
           
-
+          console.log(`Rendering category "${category.category}": ${categoryItems.length} items`, categoryItems.map((item: any) => item.item));
           
           return (
             <Card key={category.category} className="hover:shadow-md transition-shadow">
