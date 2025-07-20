@@ -9,6 +9,7 @@ import { Users, Mail, Phone, MapPin, Filter, UserPlus, Send } from "lucide-react
 import { useProjects } from "@/hooks/useProjects";
 import { useGuests, useGuestStats, useBulkUpdateGuests } from "@/hooks/useGuests";
 import GuestFormDialog from "@/components/guests/GuestFormDialog";
+import QuickRSVPButtons from "@/components/guests/QuickRSVPButtons";
 import LoadingSpinner from "@/components/ui/loading-spinner";
 
 const groupFilters = [
@@ -314,6 +315,7 @@ export default function Guests() {
                         <Badge variant="outline" className="capitalize">
                           {guest.group?.replace('_', ' ') || 'other'}
                         </Badge>
+                        <QuickRSVPButtons guest={guest} projectId={projectId} />
                       </div>
                     </div>
                     

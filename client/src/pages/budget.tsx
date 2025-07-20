@@ -57,20 +57,26 @@ export default function Budget() {
   // Calculate totals from filtered items
   const filteredTotals = useMemo(() => {
     return filteredItems.reduce((acc, item) => {
-      acc.estimated += item.estimatedCost || 0;
-      acc.actual += item.actualCost || 0;
-      if (item.isPaid) acc.paid += item.actualCost || item.estimatedCost || 0;
+      const estimatedCost = parseFloat(item.estimatedCost) || 0;
+      const actualCost = parseFloat(item.actualCost) || 0;
+      
+      acc.estimated += estimatedCost;
+      acc.actual += actualCost;
+      if (item.isPaid) acc.paid += actualCost || estimatedCost;
       return acc;
     }, { estimated: 0, actual: 0, paid: 0 });
   }, [filteredItems]);
 
-  const formatCurrency = (amount: number) => {
+  const formatCurrency = (amount: number | undefined | null) => {
+    const safeAmount = parseFloat(String(amount)) || 0;
+    if (isNaN(safeAmount)) return '$0';
+    
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
-    }).format(amount);
+    }).format(safeAmount);
   };
 
   // Loading and error states

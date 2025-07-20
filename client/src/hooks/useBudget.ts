@@ -54,7 +54,7 @@ export function useDeleteBudgetItem(projectId: string) {
 export function useBudgetSummary(projectId?: string) {
   const { data: budgetItems } = useBudget(projectId);
   
-  if (!budgetItems) return null;
+  if (!budgetItems || !Array.isArray(budgetItems)) return null;
   
   const categories = budgetItems.reduce((acc: any, item: any) => {
     const category = item.category || 'other';
@@ -66,20 +66,24 @@ export function useBudgetSummary(projectId?: string) {
         items: 0,
       };
     }
-    acc[category].estimated += item.estimatedCost || 0;
-    acc[category].actual += item.actualCost || 0;
+    // Safe number conversion with fallback to 0
+    const estimatedCost = parseFloat(item.estimatedCost) || 0;
+    const actualCost = parseFloat(item.actualCost) || 0;
+    
+    acc[category].estimated += estimatedCost;
+    acc[category].actual += actualCost;
     acc[category].items += 1;
     return acc;
   }, {});
   
-  const totalEstimated = Object.values(categories).reduce((sum: number, cat: any) => sum + cat.estimated, 0);
-  const totalActual = Object.values(categories).reduce((sum: number, cat: any) => sum + cat.actual, 0);
+  const totalEstimated = Object.values(categories).reduce((sum: number, cat: any) => sum + (cat.estimated || 0), 0);
+  const totalActual = Object.values(categories).reduce((sum: number, cat: any) => sum + (cat.actual || 0), 0);
   
   return {
     categories: Object.values(categories),
-    totalEstimated,
-    totalActual,
-    totalRemaining: totalEstimated - totalActual,
+    totalEstimated: isNaN(totalEstimated) ? 0 : totalEstimated,
+    totalActual: isNaN(totalActual) ? 0 : totalActual,
+    totalRemaining: isNaN(totalEstimated - totalActual) ? 0 : totalEstimated - totalActual,
     items: budgetItems.length,
   };
 }

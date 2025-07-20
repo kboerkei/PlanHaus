@@ -20,29 +20,39 @@ export default function BudgetCategorySummary({
   totalBudget, 
   totalSpent 
 }: BudgetCategorySummaryProps) {
-  const formatCurrency = (amount: number) => {
+  const formatCurrency = (amount: number | undefined | null) => {
+    const safeAmount = parseFloat(String(amount)) || 0;
+    if (isNaN(safeAmount)) return '$0';
+    
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
-    }).format(amount);
+    }).format(safeAmount);
   };
 
   const getProgressPercentage = (spent: number, budget: number) => {
-    if (budget === 0) return 0;
-    return Math.min((spent / budget) * 100, 100);
+    const safeSpent = parseFloat(String(spent)) || 0;
+    const safeBudget = parseFloat(String(budget)) || 0;
+    if (safeBudget === 0) return 0;
+    return Math.min((safeSpent / safeBudget) * 100, 100);
   };
 
   const getProgressColor = (spent: number, budget: number) => {
-    const percentage = (spent / budget) * 100;
+    const safeSpent = parseFloat(String(spent)) || 0;
+    const safeBudget = parseFloat(String(budget)) || 0;
+    if (safeBudget === 0) return "bg-gray-500";
+    const percentage = (safeSpent / safeBudget) * 100;
     if (percentage > 100) return "bg-red-500";
     if (percentage > 80) return "bg-yellow-500";
     return "bg-green-500";
   };
 
-  const overallProgress = getProgressPercentage(totalSpent, totalBudget);
-  const isOverBudget = totalSpent > totalBudget;
+  const safeTotalSpent = parseFloat(String(totalSpent)) || 0;
+  const safeTotalBudget = parseFloat(String(totalBudget)) || 0;
+  const overallProgress = getProgressPercentage(safeTotalSpent, safeTotalBudget);
+  const isOverBudget = safeTotalSpent > safeTotalBudget;
 
   return (
     <div className="space-y-6">
@@ -58,13 +68,13 @@ export default function BudgetCategorySummary({
           <div className="space-y-4">
             <div className="flex justify-between items-center">
               <span className="text-gray-600">Total Budget:</span>
-              <span className="font-bold text-lg">{formatCurrency(totalBudget)}</span>
+              <span className="font-bold text-lg">{formatCurrency(safeTotalBudget)}</span>
             </div>
             
             <div className="flex justify-between items-center">
               <span className="text-gray-600">Total Spent:</span>
               <span className={`font-bold text-lg ${isOverBudget ? 'text-red-600' : 'text-green-600'}`}>
-                {formatCurrency(totalSpent)}
+                {formatCurrency(safeTotalSpent)}
               </span>
             </div>
             
@@ -79,7 +89,7 @@ export default function BudgetCategorySummary({
                   <TrendingDown className="w-4 h-4 text-green-500" />
                 )}
                 <span className={`font-bold ${isOverBudget ? 'text-red-600' : 'text-green-600'}`}>
-                  {formatCurrency(Math.abs(totalBudget - totalSpent))}
+                  {formatCurrency(Math.abs(safeTotalBudget - safeTotalSpent))}
                 </span>
               </div>
             </div>
