@@ -39,6 +39,12 @@ export default function Budget() {
   
   // Ensure we have budget items data for the category summary
   const actualBudgetItems = budgetItems || [];
+  
+  // Debug project selection
+  console.log('Budget page debug:');
+  console.log('- currentProject:', currentProject);
+  console.log('- projectId:', projectId);
+  console.log('- budgetItems:', budgetItems);
 
   // Filter logic
   const filteredItems = useMemo(() => {
@@ -306,13 +312,19 @@ export default function Budget() {
         </TabsContent>
 
         <TabsContent value="categories">
-          <BudgetCategorySummary
-            categories={budgetSummary?.categories || []}
-            totalBudget={budgetSummary?.totalEstimated || 0}
-            totalSpent={budgetSummary?.totalActual || 0}
-            budgetItems={actualBudgetItems}
-            projectId={projectId || ''}
-          />
+          {projectId ? (
+            <BudgetCategorySummary
+              categories={budgetSummary?.categories || []}
+              totalBudget={budgetSummary?.totalEstimated || 0}
+              totalSpent={budgetSummary?.totalActual || 0}
+              budgetItems={actualBudgetItems}
+              projectId={projectId}
+            />
+          ) : (
+            <div className="flex items-center justify-center p-8">
+              <p className="text-gray-500">Loading project...</p>
+            </div>
+          )}
         </TabsContent>
       </Tabs>
     </div>

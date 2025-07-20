@@ -39,8 +39,8 @@ export default function BudgetCategorySummary({
   const actualBudgetItems = freshBudgetItems || budgetItems || [];
   
   // Temporary debug to see exactly what we're getting
-  console.log('=== BUDGET DEBUG ===');
-  console.log('projectId:', projectId);
+  console.log('=== BUDGET CATEGORY SUMMARY DEBUG ===');
+  console.log('projectId received:', projectId);
   console.log('freshBudgetItems:', freshBudgetItems);
   console.log('budgetItems prop:', budgetItems);
   console.log('actualBudgetItems:', actualBudgetItems);
