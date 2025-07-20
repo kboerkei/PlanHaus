@@ -45,7 +45,9 @@ export default function BudgetCategorySummary({
   };
 
   const getCategoryItems = (category: string) => {
-    return (budgetItems || []).filter(item => item.category === category);
+    return (budgetItems || []).filter(item => 
+      (item.category || 'other').toLowerCase() === category.toLowerCase()
+    );
   };
 
   const handleDeleteItem = async (itemId: number, itemName: string) => {

@@ -57,10 +57,13 @@ export function useBudgetSummary(projectId?: string) {
   if (!budgetItems || !Array.isArray(budgetItems)) return null;
   
   const categories = budgetItems.reduce((acc: any, item: any) => {
-    const category = item.category || 'other';
-    if (!acc[category]) {
-      acc[category] = {
-        category,
+    // Normalize category to lowercase for grouping, but keep original for display
+    const categoryKey = (item.category || 'other').toLowerCase();
+    const categoryDisplay = item.category || 'other';
+    
+    if (!acc[categoryKey]) {
+      acc[categoryKey] = {
+        category: categoryDisplay,
         estimated: 0,
         actual: 0,
         items: 0,
@@ -70,9 +73,9 @@ export function useBudgetSummary(projectId?: string) {
     const estimatedCost = parseFloat(item.estimatedCost) || 0;
     const actualCost = parseFloat(item.actualCost) || 0;
     
-    acc[category].estimated += estimatedCost;
-    acc[category].actual += actualCost;
-    acc[category].items += 1;
+    acc[categoryKey].estimated += estimatedCost;
+    acc[categoryKey].actual += actualCost;
+    acc[categoryKey].items += 1;
     return acc;
   }, {});
   
