@@ -303,51 +303,13 @@ export default function Budget() {
         </TabsContent>
 
         <TabsContent value="categories">
-          {budgetSummary && budgetSummary.categories.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {budgetSummary.categories.map((category: any) => (
-                <Card key={category.category}>
-                  <CardHeader>
-                    <CardTitle className="capitalize text-lg">{category.category}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Estimated:</span>
-                        <span className="font-medium">{formatCurrency(category.estimated)}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Actual:</span>
-                        <span className="font-medium">{formatCurrency(category.actual)}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Items:</span>
-                        <span className="font-medium">{category.items}</span>
-                      </div>
-                      <div className="flex justify-between font-medium">
-                        <span>Difference:</span>
-                        <span className={category.actual > category.estimated ? 'text-red-600' : 'text-green-600'}>
-                          {formatCurrency(Math.abs(category.estimated - category.actual))}
-                          {category.actual > category.estimated ? ' over' : ' under'}
-                        </span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          ) : (
-            <Card>
-              <CardContent className="text-center py-12">
-                <PieChart className="mx-auto mb-4 w-16 h-16 text-gray-400" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No categories yet</h3>
-                <p className="text-gray-600 mb-4">
-                  Add budget items to see category breakdown
-                </p>
-                <BudgetEntryDialog projectId={projectId} />
-              </CardContent>
-            </Card>
-          )}
+          <BudgetCategorySummary
+            categories={budgetSummary?.categories || []}
+            totalBudget={budgetSummary?.totalBudget || 0}
+            totalSpent={budgetSummary?.totalSpent || 0}
+            budgetItems={budgetItems || []}
+            projectId={projectId || ''}
+          />
         </TabsContent>
       </Tabs>
     </div>

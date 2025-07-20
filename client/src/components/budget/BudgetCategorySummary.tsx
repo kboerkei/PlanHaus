@@ -1,6 +1,12 @@
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { TrendingUp, TrendingDown, DollarSign } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { TrendingUp, TrendingDown, DollarSign, ChevronDown, ChevronRight, Edit, Trash2 } from "lucide-react";
+import BudgetEntryDialog from "./BudgetEntryDialog";
+import { useDeleteBudgetItem } from "@/hooks/useBudget";
+import { useToast } from "@/hooks/use-toast";
 
 interface Category {
   category: string;
@@ -13,13 +19,49 @@ interface BudgetCategorySummaryProps {
   categories: Category[];
   totalBudget: number;
   totalSpent: number;
+  budgetItems: any[];
+  projectId: string;
 }
 
 export default function BudgetCategorySummary({ 
   categories, 
   totalBudget, 
-  totalSpent 
+  totalSpent,
+  budgetItems,
+  projectId
 }: BudgetCategorySummaryProps) {
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
+  const { toast } = useToast();
+  const deleteBudgetItem = useDeleteBudgetItem(projectId);
+
+  const toggleCategory = (category: string) => {
+    const newExpanded = new Set(expandedCategories);
+    if (newExpanded.has(category)) {
+      newExpanded.delete(category);
+    } else {
+      newExpanded.add(category);
+    }
+    setExpandedCategories(newExpanded);
+  };
+
+  const getCategoryItems = (category: string) => {
+    return budgetItems.filter(item => item.category === category);
+  };
+
+  const handleDeleteItem = async (itemId: number, itemName: string) => {
+    if (window.confirm(`Are you sure you want to delete "${itemName}"?`)) {
+      try {
+        await deleteBudgetItem.mutateAsync(itemId);
+        toast({ title: "Budget item deleted successfully!" });
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Failed to delete budget item",
+          variant: "destructive"
+        });
+      }
+    }
+  };
   const formatCurrency = (amount: number | undefined | null) => {
     const safeAmount = parseFloat(String(amount)) || 0;
     if (isNaN(safeAmount)) return '$0';
@@ -113,12 +155,24 @@ export default function BudgetCategorySummary({
         {categories.map((category) => {
           const categoryProgress = getProgressPercentage(category.actual, category.estimated);
           const isOverCategory = category.actual > category.estimated;
+          const isExpanded = expandedCategories.has(category.category);
+          const categoryItems = getCategoryItems(category.category);
           
           return (
             <Card key={category.category} className="hover:shadow-md transition-shadow">
-              <CardHeader className="pb-3">
+              <CardHeader 
+                className="pb-3 cursor-pointer" 
+                onClick={() => toggleCategory(category.category)}
+              >
                 <CardTitle className="text-lg capitalize flex items-center justify-between">
-                  {category.category}
+                  <div className="flex items-center gap-2">
+                    {isExpanded ? (
+                      <ChevronDown className="w-4 h-4" />
+                    ) : (
+                      <ChevronRight className="w-4 h-4" />
+                    )}
+                    {category.category}
+                  </div>
                   <span className="text-sm font-normal text-gray-500">
                     {category.items} item{category.items !== 1 ? 's' : ''}
                   </span>
@@ -161,6 +215,68 @@ export default function BudgetCategorySummary({
                 <div className="text-xs text-gray-500 pt-1 border-t">
                   {((category.estimated / totalBudget) * 100).toFixed(1)}% of total budget
                 </div>
+
+                {/* Expanded Items */}
+                {isExpanded && (
+                  <div className="mt-4 pt-4 border-t space-y-3">
+                    <h4 className="font-medium text-sm text-gray-900 mb-2">Individual Items:</h4>
+                    {categoryItems.map((item) => (
+                      <div key={item.id} className="bg-gray-50 rounded-lg p-3 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <h5 className="font-medium text-sm">{item.item}</h5>
+                          <div className="flex gap-1">
+                            <BudgetEntryDialog
+                              projectId={projectId}
+                              budgetItem={item}
+                              trigger={
+                                <Button variant="ghost" size="sm" className="p-1">
+                                  <Edit className="w-3 h-3" />
+                                </Button>
+                              }
+                            />
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="p-1 hover:bg-red-50"
+                              onClick={() => handleDeleteItem(item.id, item.item)}
+                              disabled={deleteBudgetItem.isPending}
+                            >
+                              <Trash2 className="w-3 h-3 text-red-600" />
+                            </Button>
+                          </div>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-2 text-xs">
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Estimated:</span>
+                            <span className="font-medium">{formatCurrency(parseFloat(item.estimatedCost) || 0)}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Actual:</span>
+                            <span className="font-medium">{formatCurrency(parseFloat(item.actualCost) || 0)}</span>
+                          </div>
+                        </div>
+                        
+                        {item.vendor && (
+                          <div className="flex items-center gap-1">
+                            <span className="text-xs text-gray-600">Vendor:</span>
+                            <Badge variant="outline" className="text-xs">{item.vendor}</Badge>
+                          </div>
+                        )}
+                        
+                        {item.isPaid && (
+                          <Badge className="text-xs bg-green-100 text-green-800">
+                            Paid
+                          </Badge>
+                        )}
+                        
+                        {item.notes && (
+                          <p className="text-xs text-gray-600 italic">{item.notes}</p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           );
