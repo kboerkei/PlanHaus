@@ -34,8 +34,6 @@ export default function BudgetCategorySummary({
   const { toast } = useToast();
   const deleteBudgetItem = useDeleteBudgetItem(projectId);
 
-  console.log('BudgetCategorySummary received budgetItems:', budgetItems);
-
   const toggleCategory = (category: string) => {
     const newExpanded = new Set(expandedCategories);
     if (newExpanded.has(category)) {
@@ -47,11 +45,15 @@ export default function BudgetCategorySummary({
   };
 
   const getCategoryItems = (category: string) => {
-    const items = (budgetItems || []).filter(item => 
-      (item.category || 'other').toLowerCase() === category.toLowerCase()
+    if (!budgetItems || !Array.isArray(budgetItems)) {
+      return [];
+    }
+    
+    return budgetItems.filter(item => 
+      item && 
+      item.category && 
+      item.category.toLowerCase() === category.toLowerCase()
     );
-    console.log('getCategoryItems for category:', category, 'found items:', items.length, 'items:', items);
-    return items;
   };
 
   const handleDeleteItem = async (itemId: number, itemName: string) => {
@@ -109,9 +111,10 @@ export default function BudgetCategorySummary({
         <CardContent className="text-center py-12">
           <DollarSign className="mx-auto mb-4 w-16 h-16 text-gray-400" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">No budget categories yet</h3>
-          <p className="text-gray-600">
+          <p className="text-gray-600 mb-4">
             Add budget items to see your category breakdown and spending analysis.
           </p>
+          <BudgetEntryDialog projectId={projectId} />
         </CardContent>
       </Card>
     );

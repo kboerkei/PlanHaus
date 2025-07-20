@@ -36,9 +36,6 @@ export default function Budget() {
   
   const { data: budgetItems = [], isLoading: budgetLoading, error: budgetError } = useBudget(projectId);
   const budgetSummary = useBudgetSummary(projectId);
-  
-  console.log('Budget page budgetItems:', budgetItems);
-  console.log('Budget page budgetSummary:', budgetSummary);
 
   // Filter logic
   const filteredItems = useMemo(() => {

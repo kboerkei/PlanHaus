@@ -54,12 +54,23 @@ export function useDeleteBudgetItem(projectId: string) {
 export function useBudgetSummary(projectId?: string) {
   const { data: budgetItems } = useBudget(projectId);
   
-  if (!budgetItems || !Array.isArray(budgetItems)) return null;
+  if (!budgetItems || !Array.isArray(budgetItems) || budgetItems.length === 0) {
+    return {
+      categories: [],
+      totalEstimated: 0,
+      totalActual: 0,
+      totalRemaining: 0,
+      items: 0,
+    };
+  }
   
   const categories = budgetItems.reduce((acc: any, item: any) => {
+    // Only process items that have a valid category
+    if (!item || !item.category) return acc;
+    
     // Normalize category to lowercase for grouping, but keep original for display
-    const categoryKey = (item.category || 'other').toLowerCase();
-    const categoryDisplay = item.category || 'other';
+    const categoryKey = item.category.toLowerCase();
+    const categoryDisplay = item.category;
     
     if (!acc[categoryKey]) {
       acc[categoryKey] = {
