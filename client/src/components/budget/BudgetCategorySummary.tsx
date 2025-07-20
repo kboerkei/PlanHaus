@@ -38,13 +38,7 @@ export default function BudgetCategorySummary({
   const { data: freshBudgetItems } = useBudget(projectId);
   const actualBudgetItems = freshBudgetItems || budgetItems || [];
   
-  // Additional debug to see what the API is actually returning
-  console.log('Raw freshBudgetItems from useBudget hook:', freshBudgetItems);
-  console.log('Raw budgetItems prop:', budgetItems);
-  console.log('Final actualBudgetItems:', actualBudgetItems);
-  
-  // Also log the project ID being used
-  console.log('Current projectId for budget query:', projectId);
+
 
   const toggleCategory = (category: string) => {
     const newExpanded = new Set(expandedCategories);
@@ -195,17 +189,7 @@ export default function BudgetCategorySummary({
           const isExpanded = expandedCategories.has(category.category);
           const categoryItems = getCategoryItems(category.category);
           
-          // Debug logging
-          if (isExpanded) {
-            console.log(`EXPANDED - Category: ${category.category}, Items found: ${categoryItems.length}`);
-            console.log('Available actualBudgetItems:', actualBudgetItems?.length || 0, actualBudgetItems);
-            console.log('Looking for items with category matching:', category.category);
-            if (actualBudgetItems) {
-              actualBudgetItems.forEach(item => {
-                console.log(`Item: ${item.item}, Category: "${item.category}", Match: ${item.category?.toLowerCase() === category.category.toLowerCase()}`);
-              });
-            }
-          }
+
           
           return (
             <Card key={category.category} className="hover:shadow-md transition-shadow">

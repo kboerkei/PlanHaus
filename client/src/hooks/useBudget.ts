@@ -5,10 +5,7 @@ import { BudgetFormData } from "@/schemas";
 export function useBudget(projectId?: string) {
   return useQuery({
     queryKey: ['/api/projects', projectId, 'budget'],
-    queryFn: () => fetch(`/api/projects/${projectId}/budget`).then(res => {
-      if (!res.ok) throw new Error('Failed to fetch budget');
-      return res.json();
-    }),
+    queryFn: () => apiRequest(`/api/projects/${projectId}/budget`),
     enabled: !!projectId,
   });
 }
