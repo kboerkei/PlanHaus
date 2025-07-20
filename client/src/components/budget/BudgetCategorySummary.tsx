@@ -34,6 +34,8 @@ export default function BudgetCategorySummary({
   const { toast } = useToast();
   const deleteBudgetItem = useDeleteBudgetItem(projectId);
 
+  console.log('BudgetCategorySummary received budgetItems:', budgetItems);
+
   const toggleCategory = (category: string) => {
     const newExpanded = new Set(expandedCategories);
     if (newExpanded.has(category)) {
