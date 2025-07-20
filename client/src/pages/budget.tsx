@@ -36,6 +36,9 @@ export default function Budget() {
   
   const { data: budgetItems = [], isLoading: budgetLoading, error: budgetError } = useBudget(projectId);
   const budgetSummary = useBudgetSummary(projectId);
+  
+  // Ensure we have budget items data for the category summary
+  const actualBudgetItems = budgetItems || [];
 
   // Filter logic
   const filteredItems = useMemo(() => {
@@ -307,7 +310,7 @@ export default function Budget() {
             categories={budgetSummary?.categories || []}
             totalBudget={budgetSummary?.totalEstimated || 0}
             totalSpent={budgetSummary?.totalActual || 0}
-            budgetItems={budgetItems || []}
+            budgetItems={actualBudgetItems}
             projectId={projectId || ''}
           />
         </TabsContent>

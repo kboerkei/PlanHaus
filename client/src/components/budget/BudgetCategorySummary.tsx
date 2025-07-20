@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { TrendingUp, TrendingDown, DollarSign, ChevronDown, ChevronRight, Edit, Trash2 } from "lucide-react";
 import BudgetEntryDialog from "./BudgetEntryDialog";
-import { useDeleteBudgetItem } from "@/hooks/useBudget";
+import { useDeleteBudgetItem, useBudget } from "@/hooks/useBudget";
 import { useToast } from "@/hooks/use-toast";
 
 interface Category {
@@ -27,12 +27,16 @@ export default function BudgetCategorySummary({
   categories, 
   totalBudget, 
   totalSpent,
-  budgetItems,
+  budgetItems = [],
   projectId
 }: BudgetCategorySummaryProps) {
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const { toast } = useToast();
   const deleteBudgetItem = useDeleteBudgetItem(projectId);
+  
+  // Re-fetch budget items directly to ensure we have the data
+  const { data: freshBudgetItems } = useBudget(projectId);
+  const actualBudgetItems = freshBudgetItems || budgetItems || [];
 
   const toggleCategory = (category: string) => {
     const newExpanded = new Set(expandedCategories);
@@ -45,12 +49,12 @@ export default function BudgetCategorySummary({
   };
 
   const getCategoryItems = (category: string) => {
-    if (!budgetItems || !Array.isArray(budgetItems)) {
+    if (!actualBudgetItems || !Array.isArray(actualBudgetItems)) {
       return [];
     }
     
     // Direct category matching - both the category from summary and item.category should match exactly
-    return budgetItems.filter(item => 
+    return actualBudgetItems.filter(item => 
       item && 
       item.category && 
       item.category.toLowerCase() === category.toLowerCase()
@@ -186,10 +190,10 @@ export default function BudgetCategorySummary({
           // Debug logging
           if (isExpanded) {
             console.log(`EXPANDED - Category: ${category.category}, Items found: ${categoryItems.length}`);
-            console.log('Available budgetItems:', budgetItems?.length || 0, budgetItems);
+            console.log('Available actualBudgetItems:', actualBudgetItems?.length || 0, actualBudgetItems);
             console.log('Looking for items with category matching:', category.category);
-            if (budgetItems) {
-              budgetItems.forEach(item => {
+            if (actualBudgetItems) {
+              actualBudgetItems.forEach(item => {
                 console.log(`Item: ${item.item}, Category: "${item.category}", Match: ${item.category?.toLowerCase() === category.category.toLowerCase()}`);
               });
             }
