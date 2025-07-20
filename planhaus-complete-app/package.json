@@ -1,13 +1,19 @@
 {
   "name": "rest-express",
   "version": "1.0.0",
-  "type": "module",
+  "description": "RESTful Express + React App with modern tooling",
+  "author": "Your Name",
   "license": "MIT",
+  "type": "module",
   "scripts": {
-    "dev": "NODE_ENV=development tsx server/index.ts",
-    "build": "vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist",
-    "start": "NODE_ENV=production node dist/index.js",
+    "dev": "cross-env NODE_ENV=development tsx server/index.ts",
+    "build:frontend": "vite build",
+    "build:backend": "esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outfile=dist/index.js",
+    "build": "npm run build:frontend && npm run build:backend",
+    "start": "cross-env NODE_ENV=production node dist/index.js",
     "check": "tsc",
+    "format": "prettier --write .",
+    "lint": "eslint . --ext .ts,.tsx",
     "db:push": "drizzle-kit push"
   },
   "dependencies": {
@@ -16,7 +22,6 @@
     "@dnd-kit/utilities": "^3.2.2",
     "@headlessui/react": "^2.2.4",
     "@hookform/resolvers": "^3.10.0",
-    "@jridgewell/trace-mapping": "^0.3.25",
     "@neondatabase/serverless": "^0.10.4",
     "@radix-ui/react-accordion": "^1.2.4",
     "@radix-ui/react-alert-dialog": "^1.1.7",
@@ -50,12 +55,10 @@
     "@types/multer": "^2.0.0",
     "@types/pdf-parse": "^1.1.5",
     "accounting-js": "^2.0.3",
-    "canvas-confetti": "^1.9.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
     "connect-pg-simple": "^10.0.0",
-    "date-fns": "^3.6.0",
     "dayjs": "^1.11.13",
     "drizzle-orm": "^0.39.1",
     "drizzle-zod": "^0.7.0",
@@ -114,9 +117,14 @@
     "@types/ws": "^8.5.13",
     "@vitejs/plugin-react": "^4.3.2",
     "autoprefixer": "^10.4.20",
+    "cross-env": "^7.0.3",
     "drizzle-kit": "^0.30.4",
     "esbuild": "^0.25.0",
+    "eslint": "^8.56.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-react": "^7.34.1",
     "postcss": "^8.4.47",
+    "prettier": "^3.2.5",
     "tailwindcss": "^3.4.17",
     "tsx": "^4.19.1",
     "typescript": "5.6.3",
@@ -126,3 +134,5 @@
     "bufferutil": "^4.0.8"
   }
 }
+
+
