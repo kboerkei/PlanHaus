@@ -42,6 +42,9 @@ export default function BudgetCategorySummary({
   console.log('Raw freshBudgetItems from useBudget hook:', freshBudgetItems);
   console.log('Raw budgetItems prop:', budgetItems);
   console.log('Final actualBudgetItems:', actualBudgetItems);
+  
+  // Also log the project ID being used
+  console.log('Current projectId for budget query:', projectId);
 
   const toggleCategory = (category: string) => {
     const newExpanded = new Set(expandedCategories);
