@@ -410,7 +410,15 @@ export default function Inspiration() {
               Import Pinterest Board
             </DialogTitle>
             <DialogDescription>
-              Import wedding inspiration from your Pinterest board. We'll create inspiration items based on your board.
+              <div className="space-y-2">
+                <p className="text-sm text-amber-600 font-medium">⚠️ Pinterest API Limitation</p>
+                <p className="text-xs">Pinterest requires official API approval to fetch real images. To add actual Pinterest images:</p>
+                <ol className="text-xs space-y-1 ml-4 list-decimal">
+                  <li>Open your Pinterest board in a new tab</li>
+                  <li>Right-click any pin image → "Copy image address"</li>
+                  <li>Use the "Add Inspiration" button and paste the image URL</li>
+                </ol>
+              </div>
             </DialogDescription>
           </DialogHeader>
           <Form {...pinterestForm}>
@@ -470,11 +478,14 @@ export default function Inspiration() {
                   Cancel
                 </Button>
                 <Button 
-                  type="submit" 
-                  disabled={pinterestImportMutation.isPending} 
+                  type="button" 
+                  onClick={() => {
+                    setIsPinterestDialogOpen(false);
+                    setIsAddDialogOpen(true);
+                  }}
                   className="gradient-blush-rose text-white"
                 >
-                  {pinterestImportMutation.isPending ? "Importing..." : "Import Board"}
+                  Add Inspiration Manually
                 </Button>
               </div>
             </form>

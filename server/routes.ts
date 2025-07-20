@@ -226,40 +226,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const currentProject = projects.find(p => p.name === "Emma & Jake's Wedding") || projects[0];
       
-      // Note: This is a demo version - real Pinterest API would require authentication
-      // For demonstration, we'll create sample inspiration items based on the board URL
-      const samplePins = [
-        {
-          title: `Wedding Flowers from ${boardName}`,
-          imageUrl: 'https://images.unsplash.com/photo-1522673607200-164d1b6ce486?w=400&h=400&fit=crop',
-          description: `Beautiful wedding flower arrangements and bouquet ideas from Pinterest board: ${boardName}`,
-          category: category || 'flowers'
-        },
-        {
-          title: `Ceremony Inspiration from ${boardName}`,
-          imageUrl: 'https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=400&h=400&fit=crop',
-          description: `Ceremony decoration and setup ideas from Pinterest board: ${boardName}`,
-          category: category || 'ceremony'
-        },
-        {
-          title: `Reception Decor from ${boardName}`,
-          imageUrl: 'https://images.unsplash.com/photo-1519741497674-611481863552?w=400&h=400&fit=crop',
-          description: `Reception decoration and table setting ideas from Pinterest board: ${boardName}`,
-          category: category || 'reception'
-        },
-        {
-          title: `Wedding Dress Ideas from ${boardName}`,
-          imageUrl: 'https://images.unsplash.com/photo-1594736797933-d0d30c4f732e?w=400&h=400&fit=crop',
-          description: `Wedding dress and bridal fashion inspiration from Pinterest board: ${boardName}`,
-          category: category || 'attire'
-        },
-        {
-          title: `Wedding Cake from ${boardName}`,
-          imageUrl: 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=400&h=400&fit=crop',
-          description: `Wedding cake design and decoration ideas from Pinterest board: ${boardName}`,
-          category: category || 'cake'
-        }
-      ];
+      // Return error explaining Pinterest API limitation
+      return res.status(400).json({ 
+        error: 'Pinterest API integration requires official Pinterest Developer credentials and approval. For now, please manually add images from your Pinterest board using the "Add Inspiration" button and copy image URLs directly from Pinterest pins.',
+        suggestion: 'To add images from Pinterest: 1) Open your Pinterest board, 2) Click on a pin, 3) Right-click the image and copy image address, 4) Use "Add Inspiration" button and paste the image URL'
+      });
 
       // Create inspiration items for each pin
       const createdItems = [];
