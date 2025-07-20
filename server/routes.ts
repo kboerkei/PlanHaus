@@ -195,8 +195,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'Pinterest board URL is required' });
       }
 
-      // Validate Pinterest URL
-      const pinterestUrlPattern = /^https?:\/\/(www\.)?pinterest\.(com|ca|co\.uk|com\.au|de|fr|it|es|dk|no|se|fi|nl|be|at|ch|ie|nz|jp|kr|in|mx|br|ar|co|cl|pe|ve|ec|uy|py|bo|gt|hn|sv|cr|pa|ni|do|pr|vi|bz|gd|lc|vc|ag|bb|tt|jm|bs|ky|tc|ai|ms|vg|dm|gp|mq|pm|bl|mf|sx|aw|cw|bq|sr|gf|gy|fk|gs|sh|ac|ta|io|cc|cx|nf|ck|nu|tk|to|tv|fm|pw|mh|ki|nr|ws|as|gu|mp|um|pr|vi|gl|fo|ax|sj|im|je|gg)\/([\w\-\.]+)\/([\w\-\.]+)\/?.*$/;
+      // Validate Pinterest URL - simplified and more flexible
+      const pinterestUrlPattern = /^https?:\/\/(www\.)?pinterest\.[a-z]{2,}/i;
       
       if (!pinterestUrlPattern.test(boardUrl)) {
         return res.status(400).json({ error: 'Invalid Pinterest board URL. Please provide a valid Pinterest board URL like: https://www.pinterest.com/username/board-name/' });
