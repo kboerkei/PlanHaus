@@ -35,11 +35,23 @@ export default function BudgetCategorySummary({
   const actualBudgetItems = freshBudgetItems || budgetItems || [];
   
   console.log('BudgetCategorySummary Debug:');
-  console.log('- projectId:', projectId);
+  console.log('- projectId:', projectId, typeof projectId);
   console.log('- freshBudgetItems length:', freshBudgetItems?.length);
   console.log('- passed budgetItems length:', budgetItems?.length);
   console.log('- actualBudgetItems length:', actualBudgetItems?.length);
   console.log('- categories length:', categories?.length);
+  
+  // Test category items for first category
+  if (categories.length > 0 && actualBudgetItems.length > 0) {
+    const firstCategory = categories[0].category;
+    const itemsInCategory = actualBudgetItems.filter(item => 
+      item && item.category && (
+        item.category === firstCategory || 
+        item.category.toLowerCase() === firstCategory.toLowerCase()
+      )
+    );
+    console.log(`Items in "${firstCategory}":`, itemsInCategory.length, itemsInCategory);
+  }
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const { toast } = useToast();
   const deleteBudgetItem = useDeleteBudgetItem(projectId);

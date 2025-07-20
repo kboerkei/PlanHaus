@@ -34,6 +34,12 @@ export default function Budget() {
   const currentProject = projects?.find(p => p.name === "Emma & Jake's Wedding") || projects?.[0];
   const projectId = currentProject?.id?.toString();
   
+  // Debug project selection
+  console.log('Budget page project selection:');
+  console.log('- projects:', projects?.length);
+  console.log('- currentProject:', currentProject);
+  console.log('- projectId:', projectId);
+  
   const { data: budgetItems = [], isLoading: budgetLoading, error: budgetError } = useBudget(projectId);
   const budgetSummary = useBudgetSummary(projectId);
   
@@ -310,19 +316,23 @@ export default function Budget() {
         </TabsContent>
 
         <TabsContent value="categories">
-          {budgetSummary && budgetSummary.categories.length > 0 ? (
+          {projectId && budgetSummary && budgetSummary.categories.length > 0 ? (
             <BudgetCategorySummary
               categories={budgetSummary.categories || []}
               totalBudget={budgetSummary.totalEstimated || 0}
               totalSpent={budgetSummary.totalActual || 0}
               budgetItems={budgetItems || []}
-              projectId={projectId || ''}
+              projectId={projectId}
             />
+          ) : !projectId ? (
+            <div className="flex items-center justify-center p-8">
+              <p className="text-gray-500">Loading project...</p>
+            </div>
           ) : budgetItems?.length === 0 ? (
             <div className="flex items-center justify-center p-8">
               <div className="text-center">
                 <p className="text-gray-500 mb-4">No budget items found</p>
-                <BudgetEntryDialog projectId={projectId || ''} />
+                <BudgetEntryDialog projectId={projectId} />
               </div>
             </div>
           ) : (
