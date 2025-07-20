@@ -37,6 +37,11 @@ export default function BudgetCategorySummary({
   // Re-fetch budget items directly to ensure we have the data
   const { data: freshBudgetItems } = useBudget(projectId);
   const actualBudgetItems = freshBudgetItems || budgetItems || [];
+  
+  // Additional debug to see what the API is actually returning
+  console.log('Raw freshBudgetItems from useBudget hook:', freshBudgetItems);
+  console.log('Raw budgetItems prop:', budgetItems);
+  console.log('Final actualBudgetItems:', actualBudgetItems);
 
   const toggleCategory = (category: string) => {
     const newExpanded = new Set(expandedCategories);
