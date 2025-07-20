@@ -310,17 +310,21 @@ export default function Budget() {
         </TabsContent>
 
         <TabsContent value="categories">
-          {projectId ? (
+          {projectId && budgetItems && budgetSummary ? (
             <BudgetCategorySummary
-              categories={budgetSummary?.categories || []}
-              totalBudget={budgetSummary?.totalEstimated || 0}
-              totalSpent={budgetSummary?.totalActual || 0}
-              budgetItems={budgetItems || []}
+              categories={budgetSummary.categories || []}
+              totalBudget={budgetSummary.totalEstimated || 0}
+              totalSpent={budgetSummary.totalActual || 0}
+              budgetItems={budgetItems}
               projectId={projectId}
             />
           ) : (
             <div className="flex items-center justify-center p-8">
-              <p className="text-gray-500">Loading project data...</p>
+              <p className="text-gray-500">
+                {!projectId ? 'Loading project data...' : 
+                 !budgetItems ? 'Loading budget items...' : 
+                 'Loading budget summary...'}
+              </p>
             </div>
           )}
         </TabsContent>

@@ -37,6 +37,14 @@ export default function BudgetCategorySummary({
   // Use the passed budget items directly - no need to re-fetch
   const actualBudgetItems = budgetItems || [];
   
+  // Debug category items
+  console.log('Category Summary Debug:');
+  console.log('- actualBudgetItems:', actualBudgetItems.length, actualBudgetItems);
+  console.log('- categories:', categories.length, categories);
+  if (categories.length > 0) {
+    console.log('- sample category items for', categories[0].category, ':', getCategoryItems(categories[0].category));
+  }
+  
 
   
 
