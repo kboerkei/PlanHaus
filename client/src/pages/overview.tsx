@@ -427,11 +427,11 @@ export default function OverviewPage() {
               >
                 <Edit2 className="w-3 h-3" />
               </Button>
-              {showDelete && value && (
+              {showDelete && (
                 <Button
                   size="sm"
                   variant="ghost"
-                  onClick={() => deleteImportantDate(field)}
+                  onClick={() => deleteStandardQuestion(field)}
                   className="text-red-500 hover:text-red-700"
                 >
                   <Trash2 className="w-3 h-3" />
