@@ -41,7 +41,9 @@ export default function Timeline() {
 
   // Fetch data using hooks
   const { data: projects, isLoading: projectsLoading } = useProjects();
-  const currentProject = projects?.find(p => p.name === "Emma & Jake's Wedding") || projects?.[0];
+  const currentProject = Array.isArray(projects) 
+    ? projects.find((p: any) => p.name === "Emma & Jake's Wedding") || projects[0] 
+    : null;
   const projectId = currentProject?.id?.toString();
   
   const { data: tasks = [], isLoading: tasksLoading, error: tasksError } = useTasks(projectId);
@@ -49,9 +51,9 @@ export default function Timeline() {
 
   // Filter and search logic
   const filteredTasks = useMemo(() => {
-    if (!tasks) return [];
+    if (!Array.isArray(tasks)) return [];
     
-    return tasks.filter(task => {
+    return (tasks as any[]).filter((task: any) => {
       const matchesSearch = !searchTerm || 
         task.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         task.description?.toLowerCase().includes(searchTerm.toLowerCase());
@@ -66,12 +68,12 @@ export default function Timeline() {
   }, [tasks, searchTerm, filterPriority, filterCategory, showCompleted]);
 
   // Categorize tasks
-  const pendingTasks = filteredTasks.filter(task => task.status !== 'completed' && !task.isCompleted);
-  const completedTasks = filteredTasks.filter(task => task.status === 'completed' || task.isCompleted);
-  const overdueTasks = pendingTasks.filter(task => 
+  const pendingTasks = filteredTasks.filter((task: any) => task.status !== 'completed' && !task.isCompleted);
+  const completedTasks = filteredTasks.filter((task: any) => task.status === 'completed' || task.isCompleted);
+  const overdueTasks = pendingTasks.filter((task: any) => 
     task.dueDate && new Date(task.dueDate) < new Date()
   );
-  const highPriorityTasks = pendingTasks.filter(task => task.priority === 'high');
+  const highPriorityTasks = pendingTasks.filter((task: any) => task.priority === 'high');
   
   // Calculate days until wedding
   const daysUntilWedding = weddingDate 
@@ -163,7 +165,7 @@ export default function Timeline() {
           <Card className="border-purple-200">
             <CardContent className="p-4 text-center">
               <div className="text-2xl font-bold text-purple-600">
-                {tasks.length > 0 ? Math.round((completedTasks.length / tasks.length) * 100) : 0}%
+                {Array.isArray(tasks) && tasks.length > 0 ? Math.round((completedTasks.length / (tasks as any[]).length) * 100) : 0}%
               </div>
               <div className="text-sm text-gray-600">Progress</div>
             </CardContent>
@@ -214,7 +216,7 @@ export default function Timeline() {
             <Checkbox
               id="show-completed"
               checked={showCompleted}
-              onCheckedChange={setShowCompleted}
+              onCheckedChange={(checked) => setShowCompleted(checked === true)}
             />
             <label htmlFor="show-completed" className="text-sm">
               Show completed
@@ -247,17 +249,17 @@ export default function Timeline() {
         )}
 
         {/* High Priority Tasks */}
-        {highPriorityTasks.filter(t => !overdueTasks.includes(t)).length > 0 && (
+        {highPriorityTasks.filter((t: any) => !overdueTasks.includes(t)).length > 0 && (
           <Card className="border-l-4 border-l-orange-500">
             <CardHeader>
               <CardTitle className="flex items-center text-orange-700">
                 <Target className="mr-2 w-5 h-5" />
-                High Priority ({highPriorityTasks.filter(t => !overdueTasks.includes(t)).length})
+                High Priority ({highPriorityTasks.filter((t: any) => !overdueTasks.includes(t)).length})
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               {highPriorityTasks
-                .filter(t => !overdueTasks.includes(t))
+                .filter((t: any) => !overdueTasks.includes(t))
                 .map((task: any) => (
                   <TaskCard 
                     key={task.id} 
@@ -274,11 +276,11 @@ export default function Timeline() {
           <CardHeader>
             <CardTitle className="flex items-center">
               <Clock className="mr-2 w-5 h-5" />
-              Pending Tasks ({pendingTasks.filter(t => !overdueTasks.includes(t) && t.priority !== 'high').length})
+              Pending Tasks ({pendingTasks.filter((t: any) => !overdueTasks.includes(t) && t.priority !== 'high').length})
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {pendingTasks.filter(t => !overdueTasks.includes(t) && t.priority !== 'high').length === 0 ? (
+            {pendingTasks.filter((t: any) => !overdueTasks.includes(t) && t.priority !== 'high').length === 0 ? (
               <div className="text-center py-8 text-gray-500">
                 <Calendar className="mx-auto mb-4 w-12 h-12" />
                 <p>No pending tasks</p>
@@ -286,7 +288,7 @@ export default function Timeline() {
               </div>
             ) : (
               pendingTasks
-                .filter(t => !overdueTasks.includes(t) && t.priority !== 'high')
+                .filter((t: any) => !overdueTasks.includes(t) && t.priority !== 'high')
                 .map((task: any) => (
                   <TaskCard 
                     key={task.id} 
@@ -338,7 +340,6 @@ export default function Timeline() {
           </CardContent>
         </Card>
       )}
-        </div>
       </div>
     </div>
   );
