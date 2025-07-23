@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -8,6 +7,7 @@ import KeyboardShortcuts from "@/components/ui/keyboard-shortcuts";
 import { ErrorBoundary } from "@/components/error-boundary";
 import LoadingSpinner from "@/components/loading-spinner";
 import ToastProvider from "@/components/ToastProvider";
+import { useAuthSession } from "@/hooks/useAuthSession";
 import Auth from "@/pages/auth";
 import Profile from "@/pages/profile";
 import NotFound from "@/pages/not-found";
@@ -29,7 +29,14 @@ import MobileNav from "@/components/layout/mobile-nav-enhanced";
 import FloatingActions from "@/components/layout/floating-actions";
 import MobileMenu from "@/components/mobile-menu";
 
-function Router({ user, onLogout, isNewUser, onIntakeComplete }: { user: any; onLogout: () => void; isNewUser: boolean; onIntakeComplete: () => void }) {
+interface User {
+  id: string;
+  email: string;
+  username: string;
+  hasCompletedIntake: boolean;
+}
+
+function Router({ user, onLogout, isNewUser, onIntakeComplete }: { user: User; onLogout: () => void; isNewUser: boolean; onIntakeComplete: () => void }) {
   // Allow users to access all sections even without completing intake
 
   return (
@@ -73,160 +80,30 @@ function Router({ user, onLogout, isNewUser, onIntakeComplete }: { user: any; on
 }
 
 function App() {
-  const [user, setUser] = useState<any>(null);
-  const [sessionId, setSessionId] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isNewUser, setIsNewUser] = useState(false);
-
-  useEffect(() => {
-    // Check for existing session
-    const storedSessionId = localStorage.getItem('sessionId');
-    const storedUser = localStorage.getItem('user');
-    
-    if (storedSessionId && storedUser) {
-      try {
-        const userData = JSON.parse(storedUser);
-        
-        // Verify session is still valid by checking with server
-        fetch('/api/auth/me', {
-          headers: { Authorization: `Bearer ${storedSessionId}` }
-        })
-        .then(async (response) => {
-          if (response.ok) {
-            const serverUser = await response.json();
-            setSessionId(storedSessionId);
-            setUser({ ...userData, hasCompletedIntake: serverUser.hasCompletedIntake });
-          } else {
-            // Session expired, try demo login for seamless user experience
-            console.log('Session expired, attempting demo login...');
-            fetch('/api/auth/demo-login', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' }
-            })
-            .then(async (demoResponse) => {
-              if (demoResponse.ok) {
-                const demoData = await demoResponse.json();
-                setUser(demoData.user);
-                setSessionId(demoData.sessionId);
-                localStorage.setItem('sessionId', demoData.sessionId);
-                localStorage.setItem('user', JSON.stringify(demoData.user));
-              } else {
-                // Clear invalid session
-                localStorage.removeItem('sessionId');
-                localStorage.removeItem('user');
-              }
-            })
-            .catch(() => {
-              localStorage.removeItem('sessionId');
-              localStorage.removeItem('user');
-            });
-          }
-          setIsLoading(false);
-        })
-        .catch(() => {
-          // Network error - try demo login for development
-          console.log('Network error, attempting demo login...');
-          fetch('/api/auth/demo-login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' }
-          })
-          .then(async (demoResponse) => {
-            if (demoResponse.ok) {
-              const demoData = await demoResponse.json();
-              setUser(demoData.user);
-              setSessionId(demoData.sessionId);
-              localStorage.setItem('sessionId', demoData.sessionId);
-              localStorage.setItem('user', JSON.stringify(demoData.user));
-            } else {
-              localStorage.removeItem('sessionId');
-              localStorage.removeItem('user');
-            }
-          })
-          .catch(() => {
-            localStorage.removeItem('sessionId');
-            localStorage.removeItem('user');
-          })
-          .finally(() => {
-            setIsLoading(false);
-          });
-        });
-      } catch (error) {
-        console.error('Error parsing stored user data:', error);
-        localStorage.removeItem('sessionId');
-        localStorage.removeItem('user');
-        setIsLoading(false);
-      }
-    } else {
-      // No stored session, try demo login for development
-      console.log('No stored session, attempting demo login...');
-      fetch('/api/auth/demo-login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
-      })
-      .then(async (demoResponse) => {
-        if (demoResponse.ok) {
-          const demoData = await demoResponse.json();
-          setUser(demoData.user);
-          setSessionId(demoData.sessionId);
-          localStorage.setItem('sessionId', demoData.sessionId);
-          localStorage.setItem('user', JSON.stringify(demoData.user));
-        }
-      })
-      .catch(() => {
-        console.log('Demo login failed, showing auth page');
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
-    }
-  }, []);
-
-  const handleAuth = (userData: any, newSessionId: string, isRegistration = false) => {
-    setUser(userData);
-    setSessionId(newSessionId);
-    setIsNewUser(isRegistration && !userData.hasCompletedIntake);
-    localStorage.setItem('sessionId', newSessionId);
-    localStorage.setItem('user', JSON.stringify(userData));
-  };
-
-  const handleLogout = () => {
-    setUser(null);
-    setSessionId(null);
-    setIsNewUser(false);
-    localStorage.removeItem('sessionId');
-    localStorage.removeItem('user');
-  };
-
-  // Force clear session for testing
-  const handleForceClear = () => {
-    localStorage.clear();
-    setUser(null);
-    setSessionId(null);
-    setIsNewUser(false);
-    window.location.reload();
-  };
-
-  const handleIntakeComplete = () => {
-    setIsNewUser(false);
-    // Update user object to reflect completed intake
-    if (user) {
-      const updatedUser = { ...user, hasCompletedIntake: true };
-      setUser(updatedUser);
-      localStorage.setItem('user', JSON.stringify(updatedUser));
-    }
-  };
+  const {
+    user,
+    sessionId,
+    isLoading,
+    isNewUser,
+    handleAuth,
+    handleLogout,
+    handleForceClear,
+    handleIntakeComplete,
+  } = useAuthSession();
 
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <LoadingSpinner size="lg" text="Loading Gatherly..." />
-          <button 
-            onClick={handleForceClear}
-            className="mt-6 px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 text-sm"
-          >
-            Clear Cache
-          </button>
+          <LoadingSpinner size="lg" text="Loading PlanHaus..." />
+          {import.meta.env.NODE_ENV !== "production" && (
+            <button 
+              onClick={handleForceClear}
+              className="mt-6 px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 text-sm"
+            >
+              Clear Cache
+            </button>
+          )}
         </div>
       </div>
     );
