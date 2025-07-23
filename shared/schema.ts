@@ -376,6 +376,8 @@ export const weddingOverview = pgTable("wedding_overview", {
   
   // Custom Questions for each section
   customGettingStartedQuestions: jsonb("custom_getting_started_questions").$type<Array<{id: string, question: string, answer: string}>>().default([]),
+  customWeddingPartyQuestions: jsonb("custom_wedding_party_questions").$type<Array<{id: string, question: string, answer: string}>>().default([]),
+  customMiscellaneousQuestions: jsonb("custom_miscellaneous_questions").$type<Array<{id: string, question: string, answer: string}>>().default([]),
   customCeremonyQuestions: jsonb("custom_ceremony_questions").$type<Array<{id: string, question: string, answer: string}>>().default([]),
   customCocktailHourQuestions: jsonb("custom_cocktail_hour_questions").$type<Array<{id: string, question: string, answer: string}>>().default([]),
   customReceptionQuestions: jsonb("custom_reception_questions").$type<Array<{id: string, question: string, answer: string}>>().default([]),

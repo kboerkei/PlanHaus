@@ -39,6 +39,8 @@ interface OverviewData {
   
   // Custom Questions for each section
   customGettingStartedQuestions: Array<{id: string, question: string, answer: string}>;
+  customWeddingPartyQuestions: Array<{id: string, question: string, answer: string}>;
+  customMiscellaneousQuestions: Array<{id: string, question: string, answer: string}>;
   customCeremonyQuestions: Array<{id: string, question: string, answer: string}>;
   customCocktailHourQuestions: Array<{id: string, question: string, answer: string}>;
   customReceptionQuestions: Array<{id: string, question: string, answer: string}>;
