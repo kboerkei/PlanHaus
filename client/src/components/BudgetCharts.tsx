@@ -129,7 +129,7 @@ export default function BudgetCharts({ budgetItems }: BudgetChartsProps) {
     return alerts;
   }, [budgetUsage, budgetItems]);
 
-  const formatCurrency = (amount: number) => accounting.formatMoney(amount, '$', 2);
+  const formatCurrency = (amount: number) => accounting.formatMoney(amount || 0, { symbol: '$', precision: 2 });
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -220,9 +220,10 @@ export default function BudgetCharts({ budgetItems }: BudgetChartsProps) {
               <Legend 
                 verticalAlign="bottom" 
                 height={50}
-                formatter={(value, entry) => 
-                  `${value}: ${formatCurrency(entry.payload.actual)}`
-                }
+                formatter={(value, entry) => {
+                  const payload = entry?.payload as any;
+                  return payload?.category ? `${payload.category}: ${formatCurrency(payload.actual)}` : String(value);
+                }}
               />
             </PieChart>
           </ResponsiveContainer>
@@ -260,9 +261,10 @@ export default function BudgetCharts({ budgetItems }: BudgetChartsProps) {
               <Legend 
                 verticalAlign="bottom" 
                 height={50}
-                formatter={(value, entry) => 
-                  `${value}: ${formatCurrency(entry.payload.value)}`
-                }
+                formatter={(value, entry) => {
+                  const payload = entry?.payload as any;
+                  return payload?.name ? `${payload.name}: ${formatCurrency(payload.value)}` : String(value);
+                }}
               />
             </PieChart>
           </ResponsiveContainer>

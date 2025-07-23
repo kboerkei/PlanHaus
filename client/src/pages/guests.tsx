@@ -353,12 +353,6 @@ export default function Guests() {
                   </div>
                   
                   <div className="flex items-center gap-2">
-                    {!guest.inviteSent && (
-                      <Button size="sm" variant="outline">
-                        <Send className="w-4 h-4 mr-1" />
-                        Send Invite
-                      </Button>
-                    )}
                     <GuestFormDialog
                       projectId={projectId}
                       guest={guest}
