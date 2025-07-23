@@ -351,7 +351,7 @@ function AnimatedDashboardStats() {
         title="Wedding Progress"
         subtitle="Track your planning milestones"
         variant="elegant"
-        size="md"
+        size="lg"
         className="mb-4"
       />
       
