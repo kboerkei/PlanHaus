@@ -39,6 +39,13 @@ const navigationSections = [
   }
 ];
 
+const getGreeting = () => {
+  const hour = new Date().getHours();
+  if (hour < 12) return "Good morning";
+  if (hour < 18) return "Good afternoon";
+  return "Good evening";
+};
+
 // Enhanced Dashboard Components
 function PersonalizedGreeting() {
   const { data: intakeData } = useQuery({
@@ -56,6 +63,7 @@ function PersonalizedGreeting() {
   const firstName = (intakeData as any)?.partner1FirstName || "Demo User";
   const weddingDate = currentProject?.date;
   const daysUntil = weddingDate ? differenceInDays(new Date(weddingDate), new Date()) : null;
+  const greeting = getGreeting();
 
   return (
     <motion.div
@@ -66,7 +74,7 @@ function PersonalizedGreeting() {
     >
       <div className="text-center sm:text-left">
         <h1 className="text-xl font-bold text-gradient mb-2">
-          {firstName !== "Demo User" ? `Welcome back, ${firstName}!` : "Welcome to PlanHaus!"}
+          {firstName !== "Demo User" ? `${greeting}, ${firstName}!` : `${greeting}! Welcome to PlanHaus`}
           <Heart className="inline-block ml-2 h-6 w-6 text-rose-500" fill="currentColor" />
         </h1>
         {daysUntil && daysUntil > 0 && (

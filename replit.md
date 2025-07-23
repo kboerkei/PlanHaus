@@ -186,7 +186,10 @@ The application uses a comprehensive schema covering:
 - Type-safe data handling with Zod schema validation and TypeScript integration
 
 ### Enhanced Dashboard Experience Implementation (January 23, 2025)
-- **Personalized Greeting**: Added welcome message with user's first name extracted from intake data
+- **Personalized Greeting**: Enhanced welcome message with time-based greetings and user's first name
+  - Dynamic time-based greeting: "Good morning", "Good afternoon", or "Good evening" based on current hour
+  - Personalized format: "Good morning, Emma!" for logged-in users or "Good evening! Welcome to PlanHaus" for new users
+  - Maintains blush gradient styling with heart icon for wedding theme consistency
 - **Next Up Section**: Displays top 2 upcoming/high-priority tasks with smart sorting and empty states
 - **Animated Dashboard Stats**: Implemented fade-in animations with staggered timing for visual appeal
 - **Mobile-Responsive Design**: Enhanced mobile layout with proper spacing, truncation, and touch-friendly interactions
