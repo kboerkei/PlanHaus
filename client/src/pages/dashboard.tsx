@@ -274,8 +274,8 @@ function AnimatedDashboardStats() {
   const stats = [
     {
       label: "Tasks Complete",
-      value: (statsData as any).tasksCompleted || 0,
-      total: (statsData as any).totalTasks || 0,
+      value: (statsData as any).tasks?.completed || 0,
+      total: (statsData as any).tasks?.total || 0,
       icon: CheckCircle2,
       color: "text-rose-600 dark:text-rose-400",
       bgColor: "bg-rose-50 dark:bg-rose-950/30",
@@ -284,8 +284,8 @@ function AnimatedDashboardStats() {
     },
     {
       label: "Budget Used",
-      value: `$${(statsData as any).totalSpent?.toLocaleString() || 0}`,
-      total: `$${(statsData as any).totalBudget?.toLocaleString() || 0}`,
+      value: `$${(statsData as any).budget?.spent?.toLocaleString() || 0}`,
+      total: `$${(statsData as any).budget?.total?.toLocaleString() || 0}`,
       icon: DollarSign,
       color: "text-amber-600 dark:text-amber-400",
       bgColor: "bg-amber-50 dark:bg-amber-950/30",
@@ -294,8 +294,8 @@ function AnimatedDashboardStats() {
     },
     {
       label: "RSVP Responses",
-      value: (statsData as any).rsvpResponses || 0,
-      total: (statsData as any).totalGuests || 0,
+      value: (statsData as any).guests?.confirmed || 0,
+      total: (statsData as any).guests?.total || 0,
       icon: Users,
       color: "text-emerald-600 dark:text-emerald-400",
       bgColor: "bg-emerald-50 dark:bg-emerald-950/30",
@@ -304,8 +304,8 @@ function AnimatedDashboardStats() {
     },
     {
       label: "Vendors Booked",
-      value: (statsData as any).vendorsBooked || 0,
-      total: (statsData as any).totalVendors || 0,
+      value: (statsData as any).vendors?.booked || 0,
+      total: (statsData as any).vendors?.total || 0,
       icon: Store,
       color: "text-pink-600 dark:text-pink-400",
       bgColor: "bg-pink-50 dark:bg-pink-950/30",
@@ -358,7 +358,8 @@ function AnimatedDashboardStats() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         {stats.map((stat, index) => {
           const Icon = stat.icon;
-          const isEmpty = stat.value === 0 || stat.value === "$0";
+          // Only show empty state if total is actually 0, not just if value is 0
+          const isEmpty = !stat.total || stat.total === 0 || (typeof stat.total === 'string' && stat.total === '$0');
           
           return (
             <motion.div
@@ -415,7 +416,7 @@ function AnimatedDashboardStats() {
                         <p className="text-sm sm:text-base font-medium text-muted-foreground">{stat.label}</p>
                         <p className="text-xl sm:text-2xl font-bold text-foreground">
                           {stat.value}
-                          {stat.total && stat.total !== "$0" && (
+                          {stat.total && stat.total !== "$0" && stat.total !== 0 && (
                             <span className="text-base sm:text-lg font-normal text-muted-foreground">
                               /{typeof stat.total === 'string' ? stat.total : stat.total}
                             </span>

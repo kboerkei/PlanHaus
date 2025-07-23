@@ -41,15 +41,46 @@ export default function Header() {
               </div>
             </div>
             
-            {/* Wedding date with countdown */}
+            {/* Wedding date with detailed countdown */}
             {currentProject?.date && (
-              <div className="space-y-1">
+              <div className="space-y-2">
                 <div className="text-base sm:text-lg md:text-xl text-foreground font-medium">
-                  {format(new Date(currentProject.date), 'MMMM d, yyyy')}
+                  {format(new Date(currentProject.date), 'EEEE, MMMM d, yyyy')}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  📍 {currentProject.location || 'Sunset Ranch Austin'}
+                </div>
+                <div className="text-sm italic text-muted-foreground">
+                  "The adventure begins..."
                 </div>
                 {daysUntilWedding > 0 && (
-                  <div className="text-sm sm:text-base text-rose-500 dark:text-rose-400 font-semibold">
-                    {daysUntilWedding} days until your special day ✨
+                  <div className="flex justify-center gap-4 mt-3">
+                    {(() => {
+                      const months = Math.floor(daysUntilWedding / 30);
+                      const weeks = Math.floor((daysUntilWedding % 30) / 7);
+                      const days = daysUntilWedding % 7;
+                      
+                      return (
+                        <>
+                          {months > 0 && (
+                            <div className="text-center bg-rose-50 dark:bg-rose-950/20 px-3 py-2 rounded-lg border border-rose-200 dark:border-rose-800">
+                              <div className="text-lg font-bold text-rose-600 dark:text-rose-400">{months}</div>
+                              <div className="text-xs text-rose-500 dark:text-rose-400">months</div>
+                            </div>
+                          )}
+                          {weeks > 0 && (
+                            <div className="text-center bg-rose-50 dark:bg-rose-950/20 px-3 py-2 rounded-lg border border-rose-200 dark:border-rose-800">
+                              <div className="text-lg font-bold text-rose-600 dark:text-rose-400">{weeks}</div>
+                              <div className="text-xs text-rose-500 dark:text-rose-400">weeks</div>
+                            </div>
+                          )}
+                          <div className="text-center bg-rose-50 dark:bg-rose-950/20 px-3 py-2 rounded-lg border border-rose-200 dark:border-rose-800">
+                            <div className="text-lg font-bold text-rose-600 dark:text-rose-400">{days}</div>
+                            <div className="text-xs text-rose-500 dark:text-rose-400">days</div>
+                          </div>
+                        </>
+                      );
+                    })()}
                   </div>
                 )}
               </div>
