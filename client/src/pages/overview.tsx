@@ -191,7 +191,7 @@ export default function OverviewPage() {
 
   const deleteCustomDate = (dateId: string) => {
     const customDates = overviewData?.customImportantDates || [];
-    const updatedDates = customDates.filter(date => date.id !== dateId);
+    const updatedDates = customDates.filter((date: {id: string, label: string, date: string}) => date.id !== dateId);
     
     updateOverviewMutation.mutate({
       customImportantDates: updatedDates
@@ -391,7 +391,7 @@ export default function OverviewPage() {
             {renderEditableField('Honeymoon End', 'honeymoonEnd', overviewData?.honeymoonEnd || '', 'date', true)}
             
             {/* Custom Important Dates */}
-            {overviewData?.customImportantDates?.map((customDate) => (
+            {overviewData?.customImportantDates?.map((customDate: {id: string, label: string, date: string}) => (
               <div key={customDate.id} className="flex items-center justify-between py-2 border-b border-gray-100">
                 <span className="text-sm font-medium text-gray-600 w-1/3">{customDate.label}:</span>
                 <div className="flex-1 flex items-center justify-between">
