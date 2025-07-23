@@ -241,9 +241,13 @@ export default function OverviewPage() {
       answer: newAnswer.trim()
     };
     
-    updateOverviewMutation.mutate({
+    const updateData = {
       [sectionField]: [...currentQuestions, newQuestionItem]
-    });
+    };
+    
+    console.log('Adding custom question:', { section, sectionField, updateData });
+    
+    updateOverviewMutation.mutate(updateData);
     
     setIsAddingQuestion(null);
     setNewQuestion('');
@@ -282,7 +286,7 @@ export default function OverviewPage() {
         </CardHeader>
         <CardContent className="space-y-2">
           {questions.map(({field, label, type = 'text'}) => 
-            renderEditableField(label, field, overviewData?.[field] || '', type, true)
+            <div key={field}>{renderEditableField(label, field, overviewData?.[field] || '', type, true)}</div>
           )}
           
           {/* Custom Questions */}

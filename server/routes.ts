@@ -3420,7 +3420,8 @@ Focus on providing accurate, real businesses that are currently operating. Inclu
       }
       
       const projectId = projects[0].id;
-      const updates = insertWeddingOverviewSchema.parse(req.body);
+      // Allow any overview fields to be updated by parsing with partial validation
+      const updates = insertWeddingOverviewSchema.partial().parse(req.body);
       
       let overview = await storage.getWeddingOverviewByProjectId(projectId);
       if (!overview) {
@@ -3450,7 +3451,12 @@ Focus on providing accurate, real businesses that are currently operating. Inclu
       res.json(overview);
     } catch (error) {
       console.error('Overview update error:', error);
-      res.status(400).json({ message: "Invalid overview data" });
+      console.error('Request body:', req.body);
+      if (error instanceof Error) {
+        console.error('Error message:', error.message);
+        console.error('Error stack:', error.stack);
+      }
+      res.status(400).json({ message: "Invalid overview data", details: error instanceof Error ? error.message : 'Unknown error' });
     }
   });
 
