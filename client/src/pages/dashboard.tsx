@@ -238,16 +238,27 @@ function AnimatedDashboardStats() {
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6 sm:mb-8">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6 sm:mb-8"
+      >
         {Array.from({ length: 4 }).map((_, i) => (
-          <Card key={i} className="p-4">
-            <div className="animate-pulse space-y-2">
-              <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-              <div className="h-6 bg-gray-200 rounded w-1/2"></div>
-            </div>
-          </Card>
+          <motion.div
+            key={i}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.1 }}
+          >
+            <Card variant="elegant" className="p-4">
+              <div className="animate-pulse space-y-2">
+                <div className="h-4 bg-muted rounded w-3/4"></div>
+                <div className="h-6 bg-muted rounded w-1/2"></div>
+              </div>
+            </Card>
+          </motion.div>
         ))}
-      </div>
+      </motion.div>
     );
   }
 
@@ -256,58 +267,91 @@ function AnimatedDashboardStats() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.6, delay: 0.4 }}
-      className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8"
+      className="mb-6 sm:mb-8"
     >
-      {stats.map((stat, index) => {
-        const Icon = stat.icon;
-        const isEmpty = stat.value === 0 || stat.value === "$0";
-        
-        return (
-          <motion.div
-            key={stat.label}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 * index }}
-          >
-            <Card className="h-full hover:shadow-md transition-shadow">
-              <CardContent className="p-3 sm:p-4">
-                {isEmpty ? (
-                  <div className="text-center">
-                    <div className={`w-8 h-8 sm:w-10 sm:h-10 ${stat.bgColor} rounded-full flex items-center justify-center mx-auto mb-2`}>
-                      <Icon className={`h-4 w-4 sm:h-5 sm:w-5 ${stat.color}`} />
-                    </div>
-                    <p className="text-xs sm:text-sm text-muted-foreground mb-2">{stat.emptyMessage}</p>
-                    <Link href={stat.emptyAction.href}>
-                      <Button size="sm" variant="outline" className="text-xs h-7">
-                        {stat.emptyAction.text}
-                      </Button>
-                    </Link>
-                  </div>
-                ) : (
-                  <>
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className={`w-8 h-8 sm:w-10 sm:h-10 ${stat.bgColor} rounded-full flex items-center justify-center`}>
+      <SectionHeader
+        title="Wedding Progress"
+        subtitle="Track your planning milestones"
+        variant="elegant"
+        size="md"
+        className="mb-4"
+      />
+      
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        {stats.map((stat, index) => {
+          const Icon = stat.icon;
+          const isEmpty = stat.value === 0 || stat.value === "$0";
+          
+          return (
+            <motion.div
+              key={stat.label}
+              initial={{ opacity: 0, y: 30, scale: 0.9 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ 
+                delay: 0.1 * index, 
+                duration: 0.5,
+                type: "spring",
+                stiffness: 100,
+                damping: 15
+              }}
+              whileHover={{ scale: 1.02, y: -2 }}
+              className="group"
+            >
+              <Card variant="elegant" className="h-full transition-all duration-300 group-hover:shadow-lg">
+                <CardContent className="p-3 sm:p-4">
+                  {isEmpty ? (
+                    <motion.div 
+                      className="text-center"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.2 + (0.1 * index) }}
+                    >
+                      <div className={`w-8 h-8 sm:w-10 sm:h-10 ${stat.bgColor} rounded-full flex items-center justify-center mx-auto mb-2 transition-colors group-hover:scale-110`}>
                         <Icon className={`h-4 w-4 sm:h-5 sm:w-5 ${stat.color}`} />
                       </div>
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-xs sm:text-sm font-medium text-muted-foreground">{stat.label}</p>
-                      <p className="text-lg sm:text-xl font-bold text-foreground">
-                        {stat.value}
-                        {stat.total && stat.total !== "$0" && (
-                          <span className="text-sm font-normal text-muted-foreground">
-                            /{typeof stat.total === 'string' ? stat.total : stat.total}
-                          </span>
-                        )}
-                      </p>
-                    </div>
-                  </>
-                )}
-              </CardContent>
-            </Card>
-          </motion.div>
-        );
-      })}
+                      <p className="text-xs sm:text-sm text-muted-foreground mb-2">{stat.emptyMessage}</p>
+                      <Link href={stat.emptyAction.href}>
+                        <Button size="sm" variant="outline" className="text-xs h-7 transition-all hover:scale-105">
+                          {stat.emptyAction.text}
+                        </Button>
+                      </Link>
+                    </motion.div>
+                  ) : (
+                    <>
+                      <motion.div 
+                        className="flex items-center gap-2 mb-2"
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ delay: 0.2 + (0.1 * index), type: "spring", stiffness: 200 }}
+                      >
+                        <div className={`w-8 h-8 sm:w-10 sm:h-10 ${stat.bgColor} rounded-full flex items-center justify-center transition-all group-hover:scale-110`}>
+                          <Icon className={`h-4 w-4 sm:h-5 sm:w-5 ${stat.color}`} />
+                        </div>
+                      </motion.div>
+                      <motion.div 
+                        className="space-y-1"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.3 + (0.1 * index) }}
+                      >
+                        <p className="text-xs sm:text-sm font-medium text-muted-foreground">{stat.label}</p>
+                        <p className="text-lg sm:text-xl font-bold text-foreground">
+                          {stat.value}
+                          {stat.total && stat.total !== "$0" && (
+                            <span className="text-sm font-normal text-muted-foreground">
+                              /{typeof stat.total === 'string' ? stat.total : stat.total}
+                            </span>
+                          )}
+                        </p>
+                      </motion.div>
+                    </>
+                  )}
+                </CardContent>
+              </Card>
+            </motion.div>
+          );
+        })}
+      </div>
     </motion.div>
   );
 }

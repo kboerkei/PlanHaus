@@ -214,9 +214,12 @@ The application uses a comprehensive schema covering:
   - Ring focus indicators with proper offset for all interactive elements
   - High contrast color ratios in both light and dark themes
   - Semantic HTML structure with proper heading hierarchy
-- **Advanced Animation System**: Integrated Framer Motion with staggered animations
-  - Page load animations with cascading timing for visual hierarchy
-  - Hover effects with scale transforms and shadow enhancements
+- **Advanced Animation System**: Integrated Framer Motion with comprehensive dashboard animations
+  - Spring-powered card animations with staggered timing and scale effects
+  - Hover animations with lift and shadow enhancement effects
+  - Personalized greeting with text-xl blush gradient styling
+  - Next Up section with slide-in animations and due date formatting
+  - Wedding Progress stats with icon scale animations and group hover effects
   - Smooth theme transitions with CSS transform properties
 - **Type-Safe Implementation**: Full TypeScript integration with proper interfaces
   - Variant props with class-variance-authority for consistent styling
