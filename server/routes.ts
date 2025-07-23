@@ -30,7 +30,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize WebSocket service
   initializeWebSocketService(httpServer);
 
-  // Register modular routes
+  // Register modular routes FIRST before any other middleware
   app.use("/api/auth", authRoutes);
   app.use("/api/projects", projectRoutes);
   app.use("/api/tasks", taskRoutes);
@@ -40,6 +40,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use("/api/ai", aiRoutes);
   app.use("/api/ai", aiSuggestionsRoutes);
   app.use("/api/upload", uploadRoutes);
+
+  // Add simple dashboard stats endpoint
+  app.get("/api/dashboard/stats", requireAuth, async (req: any, res) => {
+    try {
+      const project = await getOrCreateDefaultProject(req.userId);
+      
+      // Get all data for stats calculation
+      const [tasks, guests, budget, vendors] = await Promise.all([
+        storage.getTasksByProjectId(project.id),
+        storage.getGuestsByProjectId(project.id),
+        storage.getBudgetItemsByProjectId(project.id),
+        storage.getVendorsByProjectId(project.id)
+      ]);
+
+      // Calculate stats
+      const totalTasks = tasks.length;
+      const completedTasks = tasks.filter(t => t.status === 'completed').length;
+      const totalGuests = guests.length;
+      const confirmedGuests = guests.filter(g => g.rsvpStatus === 'yes').length;
+      const totalBudget = budget.reduce((sum, item) => sum + parseFloat(item.estimatedCost), 0);
+      const spentBudget = budget.reduce((sum, item) => sum + parseFloat(item.actualCost || '0'), 0);
+      const totalVendors = vendors.length;
+      const bookedVendors = vendors.filter(v => v.status === 'booked').length;
+
+      res.json({
+        tasks: { total: totalTasks, completed: completedTasks },
+        guests: { total: totalGuests, confirmed: confirmedGuests },
+        budget: { total: totalBudget, spent: spentBudget },
+        vendors: { total: totalVendors, booked: bookedVendors },
+        daysUntilWedding: project.date ? Math.max(0, Math.ceil((new Date(project.date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))) : 0
+      });
+    } catch (error) {
+      logError('dashboard', error, { userId: req.userId });
+      res.status(500).json({ message: "Failed to fetch dashboard stats" });
+    }
+  });
+
+  // Add intake endpoint
+  app.get("/api/intake", requireAuth, async (req: any, res) => {
+    try {
+      const intake = await storage.getIntakeDataByUserId(req.userId);
+      res.json(intake || null);
+    } catch (error) {
+      logError('intake', error, { userId: req.userId });
+      res.status(500).json({ message: "Failed to fetch intake data" });
+    }
+  });
 
   // Pinterest board import endpoint
   app.post('/api/pinterest/import-board', requireAuth, validateBody(z.object({
