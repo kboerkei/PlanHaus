@@ -86,27 +86,37 @@ function NextUpSection() {
   });
 
   const tasksArray = Array.isArray(tasks) ? tasks : [];
-  const nextTasks = tasksArray.filter((task: any) => !task.isCompleted)
-    .sort((a: any, b: any) => {
-      if (a.priority === 'high' && b.priority !== 'high') return -1;
-      if (b.priority === 'high' && a.priority !== 'high') return 1;
-      if (a.dueDate && b.dueDate) return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
-      return 0;
-    })
+  
+  // Get next 1-2 uncompleted tasks sorted by due date (soonest first)
+  const nextTasks = tasksArray
+    .filter((task: any) => !task.isCompleted && task.dueDate)
+    .sort((a: any, b: any) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
     .slice(0, 2);
+
+  const formatDueDate = (dueDate: string) => {
+    const due = new Date(dueDate);
+    const now = new Date();
+    const diffInDays = Math.ceil((due.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    
+    if (diffInDays < 0) return "Overdue";
+    if (diffInDays === 0) return "Due today";
+    if (diffInDays === 1) return "Due tomorrow";
+    return `Due in ${diffInDays} days`;
+  };
 
   if (isLoading) {
     return (
       <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.2 }}
         className="mb-6 sm:mb-8"
       >
-        <Card className="p-4 sm:p-6">
+        <Card variant="elegant" className="p-4 sm:p-6">
           <div className="animate-pulse space-y-3">
-            <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-            <div className="h-3 bg-gray-200 rounded w-3/4"></div>
-            <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+            <div className="h-5 bg-muted rounded w-1/4"></div>
+            <div className="h-4 bg-muted rounded w-3/4"></div>
+            <div className="h-4 bg-muted rounded w-1/2"></div>
           </div>
         </Card>
       </motion.div>
@@ -120,62 +130,61 @@ function NextUpSection() {
       transition={{ duration: 0.6, delay: 0.2 }}
       className="mb-6 sm:mb-8"
     >
-      <Card className="overflow-hidden">
-        <CardHeader className="pb-3">
-          <div className="flex items-center gap-2">
-            <Clock className="h-5 w-5 text-rose-500" />
-            <CardTitle className="text-lg sm:text-xl">Next Up</CardTitle>
+      <Card variant="elegant" className="p-4 sm:p-6">
+        <h2 className="text-lg font-semibold text-foreground mb-4">Next Up</h2>
+        
+        {nextTasks.length === 0 ? (
+          <div className="text-center py-4">
+            <p className="text-muted-foreground mb-3">
+              No urgent tasks — you're ahead of schedule 🎉
+            </p>
+            <Link href="/timeline" className="text-rose-600 hover:text-rose-700 dark:text-rose-400 dark:hover:text-rose-300 font-medium text-sm transition-colors">
+              View full checklist →
+            </Link>
           </div>
-        </CardHeader>
-        <CardContent>
-          {!nextTasks || nextTasks.length === 0 ? (
-            <div className="text-center py-6">
-              <CheckCircle2 className="h-12 w-12 text-green-500 mx-auto mb-3" />
-              <p className="text-muted-foreground mb-4">All caught up! Great work.</p>
-              <Link href="/timeline">
-                <Button variant="wedding">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add New Task
-                </Button>
+        ) : (
+          <div className="space-y-3">
+            {nextTasks.map((task: any, index: number) => (
+              <motion.div
+                key={task.id}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.1 * index }}
+                className="flex items-center justify-between p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors"
+              >
+                <div className="flex-1 min-w-0">
+                  <h4 className="font-medium text-foreground truncate mb-1">
+                    {task.title}
+                  </h4>
+                  <p className="text-sm text-muted-foreground">
+                    {formatDueDate(task.dueDate)}
+                  </p>
+                </div>
+                {task.priority === 'high' && (
+                  <Badge variant="destructive" className="text-xs px-2 py-0 ml-2">
+                    High Priority
+                  </Badge>
+                )}
+              </motion.div>
+            ))}
+            
+            <div className="pt-2 border-t border-border/50">
+              <Link 
+                href="/timeline" 
+                className="text-rose-600 hover:text-rose-700 dark:text-rose-400 dark:hover:text-rose-300 font-medium text-sm transition-colors inline-flex items-center gap-1"
+              >
+                View full checklist 
+                <ArrowRight className="h-3 w-3" />
               </Link>
             </div>
-          ) : (
-            <div className="space-y-3">
-              {nextTasks.map((task: any, index: number) => (
-                <motion.div
-                  key={task.id}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.1 * index }}
-                  className="flex items-center justify-between p-3 bg-muted/50 rounded-lg hover:bg-muted/80 transition-colors"
-                >
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h4 className="font-medium text-foreground truncate">{task.title}</h4>
-                      {task.priority === 'high' && (
-                        <Badge variant="destructive" className="text-xs px-2 py-0">High</Badge>
-                      )}
-                    </div>
-                    {task.dueDate && (
-                      <p className="text-sm text-muted-foreground">
-                        Due {format(new Date(task.dueDate), 'MMM d')}
-                      </p>
-                    )}
-                  </div>
-                  <Link href="/timeline">
-                    <Button size="sm" variant="ghost" className="ml-2">
-                      <ArrowRight className="h-4 w-4" />
-                    </Button>
-                  </Link>
-                </motion.div>
-              ))}
-            </div>
-          )}
-        </CardContent>
+          </div>
+        )}
       </Card>
     </motion.div>
   );
 }
+
+
 
 function AnimatedDashboardStats() {
   const { data: dashboardStats, isLoading } = useQuery({
