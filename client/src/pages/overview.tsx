@@ -528,7 +528,7 @@ export default function OverviewPage() {
       <div className="p-6">
         <div className="flex items-center gap-2 mb-6">
           <Heart className="w-6 h-6 text-rose-600" />
-          <h1 className="text-2xl font-semibold text-gray-800">Wedding Overview</h1>
+          <h1 className="text-2xl font-semibold text-gray-800">The Details</h1>
         </div>
         <div className="animate-pulse space-y-4">
           <div className="h-4 bg-gray-200 rounded w-1/4"></div>
@@ -543,7 +543,7 @@ export default function OverviewPage() {
     <div className="p-6 max-w-4xl mx-auto">
       <div className="flex items-center gap-2 mb-6">
         <Heart className="w-6 h-6 text-rose-600" />
-        <h1 className="text-2xl font-semibold text-gray-800">Wedding Overview</h1>
+        <h1 className="text-2xl font-semibold text-gray-800">The Details</h1>
       </div>
 
       <div className="space-y-6">
