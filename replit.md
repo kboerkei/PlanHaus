@@ -190,6 +190,15 @@ The application uses a comprehensive schema covering:
 - All required TypeScript dev dependencies installed (@types/node, @types/express, @types/react, @types/react-dom)
 - Enhanced script structure recommended with separated client/server builds and deploy workflow
 - Build pipeline ready for production deployment with optimized bundling
+- **Concurrently installed** for parallel client/server development (January 23, 2025)
+
+### Development Environment Configuration (January 23, 2025)
+- **Concurrently Integration**: Added concurrent client/server development support
+- **Enhanced .replit Config**: Streamlined workflow with single "Development Server" workflow
+- **Environment Security**: .env files added to hidden files list for better security
+- **Port Mapping**: Confirmed port 5000 maps to external port 80 for preview access
+- **TypeScript Enhancements**: Added resolveJsonModule and isolatedModules for better Vite compatibility
+- **Tailwind Custom Plugin**: Comprehensive design system with reusable .btn-primary, .card, and wedding-themed utilities
 
 ### Migration to Replit Environment Completed (January 23, 2025)
 - Successfully migrated wedding planning application from Replit Agent to standard Replit environment
