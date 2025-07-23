@@ -374,9 +374,31 @@ export const weddingOverview = pgTable("wedding_overview", {
   // Custom Important Dates (JSON array of {label, date, id} objects)
   customImportantDates: jsonb("custom_important_dates").$type<Array<{id: string, label: string, date: string}>>().default([]),
   
+  // Custom Questions for each section
+  customGettingStartedQuestions: jsonb("custom_getting_started_questions").$type<Array<{id: string, question: string, answer: string}>>().default([]),
+  customCeremonyQuestions: jsonb("custom_ceremony_questions").$type<Array<{id: string, question: string, answer: string}>>().default([]),
+  customCocktailHourQuestions: jsonb("custom_cocktail_hour_questions").$type<Array<{id: string, question: string, answer: string}>>().default([]),
+  customReceptionQuestions: jsonb("custom_reception_questions").$type<Array<{id: string, question: string, answer: string}>>().default([]),
+  customMinorDetailsQuestions: jsonb("custom_minor_details_questions").$type<Array<{id: string, question: string, answer: string}>>().default([]),
+  
   // Getting Started Questions
   areYouPlanningTogether: text("are_you_planning_together"),
   doYouWantOutdoorCeremony: text("do_you_want_outdoor_ceremony"),
+  
+  // Wedding Party Questions
+  willYouHaveBridalParty: text("will_you_have_bridal_party"),
+  howManyBridalParty: text("how_many_bridal_party"),
+  howWillYouAskBridalParty: text("how_will_you_ask_bridal_party"),
+  bridalPartyResponsibilities: text("bridal_party_responsibilities"),
+  bridalPartyAttire: text("bridal_party_attire"),
+  bridalPartyHairMakeup: text("bridal_party_hair_makeup"),
+  bridalPartyWalkingOrder: text("bridal_party_walking_order"),
+  
+  // Miscellaneous Questions
+  willYouNeedHotelBlock: text("will_you_need_hotel_block"),
+  willYouProvideTransportation: text("will_you_provide_transportation"),
+  willYouHaveDressCode: text("will_you_have_dress_code"),
+  whoWillHandOutTips: text("who_will_hand_out_tips"),
   
   // Ceremony Questions
   doYouWantUnplugged: text("do_you_want_unplugged"),

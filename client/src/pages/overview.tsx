@@ -37,9 +37,31 @@ interface OverviewData {
   // Custom Important Dates
   customImportantDates: Array<{id: string, label: string, date: string}>;
   
+  // Custom Questions for each section
+  customGettingStartedQuestions: Array<{id: string, question: string, answer: string}>;
+  customCeremonyQuestions: Array<{id: string, question: string, answer: string}>;
+  customCocktailHourQuestions: Array<{id: string, question: string, answer: string}>;
+  customReceptionQuestions: Array<{id: string, question: string, answer: string}>;
+  customMinorDetailsQuestions: Array<{id: string, question: string, answer: string}>;
+  
   // Getting Started Questions
   areYouPlanningTogether: string;
   doYouWantOutdoorCeremony: string;
+  
+  // Wedding Party Questions
+  willYouHaveBridalParty: string;
+  howManyBridalParty: string;
+  howWillYouAskBridalParty: string;
+  bridalPartyResponsibilities: string;
+  bridalPartyAttire: string;
+  bridalPartyHairMakeup: string;
+  bridalPartyWalkingOrder: string;
+  
+  // Miscellaneous Questions
+  willYouNeedHotelBlock: string;
+  willYouProvideTransportation: string;
+  willYouHaveDressCode: string;
+  whoWillHandOutTips: string;
   
   // Ceremony Questions
   doYouWantUnplugged: string;
@@ -105,6 +127,9 @@ export default function OverviewPage() {
   const [isAddingDate, setIsAddingDate] = useState(false);
   const [newDateLabel, setNewDateLabel] = useState('');
   const [newDateValue, setNewDateValue] = useState('');
+  const [isAddingQuestion, setIsAddingQuestion] = useState<string | null>(null);
+  const [newQuestion, setNewQuestion] = useState('');
+  const [newAnswer, setNewAnswer] = useState('');
 
   const { data: overviewData, isLoading } = useQuery({
     queryKey: ['/api/overview'],
@@ -202,6 +227,120 @@ export default function OverviewPage() {
     updateOverviewMutation.mutate({
       [field]: null
     });
+  };
+
+  const addCustomQuestion = (section: string) => {
+    if (!newQuestion.trim()) return;
+    
+    const sectionField = `custom${section}Questions` as keyof OverviewData;
+    const currentQuestions = (overviewData?.[sectionField] as Array<{id: string, question: string, answer: string}>) || [];
+    
+    const newQuestionItem = {
+      id: Date.now().toString(),
+      question: newQuestion.trim(),
+      answer: newAnswer.trim()
+    };
+    
+    updateOverviewMutation.mutate({
+      [sectionField]: [...currentQuestions, newQuestionItem]
+    });
+    
+    setIsAddingQuestion(null);
+    setNewQuestion('');
+    setNewAnswer('');
+  };
+
+  const deleteCustomQuestion = (section: string, questionId: string) => {
+    const sectionField = `custom${section}Questions` as keyof OverviewData;
+    const currentQuestions = (overviewData?.[sectionField] as Array<{id: string, question: string, answer: string}>) || [];
+    const updatedQuestions = currentQuestions.filter(q => q.id !== questionId);
+    
+    updateOverviewMutation.mutate({
+      [sectionField]: updatedQuestions
+    });
+  };
+
+  const deleteStandardQuestion = (field: keyof OverviewData) => {
+    updateOverviewMutation.mutate({
+      [field]: null
+    });
+  };
+
+  const renderSectionWithAddDelete = (
+    sectionTitle: string,
+    sectionKey: string,
+    questions: Array<{field: keyof OverviewData, label: string, type?: 'text' | 'date' | 'textarea'}>,
+    titleColor: string = 'text-gray-600'
+  ) => {
+    const customQuestionsField = `custom${sectionKey}Questions` as keyof OverviewData;
+    const customQuestions = (overviewData?.[customQuestionsField] as Array<{id: string, question: string, answer: string}>) || [];
+
+    return (
+      <Card>
+        <CardHeader className="pb-4">
+          <CardTitle className={`text-lg ${titleColor}`}>{sectionTitle}</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          {questions.map(({field, label, type = 'text'}) => 
+            renderEditableField(label, field, overviewData?.[field] || '', type, true)
+          )}
+          
+          {/* Custom Questions */}
+          {customQuestions.map((customQ: {id: string, question: string, answer: string}) => (
+            <div key={customQ.id} className="flex items-center justify-between py-2 border-b border-gray-100">
+              <span className="text-sm font-medium text-gray-600 w-1/3">{customQ.question}:</span>
+              <div className="flex-1 flex items-center justify-between">
+                <span className="text-gray-800">{customQ.answer || 'Not set'}</span>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => deleteCustomQuestion(sectionKey, customQ.id)}
+                  className="text-red-500 hover:text-red-700"
+                >
+                  <Trash2 className="w-3 h-3" />
+                </Button>
+              </div>
+            </div>
+          ))}
+          
+          {/* Add Custom Question */}
+          {isAddingQuestion === sectionKey ? (
+            <div className="space-y-2 py-2 border-b border-gray-100">
+              <Input
+                placeholder="Enter your question..."
+                value={newQuestion}
+                onChange={(e) => setNewQuestion(e.target.value)}
+              />
+              <Input
+                placeholder="Enter your answer (optional)..."
+                value={newAnswer}
+                onChange={(e) => setNewAnswer(e.target.value)}
+              />
+              <div className="flex gap-2">
+                <Button size="sm" onClick={() => addCustomQuestion(sectionKey)} className="bg-green-600 text-white">
+                  <Save className="w-3 h-3 mr-1" />
+                  Save
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => setIsAddingQuestion(null)}>
+                  <X className="w-3 h-3 mr-1" />
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsAddingQuestion(sectionKey)}
+              className="w-full mt-4"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add Custom Question
+            </Button>
+          )}
+        </CardContent>
+      </Card>
+    );
   };
 
   const renderEditableField = (
@@ -445,104 +584,91 @@ export default function OverviewPage() {
         </Card>
 
         {/* Getting Started Questions */}
-        <Card>
-          <CardHeader className="pb-4">
-            <CardTitle className="text-lg text-rose-600">Getting Started</CardTitle>
-            <p className="text-sm text-gray-500">Things to consider as you begin planning.</p>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {renderEditableField('Are you planning to have your wedding during "busy season" (May-October)?', 'areYouPlanningTogether', overviewData?.areYouPlanningTogether || '')}
-            {renderEditableField('Do you want an outdoor ceremony?', 'doYouWantOutdoorCeremony', overviewData?.doYouWantOutdoorCeremony || '')}
-          </CardContent>
-        </Card>
+        {renderSectionWithAddDelete('Getting Started', 'GettingStarted', [
+          {field: 'areYouPlanningTogether', label: 'Are you planning to have your wedding during "busy season" (May-October)?'},
+          {field: 'doYouWantOutdoorCeremony', label: 'Do you want an outdoor ceremony?'}
+        ], 'text-rose-600')}
+
+        {/* Wedding Party Questions */}
+        {renderSectionWithAddDelete('Wedding Party', 'WeddingParty', [
+          {field: 'willYouHaveBridalParty', label: 'Will you be having a bridal party?'},
+          {field: 'howManyBridalParty', label: 'How many people will you be having in your bridal party?'},
+          {field: 'howWillYouAskBridalParty', label: 'How will you ask them to be in your bridal party?', type: 'textarea'},
+          {field: 'bridalPartyResponsibilities', label: 'What responsibilities would you like them to take on?', type: 'textarea'},
+          {field: 'bridalPartyAttire', label: 'What will you want them to wear? (Dresses, suits, tuxes, etc.)', type: 'textarea'},
+          {field: 'bridalPartyHairMakeup', label: 'How will you want your bridesmaids hair & makeup?', type: 'textarea'},
+          {field: 'bridalPartyWalkingOrder', label: 'What is the order you want people walking down the aisle?', type: 'textarea'}
+        ], 'text-pink-600')}
+
+        {/* Miscellaneous Questions */}
+        {renderSectionWithAddDelete('Miscellaneous', 'Miscellaneous', [
+          {field: 'willYouNeedHotelBlock', label: 'Will you need a hotel block for guests?'},
+          {field: 'willYouProvideTransportation', label: 'Will you need to provide transportation for guests?'},
+          {field: 'willYouHaveDressCode', label: 'Will you be having a dress code?'},
+          {field: 'whoWillHandOutTips', label: 'Who will hand out tips day of?'}
+        ], 'text-indigo-600')}
 
         {/* Ceremony Questions */}
-        <Card>
-          <CardHeader className="pb-4">
-            <CardTitle className="text-lg text-blue-600">Ceremony</CardTitle>
-            <p className="text-sm text-gray-500">Detailed ceremony planning considerations.</p>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {renderEditableField('Do you want an unplugged ceremony?', 'doYouWantUnplugged', overviewData?.doYouWantUnplugged || '')}
-            {renderEditableField('Do you want to have an aisle runner?', 'doYouWantAisleRunner', overviewData?.doYouWantAisleRunner || '')}
-            {renderEditableField('Will you have flower girls and ring bearers?', 'willYouHaveFlowerGirls', overviewData?.willYouHaveFlowerGirls || '')}
-            {renderEditableField('Will you have a ring bearer?', 'willYouHaveRingBearer', overviewData?.willYouHaveRingBearer || '')}
-            {renderEditableField('What type of officiant do you want?', 'whatTypeOfOfficiant', overviewData?.whatTypeOfOfficiant || '')}
-            {renderEditableField('Will you write your own vows?', 'willYouWriteVows', overviewData?.willYouWriteVows || '')}
-            {renderEditableField('Will you use a unity candle during your ceremony?', 'willYouUseUnityCandle', overviewData?.willYouUseUnityCandle || '')}
-            {renderEditableField('Will you do a sand ceremony?', 'willYouDoSandCeremony', overviewData?.willYouDoSandCeremony || '')}
-            {renderEditableField('Who will walk the bride down the aisle?', 'whoWillWalkBrideDown', overviewData?.whoWillWalkBrideDown || '')}
-            {renderEditableField('What will your ceremony music be?', 'whatWillCeremonyMusic', overviewData?.whatWillCeremonyMusic || '', 'textarea')}
-            {renderEditableField('Who will play the music?', 'whoWillPlayMusic', overviewData?.whoWillPlayMusic || '')}
-            {renderEditableField('Will you have a receiving line after your ceremony?', 'willYouHaveReceivingLine', overviewData?.willYouHaveReceivingLine || '')}
-            {renderEditableField('Where will you take pictures after ceremony?', 'whereWillYouTakePictures', overviewData?.whereWillYouTakePictures || '', 'textarea')}
-            {renderEditableField('Will you do a first look?', 'willYouDoFirstLook', overviewData?.willYouDoFirstLook || '')}
-            {renderEditableField('What kind of ceremony decor will you have?', 'whatKindOfCeremonyDecor', overviewData?.whatKindOfCeremonyDecor || '', 'textarea')}
-            {renderEditableField('Who will set up and take down ceremony flowers and decor?', 'whoWillSetupTakedown', overviewData?.whoWillSetupTakedown || '')}
-          </CardContent>
-        </Card>
+        {renderSectionWithAddDelete('Ceremony', 'Ceremony', [
+          {field: 'doYouWantUnplugged', label: 'Do you want an unplugged ceremony?'},
+          {field: 'doYouWantAisleRunner', label: 'Do you want to have an aisle runner?'},
+          {field: 'willYouHaveFlowerGirls', label: 'Will you have flower girls and ring bearers?'},
+          {field: 'willYouHaveRingBearer', label: 'Will you have a ring bearer?'},
+          {field: 'whatTypeOfOfficiant', label: 'What type of officiant do you want?'},
+          {field: 'willYouWriteVows', label: 'Will you write your own vows?'},
+          {field: 'willYouUseUnityCandle', label: 'Will you use a unity candle during your ceremony?'},
+          {field: 'willYouDoSandCeremony', label: 'Will you do a sand ceremony?'},
+          {field: 'whoWillWalkBrideDown', label: 'Who will walk the bride down the aisle?'},
+          {field: 'whatWillCeremonyMusic', label: 'What will your ceremony music be?', type: 'textarea'},
+          {field: 'whoWillPlayMusic', label: 'Who will play the music?'},
+          {field: 'willYouHaveReceivingLine', label: 'Will you have a receiving line after your ceremony?'},
+          {field: 'whereWillYouTakePictures', label: 'Where will you take pictures after ceremony?', type: 'textarea'},
+          {field: 'willYouDoFirstLook', label: 'Will you do a first look?'},
+          {field: 'whatKindOfCeremonyDecor', label: 'What kind of ceremony decor will you have?', type: 'textarea'},
+          {field: 'whoWillSetupTakedown', label: 'Who will set up and take down ceremony flowers and decor?'}
+        ], 'text-blue-600')}
 
         {/* Cocktail Hour Questions */}
-        <Card>
-          <CardHeader className="pb-4">
-            <CardTitle className="text-lg text-amber-600">Cocktail Hour</CardTitle>
-            <p className="text-sm text-gray-500">Planning your cocktail hour experience.</p>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {renderEditableField('Where will cocktail hour be held?', 'whereWillCocktailHour', overviewData?.whereWillCocktailHour || '')}
-            {renderEditableField('What cocktail hour entertainment will you have?', 'whatCocktailEntertainment', overviewData?.whatCocktailEntertainment || '')}
-            {renderEditableField('Will you be serving food?', 'willYouServingFood', overviewData?.willYouServingFood || '')}
-            {renderEditableField('Will you have a signature bar or cocktail?', 'willYouHaveSignatureBar', overviewData?.willYouHaveSignatureBar || '')}
-            {renderEditableField('Will you have specialty drinks?', 'willYouHaveSpecialtyDrinks', overviewData?.willYouHaveSpecialtyDrinks || '')}
-            {renderEditableField('Will you be mingling with your cocktail hour?', 'willYouBeMingling', overviewData?.willYouBeMingling || '')}
-            {renderEditableField('What kind of decor will you have?', 'whatKindOfDecorCocktail', overviewData?.whatKindOfDecorCocktail || '', 'textarea')}
-          </CardContent>
-        </Card>
+        {renderSectionWithAddDelete('Cocktail Hour', 'CocktailHour', [
+          {field: 'whereWillCocktailHour', label: 'Where will cocktail hour be held?'},
+          {field: 'whatCocktailEntertainment', label: 'What cocktail hour entertainment will you have?'},
+          {field: 'willYouServingFood', label: 'Will you be serving food?'},
+          {field: 'willYouHaveSignatureBar', label: 'Will you have a signature bar or cocktail?'},
+          {field: 'willYouHaveSpecialtyDrinks', label: 'Will you have specialty drinks?'},
+          {field: 'willYouBeMingling', label: 'Will you be mingling with your cocktail hour?'},
+          {field: 'whatKindOfDecorCocktail', label: 'What kind of decor will you have?', type: 'textarea'}
+        ], 'text-amber-600')}
 
         {/* Reception Questions */}
-        <Card>
-          <CardHeader className="pb-4">
-            <CardTitle className="text-lg text-purple-600">Reception</CardTitle>
-            <p className="text-sm text-gray-500">Reception planning details and considerations.</p>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {renderEditableField('Where will the reception be held?', 'whereWillReception', overviewData?.whereWillReception || '')}
-            {renderEditableField('Will you do a receiving line at the reception?', 'willYouDoReceivingLineReception', overviewData?.willYouDoReceivingLineReception || '')}
-            {renderEditableField('How long is your reception?', 'howLongReception', overviewData?.howLongReception || '')}
-            {renderEditableField('What kind of meal will you serve?', 'whatKindOfMeal', overviewData?.whatKindOfMeal || '')}
-            {renderEditableField('Will you have toasts?', 'willYouHaveToasts', overviewData?.willYouHaveToasts || '')}
-            {renderEditableField('Will you have a guestbook?', 'willYouHaveGuestbook', overviewData?.willYouHaveGuestbook || '')}
-            {renderEditableField('Will you have wedding favors?', 'willYouHaveWeddingFavor', overviewData?.willYouHaveWeddingFavor || '')}
-            {renderEditableField('Will you serve cake?', 'willYouServeCake', overviewData?.willYouServeCake || '')}
-            {renderEditableField('Will you cut the cake?', 'willYouCutCake', overviewData?.willYouCutCake || '')}
-          </CardContent>
-        </Card>
+        {renderSectionWithAddDelete('Reception', 'Reception', [
+          {field: 'whereWillReception', label: 'Where will the reception be held?'},
+          {field: 'willYouDoReceivingLineReception', label: 'Will you do a receiving line at the reception?'},
+          {field: 'howLongReception', label: 'How long is your reception?'},
+          {field: 'whatKindOfMeal', label: 'What kind of meal will you serve?'},
+          {field: 'willYouHaveToasts', label: 'Will you have toasts?'},
+          {field: 'willYouHaveGuestbook', label: 'Will you have a guestbook?'},
+          {field: 'willYouHaveWeddingFavor', label: 'Will you have wedding favors?'},
+          {field: 'willYouServeCake', label: 'Will you serve cake?'},
+          {field: 'willYouCutCake', label: 'Will you cut the cake?'}
+        ], 'text-purple-600')}
 
         {/* Minor Details */}
-        <Card>
-          <CardHeader className="pb-4">
-            <CardTitle className="text-lg text-gray-600">The Minor Details</CardTitle>
-            <p className="text-sm text-gray-500">
-              There's a lot of small details that can easily be overlooked or forgotten, so we created this list to help avoid that.
-            </p>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {renderEditableField('Who is bringing the bride to the venue?', 'brideWalkingWith', overviewData?.brideWalkingWith || '')}
-            {renderEditableField('Who is bringing the groom to the venue?', 'groomWalkingWith', overviewData?.groomWalkingWith || '')}
-            {renderEditableField('How is the wedding party getting home?', 'weddingPartyTransport', overviewData?.weddingPartyTransport || '', 'textarea')}
-            {renderEditableField('Who is responsible for bringing the rings to the venue?', 'ringsToVenue', overviewData?.ringsToVenue || '')}
-            {renderEditableField('Who is responsible for bringing the dress to the venue?', 'dressToVenue', overviewData?.dressToVenue || '')}
-            {renderEditableField('Who is responsible for getting the bride and groom\'s belongings into their getaway car?', 'belongingsTransport', overviewData?.belongingsTransport || '', 'textarea')}
-            {renderEditableField('Who is driving the getaway car?', 'getawayCar', overviewData?.getawayCar || '')}
-            {renderEditableField('Who is in charge of taking all the decor home from the venue?', 'decorTakeHome', overviewData?.decorTakeHome || '')}
-            {renderEditableField('Who is in charge of taking all the gifts home from the venue?', 'giftsFromVenue', overviewData?.giftsFromVenue || '')}
-            {renderEditableField('Are the florals to be trashed or is someone taking them home?', 'floralsDisposal', overviewData?.floralsDisposal || '', 'textarea')}
-            {renderEditableField('Who is responsible for caring for your bouquet if you are having it preserved?', 'bouquetPreservation', overviewData?.bouquetPreservation || '', 'textarea')}
-            {renderEditableField('Who will do a final sweep of the venue for any items left by wedding party and guests?', 'finalVenueSweep', overviewData?.finalVenueSweep || '')}
-            {renderEditableField('What is to be done with any leftover food and/or alcohol?', 'leftoverFood', overviewData?.leftoverFood || '', 'textarea')}
-            {renderEditableField('Who will get you your go-food and cake boxes into your getaway car for your late night snack?', 'lateNightSnack', overviewData?.lateNightSnack || '', 'textarea')}
-          </CardContent>
-        </Card>
+        {renderSectionWithAddDelete('The Minor Details', 'MinorDetails', [
+          {field: 'brideWalkingWith', label: 'Who is bringing the bride to the venue?'},
+          {field: 'groomWalkingWith', label: 'Who is bringing the groom to the venue?'},
+          {field: 'weddingPartyTransport', label: 'How is the wedding party getting home?', type: 'textarea'},
+          {field: 'ringsToVenue', label: 'Who is responsible for bringing the rings to the venue?'},
+          {field: 'dressToVenue', label: 'Who is responsible for bringing the dress to the venue?'},
+          {field: 'belongingsTransport', label: 'Who is responsible for getting the bride and groom\'s belongings into their getaway car?', type: 'textarea'},
+          {field: 'getawayCar', label: 'Who is driving the getaway car?'},
+          {field: 'decorTakeHome', label: 'Who is in charge of taking all the decor home from the venue?'},
+          {field: 'giftsFromVenue', label: 'Who is in charge of taking all the gifts home from the venue?'},
+          {field: 'floralsDisposal', label: 'Are the florals to be trashed or is someone taking them home?', type: 'textarea'},
+          {field: 'bouquetPreservation', label: 'Who is responsible for caring for your bouquet if you are having it preserved?', type: 'textarea'},
+          {field: 'finalVenueSweep', label: 'Who will do a final sweep of the venue for any items left by wedding party and guests?'},
+          {field: 'leftoverFood', label: 'What is to be done with any leftover food and/or alcohol?', type: 'textarea'},
+          {field: 'lateNightSnack', label: 'Who will get you your go-food and cake boxes into your getaway car for your late night snack?', type: 'textarea'}
+        ], 'text-gray-600')}
       </div>
     </div>
   );
