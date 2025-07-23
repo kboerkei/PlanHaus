@@ -15,6 +15,26 @@ import { Badge } from "@/components/ui/badge";
 import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { format, differenceInDays } from "date-fns";
+import { useEffect, useState } from "react";
+
+type Task = {
+  id: string;
+  title: string;
+  dueDate: string;
+  isCompleted: boolean;
+  priority?: string;
+};
+
+type DashboardStats = {
+  tasksCompleted: number;
+  totalTasks: number;
+  totalSpent: number;
+  totalBudget: number;
+  rsvpResponses: number;
+  totalGuests: number;
+  vendorsBooked: number;
+  totalVendors: number;
+};
 
 const navigationSections = [
   {
@@ -88,17 +108,41 @@ function PersonalizedGreeting() {
 }
 
 function NextUpSection() {
-  const { data: tasks, isLoading } = useQuery({
-    queryKey: ['/api/tasks'],
-    enabled: !!localStorage.getItem('sessionId')
-  });
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const tasksArray = Array.isArray(tasks) ? tasks : [];
-  
+  useEffect(() => {
+    const fetchTasks = async () => {
+      try {
+        const sessionId = localStorage.getItem('sessionId');
+        if (!sessionId) throw new Error('No session');
+        
+        const res = await fetch("/api/tasks", {
+          headers: { 'Authorization': `Bearer ${sessionId}` }
+        });
+        if (!res.ok) throw new Error("Fetch failed");
+        const data = await res.json();
+        
+        setTasks(Array.isArray(data) ? data : []);
+        localStorage.setItem("cached_tasks", JSON.stringify(data));
+      } catch (err) {
+        // Fallback to localStorage
+        const cached = localStorage.getItem("cached_tasks");
+        if (cached) {
+          setTasks(JSON.parse(cached));
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTasks();
+  }, []);
+
   // Get next 1-2 uncompleted tasks sorted by due date (soonest first)
-  const nextTasks = tasksArray
-    .filter((task: any) => !task.isCompleted && task.dueDate)
-    .sort((a: any, b: any) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
+  const nextTasks = tasks
+    .filter((task: Task) => !task.isCompleted && task.dueDate)
+    .sort((a: Task, b: Task) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
     .slice(0, 2);
 
   const formatDueDate = (dueDate: string) => {
@@ -112,7 +156,7 @@ function NextUpSection() {
     return `Due in ${diffInDays} days`;
   };
 
-  if (isLoading) {
+  if (loading) {
     return (
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -195,10 +239,36 @@ function NextUpSection() {
 
 
 function AnimatedDashboardStats() {
-  const { data: dashboardStats, isLoading } = useQuery({
-    queryKey: ['/api/dashboard/stats'],
-    enabled: !!localStorage.getItem('sessionId')
-  });
+  const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const sessionId = localStorage.getItem('sessionId');
+        if (!sessionId) throw new Error('No session');
+        
+        const res = await fetch("/api/dashboard/stats", {
+          headers: { 'Authorization': `Bearer ${sessionId}` }
+        });
+        if (!res.ok) throw new Error("Fetch failed");
+        const data = await res.json();
+        
+        setDashboardStats(data);
+        localStorage.setItem("cached_dashboard_stats", JSON.stringify(data));
+      } catch (err) {
+        // Fallback to localStorage
+        const cached = localStorage.getItem("cached_dashboard_stats");
+        if (cached) {
+          setDashboardStats(JSON.parse(cached));
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStats();
+  }, []);
 
   const statsData = dashboardStats || {};
   const stats = [
@@ -244,7 +314,7 @@ function AnimatedDashboardStats() {
     }
   ];
 
-  if (isLoading) {
+  if (loading) {
     return (
       <motion.div
         initial={{ opacity: 0 }}
