@@ -1,7 +1,7 @@
 import {
   users, weddingProjects, collaborators, defaultTasks, tasks, guests, vendors, vendorPayments, budgetItems,
   timelineEvents, inspirationItems, activities, shoppingLists, shoppingItems,
-  schedules, scheduleEvents, intakeData,
+  schedules, scheduleEvents, intakeData, weddingOverview,
   type User, type InsertUser, type WeddingProject, type InsertWeddingProject,
   type Collaborator, type InsertCollaborator, type DefaultTask, type InsertDefaultTask,
   type Task, type InsertTask, type Guest, type InsertGuest, type Vendor, type InsertVendor,
@@ -10,7 +10,7 @@ import {
   type InspirationItem, type InsertInspirationItem, type Activity, type InsertActivity,
   type ShoppingList, type InsertShoppingList, type ShoppingItem, type InsertShoppingItem,
   type Schedule, type InsertSchedule, type ScheduleEvent, type InsertScheduleEvent,
-  type IntakeData, type InsertIntakeData
+  type IntakeData, type InsertIntakeData, type WeddingOverview, type InsertWeddingOverview
 } from "@shared/schema";
 
 export interface IStorage {
@@ -122,6 +122,11 @@ export interface IStorage {
   getIntakeDataByUserId(userId: number): Promise<IntakeData | undefined>;
   updateIntakeData(userId: number, updates: Partial<InsertIntakeData>): Promise<IntakeData | undefined>;
   markUserIntakeComplete(userId: number): Promise<boolean>;
+
+  // Wedding Overview
+  createWeddingOverview(overview: InsertWeddingOverview): Promise<WeddingOverview>;
+  getWeddingOverviewByProjectId(projectId: number): Promise<WeddingOverview | undefined>;
+  updateWeddingOverview(projectId: number, updates: Partial<InsertWeddingOverview>): Promise<WeddingOverview | undefined>;
 }
 
 export class MemStorage implements IStorage {
@@ -1185,6 +1190,25 @@ export class DatabaseStorage implements IStorage {
       console.error('Error marking user intake complete:', error);
       return false;
     }
+  }
+
+  async createWeddingOverview(insertOverview: InsertWeddingOverview): Promise<WeddingOverview> {
+    const [overview] = await db.insert(weddingOverview).values(insertOverview).returning();
+    return overview;
+  }
+
+  async getWeddingOverviewByProjectId(projectId: number): Promise<WeddingOverview | undefined> {
+    const [overview] = await db.select().from(weddingOverview).where(eq(weddingOverview.projectId, projectId));
+    return overview || undefined;
+  }
+
+  async updateWeddingOverview(projectId: number, updates: Partial<InsertWeddingOverview>): Promise<WeddingOverview | undefined> {
+    const [overview] = await db
+      .update(weddingOverview)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(weddingOverview.projectId, projectId))
+      .returning();
+    return overview || undefined;
   }
 }
 

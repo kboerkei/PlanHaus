@@ -13,6 +13,7 @@ import Profile from "@/pages/profile";
 import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/dashboard";
 import AIAssistant from "@/pages/ai-assistant";
+import Overview from "@/pages/overview";
 import Timeline from "@/pages/timeline-auto";
 import Budget from "@/pages/budget";
 import Guests from "@/pages/guests";
@@ -46,6 +47,7 @@ function Router({ user, onLogout, isNewUser, onIntakeComplete }: { user: any; on
                   <Intake onComplete={onIntakeComplete} />
                 </Route>
                 <Route path="/ai-assistant" component={AIAssistant} />
+                <Route path="/overview" component={Overview} />
                 <Route path="/timeline" component={Timeline} />
                 <Route path="/budget" component={Budget} />
                 <Route path="/guests" component={Guests} />

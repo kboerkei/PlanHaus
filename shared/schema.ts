@@ -346,6 +346,57 @@ export const insertScheduleEventSchema = createInsertSchema(scheduleEvents).omit
   updatedAt: true,
 });
 
+export const weddingOverview = pgTable("wedding_overview", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id").notNull().unique(),
+  weddingDate: text("wedding_date"),
+  ceremonyLocation: text("ceremony_location"),
+  cocktailHourLocation: text("cocktail_hour_location"),
+  receptionLocation: text("reception_location"),
+  
+  // Wedding Party
+  brideParty: jsonb("bride_party").$type<string[]>().default([]),
+  groomParty: jsonb("groom_party").$type<string[]>().default([]),
+  
+  // Important Dates
+  engagementParty: text("engagement_party"),
+  dressShoppingDate: text("dress_shopping_date"),
+  saveTheDateSent: text("save_the_date_sent"),
+  dressFitting: text("dress_fitting"),
+  bridalShower: text("bridal_shower"),
+  sendWeddingInvites: text("send_wedding_invites"),
+  bachelorBacheloretteParty: text("bachelor_bachelorette_party"),
+  rsvpDue: text("rsvp_due"),
+  rehearsalDinner: text("rehearsal_dinner"),
+  honeymoonStart: text("honeymoon_start"),
+  honeymoonEnd: text("honeymoon_end"),
+  
+  // Minor Details
+  brideWalkingWith: text("bride_walking_with"),
+  groomWalkingWith: text("groom_walking_with"),
+  weddingPartyTransport: text("wedding_party_transport"),
+  ringsToVenue: text("rings_to_venue"),
+  dressToVenue: text("dress_to_venue"),
+  belongingsTransport: text("belongings_transport"),
+  getawayCar: text("getaway_car"),
+  decorTakeHome: text("decor_take_home"),
+  giftsFromVenue: text("gifts_from_venue"),
+  floralsDisposal: text("florals_disposal"),
+  bouquetPreservation: text("bouquet_preservation"),
+  finalVenueSweep: text("final_venue_sweep"),
+  leftoverFood: text("leftover_food"),
+  lateNightSnack: text("late_night_snack"),
+  
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertWeddingOverviewSchema = createInsertSchema(weddingOverview).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export const intakeData = pgTable("intake_data", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull().unique(),
@@ -632,3 +683,5 @@ export type Schedule = typeof schedules.$inferSelect;
 export type InsertSchedule = z.infer<typeof insertScheduleSchema>;
 export type ScheduleEvent = typeof scheduleEvents.$inferSelect;
 export type InsertScheduleEvent = z.infer<typeof insertScheduleEventSchema>;
+export type WeddingOverview = typeof weddingOverview.$inferSelect;
+export type InsertWeddingOverview = z.infer<typeof insertWeddingOverviewSchema>;

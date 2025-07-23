@@ -9,7 +9,7 @@ import {
   insertTaskSchema, insertGuestSchema, insertVendorSchema, insertVendorPaymentSchema,
   insertBudgetItemSchema, insertTimelineEventSchema, insertInspirationItemSchema, 
   insertActivitySchema, insertScheduleSchema, insertScheduleEventSchema, 
-  insertIntakeDataSchema, users
+  insertIntakeDataSchema, insertWeddingOverviewSchema, users
 } from "@shared/schema";
 import { 
   generateWeddingTimeline, generateBudgetBreakdown, generateVendorSuggestions,
@@ -3340,6 +3340,117 @@ Focus on providing accurate, real businesses that are currently operating. Inclu
     } catch (error) {
       console.error('AI chat error:', error);
       res.status(500).json({ message: "Failed to process AI request" });
+    }
+  });
+
+  // Wedding Overview API
+  app.get("/api/overview", requireAuth, async (req, res) => {
+    try {
+      const userId = (req as any).userId;
+      let projects = await storage.getWeddingProjectsByUserId(userId);
+      
+      if (projects.length === 0) {
+        const defaultProject = await storage.createWeddingProject({
+          name: "My Wedding",
+          date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+          createdBy: userId,
+          budget: null,
+          guestCount: null,
+          theme: null,
+          venue: null
+        });
+        projects = [defaultProject];
+      }
+      
+      const projectId = projects[0].id;
+      let overview = await storage.getWeddingOverviewByProjectId(projectId);
+      
+      if (!overview) {
+        // Create default overview
+        overview = await storage.createWeddingOverview({
+          projectId,
+          weddingDate: projects[0].date ? projects[0].date.toISOString().split('T')[0] : null,
+          ceremonyLocation: projects[0].venue || null,
+          cocktailHourLocation: null,
+          receptionLocation: null,
+          brideParty: [],
+          groomParty: [],
+          engagementParty: null,
+          dressShoppingDate: null,
+          saveTheDateSent: null,
+          dressFitting: null,
+          bridalShower: null,
+          sendWeddingInvites: null,
+          bachelorBacheloretteParty: null,
+          rsvpDue: null,
+          rehearsalDinner: null,
+          honeymoonStart: null,
+          honeymoonEnd: null,
+          brideWalkingWith: null,
+          groomWalkingWith: null,
+          weddingPartyTransport: null,
+          ringsToVenue: null,
+          dressToVenue: null,
+          belongingsTransport: null,
+          getawayCar: null,
+          decorTakeHome: null,
+          giftsFromVenue: null,
+          floralsDisposal: null,
+          bouquetPreservation: null,
+          finalVenueSweep: null,
+          leftoverFood: null,
+          lateNightSnack: null
+        });
+      }
+      
+      res.json(overview);
+    } catch (error) {
+      console.error('Overview fetch error:', error);
+      res.status(500).json({ message: "Failed to fetch overview" });
+    }
+  });
+
+  app.patch("/api/overview", requireAuth, async (req, res) => {
+    try {
+      const userId = (req as any).userId;
+      let projects = await storage.getWeddingProjectsByUserId(userId);
+      
+      if (projects.length === 0) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+      
+      const projectId = projects[0].id;
+      const updates = insertWeddingOverviewSchema.parse(req.body);
+      
+      let overview = await storage.getWeddingOverviewByProjectId(projectId);
+      if (!overview) {
+        // Create if doesn't exist
+        overview = await storage.createWeddingOverview({
+          ...updates,
+          projectId
+        });
+      } else {
+        // Update existing
+        overview = await storage.updateWeddingOverview(projectId, updates);
+      }
+      
+      if (!overview) {
+        return res.status(500).json({ message: "Failed to update overview" });
+      }
+
+      // Create activity
+      await storage.createActivity({
+        projectId,
+        userId,
+        action: 'updated wedding overview',
+        target: 'overview',
+        details: { updatedFields: Object.keys(req.body) }
+      });
+
+      res.json(overview);
+    } catch (error) {
+      console.error('Overview update error:', error);
+      res.status(400).json({ message: "Invalid overview data" });
     }
   });
 
