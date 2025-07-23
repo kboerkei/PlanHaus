@@ -25,6 +25,10 @@ export async function apiRequest<T = any>(
   // If we get a 401, try to refresh session with demo login
   if (res.status === 401) {
     try {
+      // Clear old session data first
+      localStorage.removeItem('sessionId');
+      localStorage.removeItem('user');
+      
       const demoResponse = await fetch('/api/auth/demo-login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' }
@@ -49,7 +53,7 @@ export async function apiRequest<T = any>(
         return await retryRes.json();
       }
     } catch (error) {
-      // Silent fallback for failed demo login attempts
+      console.error('Failed to refresh session:', error);
     }
   }
 
@@ -72,6 +76,10 @@ export const getQueryFn: <T>(options: {
     if (res.status === 401) {
       // Try demo login first
       try {
+        // Clear old session data first
+        localStorage.removeItem('sessionId');
+        localStorage.removeItem('user');
+        
         const demoResponse = await fetch('/api/auth/demo-login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' }
@@ -92,7 +100,7 @@ export const getQueryFn: <T>(options: {
           }
         }
       } catch (error) {
-        // Fall through to returnNull behavior
+        console.error('Query retry failed:', error);
       }
       
       if (unauthorizedBehavior === "returnNull") {

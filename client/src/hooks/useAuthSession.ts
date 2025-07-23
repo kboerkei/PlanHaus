@@ -80,52 +80,19 @@ export function useAuthSession(): AuthSessionState & AuthSessionActions {
   // Initialize session on app load
   useEffect(() => {
     const initializeSession = async () => {
-      const storedSessionId = localStorage.getItem('sessionId');
-      const storedUserData = localStorage.getItem('user');
-
-      if (storedSessionId && storedUserData) {
-        try {
-          const userData = JSON.parse(storedUserData);
-          
-          // Try to verify existing session
-          const isValidSession = await verifySession(storedSessionId, userData);
-          
-          if (!isValidSession) {
-            // Session expired, try demo login for seamless experience
-            console.log('Session expired, attempting demo login...');
-            const demoLoginSuccess = await attemptDemoLogin();
-            
-            if (!demoLoginSuccess) {
-              clearStoredSession();
-              toast({
-                title: "Session Expired",
-                description: "Your session has expired. Please log in again.",
-                variant: "destructive",
-              });
-            } else {
-              toast({
-                title: "Session Restored",
-                description: "Automatically logged in with demo account.",
-              });
-            }
-          }
-        } catch (error) {
-          console.error('Error parsing stored user data:', error);
-          clearStoredSession();
-        }
-      } else {
-        // No stored session, try demo login for development
-        console.log('No stored session, attempting demo login...');
-        const demoLoginSuccess = await attemptDemoLogin();
-        
-        if (!demoLoginSuccess) {
-          console.log('Demo login failed, showing auth page');
-          toast({
-            title: "Connection Issue",
-            description: "Unable to connect automatically. Please log in manually.",
-            variant: "destructive",
-          });
-        }
+      // Always clear any old session data and start fresh with demo login
+      clearStoredSession();
+      
+      console.log('Session expired, attempting demo login...');
+      const demoLoginSuccess = await attemptDemoLogin();
+      
+      if (!demoLoginSuccess) {
+        console.log('Demo login failed, showing auth page');
+        toast({
+          title: "Connection Issue",
+          description: "Unable to connect automatically. Please log in manually.",
+          variant: "destructive",
+        });
       }
       
       setIsLoading(false);
