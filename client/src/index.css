@@ -53,37 +53,37 @@
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 240 10% 7%;
+    --card-foreground: 0 0% 95%;
+    --popover: 240 10% 7%;
+    --popover-foreground: 0 0% 95%;
     --primary: 347 77% 50%;
     --primary-foreground: 355.7 100% 97.3%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --secondary: 240 6% 12%;
+    --secondary-foreground: 0 0% 90%;
+    --muted: 240 6% 10%;
+    --muted-foreground: 240 5% 65%;
+    --accent: 240 6% 12%;
+    --accent-foreground: 0 0% 90%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
+    --border: 240 6% 20%;
+    --input: 240 6% 20%;
     --ring: 347 77% 50%;
 
     /* Wedding Theme Colors - Dark Mode */
-    --blush: 330 40% 25%;
-    --rose-gold: 12 30% 35%;
-    --champagne: 46 25% 35%;
-    --sage: 80 15% 35%;
-    --cream: 60 15% 15%;
-    --ivory: 60 8% 20%;
-    --dusty-rose: 345 20% 40%;
-    --muted-gold: 35 20% 40%;
-    --pearl: 36 5% 25%;
-    --mauve: 300 12% 40%;
+    --blush: 330 50% 35%;
+    --rose-gold: 12 40% 45%;
+    --champagne: 46 35% 45%;
+    --sage: 80 25% 45%;
+    --cream: 60 20% 20%;
+    --ivory: 60 15% 25%;
+    --dusty-rose: 345 30% 50%;
+    --muted-gold: 35 30% 50%;
+    --pearl: 36 10% 30%;
+    --mauve: 300 20% 50%;
     
     /* Theme Background */
     --theme-bg: var(--background);
@@ -140,8 +140,16 @@
   }
   
   .text-gradient {
-    background: linear-gradient(135deg, hsl(330, 81%, 85%) 0%, hsl(12, 47%, 82%) 100%); /* fallback */
-    background: linear-gradient(135deg, var(--blush, hsl(330, 81%, 85%)) 0%, var(--rose-gold, hsl(12, 47%, 82%)) 100%);
+    background: linear-gradient(135deg, hsl(330, 81%, 70%) 0%, hsl(12, 47%, 75%) 100%); /* fallback light mode */
+    background: linear-gradient(135deg, var(--blush, hsl(330, 81%, 70%)) 0%, var(--rose-gold, hsl(12, 47%, 75%)) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .dark .text-gradient {
+    background: linear-gradient(135deg, hsl(330, 60%, 80%) 0%, hsl(12, 50%, 85%) 100%); /* darker mode - lighter colors for contrast */
+    background: linear-gradient(135deg, var(--blush, hsl(330, 60%, 80%)) 0%, var(--rose-gold, hsl(12, 50%, 85%)) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;

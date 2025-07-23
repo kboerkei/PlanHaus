@@ -65,9 +65,9 @@ function PersonalizedGreeting() {
       className="mb-6 sm:mb-8"
     >
       <div className="text-center sm:text-left">
-        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground mb-2">
-          Welcome back, {firstName}! 
-          <Heart className="inline-block ml-2 h-6 w-6 sm:h-7 sm:w-7 text-rose-500" fill="currentColor" />
+        <h1 className="text-xl font-bold text-gradient mb-2">
+          {firstName !== "Demo User" ? `Welcome back, ${firstName}!` : "Welcome to PlanHaus!"}
+          <Heart className="inline-block ml-2 h-6 w-6 text-rose-500" fill="currentColor" />
         </h1>
         {daysUntil && daysUntil > 0 && (
           <p className="text-sm sm:text-base text-muted-foreground">
