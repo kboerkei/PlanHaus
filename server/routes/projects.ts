@@ -78,4 +78,77 @@ router.put("/:id", requireAuth, validateBody(insertWeddingProjectSchema.partial(
   }
 });
 
+// Project-specific routes for nested resources
+router.get("/:id/budget", requireAuth, async (req: RequestWithUser, res) => {
+  try {
+    const projectId = parseInt(req.params.id);
+    const projects = await storage.getWeddingProjectsByUserId(req.userId);
+    const project = projects.find(p => p.id === projectId);
+    
+    if (!project) {
+      return res.status(404).json({ message: "Project not found" });
+    }
+    
+    const budgetItems = await storage.getBudgetItemsByProjectId(projectId);
+    res.json(budgetItems);
+  } catch (error) {
+    logError('projects', error, { userId: req.userId, projectId: req.params.id });
+    res.status(500).json({ message: "Failed to fetch budget items" });
+  }
+});
+
+router.get("/:id/guests", requireAuth, async (req: RequestWithUser, res) => {
+  try {
+    const projectId = parseInt(req.params.id);
+    const projects = await storage.getWeddingProjectsByUserId(req.userId);
+    const project = projects.find(p => p.id === projectId);
+    
+    if (!project) {
+      return res.status(404).json({ message: "Project not found" });
+    }
+    
+    const guests = await storage.getGuestsByProjectId(projectId);
+    res.json(guests);
+  } catch (error) {
+    logError('projects', error, { userId: req.userId, projectId: req.params.id });
+    res.status(500).json({ message: "Failed to fetch guests" });
+  }
+});
+
+router.get("/:id/vendors", requireAuth, async (req: RequestWithUser, res) => {
+  try {
+    const projectId = parseInt(req.params.id);
+    const projects = await storage.getWeddingProjectsByUserId(req.userId);
+    const project = projects.find(p => p.id === projectId);
+    
+    if (!project) {
+      return res.status(404).json({ message: "Project not found" });
+    }
+    
+    const vendors = await storage.getVendorsByProjectId(projectId);
+    res.json(vendors);
+  } catch (error) {
+    logError('projects', error, { userId: req.userId, projectId: req.params.id });
+    res.status(500).json({ message: "Failed to fetch vendors" });
+  }
+});
+
+router.get("/:id/tasks", requireAuth, async (req: RequestWithUser, res) => {
+  try {
+    const projectId = parseInt(req.params.id);
+    const projects = await storage.getWeddingProjectsByUserId(req.userId);
+    const project = projects.find(p => p.id === projectId);
+    
+    if (!project) {
+      return res.status(404).json({ message: "Project not found" });
+    }
+    
+    const tasks = await storage.getTasksByProjectId(projectId);
+    res.json(tasks);
+  } catch (error) {
+    logError('projects', error, { userId: req.userId, projectId: req.params.id });
+    res.status(500).json({ message: "Failed to fetch tasks" });
+  }
+});
+
 export default router;

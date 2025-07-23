@@ -1,8 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 
 export function useProjects() {
   return useQuery({
     queryKey: ['/api/projects'],
+    queryFn: () => apiRequest('/api/projects'),
   });
 }
 

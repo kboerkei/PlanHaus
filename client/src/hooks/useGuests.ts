@@ -5,6 +5,7 @@ import { GuestFormData } from "@/schemas";
 export function useGuests(projectId?: string) {
   return useQuery({
     queryKey: projectId ? ['/api/projects', projectId, 'guests'] : ['/api/guests'],
+    queryFn: () => apiRequest(`/api/projects/${projectId}/guests`),
     enabled: !!projectId,
   });
 }

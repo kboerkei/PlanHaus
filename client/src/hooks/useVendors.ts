@@ -5,6 +5,7 @@ import { VendorFormData } from "@/schemas";
 export function useVendors(projectId?: string) {
   return useQuery({
     queryKey: projectId ? ['/api/projects', projectId, 'vendors'] : ['/api/vendors'],
+    queryFn: () => apiRequest(`/api/projects/${projectId}/vendors`),
     enabled: !!projectId,
   });
 }
