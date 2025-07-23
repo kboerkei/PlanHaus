@@ -371,6 +371,48 @@ export const weddingOverview = pgTable("wedding_overview", {
   honeymoonStart: text("honeymoon_start"),
   honeymoonEnd: text("honeymoon_end"),
   
+  // Getting Started Questions
+  areYouPlanningTogether: text("are_you_planning_together"),
+  doYouWantOutdoorCeremony: text("do_you_want_outdoor_ceremony"),
+  
+  // Ceremony Questions
+  doYouWantUnplugged: text("do_you_want_unplugged"),
+  doYouWantAisleRunner: text("do_you_want_aisle_runner"),
+  willYouHaveFlowerGirls: text("will_you_have_flower_girls"),
+  willYouHaveRingBearer: text("will_you_have_ring_bearer"),
+  whatTypeOfOfficiant: text("what_type_of_officiant"),
+  willYouWriteVows: text("will_you_write_vows"),
+  willYouUseUnityCandle: text("will_you_use_unity_candle"),
+  willYouDoSandCeremony: text("will_you_do_sand_ceremony"),
+  whoWillWalkBrideDown: text("who_will_walk_bride_down"),
+  whatWillCeremonyMusic: text("what_will_ceremony_music"),
+  whoWillPlayMusic: text("who_will_play_music"),
+  willYouHaveReceivingLine: text("will_you_have_receiving_line"),
+  whereWillYouTakePictures: text("where_will_you_take_pictures"),
+  willYouDoFirstLook: text("will_you_do_first_look"),
+  whatKindOfCeremonyDecor: text("what_kind_of_ceremony_decor"),
+  whoWillSetupTakedown: text("who_will_setup_takedown"),
+  
+  // Cocktail Hour Questions
+  whereWillCocktailHour: text("where_will_cocktail_hour"),
+  whatCocktailEntertainment: text("what_cocktail_entertainment"),
+  willYouServingFood: text("will_you_serving_food"),
+  willYouHaveSignatureBar: text("will_you_have_signature_bar"),
+  willYouHaveSpecialtyDrinks: text("will_you_have_specialty_drinks"),
+  willYouBeMingling: text("will_you_be_mingling"),
+  whatKindOfDecorCocktail: text("what_kind_of_decor_cocktail"),
+  
+  // Reception Questions
+  whereWillReception: text("where_will_reception"),
+  willYouDoReceivingLineReception: text("will_you_do_receiving_line_reception"),
+  howLongReception: text("how_long_reception"),
+  whatKindOfMeal: text("what_kind_of_meal"),
+  willYouHaveToasts: text("will_you_have_toasts"),
+  willYouHaveGuestbook: text("will_you_have_guestbook"),
+  willYouHaveWeddingFavor: text("will_you_have_wedding_favor"),
+  willYouServeCake: text("will_you_serve_cake"),
+  willYouCutCake: text("will_you_cut_cake"),
+
   // Minor Details
   brideWalkingWith: text("bride_walking_with"),
   groomWalkingWith: text("groom_walking_with"),

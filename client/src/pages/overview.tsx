@@ -34,6 +34,48 @@ interface OverviewData {
   honeymoonStart: string;
   honeymoonEnd: string;
   
+  // Getting Started Questions
+  areYouPlanningTogether: string;
+  doYouWantOutdoorCeremony: string;
+  
+  // Ceremony Questions
+  doYouWantUnplugged: string;
+  doYouWantAisleRunner: string;
+  willYouHaveFlowerGirls: string;
+  willYouHaveRingBearer: string;
+  whatTypeOfOfficiant: string;
+  willYouWriteVows: string;
+  willYouUseUnityCandle: string;
+  willYouDoSandCeremony: string;
+  whoWillWalkBrideDown: string;
+  whatWillCeremonyMusic: string;
+  whoWillPlayMusic: string;
+  willYouHaveReceivingLine: string;
+  whereWillYouTakePictures: string;
+  willYouDoFirstLook: string;
+  whatKindOfCeremonyDecor: string;
+  whoWillSetupTakedown: string;
+  
+  // Cocktail Hour Questions
+  whereWillCocktailHour: string;
+  whatCocktailEntertainment: string;
+  willYouServingFood: string;
+  willYouHaveSignatureBar: string;
+  willYouHaveSpecialtyDrinks: string;
+  willYouBeMingling: string;
+  whatKindOfDecorCocktail: string;
+  
+  // Reception Questions
+  whereWillReception: string;
+  willYouDoReceivingLineReception: string;
+  howLongReception: string;
+  whatKindOfMeal: string;
+  willYouHaveToasts: string;
+  willYouHaveGuestbook: string;
+  willYouHaveWeddingFavor: string;
+  willYouServeCake: string;
+  willYouCutCake: string;
+  
   // Minor Details
   brideWalkingWith: string;
   groomWalkingWith: string;
@@ -294,6 +336,80 @@ export default function OverviewPage() {
             {renderEditableField('Rehearsal Dinner', 'rehearsalDinner', overviewData?.rehearsalDinner || '', 'date')}
             {renderEditableField('Honeymoon Start', 'honeymoonStart', overviewData?.honeymoonStart || '', 'date')}
             {renderEditableField('Honeymoon End', 'honeymoonEnd', overviewData?.honeymoonEnd || '', 'date')}
+          </CardContent>
+        </Card>
+
+        {/* Getting Started Questions */}
+        <Card>
+          <CardHeader className="pb-4">
+            <CardTitle className="text-lg text-rose-600">Getting Started</CardTitle>
+            <p className="text-sm text-gray-500">Things to consider as you begin planning.</p>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {renderEditableField('Are you planning to have your wedding during "busy season" (May-October)?', 'areYouPlanningTogether', overviewData?.areYouPlanningTogether || '')}
+            {renderEditableField('Do you want an outdoor ceremony?', 'doYouWantOutdoorCeremony', overviewData?.doYouWantOutdoorCeremony || '')}
+          </CardContent>
+        </Card>
+
+        {/* Ceremony Questions */}
+        <Card>
+          <CardHeader className="pb-4">
+            <CardTitle className="text-lg text-blue-600">Ceremony</CardTitle>
+            <p className="text-sm text-gray-500">Detailed ceremony planning considerations.</p>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {renderEditableField('Do you want an unplugged ceremony?', 'doYouWantUnplugged', overviewData?.doYouWantUnplugged || '')}
+            {renderEditableField('Do you want to have an aisle runner?', 'doYouWantAisleRunner', overviewData?.doYouWantAisleRunner || '')}
+            {renderEditableField('Will you have flower girls and ring bearers?', 'willYouHaveFlowerGirls', overviewData?.willYouHaveFlowerGirls || '')}
+            {renderEditableField('Will you have a ring bearer?', 'willYouHaveRingBearer', overviewData?.willYouHaveRingBearer || '')}
+            {renderEditableField('What type of officiant do you want?', 'whatTypeOfOfficiant', overviewData?.whatTypeOfOfficiant || '')}
+            {renderEditableField('Will you write your own vows?', 'willYouWriteVows', overviewData?.willYouWriteVows || '')}
+            {renderEditableField('Will you use a unity candle during your ceremony?', 'willYouUseUnityCandle', overviewData?.willYouUseUnityCandle || '')}
+            {renderEditableField('Will you do a sand ceremony?', 'willYouDoSandCeremony', overviewData?.willYouDoSandCeremony || '')}
+            {renderEditableField('Who will walk the bride down the aisle?', 'whoWillWalkBrideDown', overviewData?.whoWillWalkBrideDown || '')}
+            {renderEditableField('What will your ceremony music be?', 'whatWillCeremonyMusic', overviewData?.whatWillCeremonyMusic || '', 'textarea')}
+            {renderEditableField('Who will play the music?', 'whoWillPlayMusic', overviewData?.whoWillPlayMusic || '')}
+            {renderEditableField('Will you have a receiving line after your ceremony?', 'willYouHaveReceivingLine', overviewData?.willYouHaveReceivingLine || '')}
+            {renderEditableField('Where will you take pictures after ceremony?', 'whereWillYouTakePictures', overviewData?.whereWillYouTakePictures || '', 'textarea')}
+            {renderEditableField('Will you do a first look?', 'willYouDoFirstLook', overviewData?.willYouDoFirstLook || '')}
+            {renderEditableField('What kind of ceremony decor will you have?', 'whatKindOfCeremonyDecor', overviewData?.whatKindOfCeremonyDecor || '', 'textarea')}
+            {renderEditableField('Who will set up and take down ceremony flowers and decor?', 'whoWillSetupTakedown', overviewData?.whoWillSetupTakedown || '')}
+          </CardContent>
+        </Card>
+
+        {/* Cocktail Hour Questions */}
+        <Card>
+          <CardHeader className="pb-4">
+            <CardTitle className="text-lg text-amber-600">Cocktail Hour</CardTitle>
+            <p className="text-sm text-gray-500">Planning your cocktail hour experience.</p>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {renderEditableField('Where will cocktail hour be held?', 'whereWillCocktailHour', overviewData?.whereWillCocktailHour || '')}
+            {renderEditableField('What cocktail hour entertainment will you have?', 'whatCocktailEntertainment', overviewData?.whatCocktailEntertainment || '')}
+            {renderEditableField('Will you be serving food?', 'willYouServingFood', overviewData?.willYouServingFood || '')}
+            {renderEditableField('Will you have a signature bar or cocktail?', 'willYouHaveSignatureBar', overviewData?.willYouHaveSignatureBar || '')}
+            {renderEditableField('Will you have specialty drinks?', 'willYouHaveSpecialtyDrinks', overviewData?.willYouHaveSpecialtyDrinks || '')}
+            {renderEditableField('Will you be mingling with your cocktail hour?', 'willYouBeMingling', overviewData?.willYouBeMingling || '')}
+            {renderEditableField('What kind of decor will you have?', 'whatKindOfDecorCocktail', overviewData?.whatKindOfDecorCocktail || '', 'textarea')}
+          </CardContent>
+        </Card>
+
+        {/* Reception Questions */}
+        <Card>
+          <CardHeader className="pb-4">
+            <CardTitle className="text-lg text-purple-600">Reception</CardTitle>
+            <p className="text-sm text-gray-500">Reception planning details and considerations.</p>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {renderEditableField('Where will the reception be held?', 'whereWillReception', overviewData?.whereWillReception || '')}
+            {renderEditableField('Will you do a receiving line at the reception?', 'willYouDoReceivingLineReception', overviewData?.willYouDoReceivingLineReception || '')}
+            {renderEditableField('How long is your reception?', 'howLongReception', overviewData?.howLongReception || '')}
+            {renderEditableField('What kind of meal will you serve?', 'whatKindOfMeal', overviewData?.whatKindOfMeal || '')}
+            {renderEditableField('Will you have toasts?', 'willYouHaveToasts', overviewData?.willYouHaveToasts || '')}
+            {renderEditableField('Will you have a guestbook?', 'willYouHaveGuestbook', overviewData?.willYouHaveGuestbook || '')}
+            {renderEditableField('Will you have wedding favors?', 'willYouHaveWeddingFavor', overviewData?.willYouHaveWeddingFavor || '')}
+            {renderEditableField('Will you serve cake?', 'willYouServeCake', overviewData?.willYouServeCake || '')}
+            {renderEditableField('Will you cut the cake?', 'willYouCutCake', overviewData?.willYouCutCake || '')}
           </CardContent>
         </Card>
 
