@@ -139,9 +139,9 @@ function NextUpSection() {
     fetchTasks();
   }, []);
 
-  // Get next 1-2 uncompleted tasks sorted by due date (soonest first)
+  // Get next 1-2 uncompleted tasks with future due dates only
   const nextTasks = tasks
-    .filter((task: Task) => !task.isCompleted && task.dueDate)
+    .filter((t: Task) => !t.isCompleted && t.dueDate && new Date(t.dueDate) > new Date())
     .sort((a: Task, b: Task) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
     .slice(0, 2);
 
@@ -188,7 +188,7 @@ function NextUpSection() {
         {nextTasks.length === 0 ? (
           <div className="text-center py-4">
             <p className="text-base sm:text-lg text-muted-foreground mb-4">
-              No urgent tasks — you're ahead of schedule 🎉
+              No upcoming tasks — you're ahead of schedule 🎉
             </p>
             <Link href="/timeline" className="text-rose-600 hover:text-rose-700 dark:text-rose-400 dark:hover:text-rose-300 font-medium text-base min-h-[44px] inline-flex items-center transition-colors">
               View full checklist →

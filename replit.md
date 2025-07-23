@@ -190,7 +190,10 @@ The application uses a comprehensive schema covering:
   - Dynamic time-based greeting: "Good morning", "Good afternoon", or "Good evening" based on current hour
   - Personalized format: "Good morning, Emma!" for logged-in users or "Good evening! Welcome to PlanHaus" for new users
   - Maintains blush gradient styling with heart icon for wedding theme consistency
-- **Next Up Section**: Displays top 2 upcoming/high-priority tasks with smart sorting and empty states
+- **Next Up Section**: Displays top 2 upcoming tasks (future dates only) with smart sorting and empty states
+  - Filters out completed tasks and past due dates to show only actionable upcoming items
+  - Sorts by due date (soonest first) and limits to 2 tasks for focused workflow
+  - Shows "No upcoming tasks — you're ahead of schedule" when all tasks are complete or overdue
 - **Animated Dashboard Stats**: Implemented fade-in animations with staggered timing for visual appeal
 - **Mobile-Responsive Design**: Enhanced mobile layout with proper spacing, truncation, and touch-friendly interactions
   - Grid layout: single column on mobile, 2 columns on small screens, 4 columns on large screens
