@@ -9,6 +9,99 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  :root {
+    /* Base Colors */
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 347 77% 50%;
+    --primary-foreground: 355.7 100% 97.3%;
+    --secondary: 210 40% 98%;
+    --secondary-foreground: 222.2 84% 4.9%;
+    --muted: 210 40% 98%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 98%;
+    --accent-foreground: 222.2 84% 4.9%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 347 77% 50%;
+    --radius: 0.5rem;
+
+    /* Wedding Theme Colors - Light Mode */
+    --blush: 330 81% 85%;
+    --rose-gold: 12 47% 75%;
+    --champagne: 46 60% 88%;
+    --sage: 80 22% 62%;
+    --cream: 60 29% 96%;
+    --ivory: 60 9% 98%;
+    --dusty-rose: 345 25% 70%;
+    --muted-gold: 35 26% 75%;
+    --pearl: 36 5% 95%;
+    --mauve: 300 15% 75%;
+    
+    /* Theme Background */
+    --theme-bg: var(--background);
+    --theme-surface: var(--card);
+    --theme-primary: var(--primary);
+    --theme-accent: var(--blush);
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 347 77% 50%;
+    --primary-foreground: 355.7 100% 97.3%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 347 77% 50%;
+
+    /* Wedding Theme Colors - Dark Mode */
+    --blush: 330 40% 25%;
+    --rose-gold: 12 30% 35%;
+    --champagne: 46 25% 35%;
+    --sage: 80 15% 35%;
+    --cream: 60 15% 15%;
+    --ivory: 60 8% 20%;
+    --dusty-rose: 345 20% 40%;
+    --muted-gold: 35 20% 40%;
+    --pearl: 36 5% 25%;
+    --mauve: 300 12% 40%;
+    
+    /* Theme Background */
+    --theme-bg: var(--background);
+    --theme-surface: var(--card);
+    --theme-primary: var(--primary);
+    --theme-accent: var(--blush);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
 /* Safe area for mobile devices */
 @layer utilities {
   .safe-area-pb {

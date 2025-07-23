@@ -10,8 +10,7 @@ import SmartOnboarding from "@/components/dashboard/smart-onboarding";
 import ProjectOverview from "@/components/ProjectOverview";
 import { Link } from "wouter";
 import { Calendar, DollarSign, Users, Store, Palette, Bot, Clock, Globe, ArrowRight, Heart, CheckCircle2, TrendingUp, Plus } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button, Card, CardContent, CardHeader, CardTitle, SectionHeader } from "@/components/design-system";
 import { Badge } from "@/components/ui/badge";
 import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
@@ -52,8 +51,9 @@ function PersonalizedGreeting() {
     enabled: !!localStorage.getItem('sessionId')
   });
 
-  const currentProject = projects?.find(p => p.name === "Emma & Jake's Wedding") || projects?.[0];
-  const firstName = intakeData?.partner1FirstName || "Demo User";
+  const projectsArray = Array.isArray(projects) ? projects : [];
+  const currentProject = projectsArray.find((p: any) => p.name === "Emma & Jake's Wedding") || projectsArray[0];
+  const firstName = (intakeData as any)?.partner1FirstName || "Demo User";
   const weddingDate = currentProject?.date;
   const daysUntil = weddingDate ? differenceInDays(new Date(weddingDate), new Date()) : null;
 
@@ -65,13 +65,13 @@ function PersonalizedGreeting() {
       className="mb-6 sm:mb-8"
     >
       <div className="text-center sm:text-left">
-        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-2">
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground mb-2">
           Welcome back, {firstName}! 
           <Heart className="inline-block ml-2 h-6 w-6 sm:h-7 sm:w-7 text-rose-500" fill="currentColor" />
         </h1>
         {daysUntil && daysUntil > 0 && (
-          <p className="text-sm sm:text-base text-gray-600">
-            Only <span className="font-semibold text-rose-600">{daysUntil} days</span> until your special day!
+          <p className="text-sm sm:text-base text-muted-foreground">
+            Only <span className="font-semibold text-rose-600 dark:text-rose-400">{daysUntil} days</span> until your special day!
           </p>
         )}
       </div>
@@ -85,8 +85,9 @@ function NextUpSection() {
     enabled: !!localStorage.getItem('sessionId')
   });
 
-  const nextTasks = tasks?.filter(task => !task.isCompleted)
-    .sort((a, b) => {
+  const tasksArray = Array.isArray(tasks) ? tasks : [];
+  const nextTasks = tasksArray.filter((task: any) => !task.isCompleted)
+    .sort((a: any, b: any) => {
       if (a.priority === 'high' && b.priority !== 'high') return -1;
       if (b.priority === 'high' && a.priority !== 'high') return 1;
       if (a.dueDate && b.dueDate) return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
@@ -130,9 +131,9 @@ function NextUpSection() {
           {!nextTasks || nextTasks.length === 0 ? (
             <div className="text-center py-6">
               <CheckCircle2 className="h-12 w-12 text-green-500 mx-auto mb-3" />
-              <p className="text-gray-600 mb-4">All caught up! Great work.</p>
+              <p className="text-muted-foreground mb-4">All caught up! Great work.</p>
               <Link href="/timeline">
-                <Button className="bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600">
+                <Button variant="wedding">
                   <Plus className="h-4 w-4 mr-2" />
                   Add New Task
                 </Button>
@@ -140,23 +141,23 @@ function NextUpSection() {
             </div>
           ) : (
             <div className="space-y-3">
-              {nextTasks.map((task, index) => (
+              {nextTasks.map((task: any, index: number) => (
                 <motion.div
                   key={task.id}
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.1 * index }}
-                  className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                  className="flex items-center justify-between p-3 bg-muted/50 rounded-lg hover:bg-muted/80 transition-colors"
                 >
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <h4 className="font-medium text-gray-900 truncate">{task.title}</h4>
+                      <h4 className="font-medium text-foreground truncate">{task.title}</h4>
                       {task.priority === 'high' && (
                         <Badge variant="destructive" className="text-xs px-2 py-0">High</Badge>
                       )}
                     </div>
                     {task.dueDate && (
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-muted-foreground">
                         Due {format(new Date(task.dueDate), 'MMM d')}
                       </p>
                     )}
@@ -182,44 +183,45 @@ function AnimatedDashboardStats() {
     enabled: !!localStorage.getItem('sessionId')
   });
 
+  const statsData = dashboardStats || {};
   const stats = [
     {
       label: "Tasks Complete",
-      value: dashboardStats?.tasksCompleted || 0,
-      total: dashboardStats?.totalTasks || 0,
+      value: (statsData as any).tasksCompleted || 0,
+      total: (statsData as any).totalTasks || 0,
       icon: CheckCircle2,
-      color: "text-green-600",
-      bgColor: "bg-green-50",
+      color: "text-green-600 dark:text-green-400",
+      bgColor: "bg-green-50 dark:bg-green-950/30",
       emptyMessage: "No tasks yet",
       emptyAction: { href: "/timeline", text: "Start planning →" }
     },
     {
       label: "Budget Used",
-      value: `$${dashboardStats?.totalSpent?.toLocaleString() || 0}`,
-      total: `$${dashboardStats?.totalBudget?.toLocaleString() || 0}`,
+      value: `$${(statsData as any).totalSpent?.toLocaleString() || 0}`,
+      total: `$${(statsData as any).totalBudget?.toLocaleString() || 0}`,
       icon: DollarSign,
-      color: "text-blue-600",
-      bgColor: "bg-blue-50",
+      color: "text-blue-600 dark:text-blue-400",
+      bgColor: "bg-blue-50 dark:bg-blue-950/30",
       emptyMessage: "No budget set",
       emptyAction: { href: "/budget", text: "Set budget →" }
     },
     {
       label: "RSVP Responses",
-      value: dashboardStats?.rsvpResponses || 0,
-      total: dashboardStats?.totalGuests || 0,
+      value: (statsData as any).rsvpResponses || 0,
+      total: (statsData as any).totalGuests || 0,
       icon: Users,
-      color: "text-purple-600",
-      bgColor: "bg-purple-50",
+      color: "text-purple-600 dark:text-purple-400",
+      bgColor: "bg-purple-50 dark:bg-purple-950/30",
       emptyMessage: "No guests added",
       emptyAction: { href: "/guests", text: "Add guests →" }
     },
     {
       label: "Vendors Booked",
-      value: dashboardStats?.vendorsBooked || 0,
-      total: dashboardStats?.totalVendors || 0,
+      value: (statsData as any).vendorsBooked || 0,
+      total: (statsData as any).totalVendors || 0,
       icon: Store,
-      color: "text-rose-600",
-      bgColor: "bg-rose-50",
+      color: "text-rose-600 dark:text-rose-400",
+      bgColor: "bg-rose-50 dark:bg-rose-950/30",
       emptyMessage: "No vendors yet",
       emptyAction: { href: "/vendors", text: "Find vendors →" }
     }
@@ -265,7 +267,7 @@ function AnimatedDashboardStats() {
                     <div className={`w-8 h-8 sm:w-10 sm:h-10 ${stat.bgColor} rounded-full flex items-center justify-center mx-auto mb-2`}>
                       <Icon className={`h-4 w-4 sm:h-5 sm:w-5 ${stat.color}`} />
                     </div>
-                    <p className="text-xs sm:text-sm text-gray-500 mb-2">{stat.emptyMessage}</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground mb-2">{stat.emptyMessage}</p>
                     <Link href={stat.emptyAction.href}>
                       <Button size="sm" variant="outline" className="text-xs h-7">
                         {stat.emptyAction.text}
@@ -280,11 +282,11 @@ function AnimatedDashboardStats() {
                       </div>
                     </div>
                     <div className="space-y-1">
-                      <p className="text-xs sm:text-sm font-medium text-gray-600">{stat.label}</p>
-                      <p className="text-lg sm:text-xl font-bold text-gray-900">
+                      <p className="text-xs sm:text-sm font-medium text-muted-foreground">{stat.label}</p>
+                      <p className="text-lg sm:text-xl font-bold text-foreground">
                         {stat.value}
                         {stat.total && stat.total !== "$0" && (
-                          <span className="text-sm font-normal text-gray-500">
+                          <span className="text-sm font-normal text-muted-foreground">
                             /{typeof stat.total === 'string' ? stat.total : stat.total}
                           </span>
                         )}
@@ -303,12 +305,12 @@ function AnimatedDashboardStats() {
 
 export default function Dashboard() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-cream/50 to-background">
+    <div className="min-h-screen bg-gradient-to-br from-background via-cream/50 to-background dark:from-background dark:via-background dark:to-background">
       <div className="relative overflow-hidden">
         {/* Enhanced background decorations */}
-        <div className="absolute -top-32 -right-32 w-96 h-96 bg-gradient-to-br from-rose-400/8 to-pink-400/15 rounded-full blur-3xl animate-float" />
-        <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-gradient-to-tr from-purple-400/5 to-rose-400/10 rounded-full blur-2xl" />
-        <div className="absolute top-1/4 right-1/4 w-32 h-32 bg-gradient-to-r from-champagne/20 to-rose-400/10 rounded-full blur-xl" />
+        <div className="absolute -top-32 -right-32 w-96 h-96 bg-gradient-to-br from-rose-400/8 to-pink-400/15 rounded-full blur-3xl animate-float dark:from-rose-600/10 dark:to-pink-600/20" />
+        <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-gradient-to-tr from-purple-400/5 to-rose-400/10 rounded-full blur-2xl dark:from-purple-600/8 dark:to-rose-600/15" />
+        <div className="absolute top-1/4 right-1/4 w-32 h-32 bg-gradient-to-r from-champagne/20 to-rose-400/10 rounded-full blur-xl dark:from-champagne/10 dark:to-rose-600/15" />
         
         <div className="relative p-3 sm:p-4 lg:p-8 mobile-safe-spacing">
           {/* Personalized Greeting */}
@@ -353,10 +355,10 @@ export default function Dashboard() {
             transition={{ duration: 0.6, delay: 1.0 }}
             className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-8 mb-6 sm:mb-8"
           >
-            <div className="card-elegant hover:scale-[1.02] transition-all duration-300">
+            <div className="transition-all duration-300 hover:scale-[1.02]">
               <UpcomingTasks />
             </div>
-            <div className="card-elegant hover:scale-[1.02] transition-all duration-300">
+            <div className="transition-all duration-300 hover:scale-[1.02]">
               <RecentActivity />
             </div>
           </motion.div>
@@ -368,10 +370,10 @@ export default function Dashboard() {
             transition={{ duration: 0.6, delay: 1.2 }}
             className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-8 mb-6 sm:mb-8"
           >
-            <div className="card-elegant hover:scale-[1.02] transition-all duration-300">
+            <div className="transition-all duration-300 hover:scale-[1.02]">
               <CollaborativeFeatures />
             </div>
-            <div className="card-elegant hover:scale-[1.02] transition-all duration-300">
+            <div className="transition-all duration-300 hover:scale-[1.02]">
               <InspirationPreview />
             </div>
           </motion.div>
@@ -383,11 +385,16 @@ export default function Dashboard() {
             transition={{ duration: 0.6, delay: 1.4 }}
             className="mb-6 sm:mb-8"
           >
-            <div className="text-center mb-6 sm:mb-8">
-              <h2 className="font-heading text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 bg-clip-text text-transparent mb-3">Planning Tools</h2>
-              <p className="text-muted-foreground text-base sm:text-lg lg:text-xl font-medium px-4">Everything you need to plan your perfect wedding</p>
-              <div className="w-16 sm:w-24 h-1 bg-gradient-to-r from-rose-400 to-pink-500 rounded-full mx-auto mt-4"></div>
-            </div>
+            <SectionHeader
+              variant="wedding"
+              size="lg"
+              alignment="center"
+              title="Planning Tools"
+              subtitle="Everything you need to plan your perfect wedding"
+              showAccent={true}
+              accentColor="rose"
+              className="mb-6 sm:mb-8"
+            />
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 lg:gap-8 max-w-6xl mx-auto">
               {navigationSections.map((section, sectionIndex) => (
@@ -397,7 +404,7 @@ export default function Dashboard() {
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.1 * sectionIndex }}
                 >
-                  <Card className="card-elegant hover:scale-[1.02] transition-all duration-300 h-full">
+                  <Card variant="wedding" className="h-full">
                     <CardHeader className="pb-3 sm:pb-4">
                       <CardTitle className="font-heading text-lg sm:text-xl lg:text-2xl text-foreground flex items-center gap-3">
                         <div className="w-1 sm:w-2 h-6 sm:h-8 bg-gradient-to-b from-rose-400 to-pink-500 rounded-full"></div>
