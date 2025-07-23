@@ -199,19 +199,19 @@ function AnimatedDashboardStats() {
       value: (statsData as any).tasksCompleted || 0,
       total: (statsData as any).totalTasks || 0,
       icon: CheckCircle2,
-      color: "text-green-600 dark:text-green-400",
-      bgColor: "bg-green-50 dark:bg-green-950/30",
-      emptyMessage: "No tasks yet",
-      emptyAction: { href: "/timeline", text: "Start planning →" }
+      color: "text-rose-600 dark:text-rose-400",
+      bgColor: "bg-rose-50 dark:bg-rose-950/30",
+      emptyMessage: "You're all caught up! 🎉 Add tasks to stay organized",
+      emptyAction: { href: "/timeline", text: "Add tasks →" }
     },
     {
       label: "Budget Used",
       value: `$${(statsData as any).totalSpent?.toLocaleString() || 0}`,
       total: `$${(statsData as any).totalBudget?.toLocaleString() || 0}`,
       icon: DollarSign,
-      color: "text-blue-600 dark:text-blue-400",
-      bgColor: "bg-blue-50 dark:bg-blue-950/30",
-      emptyMessage: "No budget set",
+      color: "text-amber-600 dark:text-amber-400",
+      bgColor: "bg-amber-50 dark:bg-amber-950/30",
+      emptyMessage: "Your budget breakdown is empty — get started here",
       emptyAction: { href: "/budget", text: "Set budget →" }
     },
     {
@@ -219,9 +219,9 @@ function AnimatedDashboardStats() {
       value: (statsData as any).rsvpResponses || 0,
       total: (statsData as any).totalGuests || 0,
       icon: Users,
-      color: "text-purple-600 dark:text-purple-400",
-      bgColor: "bg-purple-50 dark:bg-purple-950/30",
-      emptyMessage: "No guests added",
+      color: "text-emerald-600 dark:text-emerald-400",
+      bgColor: "bg-emerald-50 dark:bg-emerald-950/30",
+      emptyMessage: "No guests added yet — start building your list",
       emptyAction: { href: "/guests", text: "Add guests →" }
     },
     {
@@ -229,9 +229,9 @@ function AnimatedDashboardStats() {
       value: (statsData as any).vendorsBooked || 0,
       total: (statsData as any).totalVendors || 0,
       icon: Store,
-      color: "text-rose-600 dark:text-rose-400",
-      bgColor: "bg-rose-50 dark:bg-rose-950/30",
-      emptyMessage: "No vendors yet",
+      color: "text-pink-600 dark:text-pink-400",
+      bgColor: "bg-pink-50 dark:bg-pink-950/30",
+      emptyMessage: "Haven't saved any vendors yet. Explore recommendations",
       emptyAction: { href: "/vendors", text: "Find vendors →" }
     }
   ];
@@ -306,12 +306,12 @@ function AnimatedDashboardStats() {
                       animate={{ opacity: 1 }}
                       transition={{ delay: 0.2 + (0.1 * index) }}
                     >
-                      <div className={`w-10 h-10 sm:w-12 sm:h-12 ${stat.bgColor} rounded-full flex items-center justify-center mx-auto mb-3 transition-colors group-hover:scale-110`}>
-                        <Icon className={`h-5 w-5 sm:h-6 sm:w-6 ${stat.color}`} />
+                      <div className={`w-12 h-12 sm:w-14 sm:h-14 ${stat.bgColor} rounded-full flex items-center justify-center mx-auto mb-4 transition-all duration-300 group-hover:scale-110 shadow-sm`}>
+                        <Icon className={`h-6 w-6 sm:h-7 sm:w-7 ${stat.color}`} />
                       </div>
-                      <p className="text-sm sm:text-base text-muted-foreground mb-3">{stat.emptyMessage}</p>
+                      <p className="text-sm sm:text-base text-muted-foreground mb-4 leading-relaxed">{stat.emptyMessage}</p>
                       <Link href={stat.emptyAction.href}>
-                        <Button size="sm" variant="outline" className="text-sm min-h-[44px] px-4 transition-all hover:scale-105">
+                        <Button size="sm" variant="wedding" className="text-sm min-h-[44px] px-4 py-2 transition-all hover:scale-105 shadow-sm">
                           {stat.emptyAction.text}
                         </Button>
                       </Link>

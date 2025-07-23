@@ -194,7 +194,12 @@ The application uses a comprehensive schema covering:
   - Touch targets: minimum 44px height for all interactive elements
   - Custom mobile utilities: .mobile-text-sm, .desktop-text-scale, .mobile-stack, .touch-target classes
   - Proper text scaling and spacing for mobile devices with enhanced padding
-- **Comprehensive Empty States**: Added contextual empty states with action buttons for budget, tasks, guests, and vendors
+- **Comprehensive Empty States**: Enhanced empty states with wedding-themed messaging and soft colors
+  - Budget: "Your budget breakdown is empty — get started here" with amber/champagne styling
+  - Tasks: "You're all caught up! 🎉 Add tasks to stay organized" with rose color scheme
+  - Guests: "No guests added yet — start building your list" with emerald/sage accent
+  - Vendors: "Haven't saved any vendors yet. Explore recommendations" with pink styling
+  - Enhanced visual design with larger icons (12-14px), shadow effects, and wedding button variants
 - **Smooth Animations**: Used Framer Motion for page load animations, stat counters, and hover effects
 - **Smart Task Prioritization**: Next tasks sorted by priority and due date with visual priority indicators
 - **Wedding Countdown**: Integrated days until wedding in greeting for added personalization
