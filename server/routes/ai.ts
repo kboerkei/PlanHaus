@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { z } from "zod";
 import { requireAuth } from "../middleware/auth";
-import { aiRateLimit, validateOpenAIKey } from "../middleware/aiRateLimit";
+import { aiRateLimit } from "../middleware/rateLimit";
 import { validateBody } from "../utils/validation";
 import { getOrCreateDefaultProject } from "../utils/projects";
 import { logError, logInfo, logWarning } from "../utils/logger";
@@ -11,13 +11,15 @@ import {
   generateWeddingTimeline, 
   generateBudgetBreakdown, 
   generateVendorSuggestions,
-  generatePersonalizedRecommendation 
-} from "../services/openai";
+  generatePersonalizedRecommendation,
+  analyzeWeddingTheme,
+  type WeddingPlanningInput
+} from "../services/ai";
 
 const router = Router();
 
 // Apply AI rate limiting to all AI routes
-router.use(aiRateLimit(5, 300000)); // 5 requests per 5 minutes
+router.use(aiRateLimit);
 
 // Chat endpoint validation schema
 const chatSchema = z.object({
@@ -40,6 +42,9 @@ const vendorSearchSchema = z.object({
 const timelineSchema = z.object({
   projectId: z.number()
 });
+
+// Import validation from client
+import { validateOpenAIKey } from "../services/ai/client";
 
 router.post("/chat", requireAuth, validateBody(chatSchema), async (req: RequestWithUser, res) => {
   if (!validateOpenAIKey()) {
