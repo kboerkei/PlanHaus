@@ -371,6 +371,9 @@ export const weddingOverview = pgTable("wedding_overview", {
   honeymoonStart: text("honeymoon_start"),
   honeymoonEnd: text("honeymoon_end"),
   
+  // Custom Important Dates (JSON array of {label, date, id} objects)
+  customImportantDates: jsonb("custom_important_dates").$type<Array<{id: string, label: string, date: string}>>().default([]),
+  
   // Getting Started Questions
   areYouPlanningTogether: text("are_you_planning_together"),
   doYouWantOutdoorCeremony: text("do_you_want_outdoor_ceremony"),

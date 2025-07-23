@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Calendar, MapPin, Users, Heart, Edit2, Save, X } from 'lucide-react';
+import { Calendar, MapPin, Users, Heart, Edit2, Save, X, Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -33,6 +33,9 @@ interface OverviewData {
   rehearsalDinner: string;
   honeymoonStart: string;
   honeymoonEnd: string;
+  
+  // Custom Important Dates
+  customImportantDates: Array<{id: string, label: string, date: string}>;
   
   // Getting Started Questions
   areYouPlanningTogether: string;
@@ -99,6 +102,9 @@ export default function OverviewPage() {
   const [editingField, setEditingField] = useState<string | null>(null);
   const [editValue, setEditValue] = useState('');
   const [editArrayValue, setEditArrayValue] = useState<string[]>([]);
+  const [isAddingDate, setIsAddingDate] = useState(false);
+  const [newDateLabel, setNewDateLabel] = useState('');
+  const [newDateValue, setNewDateValue] = useState('');
 
   const { data: overviewData, isLoading } = useQuery({
     queryKey: ['/api/overview'],
@@ -164,11 +170,46 @@ export default function OverviewPage() {
     setEditArrayValue(editArrayValue.filter((_, i) => i !== index));
   };
 
+  const addCustomDate = () => {
+    if (!newDateLabel.trim() || !newDateValue) return;
+    
+    const customDates = overviewData?.customImportantDates || [];
+    const newDate = {
+      id: Date.now().toString(),
+      label: newDateLabel.trim(),
+      date: newDateValue
+    };
+    
+    updateOverviewMutation.mutate({
+      customImportantDates: [...customDates, newDate]
+    });
+    
+    setIsAddingDate(false);
+    setNewDateLabel('');
+    setNewDateValue('');
+  };
+
+  const deleteCustomDate = (dateId: string) => {
+    const customDates = overviewData?.customImportantDates || [];
+    const updatedDates = customDates.filter(date => date.id !== dateId);
+    
+    updateOverviewMutation.mutate({
+      customImportantDates: updatedDates
+    });
+  };
+
+  const deleteImportantDate = (field: keyof OverviewData) => {
+    updateOverviewMutation.mutate({
+      [field]: null
+    });
+  };
+
   const renderEditableField = (
     label: string, 
     field: keyof OverviewData, 
     value: string | string[], 
-    type: 'text' | 'date' | 'array' | 'textarea' = 'text'
+    type: 'text' | 'date' | 'array' | 'textarea' = 'text',
+    showDelete: boolean = false
   ) => {
     const isEditing = editingField === field;
     
@@ -233,13 +274,25 @@ export default function OverviewPage() {
             <span className="text-gray-800">
               {Array.isArray(value) ? value.join(', ') || 'Not set' : value || 'Not set'}
             </span>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => startEdit(field, value)}
-            >
-              <Edit2 className="w-3 h-3" />
-            </Button>
+            <div className="flex items-center gap-1">
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => startEdit(field, value)}
+              >
+                <Edit2 className="w-3 h-3" />
+              </Button>
+              {showDelete && value && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => deleteImportantDate(field)}
+                  className="text-red-500 hover:text-red-700"
+                >
+                  <Trash2 className="w-3 h-3" />
+                </Button>
+              )}
+            </div>
           </div>
         )}
       </div>
@@ -325,17 +378,69 @@ export default function OverviewPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
-            {renderEditableField('Engagement Party', 'engagementParty', overviewData?.engagementParty || '', 'date')}
-            {renderEditableField('Dress Shopping', 'dressShoppingDate', overviewData?.dressShoppingDate || '', 'date')}
-            {renderEditableField('Send Save the Dates', 'saveTheDateSent', overviewData?.saveTheDateSent || '', 'date')}
-            {renderEditableField('Dress Fitting', 'dressFitting', overviewData?.dressFitting || '', 'date')}
-            {renderEditableField('Bridal Shower', 'bridalShower', overviewData?.bridalShower || '', 'date')}
-            {renderEditableField('Send Wedding Invites', 'sendWeddingInvites', overviewData?.sendWeddingInvites || '', 'date')}
-            {renderEditableField('Bachelor/Bachelorette Party', 'bachelorBacheloretteParty', overviewData?.bachelorBacheloretteParty || '', 'date')}
-            {renderEditableField('RSVP Due', 'rsvpDue', overviewData?.rsvpDue || '', 'date')}
-            {renderEditableField('Rehearsal Dinner', 'rehearsalDinner', overviewData?.rehearsalDinner || '', 'date')}
-            {renderEditableField('Honeymoon Start', 'honeymoonStart', overviewData?.honeymoonStart || '', 'date')}
-            {renderEditableField('Honeymoon End', 'honeymoonEnd', overviewData?.honeymoonEnd || '', 'date')}
+            {renderEditableField('Engagement Party', 'engagementParty', overviewData?.engagementParty || '', 'date', true)}
+            {renderEditableField('Dress Shopping', 'dressShoppingDate', overviewData?.dressShoppingDate || '', 'date', true)}
+            {renderEditableField('Send Save the Dates', 'saveTheDateSent', overviewData?.saveTheDateSent || '', 'date', true)}
+            {renderEditableField('Dress Fitting', 'dressFitting', overviewData?.dressFitting || '', 'date', true)}
+            {renderEditableField('Bridal Shower', 'bridalShower', overviewData?.bridalShower || '', 'date', true)}
+            {renderEditableField('Send Wedding Invites', 'sendWeddingInvites', overviewData?.sendWeddingInvites || '', 'date', true)}
+            {renderEditableField('Bachelor/Bachelorette Party', 'bachelorBacheloretteParty', overviewData?.bachelorBacheloretteParty || '', 'date', true)}
+            {renderEditableField('RSVP Due', 'rsvpDue', overviewData?.rsvpDue || '', 'date', true)}
+            {renderEditableField('Rehearsal Dinner', 'rehearsalDinner', overviewData?.rehearsalDinner || '', 'date', true)}
+            {renderEditableField('Honeymoon Start', 'honeymoonStart', overviewData?.honeymoonStart || '', 'date', true)}
+            {renderEditableField('Honeymoon End', 'honeymoonEnd', overviewData?.honeymoonEnd || '', 'date', true)}
+            
+            {/* Custom Important Dates */}
+            {overviewData?.customImportantDates?.map((customDate) => (
+              <div key={customDate.id} className="flex items-center justify-between py-2 border-b border-gray-100">
+                <span className="text-sm font-medium text-gray-600 w-1/3">{customDate.label}:</span>
+                <div className="flex-1 flex items-center justify-between">
+                  <span className="text-gray-800">{customDate.date || 'Not set'}</span>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => deleteCustomDate(customDate.id)}
+                    className="text-red-500 hover:text-red-700"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+            
+            {/* Add Custom Date */}
+            {isAddingDate ? (
+              <div className="flex items-center gap-2 py-2 border-b border-gray-100">
+                <Input
+                  placeholder="Date name (e.g., Venue Visit)"
+                  value={newDateLabel}
+                  onChange={(e) => setNewDateLabel(e.target.value)}
+                  className="flex-1"
+                />
+                <Input
+                  type="date"
+                  value={newDateValue}
+                  onChange={(e) => setNewDateValue(e.target.value)}
+                  className="flex-1"
+                />
+                <Button size="sm" onClick={addCustomDate} className="bg-green-600 text-white">
+                  <Save className="w-3 h-3" />
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => setIsAddingDate(false)}>
+                  <X className="w-3 h-3" />
+                </Button>
+              </div>
+            ) : (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsAddingDate(true)}
+                className="w-full mt-4"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add Custom Date
+              </Button>
+            )}
           </CardContent>
         </Card>
 
