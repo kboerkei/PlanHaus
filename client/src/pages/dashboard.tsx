@@ -9,9 +9,13 @@ import CollaborativeFeatures from "@/components/dashboard/collaborative-features
 import SmartOnboarding from "@/components/dashboard/smart-onboarding";
 import ProjectOverview from "@/components/ProjectOverview";
 import { Link } from "wouter";
-import { Calendar, DollarSign, Users, Store, Palette, Bot, Clock, Globe, ArrowRight } from "lucide-react";
+import { Calendar, DollarSign, Users, Store, Palette, Bot, Clock, Globe, ArrowRight, Heart, CheckCircle2, TrendingUp, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { useQuery } from "@tanstack/react-query";
+import { motion, AnimatePresence } from "framer-motion";
+import { format, differenceInDays } from "date-fns";
 
 const navigationSections = [
   {
@@ -36,6 +40,267 @@ const navigationSections = [
   }
 ];
 
+// Enhanced Dashboard Components
+function PersonalizedGreeting() {
+  const { data: intakeData } = useQuery({
+    queryKey: ['/api/intake'],
+    enabled: !!localStorage.getItem('sessionId')
+  });
+
+  const { data: projects } = useQuery({
+    queryKey: ['/api/projects'],
+    enabled: !!localStorage.getItem('sessionId')
+  });
+
+  const currentProject = projects?.find(p => p.name === "Emma & Jake's Wedding") || projects?.[0];
+  const firstName = intakeData?.partner1FirstName || "Demo User";
+  const weddingDate = currentProject?.date;
+  const daysUntil = weddingDate ? differenceInDays(new Date(weddingDate), new Date()) : null;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6 }}
+      className="mb-6 sm:mb-8"
+    >
+      <div className="text-center sm:text-left">
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-2">
+          Welcome back, {firstName}! 
+          <Heart className="inline-block ml-2 h-6 w-6 sm:h-7 sm:w-7 text-rose-500" fill="currentColor" />
+        </h1>
+        {daysUntil && daysUntil > 0 && (
+          <p className="text-sm sm:text-base text-gray-600">
+            Only <span className="font-semibold text-rose-600">{daysUntil} days</span> until your special day!
+          </p>
+        )}
+      </div>
+    </motion.div>
+  );
+}
+
+function NextUpSection() {
+  const { data: tasks, isLoading } = useQuery({
+    queryKey: ['/api/tasks'],
+    enabled: !!localStorage.getItem('sessionId')
+  });
+
+  const nextTasks = tasks?.filter(task => !task.isCompleted)
+    .sort((a, b) => {
+      if (a.priority === 'high' && b.priority !== 'high') return -1;
+      if (b.priority === 'high' && a.priority !== 'high') return 1;
+      if (a.dueDate && b.dueDate) return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+      return 0;
+    })
+    .slice(0, 2);
+
+  if (isLoading) {
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="mb-6 sm:mb-8"
+      >
+        <Card className="p-4 sm:p-6">
+          <div className="animate-pulse space-y-3">
+            <div className="h-4 bg-gray-200 rounded w-1/4"></div>
+            <div className="h-3 bg-gray-200 rounded w-3/4"></div>
+            <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+          </div>
+        </Card>
+      </motion.div>
+    );
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, delay: 0.2 }}
+      className="mb-6 sm:mb-8"
+    >
+      <Card className="overflow-hidden">
+        <CardHeader className="pb-3">
+          <div className="flex items-center gap-2">
+            <Clock className="h-5 w-5 text-rose-500" />
+            <CardTitle className="text-lg sm:text-xl">Next Up</CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {!nextTasks || nextTasks.length === 0 ? (
+            <div className="text-center py-6">
+              <CheckCircle2 className="h-12 w-12 text-green-500 mx-auto mb-3" />
+              <p className="text-gray-600 mb-4">All caught up! Great work.</p>
+              <Link href="/timeline">
+                <Button className="bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add New Task
+                </Button>
+              </Link>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {nextTasks.map((task, index) => (
+                <motion.div
+                  key={task.id}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.1 * index }}
+                  className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h4 className="font-medium text-gray-900 truncate">{task.title}</h4>
+                      {task.priority === 'high' && (
+                        <Badge variant="destructive" className="text-xs px-2 py-0">High</Badge>
+                      )}
+                    </div>
+                    {task.dueDate && (
+                      <p className="text-sm text-gray-500">
+                        Due {format(new Date(task.dueDate), 'MMM d')}
+                      </p>
+                    )}
+                  </div>
+                  <Link href="/timeline">
+                    <Button size="sm" variant="ghost" className="ml-2">
+                      <ArrowRight className="h-4 w-4" />
+                    </Button>
+                  </Link>
+                </motion.div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </motion.div>
+  );
+}
+
+function AnimatedDashboardStats() {
+  const { data: dashboardStats, isLoading } = useQuery({
+    queryKey: ['/api/dashboard/stats'],
+    enabled: !!localStorage.getItem('sessionId')
+  });
+
+  const stats = [
+    {
+      label: "Tasks Complete",
+      value: dashboardStats?.tasksCompleted || 0,
+      total: dashboardStats?.totalTasks || 0,
+      icon: CheckCircle2,
+      color: "text-green-600",
+      bgColor: "bg-green-50",
+      emptyMessage: "No tasks yet",
+      emptyAction: { href: "/timeline", text: "Start planning →" }
+    },
+    {
+      label: "Budget Used",
+      value: `$${dashboardStats?.totalSpent?.toLocaleString() || 0}`,
+      total: `$${dashboardStats?.totalBudget?.toLocaleString() || 0}`,
+      icon: DollarSign,
+      color: "text-blue-600",
+      bgColor: "bg-blue-50",
+      emptyMessage: "No budget set",
+      emptyAction: { href: "/budget", text: "Set budget →" }
+    },
+    {
+      label: "RSVP Responses",
+      value: dashboardStats?.rsvpResponses || 0,
+      total: dashboardStats?.totalGuests || 0,
+      icon: Users,
+      color: "text-purple-600",
+      bgColor: "bg-purple-50",
+      emptyMessage: "No guests added",
+      emptyAction: { href: "/guests", text: "Add guests →" }
+    },
+    {
+      label: "Vendors Booked",
+      value: dashboardStats?.vendorsBooked || 0,
+      total: dashboardStats?.totalVendors || 0,
+      icon: Store,
+      color: "text-rose-600",
+      bgColor: "bg-rose-50",
+      emptyMessage: "No vendors yet",
+      emptyAction: { href: "/vendors", text: "Find vendors →" }
+    }
+  ];
+
+  if (isLoading) {
+    return (
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6 sm:mb-8">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <Card key={i} className="p-4">
+            <div className="animate-pulse space-y-2">
+              <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+              <div className="h-6 bg-gray-200 rounded w-1/2"></div>
+            </div>
+          </Card>
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.6, delay: 0.4 }}
+      className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8"
+    >
+      {stats.map((stat, index) => {
+        const Icon = stat.icon;
+        const isEmpty = stat.value === 0 || stat.value === "$0";
+        
+        return (
+          <motion.div
+            key={stat.label}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 * index }}
+          >
+            <Card className="h-full hover:shadow-md transition-shadow">
+              <CardContent className="p-3 sm:p-4">
+                {isEmpty ? (
+                  <div className="text-center">
+                    <div className={`w-8 h-8 sm:w-10 sm:h-10 ${stat.bgColor} rounded-full flex items-center justify-center mx-auto mb-2`}>
+                      <Icon className={`h-4 w-4 sm:h-5 sm:w-5 ${stat.color}`} />
+                    </div>
+                    <p className="text-xs sm:text-sm text-gray-500 mb-2">{stat.emptyMessage}</p>
+                    <Link href={stat.emptyAction.href}>
+                      <Button size="sm" variant="outline" className="text-xs h-7">
+                        {stat.emptyAction.text}
+                      </Button>
+                    </Link>
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className={`w-8 h-8 sm:w-10 sm:h-10 ${stat.bgColor} rounded-full flex items-center justify-center`}>
+                        <Icon className={`h-4 w-4 sm:h-5 sm:w-5 ${stat.color}`} />
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-xs sm:text-sm font-medium text-gray-600">{stat.label}</p>
+                      <p className="text-lg sm:text-xl font-bold text-gray-900">
+                        {stat.value}
+                        {stat.total && stat.total !== "$0" && (
+                          <span className="text-sm font-normal text-gray-500">
+                            /{typeof stat.total === 'string' ? stat.total : stat.total}
+                          </span>
+                        )}
+                      </p>
+                    </div>
+                  </>
+                )}
+              </CardContent>
+            </Card>
+          </motion.div>
+        );
+      })}
+    </motion.div>
+  );
+}
+
 export default function Dashboard() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-cream/50 to-background">
@@ -46,93 +311,135 @@ export default function Dashboard() {
         <div className="absolute top-1/4 right-1/4 w-32 h-32 bg-gradient-to-r from-champagne/20 to-rose-400/10 rounded-full blur-xl" />
         
         <div className="relative p-3 sm:p-4 lg:p-8 mobile-safe-spacing">
+          {/* Personalized Greeting */}
+          <PersonalizedGreeting />
+          
+          {/* Animated Dashboard Stats */}
+          <AnimatedDashboardStats />
+          
+          {/* Next Up Section */}
+          <NextUpSection />
+          
           <SmartOnboarding />
           
           {/* Progress Overview */}
-          <ProgressOverview />
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.6 }}
+          >
+            <ProgressOverview />
+          </motion.div>
           
           {/* Main Dashboard Grid with Enhanced Cards */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 xl:gap-10 mb-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.8 }}
+            className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 mb-6 sm:mb-8"
+          >
             <div className="lg:col-span-2">
               <AIAssistantCard />
             </div>
             <div>
               <EnhancedQuickActions />
             </div>
-          </div>
+          </motion.div>
 
           {/* Enhanced Tasks and Activity Section */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 xl:gap-10 mb-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 1.0 }}
+            className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-8 mb-6 sm:mb-8"
+          >
             <div className="card-elegant hover:scale-[1.02] transition-all duration-300">
               <UpcomingTasks />
             </div>
             <div className="card-elegant hover:scale-[1.02] transition-all duration-300">
               <RecentActivity />
             </div>
-          </div>
+          </motion.div>
 
           {/* Enhanced Features Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 xl:gap-10 mb-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 1.2 }}
+            className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-8 mb-6 sm:mb-8"
+          >
             <div className="card-elegant hover:scale-[1.02] transition-all duration-300">
               <CollaborativeFeatures />
             </div>
             <div className="card-elegant hover:scale-[1.02] transition-all duration-300">
               <InspirationPreview />
             </div>
-          </div>
+          </motion.div>
 
           {/* Planning Tools Section */}
-          <div className="mb-8 animate-fade-in-up">
-            <div className="text-center mb-8 animate-fade-in-up">
-              <h2 className="font-heading text-3xl lg:text-4xl xl:text-5xl font-bold bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 bg-clip-text text-transparent mb-3">Planning Tools</h2>
-              <p className="text-muted-foreground text-lg lg:text-xl font-medium">Everything you need to plan your perfect wedding</p>
-              <div className="w-24 h-1 bg-gradient-to-r from-rose-400 to-pink-500 rounded-full mx-auto mt-4"></div>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 1.4 }}
+            className="mb-6 sm:mb-8"
+          >
+            <div className="text-center mb-6 sm:mb-8">
+              <h2 className="font-heading text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 bg-clip-text text-transparent mb-3">Planning Tools</h2>
+              <p className="text-muted-foreground text-base sm:text-lg lg:text-xl font-medium px-4">Everything you need to plan your perfect wedding</p>
+              <div className="w-16 sm:w-24 h-1 bg-gradient-to-r from-rose-400 to-pink-500 rounded-full mx-auto mt-4"></div>
             </div>
             
-            <div className="grid md:grid-cols-2 gap-8 max-w-6xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 lg:gap-8 max-w-6xl mx-auto">
               {navigationSections.map((section, sectionIndex) => (
-                <Card key={section.title} className={`card-elegant animate-slide-in-right stagger-${sectionIndex + 1} hover:scale-[1.02] transition-all duration-300`}>
-                  <CardHeader>
-                    <CardTitle className="font-heading text-2xl text-foreground flex items-center gap-3">
-                      <div className="w-2 h-8 bg-gradient-to-b from-rose-400 to-pink-500 rounded-full"></div>
-                      {section.title}
-                    </CardTitle>
-                    <p className="text-muted-foreground text-base font-medium">{section.description}</p>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-1 gap-3">
-                      {section.items.map((item, itemIndex) => {
-                        const Icon = item.icon;
-                        return (
-                          <Link key={item.href} href={item.href}>
-                            <Button
-                              variant="ghost"
-                              className="w-full justify-start h-auto p-4 lg:p-6 hover:bg-rose-50 hover:border-rose-200 border border-transparent transition-all duration-200 group hover:scale-105"
-                            >
-                              <div className="flex items-center space-x-3 lg:space-x-4 w-full">
-                                <div className="flex-shrink-0">
-                                  <Icon className="h-5 w-5 lg:h-6 lg:w-6 text-rose-400 group-hover:text-rose-500 transition-colors" />
-                                </div>
-                                <div className="flex-1 text-left">
-                                  <div className="font-medium text-foreground group-hover:text-rose-600 transition-colors text-base lg:text-lg">
-                                    {item.label}
+                <motion.div
+                  key={section.title}
+                  initial={{ opacity: 0, x: sectionIndex % 2 === 0 ? -20 : 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.1 * sectionIndex }}
+                >
+                  <Card className="card-elegant hover:scale-[1.02] transition-all duration-300 h-full">
+                    <CardHeader className="pb-3 sm:pb-4">
+                      <CardTitle className="font-heading text-lg sm:text-xl lg:text-2xl text-foreground flex items-center gap-3">
+                        <div className="w-1 sm:w-2 h-6 sm:h-8 bg-gradient-to-b from-rose-400 to-pink-500 rounded-full"></div>
+                        {section.title}
+                      </CardTitle>
+                      <p className="text-muted-foreground text-sm sm:text-base font-medium">{section.description}</p>
+                    </CardHeader>
+                    <CardContent className="pt-0">
+                      <div className="grid grid-cols-1 gap-2 sm:gap-3">
+                        {section.items.map((item, itemIndex) => {
+                          const Icon = item.icon;
+                          return (
+                            <Link key={item.href} href={item.href}>
+                              <Button
+                                variant="ghost"
+                                className="w-full justify-start h-auto p-3 sm:p-4 lg:p-6 hover:bg-rose-50 hover:border-rose-200 border border-transparent transition-all duration-200 group hover:scale-105"
+                              >
+                                <div className="flex items-center space-x-3 lg:space-x-4 w-full min-w-0">
+                                  <div className="flex-shrink-0">
+                                    <Icon className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 text-rose-400 group-hover:text-rose-500 transition-colors" />
                                   </div>
-                                  <div className="text-sm lg:text-base text-muted-foreground">
-                                    {item.description}
+                                  <div className="flex-1 text-left min-w-0">
+                                    <div className="font-medium text-foreground group-hover:text-rose-600 transition-colors text-sm sm:text-base lg:text-lg truncate">
+                                      {item.label}
+                                    </div>
+                                    <div className="text-xs sm:text-sm lg:text-base text-muted-foreground truncate">
+                                      {item.description}
+                                    </div>
                                   </div>
+                                  <ArrowRight className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground group-hover:text-rose-500 transition-colors flex-shrink-0" />
                                 </div>
-                                <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-rose-500 transition-colors" />
-                              </div>
-                            </Button>
-                          </Link>
-                        );
-                      })}
-                    </div>
-                  </CardContent>
-                </Card>
+                              </Button>
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
               ))}
             </div>
-          </div>
+          </motion.div>
         </div>
       </div>
     </div>
