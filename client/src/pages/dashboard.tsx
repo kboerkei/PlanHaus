@@ -131,14 +131,14 @@ function NextUpSection() {
       className="mb-6 sm:mb-8"
     >
       <Card variant="elegant" className="p-4 sm:p-6">
-        <h2 className="text-lg font-semibold text-foreground mb-4">Next Up</h2>
+        <h2 className="text-xl sm:text-2xl font-semibold text-foreground mb-4">Next Up</h2>
         
         {nextTasks.length === 0 ? (
           <div className="text-center py-4">
-            <p className="text-muted-foreground mb-3">
+            <p className="text-base sm:text-lg text-muted-foreground mb-4">
               No urgent tasks — you're ahead of schedule 🎉
             </p>
-            <Link href="/timeline" className="text-rose-600 hover:text-rose-700 dark:text-rose-400 dark:hover:text-rose-300 font-medium text-sm transition-colors">
+            <Link href="/timeline" className="text-rose-600 hover:text-rose-700 dark:text-rose-400 dark:hover:text-rose-300 font-medium text-base min-h-[44px] inline-flex items-center transition-colors">
               View full checklist →
             </Link>
           </div>
@@ -150,13 +150,13 @@ function NextUpSection() {
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.1 * index }}
-                className="flex items-center justify-between p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors"
+                className="flex items-center justify-between p-4 sm:p-5 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors min-h-[60px]"
               >
                 <div className="flex-1 min-w-0">
-                  <h4 className="font-medium text-foreground truncate mb-1">
+                  <h4 className="font-semibold text-base sm:text-lg text-foreground truncate mb-1">
                     {task.title}
                   </h4>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm sm:text-base text-muted-foreground">
                     {formatDueDate(task.dueDate)}
                   </p>
                 </div>
@@ -171,10 +171,10 @@ function NextUpSection() {
             <div className="pt-2 border-t border-border/50">
               <Link 
                 href="/timeline" 
-                className="text-rose-600 hover:text-rose-700 dark:text-rose-400 dark:hover:text-rose-300 font-medium text-sm transition-colors inline-flex items-center gap-1"
+                className="text-rose-600 hover:text-rose-700 dark:text-rose-400 dark:hover:text-rose-300 font-medium text-base min-h-[44px] transition-colors inline-flex items-center gap-2"
               >
                 View full checklist 
-                <ArrowRight className="h-3 w-3" />
+                <ArrowRight className="h-4 w-4" />
               </Link>
             </div>
           </div>
@@ -277,7 +277,7 @@ function AnimatedDashboardStats() {
         className="mb-4"
       />
       
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         {stats.map((stat, index) => {
           const Icon = stat.icon;
           const isEmpty = stat.value === 0 || stat.value === "$0";
@@ -298,7 +298,7 @@ function AnimatedDashboardStats() {
               className="group"
             >
               <Card variant="elegant" className="h-full transition-all duration-300 group-hover:shadow-lg">
-                <CardContent className="p-3 sm:p-4">
+                <CardContent className="p-4 sm:p-6">
                   {isEmpty ? (
                     <motion.div 
                       className="text-center"
@@ -306,12 +306,12 @@ function AnimatedDashboardStats() {
                       animate={{ opacity: 1 }}
                       transition={{ delay: 0.2 + (0.1 * index) }}
                     >
-                      <div className={`w-8 h-8 sm:w-10 sm:h-10 ${stat.bgColor} rounded-full flex items-center justify-center mx-auto mb-2 transition-colors group-hover:scale-110`}>
-                        <Icon className={`h-4 w-4 sm:h-5 sm:w-5 ${stat.color}`} />
+                      <div className={`w-10 h-10 sm:w-12 sm:h-12 ${stat.bgColor} rounded-full flex items-center justify-center mx-auto mb-3 transition-colors group-hover:scale-110`}>
+                        <Icon className={`h-5 w-5 sm:h-6 sm:w-6 ${stat.color}`} />
                       </div>
-                      <p className="text-xs sm:text-sm text-muted-foreground mb-2">{stat.emptyMessage}</p>
+                      <p className="text-sm sm:text-base text-muted-foreground mb-3">{stat.emptyMessage}</p>
                       <Link href={stat.emptyAction.href}>
-                        <Button size="sm" variant="outline" className="text-xs h-7 transition-all hover:scale-105">
+                        <Button size="sm" variant="outline" className="text-sm min-h-[44px] px-4 transition-all hover:scale-105">
                           {stat.emptyAction.text}
                         </Button>
                       </Link>
@@ -324,8 +324,8 @@ function AnimatedDashboardStats() {
                         animate={{ scale: 1 }}
                         transition={{ delay: 0.2 + (0.1 * index), type: "spring", stiffness: 200 }}
                       >
-                        <div className={`w-8 h-8 sm:w-10 sm:h-10 ${stat.bgColor} rounded-full flex items-center justify-center transition-all group-hover:scale-110`}>
-                          <Icon className={`h-4 w-4 sm:h-5 sm:w-5 ${stat.color}`} />
+                        <div className={`w-10 h-10 sm:w-12 sm:h-12 ${stat.bgColor} rounded-full flex items-center justify-center transition-all group-hover:scale-110`}>
+                          <Icon className={`h-5 w-5 sm:h-6 sm:w-6 ${stat.color}`} />
                         </div>
                       </motion.div>
                       <motion.div 
@@ -334,11 +334,11 @@ function AnimatedDashboardStats() {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.3 + (0.1 * index) }}
                       >
-                        <p className="text-xs sm:text-sm font-medium text-muted-foreground">{stat.label}</p>
-                        <p className="text-lg sm:text-xl font-bold text-foreground">
+                        <p className="text-sm sm:text-base font-medium text-muted-foreground">{stat.label}</p>
+                        <p className="text-xl sm:text-2xl font-bold text-foreground">
                           {stat.value}
                           {stat.total && stat.total !== "$0" && (
-                            <span className="text-sm font-normal text-muted-foreground">
+                            <span className="text-base sm:text-lg font-normal text-muted-foreground">
                               /{typeof stat.total === 'string' ? stat.total : stat.total}
                             </span>
                           )}
@@ -473,7 +473,7 @@ export default function Dashboard() {
                             <Link key={item.href} href={item.href}>
                               <Button
                                 variant="ghost"
-                                className="w-full justify-start h-auto p-3 sm:p-4 lg:p-6 hover:bg-rose-50 hover:border-rose-200 border border-transparent transition-all duration-200 group hover:scale-105"
+                                className="w-full justify-start h-auto p-4 sm:p-5 lg:p-6 hover:bg-rose-50 hover:border-rose-200 border border-transparent transition-all duration-200 group hover:scale-105 touch-target"
                               >
                                 <div className="flex items-center space-x-3 lg:space-x-4 w-full min-w-0">
                                   <div className="flex-shrink-0">
