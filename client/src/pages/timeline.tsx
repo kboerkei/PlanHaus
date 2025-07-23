@@ -115,25 +115,30 @@ export default function Timeline() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="p-6 max-w-4xl mx-auto">
       {/* Header */}
-      <div className="bg-white rounded-lg p-6 border border-gray-200">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Timeline</h1>
-            {weddingDate && daysUntilWedding !== null && (
-              <p className="text-gray-600">
-                {daysUntilWedding > 0 
-                  ? `${daysUntilWedding} days until your special day`
-                  : daysUntilWedding === 0 
-                    ? "Your wedding is today! 🎉"
-                    : "Congratulations on your recent wedding! 💕"
-                }
-              </p>
-            )}
+      <div className="flex items-center gap-2 mb-6">
+        <Calendar className="w-6 h-6 text-rose-600" />
+        <h1 className="text-2xl font-semibold text-gray-800">Timeline</h1>
+        {weddingDate && daysUntilWedding !== null && (
+          <span className="text-gray-500 text-sm ml-2">
+            {daysUntilWedding > 0 
+              ? `${daysUntilWedding} days until your special day`
+              : daysUntilWedding === 0 
+                ? "Your wedding is today!"
+                : "Congratulations on your recent wedding!"
+            }
+          </span>
+        )}
+      </div>
+
+      <div className="space-y-6">
+        {/* Stats and Add Task */}
+        <div className="bg-white rounded-lg p-6 border border-gray-200">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-medium text-gray-800">Task Overview</h2>
+            <TaskFormDialog projectId={projectId} />
           </div>
-          <TaskFormDialog projectId={projectId} />
-        </div>
 
         {/* Quick Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
@@ -165,8 +170,8 @@ export default function Timeline() {
           </Card>
         </div>
 
-        {/* Filters */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          {/* Filters */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="relative">
             <Input
               placeholder="Search tasks..."
@@ -215,11 +220,11 @@ export default function Timeline() {
               Show completed
             </label>
           </div>
+          </div>
         </div>
-      </div>
 
-      {/* Task Lists */}
-      <div className="space-y-6">
+        {/* Task Lists */}
+        <div className="space-y-6">
         {/* Overdue Tasks */}
         {overdueTasks.length > 0 && (
           <Card className="border-l-4 border-l-red-500">
@@ -333,6 +338,8 @@ export default function Timeline() {
           </CardContent>
         </Card>
       )}
+        </div>
+      </div>
     </div>
   );
 }
