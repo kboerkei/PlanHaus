@@ -140,7 +140,7 @@ export default function VendorFormDialog({ projectId, vendor, trigger, onClose }
                           <SelectValue placeholder="Select category" />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent className="z-[1000]">
+                      <SelectContent>
                         {vendorCategories.map(category => (
                           <SelectItem key={category.value} value={category.value}>
                             {category.label}
@@ -255,7 +255,7 @@ export default function VendorFormDialog({ projectId, vendor, trigger, onClose }
                           <SelectValue placeholder="Select booking status" />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent className="z-[1000]">
+                      <SelectContent>
                         {bookingStatuses.map(status => (
                           <SelectItem key={status.value} value={status.value}>
                             {status.label}
