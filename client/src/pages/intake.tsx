@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
+import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -10,8 +11,9 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Stepper } from "@/components/ui/stepper";
-import { CalendarIcon, Heart, Users, Palette, ListChecks, UserPlus, Plus, Trash2, ArrowLeft, ArrowRight, Sparkles, CheckCircle, AlertCircle } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
+import { CalendarIcon, Heart, Users, Palette, ListChecks, UserPlus, Plus, Trash2, ArrowLeft, ArrowRight, Sparkles, CheckCircle, AlertCircle, Save, Loader2, Star } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -134,6 +136,10 @@ export default function Intake({ onComplete }: IntakeProps) {
   const [isLoadingExisting, setIsLoadingExisting] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  const [isAutoSaving, setIsAutoSaving] = useState(false);
+  const [aiSuggestions, setAiSuggestions] = useState<any>(null);
+  const [isLoadingAiSuggestions, setIsLoadingAiSuggestions] = useState(false);
+  const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
   
   const [formData, setFormData] = useState<IntakeFormData>({
     coupleInfo: {
@@ -171,6 +177,73 @@ export default function Intake({ onComplete }: IntakeProps) {
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [autoSaveTimer, setAutoSaveTimer] = useState<NodeJS.Timeout | null>(null);
 
+  // Constants for localStorage keys
+  const FORM_DATA_KEY = 'planhaus_intake_form_data';
+  const CURRENT_STEP_KEY = 'planhaus_intake_current_step';
+  const COMPLETED_STEPS_KEY = 'planhaus_intake_completed_steps';
+
+  // Load form data from localStorage on mount
+  useEffect(() => {
+    const savedFormData = localStorage.getItem(FORM_DATA_KEY);
+    const savedCurrentStep = localStorage.getItem(CURRENT_STEP_KEY);
+    const savedCompletedSteps = localStorage.getItem(COMPLETED_STEPS_KEY);
+
+    if (savedFormData) {
+      try {
+        const parsedData = JSON.parse(savedFormData);
+        // Convert date string back to Date object
+        if (parsedData.weddingBasics?.weddingDate) {
+          parsedData.weddingBasics.weddingDate = new Date(parsedData.weddingBasics.weddingDate);
+        }
+        setFormData(parsedData);
+      } catch (error) {
+        console.warn('Failed to parse saved form data:', error);
+      }
+    }
+
+    if (savedCurrentStep) {
+      setCurrentStep(parseInt(savedCurrentStep, 10));
+    }
+
+    if (savedCompletedSteps) {
+      try {
+        const parsedSteps = JSON.parse(savedCompletedSteps);
+        setCompletedSteps(new Set(parsedSteps));
+      } catch (error) {
+        console.warn('Failed to parse completed steps:', error);
+      }
+    }
+  }, []);
+
+  // Auto-save to localStorage whenever form data changes
+  useEffect(() => {
+    if (autoSaveTimer) {
+      clearTimeout(autoSaveTimer);
+    }
+
+    const timer = setTimeout(() => {
+      setIsAutoSaving(true);
+      localStorage.setItem(FORM_DATA_KEY, JSON.stringify(formData));
+      localStorage.setItem(CURRENT_STEP_KEY, currentStep.toString());
+      localStorage.setItem(COMPLETED_STEPS_KEY, JSON.stringify(Array.from(completedSteps)));
+      setLastSaved(new Date());
+      setIsAutoSaving(false);
+    }, 1000);
+
+    setAutoSaveTimer(timer);
+
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [formData, currentStep, completedSteps]);
+
+  // Clear localStorage when form is completed
+  const clearSavedProgress = () => {
+    localStorage.removeItem(FORM_DATA_KEY);
+    localStorage.removeItem(CURRENT_STEP_KEY);
+    localStorage.removeItem(COMPLETED_STEPS_KEY);
+  };
+
   // Load existing intake data
   const { data: existingIntake, isLoading: intakeLoading } = useQuery({
     queryKey: ['/api/intake'],
@@ -178,17 +251,53 @@ export default function Intake({ onComplete }: IntakeProps) {
     retry: false,
   });
 
-  // Relaxed validation for flexible form - allow progression with minimal data
+  // Enhanced validation with better user feedback
   const validateStep = (step: number): boolean => {
-    // No strict validation - allow form progression with any data
-    // Auto-save handles data persistence, validation is optional
-    setValidationErrors({});
-    return true;
+    const errors: Record<string, string> = {};
+    
+    switch (step) {
+      case 1: // Couple Info
+        if (!formData.coupleInfo.partner1.firstName.trim()) {
+          errors.partner1FirstName = "First name is required";
+        }
+        if (!formData.coupleInfo.partner2.firstName.trim()) {
+          errors.partner2FirstName = "Partner's first name is required";
+        }
+        break;
+      case 2: // Wedding Basics
+        if (!formData.weddingBasics.weddingDate) {
+          errors.weddingDate = "Wedding date is required";
+        }
+        if (formData.weddingBasics.estimatedGuests <= 0) {
+          errors.estimatedGuests = "Please enter estimated guest count";
+        }
+        break;
+      case 3: // Style & Vision
+        if (!formData.styleVision.overallVibe) {
+          errors.overallVibe = "Please select your wedding vibe";
+        }
+        break;
+      // Steps 4 and 5 are optional, no strict validation
+    }
+
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
   };
 
   const nextStep = () => {
-    setValidationErrors({});
-    setCurrentStep(prev => Math.min(prev + 1, 5));
+    if (validateStep(currentStep)) {
+      // Mark current step as completed
+      setCompletedSteps(prev => new Set([...Array.from(prev), currentStep]));
+      
+      // Generate AI suggestions when moving from certain steps
+      if (currentStep === 2 && formData.weddingBasics.totalBudget > 0) {
+        generateBudgetSuggestions();
+      } else if (currentStep === 3 && formData.styleVision.overallVibe) {
+        generateStyleSuggestions();
+      }
+      
+      setCurrentStep(prev => Math.min(prev + 1, 5));
+    }
   };
 
   const prevStep = () => {
@@ -196,9 +305,53 @@ export default function Intake({ onComplete }: IntakeProps) {
   };
 
   const goToStep = (step: number) => {
-    // Allow navigation to previous steps or current step
-    if (step <= currentStep) {
+    // Allow navigation to any completed step or current step
+    if (step <= Math.max(currentStep, Math.max(...Array.from(completedSteps), 0))) {
       setCurrentStep(step);
+    }
+  };
+
+  // AI Enhancement: Generate budget suggestions
+  const generateBudgetSuggestions = async () => {
+    if (!formData.weddingBasics.totalBudget || formData.weddingBasics.totalBudget <= 0) return;
+    
+    setIsLoadingAiSuggestions(true);
+    try {
+      const response = await apiRequest('/api/ai/budget-suggestions', {
+        method: 'POST',
+        body: JSON.stringify({
+          totalBudget: formData.weddingBasics.totalBudget,
+          guestCount: formData.weddingBasics.estimatedGuests,
+          location: formData.weddingBasics.ceremonyLocation
+        })
+      });
+      setAiSuggestions({ type: 'budget', data: response });
+    } catch (error) {
+      console.warn('Failed to generate budget suggestions:', error);
+    } finally {
+      setIsLoadingAiSuggestions(false);
+    }
+  };
+
+  // AI Enhancement: Generate style suggestions
+  const generateStyleSuggestions = async () => {
+    if (!formData.styleVision.overallVibe) return;
+    
+    setIsLoadingAiSuggestions(true);
+    try {
+      const response = await apiRequest('/api/ai/style-suggestions', {
+        method: 'POST',
+        body: JSON.stringify({
+          vibe: formData.styleVision.overallVibe,
+          colorPalette: formData.styleVision.colorPalette,
+          mustHaveElements: formData.styleVision.mustHaveElements
+        })
+      });
+      setAiSuggestions({ type: 'style', data: response });
+    } catch (error) {
+      console.warn('Failed to generate style suggestions:', error);
+    } finally {
+      setIsLoadingAiSuggestions(false);
     }
   };
 
@@ -411,6 +564,55 @@ export default function Intake({ onComplete }: IntakeProps) {
     
     // Submit form with current data - no strict validation required
     submitIntakeMutation.mutate(formData);
+    clearSavedProgress(); // Clear saved progress on successful completion
+  };
+
+  // Calculate progress percentage
+  const progressPercentage = (currentStep / steps.length) * 100;
+
+  // Animation variants for step transitions
+  const stepVariants = {
+    enter: (direction: number) => ({
+      x: direction > 0 ? 300 : -300,
+      opacity: 0
+    }),
+    center: {
+      zIndex: 1,
+      x: 0,
+      opacity: 1
+    },
+    exit: (direction: number) => ({
+      zIndex: 0,
+      x: direction < 0 ? 300 : -300,
+      opacity: 0
+    })
+  };
+
+  const [direction, setDirection] = useState(0);
+
+  const paginate = (newDirection: number) => {
+    setDirection(newDirection);
+  };
+
+  // Enhanced step navigation with animation direction
+  const enhancedNextStep = () => {
+    if (validateStep(currentStep)) {
+      setCompletedSteps(prev => new Set([...Array.from(prev), currentStep]));
+      
+      if (currentStep === 2 && formData.weddingBasics.totalBudget > 0) {
+        generateBudgetSuggestions();
+      } else if (currentStep === 3 && formData.styleVision.overallVibe) {
+        generateStyleSuggestions();
+      }
+      
+      paginate(1);
+      setCurrentStep(prev => Math.min(prev + 1, 5));
+    }
+  };
+
+  const enhancedPrevStep = () => {
+    paginate(-1);
+    setCurrentStep(prev => Math.max(prev - 1, 1));
   };
 
   const addColorPalette = () => {
@@ -642,80 +844,196 @@ export default function Intake({ onComplete }: IntakeProps) {
           </div>
         </div>
 
-        {/* Stepper Navigation */}
+        {/* Enhanced Progress Bar */}
         <div className="mb-8">
-          <Stepper 
-            steps={steps}
-            currentStep={currentStep}
-            onStepClick={goToStep}
-            allowNavigation={true}
-          />
-        </div>
+          <div className="max-w-3xl mx-auto">
+            {/* Progress Header */}
+            <div className="flex items-center justify-between mb-4">
+              <div className="text-sm font-medium text-gray-600">
+                Step {currentStep} of {steps.length}
+              </div>
+              <div className="text-sm text-gray-500">
+                {Math.round(progressPercentage)}% Complete
+              </div>
+            </div>
 
-        {/* Form Content */}
-        <div className="bg-white rounded-2xl shadow-xl p-8 mb-8">
-          {renderStepContent()}
-        </div>
-
-        {/* Navigation Buttons */}
-        <div className="flex justify-between items-center py-4">
-          <div 
-            onClick={prevStep}
-            style={{ 
-              padding: '12px 24px', 
-              border: '2px solid #d1d5db',
-              backgroundColor: currentStep === 1 ? '#f9fafb' : '#ffffff',
-              color: '#374151',
-              borderRadius: '8px',
-              cursor: currentStep === 1 ? 'not-allowed' : 'pointer',
-              opacity: currentStep === 1 ? 0.5 : 1,
-              fontSize: '16px',
-              fontWeight: '600'
-            }}
-          >
-            ← Previous
+            {/* Progress Bar */}
+            <div className="relative">
+              <Progress value={progressPercentage} className="h-3 mb-6" />
+              <div className="absolute top-0 left-0 right-0 flex justify-between">
+                {steps.map((step, index) => (
+                  <motion.div
+                    key={step.id}
+                    className={cn(
+                      "relative flex flex-col items-center cursor-pointer group",
+                      index + 1 <= Math.max(currentStep, Math.max(...Array.from(completedSteps), 0)) ? "cursor-pointer" : "cursor-not-allowed"
+                    )}
+                    onClick={() => goToStep(index + 1)}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <div
+                      className={cn(
+                        "w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all duration-300 -mt-2.5",
+                        currentStep === index + 1
+                          ? "bg-gradient-to-r from-rose-500 to-pink-500 border-rose-500 text-white shadow-lg"
+                          : completedSteps.has(index + 1)
+                          ? "bg-green-500 border-green-500 text-white"
+                          : index + 1 < currentStep
+                          ? "bg-green-100 border-green-300 text-green-600"
+                          : "bg-gray-100 border-gray-300 text-gray-400"
+                      )}
+                    >
+                      {completedSteps.has(index + 1) ? (
+                        <CheckCircle className="w-4 h-4" />
+                      ) : currentStep === index + 1 ? (
+                        <step.icon className="w-4 h-4" />
+                      ) : (
+                        <span className="text-xs font-semibold">{index + 1}</span>
+                      )}
+                    </div>
+                    <div className="mt-2 text-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                      <div className="text-xs font-medium text-gray-700 whitespace-nowrap">
+                        {step.title}
+                      </div>
+                      <div className="text-xs text-gray-500 whitespace-nowrap">
+                        {step.description}
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
           </div>
-          
-          <div>
-            {currentStep < 5 ? (
-              <div 
-                onClick={() => setCurrentStep(currentStep + 1)}
-                style={{ 
-                  padding: '12px 24px', 
-                  background: 'linear-gradient(to right, #f43f5e, #ec4899)',
-                  color: 'white',
-                  borderRadius: '8px',
-                  cursor: 'pointer',
-                  fontSize: '16px',
-                  fontWeight: '600',
-                  minWidth: '160px',
-                  textAlign: 'center'
-                }}
-              >
-                Next (Step {currentStep + 1}) →
+        </div>
+
+        {/* Form Content with Animation */}
+        <div className="bg-white rounded-2xl shadow-xl p-8 mb-8 relative overflow-hidden">
+          <AnimatePresence mode="wait" custom={direction}>
+            <motion.div
+              key={currentStep}
+              custom={direction}
+              variants={stepVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{
+                x: { type: "spring", stiffness: 300, damping: 30 },
+                opacity: { duration: 0.2 }
+              }}
+            >
+              {renderStepContent()}
+            </motion.div>
+          </AnimatePresence>
+
+          {/* AI Suggestions Panel */}
+          {aiSuggestions && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-8 p-6 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border border-purple-200"
+            >
+              <div className="flex items-center gap-2 mb-4">
+                <Sparkles className="w-5 h-5 text-purple-600" />
+                <h3 className="font-semibold text-purple-900">
+                  AI-Powered {aiSuggestions.type === 'budget' ? 'Budget' : 'Style'} Suggestions
+                </h3>
+                {isLoadingAiSuggestions && (
+                  <Loader2 className="w-4 h-4 animate-spin text-purple-600" />
+                )}
               </div>
-            ) : (
-              <div 
-                onClick={handleSubmit}
-                style={{ 
-                  padding: '12px 24px', 
-                  background: submitIntakeMutation.isPending ? '#6b7280' : 'linear-gradient(to right, #10b981, #059669)',
-                  color: 'white',
-                  borderRadius: '8px',
-                  cursor: submitIntakeMutation.isPending ? 'not-allowed' : 'pointer',
-                  fontSize: '16px',
-                  fontWeight: '600',
-                  textAlign: 'center'
-                }}
-              >
-                {submitIntakeMutation.isPending ? 'Saving...' : '✓ Complete Intake'}
+              <div className="space-y-3">
+                {aiSuggestions.data?.suggestions?.map((suggestion: string, index: number) => (
+                  <div key={index} className="flex items-start gap-2">
+                    <Star className="w-4 h-4 text-purple-500 mt-0.5 flex-shrink-0" />
+                    <span className="text-sm text-purple-800">{suggestion}</span>
+                  </div>
+                ))}
               </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setAiSuggestions(null)}
+                className="mt-4 text-purple-600 hover:text-purple-700"
+              >
+                Dismiss
+              </Button>
+            </motion.div>
+          )}
+        </div>
+
+        {/* Enhanced Navigation Buttons */}
+        <motion.div 
+          className="flex justify-between items-center py-4"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+        >
+          <Button
+            variant="outline"
+            onClick={enhancedPrevStep}
+            disabled={currentStep === 1}
+            className="flex items-center gap-2 px-6 py-3 border-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Previous
+          </Button>
+
+          <div className="flex items-center gap-4">
+            {/* Save Indicator */}
+            <div className="flex items-center gap-2 text-sm text-gray-500">
+              {isAutoSaving ? (
+                <>
+                  <Save className="w-4 h-4 animate-pulse" />
+                  <span>Auto-saving...</span>
+                </>
+              ) : (
+                <span>Progress saved</span>
+              )}
+            </div>
+
+            {/* Validation Errors Badge */}
+            {Object.keys(validationErrors).length > 0 && (
+              <Badge variant="destructive" className="flex items-center gap-1">
+                <AlertCircle className="w-3 h-3" />
+                {Object.keys(validationErrors).length} error{Object.keys(validationErrors).length > 1 ? 's' : ''}
+              </Badge>
             )}
           </div>
-        </div>
+
+          {currentStep < steps.length ? (
+            <Button
+              onClick={enhancedNextStep}
+              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white font-semibold"
+            >
+              Next
+              <ArrowRight className="w-4 h-4" />
+            </Button>
+          ) : (
+            <Button
+              onClick={handleSubmit}
+              disabled={submitIntakeMutation.isPending}
+              className="flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-semibold"
+            >
+              {submitIntakeMutation.isPending ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Submitting...
+                </>
+              ) : (
+                <>
+                  <CheckCircle className="w-4 h-4" />
+                  Complete Setup
+                </>
+              )}
+            </Button>
+          )}
+        </motion.div>
       </div>
     </div>
   );
+
+  // Step rendering functions
 
   // Step 1: Couple Information
   function renderCoupleInfo() {
@@ -786,7 +1104,6 @@ export default function Intake({ onComplete }: IntakeProps) {
                       }
                     }))}
                     className={cn(validationErrors.partner1Email && "border-red-500")}
-                    required
                   />
                   {validationErrors.partner1Email && (
                     <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
@@ -822,10 +1139,10 @@ export default function Intake({ onComplete }: IntakeProps) {
 
             {/* Partner 2 */}
             <div className="bg-gray-50 rounded-xl p-6">
-              <h3 className="text-lg font-semibold mb-4 text-gray-900">Second Partner (Optional)</h3>
+              <h3 className="text-lg font-semibold mb-4 text-gray-900">Partner</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <Label htmlFor="p2-firstName">First Name</Label>
+                  <Label htmlFor="p2-firstName">First Name *</Label>
                   <Input
                     id="p2-firstName"
                     value={formData.coupleInfo.partner2.firstName}
@@ -836,7 +1153,15 @@ export default function Intake({ onComplete }: IntakeProps) {
                         partner2: { ...prev.coupleInfo.partner2, firstName: e.target.value }
                       }
                     }))}
+                    className={cn(validationErrors.partner2FirstName && "border-red-500")}
+                    required
                   />
+                  {validationErrors.partner2FirstName && (
+                    <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
+                      <AlertCircle className="w-4 h-4" />
+                      {validationErrors.partner2FirstName}
+                    </p>
+                  )}
                 </div>
                 <div>
                   <Label htmlFor="p2-lastName">Last Name</Label>
@@ -893,23 +1218,523 @@ export default function Intake({ onComplete }: IntakeProps) {
             </div>
 
             {/* Wedding Planner */}
-            <div className="flex items-center space-x-3 p-4 bg-blue-50 rounded-xl">
+            <div className="flex items-center space-x-2">
               <Checkbox
                 id="hasWeddingPlanner"
                 checked={formData.coupleInfo.hasWeddingPlanner}
                 onCheckedChange={(checked) => updateFormData(prev => ({
                   ...prev,
-                  coupleInfo: { ...prev.coupleInfo, hasWeddingPlanner: checked as boolean }
+                  coupleInfo: { ...prev.coupleInfo, hasWeddingPlanner: !!checked }
                 }))}
               />
               <Label htmlFor="hasWeddingPlanner" className="text-sm font-medium">
-                We have hired a wedding planner
+                We are working with a wedding planner
               </Label>
             </div>
           </div>
         </div>
     );
   }
+
+  // Step 2: Wedding Basics
+  function renderWeddingBasics() {
+    return (
+      <div>
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-12 h-12 bg-gradient-to-r from-blue-400 to-blue-500 rounded-full flex items-center justify-center">
+            <CalendarIcon className="h-6 w-6 text-white" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">Wedding Basics</h2>
+            <p className="text-gray-600">Essential details about your big day</p>
+          </div>
+        </div>
+
+        <div className="space-y-6">
+          {/* Wedding Date */}
+          <div>
+            <Label>Wedding Date *</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "w-full justify-start text-left font-normal",
+                    !formData.weddingBasics.weddingDate && "text-muted-foreground",
+                    validationErrors.weddingDate && "border-red-500"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {formData.weddingBasics.weddingDate ? 
+                    format(formData.weddingBasics.weddingDate, "PPP") : 
+                    "Pick your wedding date"
+                  }
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <Calendar
+                  mode="single"
+                  selected={formData.weddingBasics.weddingDate}
+                  onSelect={(date) => updateFormData(prev => ({
+                    ...prev,
+                    weddingBasics: { ...prev.weddingBasics, weddingDate: date }
+                  }))}
+                  disabled={(date) => date < new Date()}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+            {validationErrors.weddingDate && (
+              <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
+                <AlertCircle className="w-4 h-4" />
+                {validationErrors.weddingDate}
+              </p>
+            )}
+          </div>
+
+          {/* Ceremony Location */}
+          <div>
+            <Label htmlFor="ceremonyLocation">Ceremony Location</Label>
+            <Input
+              id="ceremonyLocation"
+              value={formData.weddingBasics.ceremonyLocation}
+              onChange={(e) => updateFormData(prev => ({
+                ...prev,
+                weddingBasics: { ...prev.weddingBasics, ceremonyLocation: e.target.value }
+              }))}
+              placeholder="City, State or venue name"
+            />
+          </div>
+
+          {/* Reception Location */}
+          <div>
+            <Label htmlFor="receptionLocation">Reception Location</Label>
+            <Input
+              id="receptionLocation"
+              value={formData.weddingBasics.receptionLocation}
+              onChange={(e) => updateFormData(prev => ({
+                ...prev,
+                weddingBasics: { ...prev.weddingBasics, receptionLocation: e.target.value }
+              }))}
+              placeholder="Same as ceremony or different venue"
+            />
+          </div>
+
+          {/* Guest Count */}
+          <div>
+            <Label htmlFor="estimatedGuests">Estimated Guest Count *</Label>
+            <Input
+              id="estimatedGuests"
+              type="number"
+              min="1"
+              value={formData.weddingBasics.estimatedGuests || ""}
+              onChange={(e) => updateFormData(prev => ({
+                ...prev,
+                weddingBasics: { ...prev.weddingBasics, estimatedGuests: parseInt(e.target.value) || 0 }
+              }))}
+              className={cn(validationErrors.estimatedGuests && "border-red-500")}
+              placeholder="How many guests will attend?"
+            />
+            {validationErrors.estimatedGuests && (
+              <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
+                <AlertCircle className="w-4 h-4" />
+                {validationErrors.estimatedGuests}
+              </p>
+            )}
+          </div>
+
+          {/* Total Budget */}
+          <div>
+            <Label htmlFor="totalBudget">Total Budget (Optional)</Label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">$</span>
+              <Input
+                id="totalBudget"
+                type="number"
+                min="0"
+                className="pl-8"
+                value={formData.weddingBasics.totalBudget || ""}
+                onChange={(e) => updateFormData(prev => ({
+                  ...prev,
+                  weddingBasics: { ...prev.weddingBasics, totalBudget: parseInt(e.target.value) || 0 }
+                }))}
+                placeholder="Your total wedding budget"
+              />
+            </div>
+            <p className="text-sm text-gray-500 mt-1">
+              This helps us provide better recommendations
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Step 3: Style & Vision
+  function renderStyleVision() {
+    return (
+      <div>
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-12 h-12 bg-gradient-to-r from-purple-400 to-purple-500 rounded-full flex items-center justify-center">
+            <Palette className="h-6 w-6 text-white" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">Style & Vision</h2>
+            <p className="text-gray-600">Define your dream wedding aesthetic</p>
+          </div>
+        </div>
+
+        <div className="space-y-6">
+          {/* Wedding Vibe */}
+          <div>
+            <Label>Overall Wedding Vibe *</Label>
+            <Select
+              value={formData.styleVision.overallVibe}
+              onValueChange={(value) => updateFormData(prev => ({
+                ...prev,
+                styleVision: { ...prev.styleVision, overallVibe: value }
+              }))}
+            >
+              <SelectTrigger className={cn(validationErrors.overallVibe && "border-red-500")}>
+                <SelectValue placeholder="Choose your wedding style" />
+              </SelectTrigger>
+              <SelectContent>
+                {weddingVibes.map(vibe => (
+                  <SelectItem key={vibe} value={vibe}>{vibe}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {validationErrors.overallVibe && (
+              <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
+                <AlertCircle className="w-4 h-4" />
+                {validationErrors.overallVibe}
+              </p>
+            )}
+          </div>
+
+          {/* Color Palette */}
+          <div>
+            <Label htmlFor="colorPalette">Color Palette</Label>
+            <Textarea
+              id="colorPalette"
+              value={formData.styleVision.colorPalette}
+              onChange={(e) => updateFormData(prev => ({
+                ...prev,
+                styleVision: { ...prev.styleVision, colorPalette: e.target.value }
+              }))}
+              placeholder="Describe your wedding colors (e.g., blush pink, sage green, gold accents)"
+              rows={3}
+            />
+          </div>
+
+          {/* Must-Have Elements */}
+          <div>
+            <Label>Must-Have Wedding Elements</Label>
+            <div className="space-y-3">
+              <div className="flex gap-2">
+                <Input
+                  value={newMustHave}
+                  onChange={(e) => setNewMustHave(e.target.value)}
+                  placeholder="Add a must-have element (e.g., live band, photo booth)"
+                  onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addMustHaveElement())}
+                />
+                <Button type="button" onClick={addMustHaveElement} size="sm">
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
+              {formData.styleVision.mustHaveElements.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {formData.styleVision.mustHaveElements.map((element, index) => (
+                    <Badge key={index} variant="secondary" className="flex items-center gap-1">
+                      {element}
+                      <button 
+                        type="button"
+                        onClick={() => removeMustHaveElement(index)}
+                        className="ml-1 hover:text-red-600"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </button>
+                    </Badge>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Pinterest Boards */}
+          <div>
+            <Label>Pinterest Inspiration Boards</Label>
+            <div className="space-y-3">
+              <div className="flex gap-2">
+                <Input
+                  value={newPinterestBoard}
+                  onChange={(e) => setNewPinterestBoard(e.target.value)}
+                  placeholder="Add Pinterest board URL"
+                  onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addPinterestBoard())}
+                />
+                <Button type="button" onClick={addPinterestBoard} size="sm">
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
+              {formData.styleVision.pinterestBoards.length > 0 && (
+                <div className="space-y-2">
+                  {formData.styleVision.pinterestBoards.map((board, index) => (
+                    <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                      <a href={board} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline text-sm truncate">
+                        {board}
+                      </a>
+                      <button 
+                        type="button"
+                        onClick={() => removePinterestBoard(index)}
+                        className="text-red-600 hover:text-red-700"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Step 4: Priorities
+  function renderPriorities() {
+    return (
+      <div>
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-12 h-12 bg-gradient-to-r from-green-400 to-green-500 rounded-full flex items-center justify-center">
+            <ListChecks className="h-6 w-6 text-white" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">Wedding Priorities</h2>
+            <p className="text-gray-600">What matters most to you?</p>
+          </div>
+        </div>
+
+        <div className="space-y-6">
+          {/* Top Priorities */}
+          <div>
+            <Label>Top 3 Wedding Priorities</Label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
+              {priorityOptions.map(priority => (
+                <label key={priority} className="flex items-center space-x-2 cursor-pointer">
+                  <Checkbox
+                    checked={formData.priorities.topPriorities.includes(priority)}
+                    onCheckedChange={(checked) => {
+                      const current = formData.priorities.topPriorities;
+                      if (checked) {
+                        if (current.length < 3) {
+                          updateFormData(prev => ({
+                            ...prev,
+                            priorities: { 
+                              ...prev.priorities, 
+                              topPriorities: [...current, priority] 
+                            }
+                          }));
+                        }
+                      } else {
+                        updateFormData(prev => ({
+                          ...prev,
+                          priorities: { 
+                            ...prev.priorities, 
+                            topPriorities: current.filter(p => p !== priority) 
+                          }
+                        }));
+                      }
+                    }}
+                    disabled={!formData.priorities.topPriorities.includes(priority) && formData.priorities.topPriorities.length >= 3}
+                  />
+                  <span className="text-sm">{priority}</span>
+                </label>
+              ))}
+            </div>
+            <p className="text-sm text-gray-500 mt-2">
+              Selected: {formData.priorities.topPriorities.length}/3
+            </p>
+          </div>
+
+          {/* Non-Negotiables */}
+          <div>
+            <Label htmlFor="nonNegotiables">Non-Negotiables</Label>
+            <Textarea
+              id="nonNegotiables"
+              value={formData.priorities.nonNegotiables}
+              onChange={(e) => updateFormData(prev => ({
+                ...prev,
+                priorities: { ...prev.priorities, nonNegotiables: e.target.value }
+              }))}
+              placeholder="Things that are absolutely essential for your wedding day"
+              rows={4}
+            />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Step 5: Key People
+  function renderKeyPeople() {
+    return (
+      <div>
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-12 h-12 bg-gradient-to-r from-pink-400 to-pink-500 rounded-full flex items-center justify-center">
+            <Users className="h-6 w-6 text-white" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">Key People</h2>
+            <p className="text-gray-600">Your VIPs and wedding party</p>
+          </div>
+        </div>
+
+        <div className="space-y-8">
+          {/* VIPs */}
+          <div>
+            <Label>VIP Guests</Label>
+            <p className="text-sm text-gray-500 mb-3">Important people who require special consideration</p>
+            <div className="space-y-3">
+              {formData.keyPeople.vips.map((vip, index) => (
+                <div key={index} className="flex gap-3 items-end">
+                  <div className="flex-1">
+                    <Input
+                      placeholder="Name"
+                      value={vip.name}
+                      onChange={(e) => updateFormData(prev => ({
+                        ...prev,
+                        keyPeople: {
+                          ...prev.keyPeople,
+                          vips: prev.keyPeople.vips.map((v, i) => 
+                            i === index ? { ...v, name: e.target.value } : v
+                          )
+                        }
+                      }))}
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <Input
+                      placeholder="Relationship/Role"
+                      value={vip.role}
+                      onChange={(e) => updateFormData(prev => ({
+                        ...prev,
+                        keyPeople: {
+                          ...prev.keyPeople,
+                          vips: prev.keyPeople.vips.map((v, i) => 
+                            i === index ? { ...v, role: e.target.value } : v
+                          )
+                        }
+                      }))}
+                    />
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => removeVIP(index)}
+                    disabled={formData.keyPeople.vips.length === 1}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+              <Button type="button" variant="outline" onClick={addVIP} size="sm">
+                <UserPlus className="h-4 w-4 mr-2" />
+                Add VIP
+              </Button>
+            </div>
+          </div>
+
+          {/* Wedding Party */}
+          <div>
+            <Label>Wedding Party</Label>
+            <p className="text-sm text-gray-500 mb-3">Bridesmaids, groomsmen, flower girls, etc.</p>
+            <div className="space-y-3">
+              {formData.keyPeople.weddingParty.map((member, index) => (
+                <div key={index} className="flex gap-3 items-end">
+                  <div className="flex-1">
+                    <Input
+                      placeholder="Name"
+                      value={member.name}
+                      onChange={(e) => updateFormData(prev => ({
+                        ...prev,
+                        keyPeople: {
+                          ...prev.keyPeople,
+                          weddingParty: prev.keyPeople.weddingParty.map((m, i) => 
+                            i === index ? { ...m, name: e.target.value } : m
+                          )
+                        }
+                      }))}
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <Input
+                      placeholder="Role (e.g., Maid of Honor)"
+                      value={member.role}
+                      onChange={(e) => updateFormData(prev => ({
+                        ...prev,
+                        keyPeople: {
+                          ...prev.keyPeople,
+                          weddingParty: prev.keyPeople.weddingParty.map((m, i) => 
+                            i === index ? { ...m, role: e.target.value } : m
+                          )
+                        }
+                      }))}
+                    />
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => removeWeddingPartyMember(index)}
+                    disabled={formData.keyPeople.weddingParty.length === 1}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+              <Button type="button" variant="outline" onClick={addWeddingPartyMember} size="sm">
+                <UserPlus className="h-4 w-4 mr-2" />
+                Add Wedding Party Member
+              </Button>
+            </div>
+          </div>
+
+          {/* Officiant Status */}
+          <div>
+            <Label>Officiant Status</Label>
+            <RadioGroup
+              value={formData.keyPeople.officiantStatus}
+              onValueChange={(value) => updateFormData(prev => ({
+                ...prev,
+                keyPeople: { ...prev.keyPeople, officiantStatus: value }
+              }))}
+              className="mt-3"
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="booked" id="booked" />
+                <Label htmlFor="booked">We have booked our officiant</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="searching" id="searching" />
+                <Label htmlFor="searching">We are still searching for an officiant</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="friend" id="friend" />
+                <Label htmlFor="friend">A friend or family member will officiate</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="unsure" id="unsure" />
+                <Label htmlFor="unsure">We're not sure yet</Label>
+              </div>
+            </RadioGroup>
+          </div>
+        </div>
+      </div>
+    );
+  }
+}
 
   // Step 2: Wedding Basics
   function renderWeddingBasics() {
@@ -1404,4 +2229,3 @@ export default function Intake({ onComplete }: IntakeProps) {
       </div>
     );
   }
-}

@@ -22,6 +22,7 @@ import Inspiration from "@/pages/inspiration";
 import Resources from "@/pages/resources";
 import Schedules from "@/pages/schedules";
 import Intake from "@/pages/intake";
+import IntakeWizard from "@/pages/IntakeWizard";
 import Sidebar from "@/components/layout/sidebar-enhanced";
 import Header from "@/components/layout/header";
 import Footer from "@/components/layout/footer";
@@ -52,6 +53,9 @@ function Router({ user, onLogout, isNewUser, onIntakeComplete }: { user: User; o
                 <Route path="/" component={Dashboard} />
                 <Route path="/intake">
                   <Intake onComplete={onIntakeComplete} />
+                </Route>
+                <Route path="/intake-wizard">
+                  <IntakeWizard />
                 </Route>
                 <Route path="/ai-assistant" component={AIAssistant} />
                 <Route path="/overview" component={Overview} />

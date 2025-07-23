@@ -21,6 +21,7 @@ import guestRoutes from "./routes/guests";
 import vendorRoutes from "./routes/vendors";
 import budgetRoutes from "./routes/budget";
 import aiRoutes from "./routes/ai";
+import aiSuggestionsRoutes from "./routes/ai-suggestions";
 import uploadRoutes from "./routes/uploads";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -37,6 +38,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use("/api/vendors", vendorRoutes);
   app.use("/api/budget-items", budgetRoutes);
   app.use("/api/ai", aiRoutes);
+  app.use("/api/ai", aiSuggestionsRoutes);
   app.use("/api/upload", uploadRoutes);
 
   // Pinterest board import endpoint
