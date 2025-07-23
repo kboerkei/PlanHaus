@@ -132,6 +132,9 @@ export default function OverviewPage() {
   const [isAddingQuestion, setIsAddingQuestion] = useState<string | null>(null);
   const [newQuestion, setNewQuestion] = useState('');
   const [newAnswer, setNewAnswer] = useState('');
+  const [editingCustomQuestion, setEditingCustomQuestion] = useState<string | null>(null);
+  const [editCustomQuestion, setEditCustomQuestion] = useState('');
+  const [editCustomAnswer, setEditCustomAnswer] = useState('');
 
   const { data: overviewData, isLoading } = useQuery({
     queryKey: ['/api/overview'],
@@ -266,6 +269,36 @@ export default function OverviewPage() {
     });
   };
 
+  const startEditCustomQuestion = (section: string, questionId: string, question: string, answer: string) => {
+    setEditingCustomQuestion(`${section}-${questionId}`);
+    setEditCustomQuestion(question);
+    setEditCustomAnswer(answer);
+  };
+
+  const saveCustomQuestion = (section: string, questionId: string) => {
+    const sectionField = `custom${section}Questions` as keyof OverviewData;
+    const currentQuestions = (overviewData?.[sectionField] as Array<{id: string, question: string, answer: string}>) || [];
+    const updatedQuestions = currentQuestions.map(q => 
+      q.id === questionId 
+        ? { ...q, question: editCustomQuestion.trim(), answer: editCustomAnswer.trim() }
+        : q
+    );
+    
+    updateOverviewMutation.mutate({
+      [sectionField]: updatedQuestions
+    });
+    
+    setEditingCustomQuestion(null);
+    setEditCustomQuestion('');
+    setEditCustomAnswer('');
+  };
+
+  const cancelCustomEdit = () => {
+    setEditingCustomQuestion(null);
+    setEditCustomQuestion('');
+    setEditCustomAnswer('');
+  };
+
   const deleteStandardQuestion = (field: keyof OverviewData) => {
     updateOverviewMutation.mutate({
       [field]: null
@@ -292,22 +325,68 @@ export default function OverviewPage() {
           )}
           
           {/* Custom Questions */}
-          {customQuestions.map((customQ: {id: string, question: string, answer: string}) => (
-            <div key={customQ.id} className="flex items-center justify-between py-2 border-b border-gray-100">
-              <span className="text-sm font-medium text-gray-600 w-1/3">{customQ.question}:</span>
-              <div className="flex-1 flex items-center justify-between">
-                <span className="text-gray-800">{customQ.answer || 'Not set'}</span>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => deleteCustomQuestion(sectionKey, customQ.id)}
-                  className="text-red-500 hover:text-red-700"
-                >
-                  <Trash2 className="w-3 h-3" />
-                </Button>
+          {customQuestions.map((customQ: {id: string, question: string, answer: string}) => {
+            const isEditingThis = editingCustomQuestion === `${sectionKey}-${customQ.id}`;
+            
+            return (
+              <div key={customQ.id} className="py-2 border-b border-gray-100">
+                {isEditingThis ? (
+                  <div className="space-y-2">
+                    <Input
+                      placeholder="Edit question..."
+                      value={editCustomQuestion}
+                      onChange={(e) => setEditCustomQuestion(e.target.value)}
+                    />
+                    <Input
+                      placeholder="Edit answer..."
+                      value={editCustomAnswer}
+                      onChange={(e) => setEditCustomAnswer(e.target.value)}
+                    />
+                    <div className="flex gap-2">
+                      <Button size="sm" onClick={() => saveCustomQuestion(sectionKey, customQ.id)} className="bg-green-600 text-white">
+                        <Save className="w-3 h-3 mr-1" />
+                        Save
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={cancelCustomEdit}>
+                        <X className="w-3 h-3 mr-1" />
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-gray-600 w-1/3">{customQ.question}:</span>
+                    <div className="flex-1 flex items-center justify-between">
+                      <span 
+                        className="text-gray-800 cursor-pointer hover:text-blue-600"
+                        onClick={() => startEditCustomQuestion(sectionKey, customQ.id, customQ.question, customQ.answer)}
+                      >
+                        {customQ.answer || 'Click to add answer'}
+                      </span>
+                      <div className="flex gap-1">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => startEditCustomQuestion(sectionKey, customQ.id, customQ.question, customQ.answer)}
+                          className="text-blue-500 hover:text-blue-700"
+                        >
+                          <Edit2 className="w-3 h-3" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => deleteCustomQuestion(sectionKey, customQ.id)}
+                          className="text-red-500 hover:text-red-700"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
-            </div>
-          ))}
+            );
+          })}
           
           {/* Add Custom Question */}
           {isAddingQuestion === sectionKey ? (
