@@ -353,17 +353,34 @@ function BudgetOverviewAnalytics({ budgetItems, budgetSummary }: {
   const totalVariance = totalActual - totalEstimated;
   const budgetUsage = totalEstimated > 0 ? (totalActual / totalEstimated) * 100 : 0;
 
+  // Category mapping for chart display
+  const CATEGORY_NAMES = {
+    0: 'Venue',
+    1: 'Catering',
+    2: 'Photography',
+    3: 'Flowers',
+    4: 'Music',
+    5: 'Transportation',
+    6: 'Attire',
+    7: 'Rings',
+    8: 'Invitations',
+    9: 'Decorations',
+    10: 'Beauty',
+    11: 'Favors',
+    12: 'Other'
+  };
+
   // Category data for charts
   const categoryData = useMemo(() => {
     if (!budgetSummary?.categories) return [];
     
     const colors = [
       '#8b5cf6', '#06b6d4', '#10b981', '#f59e0b', '#ef4444',
-      '#8b5cf6', '#06b6d4', '#10b981', '#f59e0b', '#ef4444'
+      '#ec4899', '#8b5cf6', '#06b6d4', '#10b981', '#f59e0b'
     ];
     
     return budgetSummary.categories.map((cat: any, index: number) => ({
-      category: cat.category,
+      category: CATEGORY_NAMES[cat.category as keyof typeof CATEGORY_NAMES] || cat.category,
       estimated: cat.estimated,
       actual: cat.actual,
       variance: cat.actual - cat.estimated,
