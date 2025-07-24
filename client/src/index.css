@@ -24,24 +24,11 @@
     text-rendering: optimizeLegibility;
   }
   
-  /* Fix for potential text direction issues on mobile */
-  *, *::before, *::after {
-    box-sizing: border-box;
-    text-orientation: mixed !important;
-    writing-mode: horizontal-tb !important;
-  }
-  
-  /* Ensure proper flex behavior on mobile */
-  .flex {
-    display: flex !important;
-    flex-direction: row !important;
-  }
-  
-  /* Additional mobile text rendering fixes */
-  h1, h2, h3, h4, h5, h6, p, span, div {
-    text-orientation: mixed !important;
-    writing-mode: horizontal-tb !important;
-    direction: ltr !important;
+  /* Mobile text rendering fixes */
+  html, body {
+    text-orientation: mixed;
+    writing-mode: horizontal-tb;
+    direction: ltr;
   }
   
   /* Mobile-specific layout fixes */
