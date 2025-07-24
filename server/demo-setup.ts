@@ -400,5 +400,56 @@ export async function setupDemoData() {
     });
   }
 
+  // Create or update intake data for demo user based on the Austin farmhouse wedding
+  let existingIntake = await storage.getIntakeDataByUserId(demoUser.id);
+  
+  if (!existingIntake) {
+    console.log("Creating intake data for demo user with Austin farmhouse wedding details...");
+    
+    const intakeData = {
+      userId: demoUser.id,
+      partner1FirstName: "Emma",
+      partner1LastName: "Thompson",
+      partner1Email: "emma.thompson@example.com", 
+      partner1Role: "Bride",
+      partner2FirstName: "Jake",
+      partner2LastName: "Rodriguez",
+      partner2Email: "jake.rodriguez@example.com",
+      partner2Role: "Groom",
+      hasWeddingPlanner: false,
+      weddingDate: new Date("2025-10-15T18:00:00.000Z"), // October 15, 2025
+      ceremonyLocation: "Sunset Ranch Austin - Outdoor Pavilion",
+      cocktailHourLocation: "Sunset Ranch Austin - Garden Terrace", 
+      receptionLocation: "Sunset Ranch Austin - Main Barn",
+      estimatedGuests: 85,
+      totalBudget: "45000",
+      overallVibe: "Rustic farmhouse with elegant touches - think string lights, wooden accents, and Texas charm",
+      colorPalette: "Sage green, dusty rose, cream, and natural wood tones",
+      mustHaveElements: ["String lights", "Wooden farm tables", "Mason jar centerpieces", "Live oak ceremony backdrop", "Hill Country sunset views"],
+      pinterestBoards: ["https://pinterest.com/emmathompson/rustic-farmhouse-wedding", "https://pinterest.com/emmathompson/texas-wedding-venues"],
+      topPriorities: ["Amazing photography to capture the Texas sunset", "Great BBQ catering that reflects Austin culture", "Live music with country and folk vibes", "Outdoor ceremony under the oak trees"],
+      nonNegotiables: "Outdoor ceremony, Texas BBQ dinner, live music, professional photography",
+      vips: [
+        { name: "Sarah Mitchell", role: "Maid of Honor", email: "sarah.mitchell@example.com" },
+        { name: "Carlos Rodriguez", role: "Best Man", email: "carlos.rodriguez@example.com" },
+        { name: "Linda Thompson", role: "Mother of the Bride", email: "linda.thompson@example.com" },
+        { name: "Miguel Rodriguez", role: "Father of the Groom", email: "miguel.rodriguez@example.com" }
+      ],
+      weddingParty: [
+        { name: "Sarah Mitchell", role: "Maid of Honor" },
+        { name: "Carlos Rodriguez", role: "Best Man" },
+        { name: "Ashley Chen", role: "Bridesmaid" },
+        { name: "Mark Sullivan", role: "Groomsman" },
+        { name: "Rebecca Johnson", role: "Bridesmaid" },
+        { name: "David Kim", role: "Groomsman" }
+      ],
+      officiantStatus: "Friend performing ceremony"
+    };
+    
+    await storage.createIntakeData(intakeData);
+    await storage.markUserIntakeComplete(demoUser.id);
+    console.log("Demo intake data created successfully!");
+  }
+
   console.log("Austin farmhouse wedding demo data created successfully!");
 }
