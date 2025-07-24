@@ -3,12 +3,37 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Building, Mail, Phone, Globe, MapPin, Filter, Star, CheckCircle, Clock, AlertCircle } from "lucide-react";
 import { useProjects } from "@/hooks/useProjects";
 import { useVendors } from "@/hooks/useVendors";
 import VendorFormDialog from "@/components/vendors/VendorFormDialog";
 import LoadingSpinner from "@/components/ui/loading-spinner";
+
+// Define vendor type for TypeScript
+type Vendor = {
+  id: number;
+  name: string;
+  category: string;
+  email?: string;
+  phone?: string;
+  website?: string;
+  address?: string;
+  contactPerson?: string;
+  priceRange?: string;
+  bookingStatus: string;
+  rating?: number;
+  notes?: string;
+  isBooked: boolean;
+  contractSigned?: boolean;
+};
+
+type Project = {
+  id: number;
+  name: string;
+  date?: string;
+};
 
 const categoryFilters = [
   { value: "all", label: "All Categories" },
@@ -65,7 +90,7 @@ export default function Vendors() {
 
   // Fetch data using hooks
   const { data: projects, isLoading: projectsLoading } = useProjects();
-  const currentProject = projects?.find(p => p.name === "Emma & Jake's Wedding") || projects?.[0];
+  const currentProject = projects?.find((p: Project) => p.name === "Emma & Jake's Wedding") || projects?.[0];
   const projectId = currentProject?.id?.toString();
   
   const { data: vendors = [], isLoading: vendorsLoading, error: vendorsError } = useVendors(projectId);
@@ -74,7 +99,7 @@ export default function Vendors() {
   const filteredVendors = useMemo(() => {
     if (!vendors) return [];
     
-    return vendors.filter(vendor => {
+    return vendors.filter((vendor: Vendor) => {
       const matchesSearch = !searchTerm || 
         vendor.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         vendor.category?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -89,18 +114,18 @@ export default function Vendors() {
   }, [vendors, searchTerm, filterCategory, filterStatus, showBookedOnly]);
 
   // Categorize vendors
-  const bookedVendors = filteredVendors.filter(vendor => vendor.isBooked);
-  const pendingVendors = filteredVendors.filter(vendor => !vendor.isBooked);
+  const bookedVendors = filteredVendors.filter((vendor: Vendor) => vendor.isBooked);
+  const pendingVendors = filteredVendors.filter((vendor: Vendor) => !vendor.isBooked);
 
   // Statistics
   const vendorStats = useMemo(() => {
     if (!vendors.length) return { total: 0, booked: 0, pending: 0, categories: 0 };
     
-    const categories = new Set(vendors.map(v => v.category)).size;
+    const categories = new Set(vendors.map((v: Vendor) => v.category)).size;
     return {
       total: vendors.length,
-      booked: vendors.filter(v => v.isBooked).length,
-      pending: vendors.filter(v => !v.isBooked).length,
+      booked: vendors.filter((v: Vendor) => v.isBooked).length,
+      pending: vendors.filter((v: Vendor) => !v.isBooked).length,
       categories
     };
   }, [vendors]);
@@ -212,7 +237,7 @@ export default function Vendors() {
 
           <Select value={filterCategory} onValueChange={setFilterCategory}>
             <SelectTrigger>
-              <SelectValue placeholder="Filter by category" />
+              <SelectValue placeholder="All Categories" />
             </SelectTrigger>
             <SelectContent>
               {categoryFilters.map(filter => (
@@ -225,7 +250,7 @@ export default function Vendors() {
 
           <Select value={filterStatus} onValueChange={setFilterStatus}>
             <SelectTrigger>
-              <SelectValue placeholder="Filter by status" />
+              <SelectValue placeholder="All Statuses" />
             </SelectTrigger>
             <SelectContent>
               {statusFilters.map(filter => (
@@ -237,14 +262,12 @@ export default function Vendors() {
           </Select>
 
           <div className="flex items-center space-x-2">
-            <input
-              type="checkbox"
+            <Checkbox
               id="show-booked-only"
               checked={showBookedOnly}
-              onChange={(e) => setShowBookedOnly(e.target.checked)}
-              className="rounded"
+              onCheckedChange={setShowBookedOnly}
             />
-            <label htmlFor="show-booked-only" className="text-sm">
+            <label htmlFor="show-booked-only" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
               Show booked only
             </label>
           </div>
@@ -270,7 +293,7 @@ export default function Vendors() {
         </Card>
       ) : (
         <div className="grid gap-4">
-          {filteredVendors.map((vendor: any) => {
+          {filteredVendors.map((vendor: Vendor) => {
             const StatusIcon = statusIcons[vendor.bookingStatus as keyof typeof statusIcons] || Clock;
             
             return (

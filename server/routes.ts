@@ -301,6 +301,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get intake data for current user
+  app.get("/api/intake", requireAuth, async (req: RequestWithUser, res) => {
+    try {
+      const intake = await storage.getIntakeDataByUserId(req.userId);
+      if (!intake) {
+        return res.status(404).json({ message: "No intake data found" });
+      }
+      res.json(intake);
+    } catch (error) {
+      logError('intake', error, { userId: req.userId });
+      res.status(500).json({ message: "Failed to fetch intake data" });
+    }
+  });
+
   app.get("/api/intake/:userId", requireAuth, async (req: RequestWithUser, res) => {
     try {
       const userId = parseInt(req.params.userId);
