@@ -182,38 +182,41 @@ export default function Intake({ onComplete }: IntakeProps) {
   const CURRENT_STEP_KEY = 'planhaus_intake_current_step';
   const COMPLETED_STEPS_KEY = 'planhaus_intake_completed_steps';
 
-  // Load form data from localStorage on mount
+  // Load form data from localStorage on mount (only if no database data exists)
   useEffect(() => {
-    const savedFormData = localStorage.getItem(FORM_DATA_KEY);
-    const savedCurrentStep = localStorage.getItem(CURRENT_STEP_KEY);
-    const savedCompletedSteps = localStorage.getItem(COMPLETED_STEPS_KEY);
+    // Only load from localStorage if we don't have existing intake data
+    if (!existingIntake && !intakeLoading) {
+      const savedFormData = localStorage.getItem(FORM_DATA_KEY);
+      const savedCurrentStep = localStorage.getItem(CURRENT_STEP_KEY);
+      const savedCompletedSteps = localStorage.getItem(COMPLETED_STEPS_KEY);
 
-    if (savedFormData) {
-      try {
-        const parsedData = JSON.parse(savedFormData);
-        // Convert date string back to Date object
-        if (parsedData.weddingBasics?.weddingDate) {
-          parsedData.weddingBasics.weddingDate = new Date(parsedData.weddingBasics.weddingDate);
+      if (savedFormData) {
+        try {
+          const parsedData = JSON.parse(savedFormData);
+          // Convert date string back to Date object
+          if (parsedData.weddingBasics?.weddingDate) {
+            parsedData.weddingBasics.weddingDate = new Date(parsedData.weddingBasics.weddingDate);
+          }
+          setFormData(parsedData);
+        } catch (error) {
+          console.warn('Failed to parse saved form data:', error);
         }
-        setFormData(parsedData);
-      } catch (error) {
-        console.warn('Failed to parse saved form data:', error);
+      }
+
+      if (savedCurrentStep) {
+        setCurrentStep(parseInt(savedCurrentStep, 10));
+      }
+
+      if (savedCompletedSteps) {
+        try {
+          const parsedSteps = JSON.parse(savedCompletedSteps);
+          setCompletedSteps(new Set(parsedSteps));
+        } catch (error) {
+          console.warn('Failed to parse completed steps:', error);
+        }
       }
     }
-
-    if (savedCurrentStep) {
-      setCurrentStep(parseInt(savedCurrentStep, 10));
-    }
-
-    if (savedCompletedSteps) {
-      try {
-        const parsedSteps = JSON.parse(savedCompletedSteps);
-        setCompletedSteps(new Set(parsedSteps));
-      } catch (error) {
-        console.warn('Failed to parse completed steps:', error);
-      }
-    }
-  }, []);
+  }, [existingIntake, intakeLoading]);
 
   // Auto-save to localStorage whenever form data changes
   useEffect(() => {
@@ -250,6 +253,58 @@ export default function Intake({ onComplete }: IntakeProps) {
     queryFn: () => apiRequest('/api/intake'),
     retry: false,
   });
+
+  // Populate form data when existing intake data is loaded
+  useEffect(() => {
+    if (existingIntake && !intakeLoading) {
+      console.log('Loading existing intake data:', existingIntake);
+      setFormData({
+        coupleInfo: {
+          partner1: {
+            firstName: existingIntake.partner1FirstName || "",
+            lastName: existingIntake.partner1LastName || "",
+            email: existingIntake.partner1Email || "",
+            role: existingIntake.partner1Role || ""
+          },
+          partner2: {
+            firstName: existingIntake.partner2FirstName || "",
+            lastName: existingIntake.partner2LastName || "",
+            email: existingIntake.partner2Email || "",
+            role: existingIntake.partner2Role || ""
+          },
+          hasWeddingPlanner: existingIntake.hasWeddingPlanner || false
+        },
+        weddingBasics: {
+          weddingDate: existingIntake.weddingDate ? new Date(existingIntake.weddingDate) : undefined,
+          ceremonyLocation: existingIntake.ceremonyLocation || "",
+          receptionLocation: existingIntake.receptionLocation || "",
+          estimatedGuests: existingIntake.estimatedGuests || 0,
+          totalBudget: existingIntake.totalBudget ? parseInt(existingIntake.totalBudget) : 0
+        },
+        styleVision: {
+          overallVibe: existingIntake.overallVibe || "",
+          colorPalette: existingIntake.colorPalette || "",
+          mustHaveElements: existingIntake.mustHaveElements || [],
+          pinterestBoards: existingIntake.pinterestBoards || []
+        },
+        priorities: {
+          topPriorities: existingIntake.topPriorities || [],
+          nonNegotiables: existingIntake.nonNegotiables || ""
+        },
+        keyPeople: {
+          vips: existingIntake.vips || [{ name: "", role: "" }],
+          weddingParty: existingIntake.weddingParty || [{ name: "", role: "" }],
+          officiantStatus: existingIntake.officiantStatus || ""
+        }
+      });
+      
+      // Mark all steps as completed if we have existing data
+      setCompletedSteps(new Set([1, 2, 3, 4, 5]));
+      
+      // Clear any localStorage data since we're loading from database
+      clearSavedProgress();
+    }
+  }, [existingIntake, intakeLoading]);
 
   // Enhanced validation with better user feedback
   const validateStep = (step: number): boolean => {
