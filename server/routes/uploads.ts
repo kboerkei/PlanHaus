@@ -63,7 +63,8 @@ router.post("/", requireAuth, upload.array('images', 10), async (req: RequestWit
 
     res.json({
       message: "Files uploaded successfully",
-      files: uploadedFiles
+      files: uploadedFiles,
+      urls: uploadedFiles.map(f => f.url)
     });
   } catch (error) {
     logError('uploads', error, { userId: req.userId });

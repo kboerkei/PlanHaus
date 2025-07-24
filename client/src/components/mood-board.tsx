@@ -250,7 +250,8 @@ export default function MoodBoard({ inspirationItems, onItemsChange }: MoodBoard
       
       // Create inspiration items for each uploaded image
       const createdItems = [];
-      for (const imageUrl of uploadResult.urls) {
+      const imageUrls = uploadResult.urls || uploadResult.files?.map((f: any) => f.url) || [];
+      for (const imageUrl of imageUrls) {
         const itemData = {
           title: data.title,
           category: data.category,
@@ -343,6 +344,48 @@ export default function MoodBoard({ inspirationItems, onItemsChange }: MoodBoard
 
   const removeUploadedFile = (index: number) => {
     setUploadedFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleExportMoodBoard = () => {
+    const exportData = {
+      title: "Wedding Mood Board",
+      items: items.map(item => ({
+        title: item.title,
+        category: item.category,
+        notes: item.notes,
+        tags: item.tags,
+        imageUrl: item.imageUrl,
+      })),
+      exported: new Date().toISOString(),
+    };
+    
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportData, null, 2));
+    const downloadAnchorNode = document.createElement('a');
+    downloadAnchorNode.setAttribute("href", dataStr);
+    downloadAnchorNode.setAttribute("download", "wedding-mood-board.json");
+    document.body.appendChild(downloadAnchorNode);
+    downloadAnchorNode.click();
+    downloadAnchorNode.remove();
+    
+    toast({ title: "Mood board exported successfully!" });
+  };
+
+  const handleShareMoodBoard = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'My Wedding Mood Board',
+          text: `Check out my wedding inspiration board with ${items.length} beautiful ideas!`,
+          url: window.location.href,
+        });
+      } catch (error) {
+        // User cancelled sharing
+      }
+    } else {
+      // Fallback: copy link to clipboard
+      await navigator.clipboard.writeText(window.location.href);
+      toast({ title: "Link copied to clipboard!" });
+    }
   };
 
   return (
@@ -508,11 +551,11 @@ export default function MoodBoard({ inspirationItems, onItemsChange }: MoodBoard
             </DialogContent>
           </Dialog>
           
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" onClick={handleExportMoodBoard}>
             <Download className="w-4 h-4 mr-2" />
             Export
           </Button>
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" onClick={handleShareMoodBoard}>
             <Share2 className="w-4 h-4 mr-2" />
             Share
           </Button>
