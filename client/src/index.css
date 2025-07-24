@@ -9,6 +9,50 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Mobile viewport and text rendering fixes */
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    -moz-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+  
+  body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+  }
+  
+  /* Fix for potential text direction issues on mobile */
+  *, *::before, *::after {
+    box-sizing: border-box;
+    text-orientation: mixed !important;
+    writing-mode: horizontal-tb !important;
+  }
+  
+  /* Ensure proper flex behavior on mobile */
+  .flex {
+    display: flex !important;
+    flex-direction: row !important;
+  }
+  
+  /* Additional mobile text rendering fixes */
+  h1, h2, h3, h4, h5, h6, p, span, div {
+    text-orientation: mixed !important;
+    writing-mode: horizontal-tb !important;
+    direction: ltr !important;
+  }
+  
+  /* Mobile-specific layout fixes */
+  @media (max-width: 768px) {
+    .mobile-safe {
+      padding-left: max(1rem, env(safe-area-inset-left));
+      padding-right: max(1rem, env(safe-area-inset-right));
+    }
+  }
+}
+
 @layer base {
   :root {
     /* Base Colors */

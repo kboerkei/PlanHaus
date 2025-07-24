@@ -47,8 +47,8 @@ function Router({ user, onLogout, isNewUser, onIntakeComplete }: { user: User; o
       <div className="flex-1 flex flex-col overflow-hidden lg:ml-64">
         <Header />
         <main className="flex-1 overflow-auto pb-20 lg:pb-0 px-4 lg:px-0 touch-manipulation">
-          <div className="min-h-full flex flex-col max-w-full">
-            <div className="flex-1 w-full">
+          <div className="min-h-full flex flex-col max-w-full mobile-safe">
+            <div className="flex-1 w-full" style={{textOrientation: 'mixed', writingMode: 'horizontal-tb'}}>
               <Switch>
                 <Route path="/" component={Dashboard} />
                 <Route path="/intake">
