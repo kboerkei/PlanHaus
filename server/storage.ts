@@ -560,6 +560,10 @@ export class MemStorage implements IStorage {
       .filter(item => item.projectId === projectId);
   }
 
+  async getInspirationItemById(id: number): Promise<InspirationItem | undefined> {
+    return this.inspirationItems.get(id);
+  }
+
   async updateInspirationItem(id: number, updates: Partial<InsertInspirationItem>): Promise<InspirationItem | undefined> {
     const item = this.inspirationItems.get(id);
     if (!item) return undefined;
@@ -1012,6 +1016,11 @@ export class DatabaseStorage implements IStorage {
 
   async getInspirationItemsByProjectId(projectId: number): Promise<InspirationItem[]> {
     return await db.select().from(inspirationItems).where(eq(inspirationItems.projectId, projectId));
+  }
+
+  async getInspirationItemById(id: number): Promise<InspirationItem | undefined> {
+    const [item] = await db.select().from(inspirationItems).where(eq(inspirationItems.id, id));
+    return item || undefined;
   }
 
   async updateInspirationItem(id: number, updates: Partial<InsertInspirationItem>): Promise<InspirationItem | undefined> {

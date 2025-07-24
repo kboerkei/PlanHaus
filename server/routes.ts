@@ -42,7 +42,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use("/api/upload", uploadRoutes);
 
   // Add simple dashboard stats endpoint
-  app.get("/api/dashboard/stats", requireAuth, async (req: any, res) => {
+  app.get("/api/dashboard/stats", requireAuth, async (req: RequestWithUser, res) => {
     try {
       const project = await getOrCreateDefaultProject(req.userId);
       
@@ -59,7 +59,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const completedTasks = tasks.filter(t => t.status === 'completed').length;
       const totalGuests = guests.length;
       const confirmedGuests = guests.filter(g => g.rsvpStatus === 'yes').length;
-      const totalBudget = budget.reduce((sum, item) => sum + parseFloat(item.estimatedCost), 0);
+      const totalBudget = budget.reduce((sum, item) => sum + parseFloat(item.estimatedCost || '0'), 0);
       const spentBudget = budget.reduce((sum, item) => sum + parseFloat(item.actualCost || '0'), 0);
       const totalVendors = vendors.length;
       const bookedVendors = vendors.filter(v => v.status === 'booked').length;
@@ -225,7 +225,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const scheduleData = { ...req.body, projectId: project.id };
       const schedule = await storage.createSchedule(scheduleData);
       
-      logInfo('schedules', `Schedule created: ${schedule.title}`, { userId: req.userId });
+      logInfo('schedules', `Schedule created: ${schedule.name}`, { userId: req.userId });
       res.status(201).json(schedule);
     } catch (error) {
       logError('schedules', error, { userId: req.userId });
