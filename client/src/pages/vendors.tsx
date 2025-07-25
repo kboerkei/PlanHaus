@@ -87,6 +87,8 @@ export default function Vendors() {
   const [filterCategory, setFilterCategory] = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
   const [showBookedOnly, setShowBookedOnly] = useState(false);
+  const [sortBy, setSortBy] = useState("name"); // name, category, status, booking
+  const [sortOrder, setSortOrder] = useState("asc"); // asc, desc
 
   // Fetch data using hooks
   const { data: projects, isLoading: projectsLoading } = useProjects();
@@ -95,11 +97,12 @@ export default function Vendors() {
   
   const { data: vendors = [], isLoading: vendorsLoading, error: vendorsError } = useVendors(projectId);
 
-  // Filter logic
+  // Filter and sort logic
   const filteredVendors = useMemo(() => {
-    if (!vendors) return [];
+    if (!vendors || !Array.isArray(vendors)) return [];
     
-    return vendors.filter((vendor: Vendor) => {
+    // First filter
+    let filtered = vendors.filter((vendor: Vendor) => {
       const matchesSearch = !searchTerm || 
         vendor.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         vendor.category?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -111,7 +114,43 @@ export default function Vendors() {
       
       return matchesSearch && matchesCategory && matchesStatus && matchesBooked;
     });
-  }, [vendors, searchTerm, filterCategory, filterStatus, showBookedOnly]);
+
+    // Then sort
+    filtered.sort((a: Vendor, b: Vendor) => {
+      let aValue, bValue;
+      
+      switch (sortBy) {
+        case "category":
+          aValue = a.category || "";
+          bValue = b.category || "";
+          break;
+        case "status":
+          aValue = a.bookingStatus || "";
+          bValue = b.bookingStatus || "";
+          break;
+        case "booking":
+          // Sort by booking status: booked first, then by status priority
+          if (a.isBooked !== b.isBooked) {
+            return b.isBooked ? 1 : -1; // Booked items first
+          }
+          aValue = a.bookingStatus || "";
+          bValue = b.bookingStatus || "";
+          break;
+        default: // name
+          aValue = a.name || "";
+          bValue = b.name || "";
+      }
+      
+      const comparison = aValue.localeCompare(bValue);
+      return sortOrder === "asc" ? comparison : -comparison;
+    });
+
+    console.log('Vendors data:', vendors);
+    console.log('Filtered vendors:', filtered);
+    console.log('Sort settings:', { sortBy, sortOrder });
+    
+    return filtered;
+  }, [vendors, searchTerm, filterCategory, filterStatus, showBookedOnly, sortBy, sortOrder]);
 
   // Categorize vendors
   const bookedVendors = filteredVendors.filter((vendor: Vendor) => vendor.isBooked);
@@ -221,8 +260,9 @@ export default function Vendors() {
           </Card>
         </div>
 
-        {/* Filters */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        {/* Filters and Sorting */}
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="relative">
             <Input
               placeholder="Search vendors..."
@@ -270,6 +310,51 @@ export default function Vendors() {
             <label htmlFor="show-booked-only" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
               Show booked only
             </label>
+          </div>
+          </div>
+          
+          {/* Sort Options */}
+          <div className="flex flex-wrap items-center gap-4">
+            <span className="text-sm font-medium text-gray-700">
+              Sort by: {sortBy} ({sortOrder === "asc" ? "ascending" : "descending"})
+            </span>
+            <div className="flex gap-2">
+              <Button
+                variant={sortBy === "name" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setSortBy("name")}
+              >
+                Name
+              </Button>
+              <Button
+                variant={sortBy === "category" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setSortBy("category")}
+              >
+                Category
+              </Button>
+              <Button
+                variant={sortBy === "status" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setSortBy("status")}
+              >
+                Status
+              </Button>
+              <Button
+                variant={sortBy === "booking" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setSortBy("booking")}
+              >
+                Booking Priority
+              </Button>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
+            >
+              {sortOrder === "asc" ? "↑ A-Z" : "↓ Z-A"}
+            </Button>
           </div>
         </div>
       </div>
