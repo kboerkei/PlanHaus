@@ -45,9 +45,9 @@ export async function getOrCreateDefaultProject(userId: number) {
     const defaultProject = await storage.createWeddingProject({
       name: DEFAULT_WEDDING_CONFIG.PROJECT_NAME,
       createdBy: userId,
-      date: defaultDate.toISOString(),
+      date: defaultDate,
       venue: null,
-      budget: DEFAULT_WEDDING_CONFIG.BUDGET.toString(),
+      budget: DEFAULT_WEDDING_CONFIG.BUDGET,
       guestCount: DEFAULT_WEDDING_CONFIG.GUEST_COUNT,
       theme: null
     });
@@ -56,7 +56,7 @@ export async function getOrCreateDefaultProject(userId: number) {
     return defaultProject;
     
   } catch (error) {
-    logError('projects', error instanceof Error ? error : new Error(String(error)), { userId, function: 'getOrCreateDefaultProject' });
+    logError('projects', error, { userId, function: 'getOrCreateDefaultProject' });
     throw error;
   }
 }
@@ -66,36 +66,20 @@ export async function ensureProjectAccess(userId: number, projectId: string | nu
     validateUserId(userId);
     const numericProjectId = validateProjectId(projectId);
     
-    // Get project and check if user has access via projects or collaborators
-    const project = await storage.getWeddingProjectById(numericProjectId);
+    // More efficient: get specific project with access check in one query
+    const project = await storage.getProjectByIdAndUserId(numericProjectId, userId);
     
     if (!project) {
-      const error = new Error(`Project ${numericProjectId} not found`);
-      error.name = 'ProjectNotFoundError';
-      throw error;
-    }
-
-    // Check if user is the owner
-    if (project.createdBy === userId) {
-      logInfo('projects', `Access granted to project ${numericProjectId} for owner ${userId}`);
-      return project;
-    }
-
-    // Check if user is a collaborator
-    const collaborators = await storage.getCollaboratorsByProjectId(numericProjectId);
-    const isCollaborator = collaborators.some(collab => collab.userId === userId);
-    
-    if (!isCollaborator) {
-      const error = new Error(`Access denied to project ${numericProjectId} for user ${userId}`);
+      const error = new Error(`Project ${numericProjectId} not found or access denied for user ${userId}`);
       error.name = 'ProjectAccessError';
       throw error;
     }
     
-    logInfo('projects', `Access granted to project ${numericProjectId} for collaborator ${userId}`);
+    logInfo('projects', `Access granted to project ${numericProjectId} for user ${userId}`);
     return project;
     
   } catch (error) {
-    logError('projects', error instanceof Error ? error : new Error(String(error)), { 
+    logError('projects', error, { 
       userId, 
       projectId, 
       function: 'ensureProjectAccess' 
@@ -121,10 +105,8 @@ export async function getUserProjectsWithPagination(
       throw new Error('Offset must be non-negative');
     }
     
-    // Get all projects for user (since we don't have pagination in storage interface)
-    const allProjects = await storage.getWeddingProjectsByUserId(userId);
-    const projects = allProjects.slice(offset, offset + limit);
-    const totalCount = allProjects.length;
+    const projects = await storage.getUserProjectsPaginated(userId, limit, offset);
+    const totalCount = await storage.getUserProjectsCount(userId);
     
     return {
       projects,
@@ -133,7 +115,7 @@ export async function getUserProjectsWithPagination(
     };
     
   } catch (error) {
-    logError('projects', error instanceof Error ? error : new Error(String(error)), { userId, limit, offset });
+    logError('projects', error, { userId, limit, offset });
     throw error;
   }
 }

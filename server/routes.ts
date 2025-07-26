@@ -50,20 +50,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     app.use(preventSQLInjection);
   }
 
-  // Register modular routes with enhanced security
-  app.use("/api/auth", authLimiter, authRoutes);
-  app.use("/api/projects", apiLimiter, enhancedRequireAuth, projectRoutes);
-  app.use("/api/tasks", apiLimiter, enhancedRequireAuth, taskRoutes);
-  app.use("/api/guests", apiLimiter, enhancedRequireAuth, guestRoutes);
-  app.use("/api/vendors", apiLimiter, enhancedRequireAuth, vendorRoutes);
-  app.use("/api/budget-items", apiLimiter, enhancedRequireAuth, budgetRoutes);
-  app.use("/api/ai", aiLimiter, enhancedRequireAuth, aiRoutes);
-  app.use("/api/ai", aiLimiter, enhancedRequireAuth, aiSuggestionsRoutes);
-  app.use("/api/upload", apiLimiter, enhancedRequireAuth, uploadRoutes);
-  app.use("/api/export", apiLimiter, enhancedRequireAuth, exportRoutes);
+  // Register modular routes with basic auth for development
+  app.use("/api/auth", authRoutes);
+  app.use("/api/projects", requireAuth, projectRoutes);
+  app.use("/api/tasks", requireAuth, taskRoutes);
+  app.use("/api/guests", requireAuth, guestRoutes);
+  app.use("/api/vendors", requireAuth, vendorRoutes);
+  app.use("/api/budget-items", requireAuth, budgetRoutes);
+  app.use("/api/ai", requireAuth, aiRoutes);
+  app.use("/api/ai", requireAuth, aiSuggestionsRoutes);
+  app.use("/api/upload", requireAuth, uploadRoutes);
+  app.use("/api/export", requireAuth, exportRoutes);
 
   // Add simple dashboard stats endpoint
-  app.get("/api/dashboard/stats", apiLimiter, enhancedRequireAuth, async (req: RequestWithUser, res) => {
+  app.get("/api/dashboard/stats", requireAuth, async (req: RequestWithUser, res) => {
     try {
       const project = await getOrCreateDefaultProject(req.userId);
       

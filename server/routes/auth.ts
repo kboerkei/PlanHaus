@@ -26,11 +26,8 @@ router.post("/register", validateBody(insertUserSchema), async (req, res) => {
     }
 
     const user = await storage.createUser(userData);
-    const sessionId = createSession(
-      user.id, 
-      req.ip || 'unknown', 
-      req.get('User-Agent') || 'unknown'
-    );
+    const sessionId = generateSessionId();
+    sessions.set(sessionId, { userId: user.id });
 
     logInfo('auth', `New user registered: ${user.email}`);
 
@@ -59,11 +56,8 @@ router.post("/login", validateBody(loginSchema), async (req, res) => {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    const sessionId = createSession(
-      user.id,
-      req.ip || 'unknown',
-      req.get('User-Agent') || 'unknown'
-    );
+    const sessionId = generateSessionId();
+    sessions.set(sessionId, { userId: user.id });
 
     logInfo('auth', `User logged in: ${user.email}`);
 
@@ -98,11 +92,8 @@ router.post("/demo-login", async (req, res) => {
       return res.status(404).json({ message: "Demo user not found. Please contact support." });
     }
 
-    const sessionId = createSession(
-      demoUser.id,
-      req.ip || 'unknown',
-      req.get('User-Agent') || 'unknown'
-    );
+    const sessionId = generateSessionId();
+    sessions.set(sessionId, { userId: demoUser.id });
 
     logInfo('auth', 'Demo login successful');
 
