@@ -30,11 +30,13 @@ import {
   CheckCircle2,
   Clock,
   TrendingUp,
-  Search
+  Search,
+  Download
 } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import AIVendorSearch from "@/components/ai-vendor-search";
+import ExportDialog from "@/components/export/ExportDialog";
 
 export default function EnhancedQuickActions() {
   const [, setLocation] = useLocation();
@@ -54,6 +56,14 @@ export default function EnhancedQuickActions() {
   const { data: tasks = [] } = useQuery({
     queryKey: ['/api/tasks']
   });
+
+  const { data: projects } = useQuery({
+    queryKey: ['/api/projects'],
+    enabled: !!localStorage.getItem('sessionId')
+  });
+
+  const projectsArray = Array.isArray(projects) ? projects : [];
+  const currentProject = projectsArray.find((p: any) => p.name === "Emma & Jake's Wedding") || projectsArray[0];
 
   const createTaskMutation = useMutation({
     mutationFn: (data: any) => apiRequest('/api/tasks', {
@@ -138,6 +148,15 @@ export default function EnhancedQuickActions() {
         color: "bg-purple-500 hover:bg-purple-600",
         category: "Budget",
         action: () => setIsBudgetDialogOpen(true)
+      },
+      {
+        id: "export-data",
+        title: "Export Data",
+        description: "Download wedding data",
+        icon: <Download className="h-5 w-5" />,
+        color: "bg-teal-500 hover:bg-teal-600",
+        category: "Data",
+        action: () => {} // Will be handled by ExportDialog trigger
       }
     ];
 
@@ -275,20 +294,42 @@ export default function EnhancedQuickActions() {
             </h4>
             <div className="grid grid-cols-1 gap-2">
               {quickActions.filter(action => !action.urgent).slice(0, 6).map((action) => (
-                <Button
-                  key={action.id}
-                  onClick={action.action}
-                  className={`${action.color} text-white border-0 shadow-sm hover:shadow-md transition-all duration-200 justify-start h-auto p-3`}
-                  variant="default"
-                >
-                  <div className="flex items-center space-x-3 w-full">
-                    {action.icon}
-                    <div className="text-left">
-                      <div className="font-medium">{action.title}</div>
-                      <div className="text-xs opacity-90">{action.description}</div>
+                action.id === "export-data" && currentProject ? (
+                  <ExportDialog
+                    key={action.id}
+                    projectId={currentProject.id?.toString() || "1"}
+                    projectName={currentProject.name || "Wedding Project"}
+                    trigger={
+                      <Button
+                        className={`${action.color} text-white border-0 shadow-sm hover:shadow-md transition-all duration-200 justify-start h-auto p-3 w-full`}
+                        variant="default"
+                      >
+                        <div className="flex items-center space-x-3 w-full">
+                          {action.icon}
+                          <div className="text-left">
+                            <div className="font-medium">{action.title}</div>
+                            <div className="text-xs opacity-90">{action.description}</div>
+                          </div>
+                        </div>
+                      </Button>
+                    }
+                  />
+                ) : (
+                  <Button
+                    key={action.id}
+                    onClick={action.action}
+                    className={`${action.color} text-white border-0 shadow-sm hover:shadow-md transition-all duration-200 justify-start h-auto p-3`}
+                    variant="default"
+                  >
+                    <div className="flex items-center space-x-3 w-full">
+                      {action.icon}
+                      <div className="text-left">
+                        <div className="font-medium">{action.title}</div>
+                        <div className="text-xs opacity-90">{action.description}</div>
+                      </div>
                     </div>
-                  </div>
-                </Button>
+                  </Button>
+                )
               ))}
             </div>
           </div>

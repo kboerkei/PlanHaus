@@ -23,6 +23,7 @@ import budgetRoutes from "./routes/budget";
 import aiRoutes from "./routes/ai";
 import aiSuggestionsRoutes from "./routes/ai-suggestions";
 import uploadRoutes from "./routes/uploads";
+import exportRoutes from "./routes/export";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
@@ -40,6 +41,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use("/api/ai", aiRoutes);
   app.use("/api/ai", aiSuggestionsRoutes);
   app.use("/api/upload", uploadRoutes);
+  app.use("/api/export", exportRoutes);
 
   // Add simple dashboard stats endpoint
   app.get("/api/dashboard/stats", requireAuth, async (req: RequestWithUser, res) => {

@@ -9,7 +9,8 @@ import CollaborativeFeatures from "@/components/dashboard/collaborative-features
 import SmartOnboarding from "@/components/dashboard/smart-onboarding";
 import ProjectOverview from "@/components/ProjectOverview";
 import { Link } from "wouter";
-import { Calendar, DollarSign, Users, Store, Palette, Bot, Clock, Globe, ArrowRight, Heart, CheckCircle2, TrendingUp, Plus } from "lucide-react";
+import { Calendar, DollarSign, Users, Store, Palette, Bot, Clock, Globe, ArrowRight, Heart, CheckCircle2, TrendingUp, Plus, Download } from "lucide-react";
+import ExportDialog from "@/components/export/ExportDialog";
 import { Button, Card, CardContent, CardHeader, CardTitle, SectionHeader } from "@/components/design-system";
 import { Badge } from "@/components/ui/badge";
 import { useQuery } from "@tanstack/react-query";
