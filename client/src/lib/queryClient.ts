@@ -12,14 +12,17 @@ export async function apiRequest<T = any>(
   options?: RequestInit,
   signal?: AbortSignal // Add support for request cancellation
 ): Promise<T> {
+  // Get sessionId from localStorage for Authorization header
+  const sessionId = localStorage.getItem('sessionId');
+  
   const res = await fetch(url, {
     ...options,
     signal, // Pass abort signal
     credentials: 'include', // Include cookies in requests
     headers: {
       'Content-Type': 'application/json',
+      ...(sessionId && { 'Authorization': `Bearer ${sessionId}` }),
       ...options?.headers,
-      // Remove Authorization header - cookies handle auth now
     },
   });
 
@@ -33,13 +36,21 @@ export async function apiRequest<T = any>(
       });
       
       if (demoResponse.ok) {
-        // Retry the original request - cookies now set automatically
+        const demoData = await demoResponse.json();
+        // Update localStorage with new session data
+        if (demoData.sessionId) {
+          localStorage.setItem('sessionId', demoData.sessionId);
+          localStorage.setItem('user', JSON.stringify(demoData.user));
+        }
+        
+        // Retry the original request with Authorization header
         const retryRes = await fetch(url, {
           ...options,
           signal,
           credentials: 'include',
           headers: {
             'Content-Type': 'application/json',
+            ...(demoData.sessionId && { 'Authorization': `Bearer ${demoData.sessionId}` }),
             ...options?.headers,
           },
         });
