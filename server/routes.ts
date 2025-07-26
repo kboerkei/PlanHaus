@@ -44,6 +44,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Start session cleanup service
   startSessionCleanup();
 
+  // Configure Express for proxy environments (Replit)
+  app.set('trust proxy', 1);
+  
   // Import enhanced rate limiting
   const { authRateLimit, aiRateLimit, generalRateLimit } = await import('./middleware/rateLimiting');
   

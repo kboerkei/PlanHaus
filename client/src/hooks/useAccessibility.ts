@@ -1,191 +1,184 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 
-// Focus management hook
+// Hook for managing focus and keyboard navigation
 export function useFocusManagement() {
   const focusRef = useRef<HTMLElement | null>(null);
-  const previousFocusRef = useRef<HTMLElement | null>(null);
 
   const setFocus = useCallback((element: HTMLElement | null) => {
     if (element) {
-      // Store previous focus for restoration
-      previousFocusRef.current = document.activeElement as HTMLElement;
-      
-      // Set new focus with slight delay for screen readers
-      setTimeout(() => {
-        element.focus();
-        focusRef.current = element;
-      }, 100);
+      element.focus();
+      focusRef.current = element;
     }
   }, []);
 
-  const restoreFocus = useCallback(() => {
-    if (previousFocusRef.current) {
-      previousFocusRef.current.focus();
-      previousFocusRef.current = null;
-    }
+  const trapFocus = useCallback((container: HTMLElement) => {
+    const focusableElements = container.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+    
+    const firstElement = focusableElements[0] as HTMLElement;
+    const lastElement = focusableElements[focusableElements.length - 1] as HTMLElement;
+
+    const handleTabKey = (e: KeyboardEvent) => {
+      if (e.key === 'Tab') {
+        if (e.shiftKey) {
+          if (document.activeElement === firstElement) {
+            e.preventDefault();
+            lastElement.focus();
+          }
+        } else {
+          if (document.activeElement === lastElement) {
+            e.preventDefault();
+            firstElement.focus();
+          }
+        }
+      }
+    };
+
+    container.addEventListener('keydown', handleTabKey);
+    
+    return () => {
+      container.removeEventListener('keydown', handleTabKey);
+    };
   }, []);
 
-  return { setFocus, restoreFocus, currentFocus: focusRef.current };
+  return { setFocus, trapFocus, currentFocus: focusRef.current };
 }
 
-// Keyboard navigation hook
-export function useKeyboardNavigation(
-  items: HTMLElement[],
-  onSelect?: (index: number) => void
-) {
-  const [activeIndex, setActiveIndex] = useState(-1);
+// Hook for keyboard navigation
+export function useKeyboardNavigation() {
+  const [currentIndex, setCurrentIndex] = useState(0);
 
-  const handleKeyDown = useCallback((event: KeyboardEvent) => {
-    if (!items.length) return;
-
+  const handleKeyDown = useCallback((
+    event: KeyboardEvent,
+    items: HTMLElement[],
+    onSelect?: (index: number) => void
+  ) => {
     switch (event.key) {
       case 'ArrowDown':
         event.preventDefault();
-        setActiveIndex(prev => (prev + 1) % items.length);
+        setCurrentIndex(prev => (prev + 1) % items.length);
         break;
       case 'ArrowUp':
         event.preventDefault();
-        setActiveIndex(prev => (prev - 1 + items.length) % items.length);
+        setCurrentIndex(prev => (prev - 1 + items.length) % items.length);
         break;
       case 'Enter':
       case ' ':
-        if (activeIndex >= 0 && onSelect) {
-          event.preventDefault();
-          onSelect(activeIndex);
-        }
+        event.preventDefault();
+        if (onSelect) onSelect(currentIndex);
         break;
       case 'Escape':
-        setActiveIndex(-1);
+        event.preventDefault();
+        if (items[0]) items[0].blur();
         break;
     }
-  }, [items, activeIndex, onSelect]);
+  }, [currentIndex]);
 
-  useEffect(() => {
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [handleKeyDown]);
-
-  useEffect(() => {
-    if (activeIndex >= 0 && items[activeIndex]) {
-      items[activeIndex].focus();
-    }
-  }, [activeIndex, items]);
-
-  return { activeIndex, setActiveIndex };
-}
-
-// Reduced motion preference hook
-export function useReducedMotion() {
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
-
-  useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-    setPrefersReducedMotion(mediaQuery.matches);
-    
-    const handleChange = (event: MediaQueryListEvent) => {
-      setPrefersReducedMotion(event.matches);
-    };
-    
-    mediaQuery.addEventListener('change', handleChange);
-    return () => mediaQuery.removeEventListener('change', handleChange);
+  const resetNavigation = useCallback(() => {
+    setCurrentIndex(0);
   }, []);
 
-  return prefersReducedMotion;
+  return { currentIndex, handleKeyDown, resetNavigation };
 }
 
-// Screen reader announcements
+// Hook for screen reader announcements
 export function useScreenReader() {
+  const [announcement, setAnnouncement] = useState('');
+
   const announce = useCallback((message: string, priority: 'polite' | 'assertive' = 'polite') => {
-    const announcement = document.createElement('div');
-    announcement.setAttribute('aria-live', priority);
-    announcement.setAttribute('aria-atomic', 'true');
-    announcement.style.position = 'absolute';
-    announcement.style.left = '-10000px';
-    announcement.style.width = '1px';
-    announcement.style.height = '1px';
-    announcement.style.overflow = 'hidden';
+    setAnnouncement(''); // Clear first to ensure re-announcement
+    setTimeout(() => setAnnouncement(message), 100);
     
-    document.body.appendChild(announcement);
-    announcement.textContent = message;
+    // Create temporary live region for immediate announcements
+    const liveRegion = document.createElement('div');
+    liveRegion.setAttribute('aria-live', priority);
+    liveRegion.setAttribute('aria-atomic', 'true');
+    liveRegion.className = 'sr-only';
+    liveRegion.textContent = message;
     
+    document.body.appendChild(liveRegion);
+    
+    // Remove after announcement
     setTimeout(() => {
-      document.body.removeChild(announcement);
+      document.body.removeChild(liveRegion);
     }, 1000);
   }, []);
 
-  return { announce };
+  return { announcement, announce };
 }
 
-// High contrast detection
-export function useHighContrast() {
-  const [isHighContrast, setIsHighContrast] = useState(false);
+// Hook for detecting accessibility preferences
+export function useAccessibilityPreferences() {
+  const [preferences, setPreferences] = useState({
+    prefersReducedMotion: false,
+    prefersHighContrast: false,
+    prefersDarkMode: false
+  });
 
   useEffect(() => {
-    const checkHighContrast = () => {
-      // Detection method for Windows high contrast mode
-      const testDiv = document.createElement('div');
-      testDiv.style.position = 'absolute';
-      testDiv.style.left = '-999px';
-      testDiv.style.backgroundColor = 'rgb(255, 255, 255)';
-      testDiv.style.color = 'rgb(0, 0, 0)';
-      
-      document.body.appendChild(testDiv);
-      
-      const computedStyle = window.getComputedStyle(testDiv);
-      const isHighContrastMode = computedStyle.backgroundColor === computedStyle.color;
-      
-      document.body.removeChild(testDiv);
-      setIsHighContrast(isHighContrastMode);
+    const updatePreferences = () => {
+      setPreferences({
+        prefersReducedMotion: window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+        prefersHighContrast: window.matchMedia('(prefers-contrast: high)').matches,
+        prefersDarkMode: window.matchMedia('(prefers-color-scheme: dark)').matches
+      });
     };
 
-    checkHighContrast();
-    
-    // Listen for system changes
-    const mediaQuery = window.matchMedia('(prefers-contrast: high)');
-    const handleChange = () => checkHighContrast();
-    
-    mediaQuery.addEventListener('change', handleChange);
-    return () => mediaQuery.removeEventListener('change', handleChange);
+    updatePreferences();
+
+    // Listen for changes
+    const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const highContrastQuery = window.matchMedia('(prefers-contrast: high)');
+    const darkModeQuery = window.matchMedia('(prefers-color-scheme: dark)');
+
+    reducedMotionQuery.addEventListener('change', updatePreferences);
+    highContrastQuery.addEventListener('change', updatePreferences);
+    darkModeQuery.addEventListener('change', updatePreferences);
+
+    return () => {
+      reducedMotionQuery.removeEventListener('change', updatePreferences);
+      highContrastQuery.removeEventListener('change', updatePreferences);
+      darkModeQuery.removeEventListener('change', updatePreferences);
+    };
   }, []);
 
-  return isHighContrast;
+  return preferences;
 }
 
-// Accessible form validation
-export function useAccessibleValidation() {
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const { announce } = useScreenReader();
+// Hook for managing ARIA live regions
+export function useAriaLiveRegion() {
+  const liveRegionRef = useRef<HTMLDivElement>(null);
 
-  const validateField = useCallback((name: string, value: string, rules: any) => {
-    // Implementation would depend on validation rules
-    const fieldErrors: string[] = [];
-    
-    if (rules.required && !value.trim()) {
-      fieldErrors.push(`${name} is required`);
+  useEffect(() => {
+    if (!liveRegionRef.current) {
+      const liveRegion = document.createElement('div');
+      liveRegion.setAttribute('aria-live', 'polite');
+      liveRegion.setAttribute('aria-atomic', 'true');
+      liveRegion.className = 'sr-only';
+      liveRegion.id = 'aria-live-region';
+      document.body.appendChild(liveRegion);
+      liveRegionRef.current = liveRegion;
     }
-    
-    if (rules.minLength && value.length < rules.minLength) {
-      fieldErrors.push(`${name} must be at least ${rules.minLength} characters`);
-    }
-    
-    const errorMessage = fieldErrors[0] || '';
-    
-    setErrors(prev => ({
-      ...prev,
-      [name]: errorMessage
-    }));
-    
-    // Announce errors to screen readers
-    if (errorMessage) {
-      announce(`Error: ${errorMessage}`, 'assertive');
-    }
-    
-    return !errorMessage;
-  }, [announce]);
 
-  const clearErrors = useCallback(() => {
-    setErrors({});
+    return () => {
+      if (liveRegionRef.current && document.body.contains(liveRegionRef.current)) {
+        document.body.removeChild(liveRegionRef.current);
+      }
+    };
   }, []);
 
-  return { errors, validateField, clearErrors };
+  const announce = useCallback((message: string) => {
+    if (liveRegionRef.current) {
+      liveRegionRef.current.textContent = message;
+      // Clear after a delay to allow for re-announcements
+      setTimeout(() => {
+        if (liveRegionRef.current) {
+          liveRegionRef.current.textContent = '';
+        }
+      }, 1000);
+    }
+  }, []);
+
+  return { announce };
 }

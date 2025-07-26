@@ -1,61 +1,70 @@
-import { useEffect, useState, createContext, useContext } from 'react';
+import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 
 interface CSRFContextType {
   token: string | null;
-  refreshToken: () => Promise<void>;
+  getHeaders: () => Record<string, string>;
 }
 
 const CSRFContext = createContext<CSRFContextType>({
   token: null,
-  refreshToken: async () => {},
+  getHeaders: () => ({})
 });
 
-export const useCSRF = () => useContext(CSRFContext);
-
-interface CSRFProviderProps {
-  children: React.ReactNode;
+export function useCSRF() {
+  return useContext(CSRFContext);
 }
 
-export function CSRFProtection({ children }: CSRFProviderProps) {
+interface CSRFProviderProps {
+  children: ReactNode;
+}
+
+export function CSRFProvider({ children }: CSRFProviderProps) {
   const [token, setToken] = useState<string | null>(null);
 
-  const refreshToken = async () => {
-    try {
-      const response = await fetch('/api/csrf-token', {
-        credentials: 'include',
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        setToken(data.csrfToken);
-      }
-    } catch (error) {
-      console.error('Failed to fetch CSRF token:', error);
-    }
-  };
-
   useEffect(() => {
-    refreshToken();
+    // Get CSRF token from cookie or generate one
+    const getCsrfToken = () => {
+      const cookies = document.cookie.split(';');
+      const csrfCookie = cookies.find(cookie => cookie.trim().startsWith('csrfToken='));
+      
+      if (csrfCookie) {
+        return csrfCookie.split('=')[1];
+      }
+      
+      // Generate a simple token if none exists
+      const newToken = Math.random().toString(36).substr(2, 9);
+      document.cookie = `csrfToken=${newToken}; path=/; secure; samesite=strict`;
+      return newToken;
+    };
+
+    setToken(getCsrfToken());
   }, []);
 
+  const getHeaders = () => {
+    if (!token) return {};
+    
+    return {
+      'X-CSRF-Token': token,
+      'Content-Type': 'application/json'
+    };
+  };
+
   return (
-    <CSRFContext.Provider value={{ token, refreshToken }}>
+    <CSRFContext.Provider value={{ token, getHeaders }}>
       {children}
     </CSRFContext.Provider>
   );
 }
 
-// HOC for components that need CSRF protection
-export function withCSRFProtection<P extends object>(
-  Component: React.ComponentType<P>
-) {
-  const WrappedComponent = (props: P) => {
-    const { token } = useCSRF();
-    
-    return <Component {...props} csrfToken={token} />;
-  };
-  
-  WrappedComponent.displayName = `withCSRFProtection(${Component.displayName || Component.name})`;
-  
-  return WrappedComponent;
+// CSRF-protected component wrapper
+interface CSRFProtectionProps {
+  children: ReactNode;
+}
+
+export function CSRFProtection({ children }: CSRFProtectionProps) {
+  return (
+    <CSRFProvider>
+      {children}
+    </CSRFProvider>
+  );
 }
