@@ -13,6 +13,16 @@ import {
   insertIntakeDataSchema, insertWeddingOverviewSchema
 } from "@shared/schema";
 
+// Import security middleware
+import { 
+  apiLimiter, 
+  authLimiter, 
+  aiLimiter, 
+  securityHeaders,
+  preventSQLInjection 
+} from "./middleware/security";
+import { enhancedRequireAuth, startSessionCleanup } from "./middleware/enhanced-auth";
+
 // Import modular routes
 import authRoutes from "./routes/auth";
 import projectRoutes from "./routes/projects";
@@ -31,20 +41,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize WebSocket service
   initializeWebSocketService(httpServer);
 
-  // Register modular routes FIRST before any other middleware
-  app.use("/api/auth", authRoutes);
-  app.use("/api/projects", projectRoutes);
-  app.use("/api/tasks", taskRoutes);
-  app.use("/api/guests", guestRoutes);
-  app.use("/api/vendors", vendorRoutes);
-  app.use("/api/budget-items", budgetRoutes);
-  app.use("/api/ai", aiRoutes);
-  app.use("/api/ai", aiSuggestionsRoutes);
-  app.use("/api/upload", uploadRoutes);
-  app.use("/api/export", exportRoutes);
+  // Start session cleanup service
+  startSessionCleanup();
+
+  // Apply security middleware conditionally
+  if (process.env.NODE_ENV === 'production') {
+    app.use(securityHeaders);
+    app.use(preventSQLInjection);
+  }
+
+  // Register modular routes with enhanced security
+  app.use("/api/auth", authLimiter, authRoutes);
+  app.use("/api/projects", apiLimiter, enhancedRequireAuth, projectRoutes);
+  app.use("/api/tasks", apiLimiter, enhancedRequireAuth, taskRoutes);
+  app.use("/api/guests", apiLimiter, enhancedRequireAuth, guestRoutes);
+  app.use("/api/vendors", apiLimiter, enhancedRequireAuth, vendorRoutes);
+  app.use("/api/budget-items", apiLimiter, enhancedRequireAuth, budgetRoutes);
+  app.use("/api/ai", aiLimiter, enhancedRequireAuth, aiRoutes);
+  app.use("/api/ai", aiLimiter, enhancedRequireAuth, aiSuggestionsRoutes);
+  app.use("/api/upload", apiLimiter, enhancedRequireAuth, uploadRoutes);
+  app.use("/api/export", apiLimiter, enhancedRequireAuth, exportRoutes);
 
   // Add simple dashboard stats endpoint
-  app.get("/api/dashboard/stats", requireAuth, async (req: RequestWithUser, res) => {
+  app.get("/api/dashboard/stats", apiLimiter, enhancedRequireAuth, async (req: RequestWithUser, res) => {
     try {
       const project = await getOrCreateDefaultProject(req.userId);
       

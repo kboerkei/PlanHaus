@@ -2,6 +2,7 @@ import { Router } from "express";
 import { z } from "zod";
 import { storage } from "../storage";
 import { sessions, generateSessionId } from "../middleware/auth";
+import { createSession } from "../middleware/enhanced-auth";
 import { validateBody } from "../utils/validation";
 import { logError, logInfo } from "../utils/logger";
 import { insertUserSchema } from "@shared/schema";
@@ -25,8 +26,11 @@ router.post("/register", validateBody(insertUserSchema), async (req, res) => {
     }
 
     const user = await storage.createUser(userData);
-    const sessionId = generateSessionId();
-    sessions.set(sessionId, { userId: user.id });
+    const sessionId = createSession(
+      user.id, 
+      req.ip || 'unknown', 
+      req.get('User-Agent') || 'unknown'
+    );
 
     logInfo('auth', `New user registered: ${user.email}`);
 
@@ -55,8 +59,11 @@ router.post("/login", validateBody(loginSchema), async (req, res) => {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    const sessionId = generateSessionId();
-    sessions.set(sessionId, { userId: user.id });
+    const sessionId = createSession(
+      user.id,
+      req.ip || 'unknown',
+      req.get('User-Agent') || 'unknown'
+    );
 
     logInfo('auth', `User logged in: ${user.email}`);
 
@@ -91,8 +98,11 @@ router.post("/demo-login", async (req, res) => {
       return res.status(404).json({ message: "Demo user not found. Please contact support." });
     }
 
-    const sessionId = generateSessionId();
-    sessions.set(sessionId, { userId: demoUser.id });
+    const sessionId = createSession(
+      demoUser.id,
+      req.ip || 'unknown',
+      req.get('User-Agent') || 'unknown'
+    );
 
     logInfo('auth', 'Demo login successful');
 

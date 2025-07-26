@@ -14,7 +14,7 @@ export const sanitizeSchema = z.object({
   url: z.string().url().optional(),
 });
 
-// Rate limiting configurations
+// Rate limiting configurations with proper IPv6 support
 export const createRateLimit = (windowMs: number, max: number, message: string) => 
   rateLimit({
     windowMs,
@@ -22,8 +22,11 @@ export const createRateLimit = (windowMs: number, max: number, message: string) 
     message: { error: message },
     standardHeaders: true,
     legacyHeaders: false,
-    // Use user ID if available, fallback to IP
-    keyGenerator: (req: any) => req.userId?.toString() || req.ip,
+    // Skip key generator to use default IP handling
+    skip: (req) => {
+      // Skip rate limiting in development for easier testing
+      return process.env.NODE_ENV === 'development';
+    },
   });
 
 // API rate limits
@@ -45,19 +48,21 @@ export const aiLimiter = createRateLimit(
   'Too many AI requests, please try again later'
 );
 
-// Security headers middleware
+// Security headers middleware - relaxed for development
 export const securityHeaders = helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
-      imgSrc: ["'self'", "data:", "https:"],
-      scriptSrc: ["'self'"],
-      connectSrc: ["'self'", "https://api.openai.com"],
+      imgSrc: ["'self'", "data:", "https:", "blob:"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"], // Needed for Vite dev
+      connectSrc: ["'self'", "https://api.openai.com", "ws:", "wss:"], // Allow WebSocket
+      objectSrc: ["'none'"],
     },
   },
-  crossOriginEmbedderPolicy: false, // Needed for some features
+  crossOriginEmbedderPolicy: false,
+  crossOriginResourcePolicy: { policy: "cross-origin" }, // Allow Vite dev server
 });
 
 // Input validation middleware

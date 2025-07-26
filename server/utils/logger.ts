@@ -1,72 +1,62 @@
 /**
- * Centralized logging utility for enhanced error handling and debugging
+ * Enhanced logging utilities for the wedding planning app
  */
 
-interface LogContext {
+export interface LogContext {
+  userId?: number;
+  sessionId?: string;
+  ip?: string;
+  endpoint?: string;
   [key: string]: any;
 }
 
-// Debug mode for development
-const isDebugMode = process.env.NODE_ENV !== 'production';
-
-/**
- * Log error with structured context information
- */
-export function logError(
-  source: string, 
-  error: any, 
-  context?: LogContext
-): void {
+export function logInfo(category: string, message: string, context?: LogContext) {
   const timestamp = new Date().toISOString();
-  const errorMessage = error instanceof Error ? error.message : String(error);
-  const errorStack = error instanceof Error ? error.stack : undefined;
-
-  console.error(`[${timestamp}] ERROR ${source}:`, {
-    message: errorMessage,
-    stack: isDebugMode ? errorStack : undefined,
-    context: context || {},
-    source
-  });
+  const logData = {
+    timestamp,
+    level: 'INFO',
+    category,
+    message,
+    ...(context && { context })
+  };
+  
+  console.log(`[${timestamp}] INFO ${category}: ${message}`, context || '');
 }
 
-/**
- * Log info with structured context information
- */
-export function logInfo(
-  source: string, 
-  message: string, 
-  context?: LogContext
-): void {
+export function logWarning(category: string, message: string, context?: LogContext) {
   const timestamp = new Date().toISOString();
+  const logData = {
+    timestamp,
+    level: 'WARNING',
+    category,
+    message,
+    ...(context && { context })
+  };
   
-  if (isDebugMode) {
-    console.log(`[${timestamp}] INFO ${source}:`, message, context || {});
+  console.warn(`[${timestamp}] WARNING ${category}: ${message}`, context || '');
+}
+
+export function logError(category: string, error: Error | string, context?: LogContext) {
+  const timestamp = new Date().toISOString();
+  const errorMessage = error instanceof Error ? error.message : error;
+  const logData = {
+    timestamp,
+    level: 'ERROR',
+    category,
+    error: errorMessage,
+    ...(error instanceof Error && { stack: error.stack }),
+    ...(context && { context })
+  };
+  
+  console.error(`[${timestamp}] ERROR ${category}: ${errorMessage}`, context || '');
+  if (error instanceof Error && error.stack) {
+    console.error(error.stack);
   }
 }
 
-/**
- * Log warning with structured context information
- */
-export function logWarning(
-  source: string, 
-  message: string, 
-  context?: LogContext
-): void {
-  const timestamp = new Date().toISOString();
-  
-  console.warn(`[${timestamp}] WARN ${source}:`, message, context || {});
-}
-
-/**
- * Log debug information (only in development)
- */
-export function logDebug(
-  source: string, 
-  message: string, 
-  context?: LogContext
-): void {
-  if (isDebugMode) {
+export function logDebug(category: string, message: string, context?: LogContext) {
+  if (process.env.NODE_ENV === 'development') {
     const timestamp = new Date().toISOString();
-    console.debug(`[${timestamp}] DEBUG ${source}:`, message, context || {});
+    console.debug(`[${timestamp}] DEBUG ${category}: ${message}`, context || '');
   }
 }

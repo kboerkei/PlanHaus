@@ -1,13 +1,13 @@
 import { useCallback, useMemo, useRef } from 'react';
-import { debounce } from 'use-debounce';
+import { useDebouncedValue } from 'use-debounce';
 
 /**
  * Performance optimization hooks for the wedding planning app
  */
 
 // Debounce search inputs to reduce API calls
-export function useDebouncedValue<T>(value: T, delay: number = 300): T {
-  const [debouncedValue] = debounce(value, delay);
+export function useDebounceValue<T>(value: T, delay: number = 300): T {
+  const [debouncedValue] = useDebouncedValue(value, delay);
   return debouncedValue;
 }
 

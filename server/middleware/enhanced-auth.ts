@@ -1,7 +1,8 @@
 import { Response, NextFunction } from "express";
 import { RequestWithUser } from "../types/express";
 import { logWarning, logInfo } from "../utils/logger";
-import jwt from 'jsonwebtoken';
+// JWT not needed for current implementation
+// import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 
 // Enhanced session storage with expiration and security
@@ -106,7 +107,7 @@ export function cleanupExpiredSessions(userId?: number) {
   const now = Date.now();
   let cleanedCount = 0;
 
-  for (const [sessionId, session] of secureSessions.entries()) {
+  for (const [sessionId, session] of Array.from(secureSessions.entries())) {
     if (session.isExpired() && (!userId || session.userId === userId)) {
       secureSessions.delete(sessionId);
       cleanedCount++;
@@ -129,7 +130,7 @@ export function revokeSession(sessionId: string): boolean {
 export function revokeAllUserSessions(userId: number): number {
   let revokedCount = 0;
   
-  for (const [sessionId, session] of secureSessions.entries()) {
+  for (const [sessionId, session] of Array.from(secureSessions.entries())) {
     if (session.userId === userId) {
       secureSessions.delete(sessionId);
       revokedCount++;
