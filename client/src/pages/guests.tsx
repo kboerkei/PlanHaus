@@ -5,12 +5,13 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Users, Mail, Phone, MapPin, Filter, UserPlus, Send } from "lucide-react";
+import { Users, Mail, Phone, MapPin, Filter, UserPlus, Send, Download } from "lucide-react";
 import { useProjects } from "@/hooks/useProjects";
 import { useGuests, useGuestStats, useBulkUpdateGuests } from "@/hooks/useGuests";
 import GuestFormDialog from "@/components/guests/GuestFormDialog";
 import QuickRSVPButtons from "@/components/guests/QuickRSVPButtons";
 import LoadingSpinner from "@/components/ui/loading-spinner";
+import ExportDialog from "@/components/export/ExportDialog";
 
 const groupFilters = [
   { value: "all", label: "All Groups" },
@@ -145,7 +146,19 @@ export default function Guests() {
               Manage your wedding guests and track RSVPs
             </p>
           </div>
-          <GuestFormDialog projectId={projectId} />
+          <div className="flex gap-2">
+            <ExportDialog
+              projectId={projectId}
+              projectName={currentProject?.name || "Wedding Project"}
+              trigger={
+                <Button variant="outline" size="sm" className="gap-2">
+                  <Download className="h-4 w-4" />
+                  <span className="hidden sm:inline">Export Guests</span>
+                </Button>
+              }
+            />
+            <GuestFormDialog projectId={projectId} />
+          </div>
         </div>
 
         {/* Quick Stats */}

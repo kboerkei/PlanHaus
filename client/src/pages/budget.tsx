@@ -7,12 +7,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { DollarSign, PieChart, TrendingUp, TrendingDown, AlertTriangle, Filter, Target, CreditCard, Calendar } from "lucide-react";
+import { DollarSign, PieChart, TrendingUp, TrendingDown, AlertTriangle, Filter, Target, CreditCard, Calendar, Download } from "lucide-react";
 import { useProjects } from "@/hooks/useProjects";
 import { useBudget, useBudgetSummary } from "@/hooks/useBudget";
 import BudgetEntryDialog from "@/components/budget/BudgetEntryDialog";
 import BudgetCategorySummary from "@/components/budget/BudgetCategorySummary";
 import LoadingSpinner from "@/components/ui/loading-spinner";
+import ExportDialog from "@/components/export/ExportDialog";
 import { PieChart as RechartsPieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
 const categoryFilters = [
@@ -137,7 +138,17 @@ export default function Budget() {
               Track your wedding expenses and stay on budget
             </p>
           </div>
-          <div className="flex-shrink-0">
+          <div className="flex gap-2">
+            <ExportDialog
+              projectId={projectId}
+              projectName={currentProject?.name || "Wedding Project"}
+              trigger={
+                <Button variant="outline" size="sm" className="gap-2">
+                  <Download className="h-4 w-4" />
+                  <span className="hidden sm:inline">Export Budget</span>
+                </Button>
+              }
+            />
             <BudgetEntryDialog projectId={projectId} />
           </div>
         </div>

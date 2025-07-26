@@ -5,11 +5,12 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
-import { Building, Mail, Phone, Globe, MapPin, Filter, Star, CheckCircle, Clock, AlertCircle } from "lucide-react";
+import { Building, Mail, Phone, Globe, MapPin, Filter, Star, CheckCircle, Clock, AlertCircle, Download } from "lucide-react";
 import { useProjects } from "@/hooks/useProjects";
 import { useVendors } from "@/hooks/useVendors";
 import VendorFormDialog from "@/components/vendors/VendorFormDialog";
 import LoadingSpinner from "@/components/ui/loading-spinner";
+import ExportDialog from "@/components/export/ExportDialog";
 
 // Define vendor type for TypeScript
 type Vendor = {
@@ -229,7 +230,19 @@ export default function Vendors() {
               Manage your wedding vendors and track booking status
             </p>
           </div>
-          <VendorFormDialog projectId={projectId} />
+          <div className="flex gap-2">
+            <ExportDialog
+              projectId={projectId}
+              projectName={currentProject?.name || "Wedding Project"}
+              trigger={
+                <Button variant="outline" size="sm" className="gap-2">
+                  <Download className="h-4 w-4" />
+                  <span className="hidden sm:inline">Export Vendors</span>
+                </Button>
+              }
+            />
+            <VendorFormDialog projectId={projectId} />
+          </div>
         </div>
 
         {/* Quick Stats */}

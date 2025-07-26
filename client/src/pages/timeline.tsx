@@ -6,13 +6,14 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { Calendar, CheckCircle, Clock, Filter, AlertCircle, Target, TrendingUp } from "lucide-react";
+import { Calendar, CheckCircle, Clock, Filter, AlertCircle, Target, TrendingUp, Download } from "lucide-react";
 import { format, differenceInDays } from "date-fns";
 import { useProjects } from "@/hooks/useProjects";
 import { useTasks } from "@/hooks/useTimeline";
 import TaskFormDialog from "@/components/timeline/TaskFormDialog";
 import TaskCard from "@/components/timeline/TaskCard";
 import LoadingSpinner from "@/components/ui/loading-spinner";
+import ExportDialog from "@/components/export/ExportDialog";
 
 const priorityFilters = [
   { value: "all", label: "All Priorities" },
@@ -119,19 +120,33 @@ export default function Timeline() {
   return (
     <div className="p-6 max-w-4xl mx-auto">
       {/* Header */}
-      <div className="flex items-center gap-2 mb-6">
-        <Calendar className="w-6 h-6 text-rose-600" />
-        <h1 className="text-2xl font-semibold text-gray-800">Timeline</h1>
-        {weddingDate && daysUntilWedding !== null && (
-          <span className="text-gray-500 text-sm ml-2">
-            {daysUntilWedding > 0 
-              ? `${daysUntilWedding} days until your special day`
-              : daysUntilWedding === 0 
-                ? "Your wedding is today!"
-                : "Congratulations on your recent wedding!"
-            }
-          </span>
-        )}
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-2">
+          <Calendar className="w-6 h-6 text-rose-600" />
+          <div>
+            <h1 className="text-2xl font-semibold text-gray-800">Timeline</h1>
+            {weddingDate && daysUntilWedding !== null && (
+              <span className="text-gray-500 text-sm">
+                {daysUntilWedding > 0 
+                  ? `${daysUntilWedding} days until your special day`
+                  : daysUntilWedding === 0 
+                    ? "Your wedding is today!"
+                    : "Congratulations on your recent wedding!"
+                }
+              </span>
+            )}
+          </div>
+        </div>
+        <ExportDialog
+          projectId={projectId}
+          projectName={currentProject?.name || "Wedding Project"}
+          trigger={
+            <Button variant="outline" className="gap-2">
+              <Download className="h-4 w-4" />
+              Export Timeline
+            </Button>
+          }
+        />
       </div>
 
       <div className="space-y-6">
