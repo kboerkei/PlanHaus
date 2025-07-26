@@ -62,13 +62,22 @@ export function useAuthSession(): AuthSessionState & AuthSessionActions {
         console.log('Demo login successful, setting user data:', demoData.user);
         
         // Set user state immediately to transition away from auth page
-        setUser(demoData.user);
-        setSessionId(demoData.sessionId);
-        setIsNewUser(false); // Demo user is not new
-        setIsLoading(false); // Stop loading immediately
+        console.log('Setting user and session data:', { user: demoData.user, sessionId: demoData.sessionId });
         
-        localStorage.setItem('sessionId', demoData.sessionId);
-        localStorage.setItem('user', JSON.stringify(demoData.user));
+        // Ensure we have both user and sessionId for state management
+        if (demoData.user && demoData.sessionId) {
+          setUser(demoData.user);
+          setSessionId(demoData.sessionId);
+          setIsNewUser(false); // Demo user is not new
+          setIsLoading(false); // Stop loading immediately
+          
+          localStorage.setItem('sessionId', demoData.sessionId);
+          localStorage.setItem('user', JSON.stringify(demoData.user));
+          console.log('User state should now be set, triggering UI transition');
+        } else {
+          console.error('Missing user or sessionId in demo login response:', demoData);
+          return false;
+        }
         
         // Success notification
         toast({
@@ -94,7 +103,28 @@ export function useAuthSession(): AuthSessionState & AuthSessionActions {
   // Initialize session on app load
   useEffect(() => {
     const initializeSession = async () => {
-      // Always clear any old session data and start fresh with demo login
+      console.log('Initializing session...');
+      
+      // Check for existing valid session first
+      const storedSessionId = localStorage.getItem('sessionId');
+      const storedUserData = localStorage.getItem('user');
+      
+      if (storedSessionId && storedUserData) {
+        try {
+          const storedUser = JSON.parse(storedUserData);
+          const isValid = await verifySession(storedSessionId, storedUser);
+          
+          if (isValid) {
+            console.log('Existing session is valid, using stored session');
+            setIsLoading(false);
+            return;
+          }
+        } catch (error) {
+          console.log('Stored session invalid, clearing...');
+        }
+      }
+      
+      // Clear any invalid session data
       clearStoredSession();
       
       console.log('Session expired, attempting demo login...');

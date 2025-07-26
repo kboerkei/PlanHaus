@@ -112,8 +112,8 @@ router.post("/demo-login", async (req, res) => {
         username: demoUser.username, 
         email: demoUser.email, 
         hasCompletedIntake: true 
-      }
-      // sessionId removed - now in httpOnly cookie
+      },
+      sessionId: sessionId // Still provide sessionId for client-side state management
     });
   } catch (error) {
     logError('auth', error, { endpoint: 'demo-login' });

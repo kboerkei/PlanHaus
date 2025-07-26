@@ -126,7 +126,15 @@ function App() {
                 onIntakeComplete={handleIntakeComplete}
               />
             ) : (
-              <Auth onAuth={handleAuth} />
+              <div>
+                <Auth onAuth={handleAuth} />
+                {/* Debug info in development */}
+                {import.meta.env.NODE_ENV !== "production" && (
+                  <div className="fixed bottom-4 left-4 bg-black text-white p-2 text-xs rounded">
+                    User: {user ? 'Set' : 'None'} | SessionId: {sessionId ? 'Set' : 'None'}
+                  </div>
+                )}
+              </div>
             )}
           </div>
           <Toaster />
