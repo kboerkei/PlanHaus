@@ -146,6 +146,12 @@ export function useAccessibilityPreferences() {
   return preferences;
 }
 
+// Alias export for compatibility
+export const useReducedMotion = () => {
+  const { prefersReducedMotion } = useAccessibilityPreferences();
+  return prefersReducedMotion;
+};
+
 // Hook for managing ARIA live regions
 export function useAriaLiveRegion() {
   const liveRegionRef = useRef<HTMLDivElement>(null);

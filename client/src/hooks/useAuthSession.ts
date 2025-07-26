@@ -51,6 +51,7 @@ export function useAuthSession(): AuthSessionState & AuthSessionActions {
   // Demo login function for fallback authentication
   const attemptDemoLogin = async () => {
     try {
+      console.log('Attempting demo login...');
       const response = await fetch('/api/auth/demo-login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' }
@@ -58,10 +59,23 @@ export function useAuthSession(): AuthSessionState & AuthSessionActions {
 
       if (response.ok) {
         const demoData = await response.json();
+        console.log('Demo login successful, setting user data:', demoData.user);
+        
+        // Set user state immediately to transition away from auth page
         setUser(demoData.user);
         setSessionId(demoData.sessionId);
+        setIsNewUser(false); // Demo user is not new
+        setIsLoading(false); // Stop loading immediately
+        
         localStorage.setItem('sessionId', demoData.sessionId);
         localStorage.setItem('user', JSON.stringify(demoData.user));
+        
+        // Success notification
+        toast({
+          title: "Welcome to PlanHaus!",
+          description: "You're now logged in as the demo user.",
+        });
+        
         return true;
       }
       return false;
@@ -103,11 +117,21 @@ export function useAuthSession(): AuthSessionState & AuthSessionActions {
 
   // Handle successful authentication
   const handleAuth = (userData: User, newSessionId: string, isRegistration = false) => {
+    console.log('handleAuth called:', { userData, newSessionId, isRegistration });
     setUser(userData);
     setSessionId(newSessionId);
     setIsNewUser(isRegistration && !userData.hasCompletedIntake);
+    setIsLoading(false); // Ensure loading stops
     localStorage.setItem('sessionId', newSessionId);
     localStorage.setItem('user', JSON.stringify(userData));
+    
+    // Success toast notification
+    toast({
+      title: isRegistration ? "Account Created!" : "Welcome Back!",
+      description: isRegistration ? 
+        "Your account has been created successfully." : 
+        "You've been logged in successfully.",
+    });
   };
 
   // Handle logout
