@@ -1,4 +1,5 @@
-import { useState, useMemo, Suspense } from "react";
+import { useState, useMemo, Suspense, memo } from "react";
+import { useDebouncedValue, useAbortController, usePerformanceMonitor } from "@/hooks/usePerformance";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,7 +15,8 @@ import BudgetEntryDialog from "@/components/budget/BudgetEntryDialog";
 import BudgetCategorySummary from "@/components/budget/BudgetCategorySummary";
 import LoadingSpinner from "@/components/ui/loading-spinner";
 import ExportDialog from "@/components/export/ExportDialog";
-import { PieChart as RechartsPieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+// Lazy load charts for better performance
+import { BudgetPieChart, BudgetBarChart } from "@/components/lazy/LazyBudgetCharts";
 
 const categoryFilters = [
   { value: "all", label: "All Categories" },
@@ -29,10 +31,17 @@ const categoryFilters = [
   { value: "other", label: "Other" }
 ];
 
-export default function Budget() {
+const Budget = memo(() => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
   const [showPaidOnly, setShowPaidOnly] = useState(false);
+  
+  // Performance monitoring
+  usePerformanceMonitor('Budget');
+  
+  // Debounce search input for better performance
+  const debouncedSearchTerm = useDebouncedValue(searchTerm, 300);
+  const { getAbortSignal } = useAbortController();
 
   // Fetch data using hooks
   const { data: projects, isLoading: projectsLoading } = useProjects();
@@ -49,22 +58,22 @@ export default function Budget() {
   
 
 
-  // Filter logic
+  // Filter logic with debounced search
   const filteredItems = useMemo(() => {
     if (!budgetItems) return [];
     
     return budgetItems.filter(item => {
-      const matchesSearch = !searchTerm || 
-        item.item?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.category?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.vendor?.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesSearch = !debouncedSearchTerm || 
+        item.item?.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+        item.category?.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+        item.vendor?.toLowerCase().includes(debouncedSearchTerm.toLowerCase());
       
       const matchesCategory = filterCategory === "all" || item.category === filterCategory;
       const matchesPaid = !showPaidOnly || item.isPaid;
       
       return matchesSearch && matchesCategory && matchesPaid;
     });
-  }, [budgetItems, searchTerm, filterCategory, showPaidOnly]);
+  }, [budgetItems, debouncedSearchTerm, filterCategory, showPaidOnly]);
 
   // Calculate totals from filtered items
   const filteredTotals = useMemo(() => {
@@ -341,7 +350,9 @@ export default function Budget() {
       </Tabs>
     </div>
   );
-}
+});
+
+Budget.displayName = 'Budget';
 
 // Budget Overview Analytics Component
 function BudgetOverviewAnalytics({ budgetItems, budgetSummary }: { 
@@ -697,3 +708,5 @@ function BudgetOverviewAnalytics({ budgetItems, budgetSummary }: {
     </div>
   );
 }
+
+export default Budget;

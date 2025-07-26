@@ -16,7 +16,9 @@ import { Badge } from "@/components/ui/badge";
 import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { format, differenceInDays } from "date-fns";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo, memo } from "react";
+import { useAbortController, useDebouncedValue, usePerformanceMonitor } from "@/hooks/usePerformance";
+import { useScreenReader, useReducedMotion } from "@/hooks/useAccessibility";
 
 type Task = {
   id: string;
@@ -436,7 +438,11 @@ function AnimatedDashboardStats() {
   );
 }
 
-export default function Dashboard() {
+const Dashboard = memo(() => {
+  // Performance monitoring
+  usePerformanceMonitor('Dashboard');
+  const { announce } = useScreenReader();
+  const prefersReducedMotion = useReducedMotion();
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-cream/50 to-background dark:from-background dark:via-background dark:to-background">
       <div className="relative overflow-hidden">
@@ -584,4 +590,7 @@ export default function Dashboard() {
       </div>
     </div>
   );
-}
+});
+
+Dashboard.displayName = 'Dashboard';
+export default Dashboard;

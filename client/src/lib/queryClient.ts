@@ -10,42 +10,37 @@ async function throwIfResNotOk(res: Response) {
 export async function apiRequest<T = any>(
   url: string,
   options?: RequestInit,
+  signal?: AbortSignal // Add support for request cancellation
 ): Promise<T> {
-  const sessionId = localStorage.getItem('sessionId');
-  
   const res = await fetch(url, {
     ...options,
+    signal, // Pass abort signal
+    credentials: 'include', // Include cookies in requests
     headers: {
       'Content-Type': 'application/json',
       ...options?.headers,
-      ...(sessionId && { Authorization: `Bearer ${sessionId}` }),
+      // Remove Authorization header - cookies handle auth now
     },
   });
 
   // If we get a 401, try to refresh session with demo login
   if (res.status === 401) {
     try {
-      // Clear old session data first
-      localStorage.removeItem('sessionId');
-      localStorage.removeItem('user');
-      
       const demoResponse = await fetch('/api/auth/demo-login', {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' }
       });
       
       if (demoResponse.ok) {
-        const demoData = await demoResponse.json();
-        localStorage.setItem('sessionId', demoData.sessionId);
-        localStorage.setItem('user', JSON.stringify(demoData.user));
-        
-        // Retry the original request with new session
+        // Retry the original request - cookies now set automatically
         const retryRes = await fetch(url, {
           ...options,
+          signal,
+          credentials: 'include',
           headers: {
             'Content-Type': 'application/json',
             ...options?.headers,
-            Authorization: `Bearer ${demoData.sessionId}`,
           },
         });
         

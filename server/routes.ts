@@ -44,13 +44,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Start session cleanup service
   startSessionCleanup();
 
-  // Apply security middleware conditionally
+  // Import enhanced rate limiting
+  const { authRateLimit, aiRateLimit, generalRateLimit } = await import('./middleware/rateLimiting');
+  
+  // Apply security middleware conditionally with rate limiting
   if (process.env.NODE_ENV === 'production') {
     app.use(securityHeaders);
     app.use(preventSQLInjection);
   }
+  
+  // Apply rate limiting to all routes
+  app.use(generalRateLimit);
+  app.use('/api/auth', authRateLimit);
+  app.use('/api/ai', aiRateLimit);
 
-  // Register modular routes with basic auth for development
+  // Register modular routes with cookie-based auth
   app.use("/api/auth", authRoutes);
   app.use("/api/projects", requireAuth, projectRoutes);
   app.use("/api/tasks", requireAuth, taskRoutes);

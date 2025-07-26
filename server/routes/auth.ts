@@ -2,7 +2,7 @@ import { Router } from "express";
 import { z } from "zod";
 import { storage } from "../storage";
 import { sessions, generateSessionId } from "../middleware/auth";
-import { createSession } from "../middleware/enhanced-auth";
+import { setSecureCookie, clearSecureCookie } from "../middleware/cookieAuth";
 import { validateBody } from "../utils/validation";
 import { logError, logInfo } from "../utils/logger";
 import { insertUserSchema } from "@shared/schema";
@@ -29,6 +29,9 @@ router.post("/register", validateBody(insertUserSchema), async (req, res) => {
     const sessionId = generateSessionId();
     sessions.set(sessionId, { userId: user.id });
 
+    // Set secure httpOnly cookie
+    setSecureCookie(res, sessionId);
+
     logInfo('auth', `New user registered: ${user.email}`);
 
     res.json({ 
@@ -37,8 +40,8 @@ router.post("/register", validateBody(insertUserSchema), async (req, res) => {
         username: user.username, 
         email: user.email, 
         hasCompletedIntake: false 
-      },
-      sessionId 
+      }
+      // sessionId removed - now in httpOnly cookie
     });
   } catch (error) {
     logError('auth', error, { endpoint: 'register' });
@@ -59,6 +62,9 @@ router.post("/login", validateBody(loginSchema), async (req, res) => {
     const sessionId = generateSessionId();
     sessions.set(sessionId, { userId: user.id });
 
+    // Set secure httpOnly cookie
+    setSecureCookie(res, sessionId);
+
     logInfo('auth', `User logged in: ${user.email}`);
 
     res.json({ 
@@ -67,8 +73,8 @@ router.post("/login", validateBody(loginSchema), async (req, res) => {
         username: user.username, 
         email: user.email, 
         hasCompletedIntake: !!user.hasCompletedIntake 
-      },
-      sessionId 
+      }
+      // sessionId removed - now in httpOnly cookie
     });
   } catch (error) {
     logError('auth', error, { endpoint: 'login' });
@@ -97,14 +103,17 @@ router.post("/demo-login", async (req, res) => {
 
     logInfo('auth', 'Demo login successful');
 
+    // Set secure httpOnly cookie
+    setSecureCookie(res, sessionId);
+
     res.json({
       user: { 
         id: demoUser.id.toString(), 
         username: demoUser.username, 
         email: demoUser.email, 
         hasCompletedIntake: true 
-      },
-      sessionId
+      }
+      // sessionId removed - now in httpOnly cookie
     });
   } catch (error) {
     logError('auth', error, { endpoint: 'demo-login' });
