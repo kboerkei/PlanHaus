@@ -35,7 +35,7 @@ export const guestSchema = z.object({
   group: z.string().min(1, "Group is required"),
   customGroup: z.string().max(50, "Custom group must be less than 50 characters").optional(),
   rsvpStatus: z.enum(["pending", "yes", "no", "maybe"]).default("pending"),
-  attendingCount: z.number().min(0).max(10).default(1),
+  partySize: z.number().min(1, "Party size must be at least 1").max(15, "Party size cannot exceed 15").default(1),
   mealChoice: z.string().optional(),
   dietaryRestrictions: z.string().max(200, "Dietary restrictions must be less than 200 characters").optional(),
   hotelInfo: z.string().max(200, "Hotel info must be less than 200 characters").optional(),

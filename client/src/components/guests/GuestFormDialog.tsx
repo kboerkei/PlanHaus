@@ -61,7 +61,7 @@ export default function GuestFormDialog({ projectId, guest, trigger, onClose }: 
       group: guest?.group || "other",
       customGroup: guest?.customGroup || "",
       rsvpStatus: guest?.rsvpStatus || "pending",
-      attendingCount: guest?.attendingCount || 1,
+      partySize: guest?.partySize || 1,
       mealChoice: guest?.mealChoice || "",
       dietaryRestrictions: guest?.dietaryRestrictions || "",
       hotelInfo: guest?.hotelInfo || "",
@@ -213,20 +213,24 @@ export default function GuestFormDialog({ projectId, guest, trigger, onClose }: 
 
               <FormField
                 control={form.control}
-                name="attendingCount"
+                name="partySize"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Number Attending</FormLabel>
+                    <FormLabel>Party Size</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
-                        min="0"
-                        max="10"
+                        min="1"
+                        max="15"
+                        placeholder="1"
                         {...field}
                         onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
                       />
                     </FormControl>
                     <FormMessage />
+                    <p className="text-sm text-muted-foreground">
+                      How many people does this guest entry represent? (e.g., couples = 2, families = 3+)
+                    </p>
                   </FormItem>
                 )}
               />

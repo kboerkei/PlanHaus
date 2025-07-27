@@ -89,8 +89,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Calculate stats
       const totalTasks = tasks.length;
       const completedTasks = tasks.filter(t => t.status === 'completed').length;
+      
+      // Guest stats with party size support
       const totalGuests = guests.length;
       const confirmedGuests = guests.filter(g => g.rsvpStatus === 'yes').length;
+      const declinedGuests = guests.filter(g => g.rsvpStatus === 'no').length;
+      
+      // Calculate total attending people (counting party sizes)
+      const totalAttending = guests.reduce((sum, g) => {
+        if (g.rsvpStatus === 'yes' || g.rsvpStatus === 'pending' || g.rsvpStatus === 'maybe') {
+          return sum + (g.partySize || 1);
+        }
+        return sum; // Don't count declined guests
+      }, 0);
+      
       const totalBudget = budget.reduce((sum, item) => sum + parseFloat(item.estimatedCost || '0'), 0);
       const spentBudget = budget.reduce((sum, item) => sum + parseFloat(item.actualCost || '0'), 0);
       const totalVendors = vendors.length;

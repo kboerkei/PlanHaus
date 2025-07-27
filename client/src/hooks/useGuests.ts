@@ -73,20 +73,25 @@ export function useGuestStats(projectId?: string) {
   
   const stats = guests.reduce((acc: any, guest: any) => {
     acc.total += 1;
-    acc.totalAttending += guest.attendingCount || 1;
+    // Use partySize to count total people (couples count as 2, families as more)
+    const partySize = guest.partySize || 1;
     
     switch (guest.rsvpStatus) {
       case 'yes':
         acc.confirmed += 1;
+        acc.totalAttending += partySize;
         break;
       case 'no':
         acc.declined += 1;
+        // Don't count declined guests in total attending
         break;
       case 'maybe':
         acc.maybe += 1;
+        acc.totalAttending += partySize; // Count maybe as attending for planning purposes
         break;
       default:
         acc.pending += 1;
+        acc.totalAttending += partySize; // Count pending as attending for planning purposes
     }
     
     if (guest.inviteSent) {
