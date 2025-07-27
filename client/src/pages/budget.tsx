@@ -17,6 +17,20 @@ import LoadingSpinner from "@/components/ui/loading-spinner";
 import ExportDialog from "@/components/export/ExportDialog";
 // Lazy load charts for better performance
 import { BudgetPieChart, BudgetBarChart } from "@/components/lazy/LazyBudgetCharts";
+// Import missing Recharts components
+import { 
+  ResponsiveContainer, 
+  BarChart, 
+  CartesianGrid, 
+  XAxis, 
+  YAxis, 
+  Tooltip, 
+  Legend, 
+  Bar,
+  PieChart as RechartsPieChart,
+  Pie,
+  Cell
+} from "recharts";
 
 const categoryFilters = [
   { value: "all", label: "All Categories" },
