@@ -12,16 +12,32 @@ export function useGuests(projectId?: string) {
 
 export function useCreateGuest(projectId: string) {
   return useMutation({
-    mutationFn: (data: GuestFormData) => apiRequest(`/api/projects/${projectId}/guests`, {
-      method: 'POST',
-      body: JSON.stringify({
-        ...data,
-        projectId: parseInt(projectId),
-      }),
-    }),
-    onSuccess: () => {
+    mutationFn: async (data: GuestFormData) => {
+      console.log('Making API request with data:', { ...data, projectId: parseInt(projectId) });
+      
+      try {
+        const result = await apiRequest(`/api/projects/${projectId}/guests`, {
+          method: 'POST',
+          body: JSON.stringify({
+            ...data,
+            projectId: parseInt(projectId),
+            addedBy: 1, // Add required field
+          }),
+        });
+        console.log('API request successful:', result);
+        return result;
+      } catch (error) {
+        console.error('API request failed:', error);
+        throw error;
+      }
+    },
+    onSuccess: (data) => {
+      console.log('Mutation successful, invalidating queries');
       queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'guests'] });
       queryClient.invalidateQueries({ queryKey: ['/api/guests'] });
+    },
+    onError: (error) => {
+      console.error('Mutation error:', error);
     },
   });
 }
