@@ -73,17 +73,22 @@ export default function GuestFormDialog({ projectId, guest, trigger, onClose }: 
 
   const onSubmit = async (data: GuestFormData) => {
     try {
+      console.log('Submitting guest data:', data);
+      
       if (guest) {
-        await updateGuest.mutateAsync({ id: guest.id, data });
+        const result = await updateGuest.mutateAsync({ id: guest.id, data });
+        console.log('Update guest result:', result);
         toast({ title: "Guest updated successfully!" });
       } else {
-        await createGuest.mutateAsync(data);
+        const result = await createGuest.mutateAsync(data);
+        console.log('Create guest result:', result);
         toast({ title: "Guest added successfully!" });
       }
       form.reset();
       setIsOpen(false);
       onClose?.();
     } catch (error) {
+      console.error('Guest form submission error:', error);
       toast({
         title: "Error",
         description: guest ? "Failed to update guest" : "Failed to add guest",
