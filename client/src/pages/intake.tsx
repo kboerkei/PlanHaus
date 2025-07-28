@@ -182,6 +182,13 @@ export default function Intake({ onComplete }: IntakeProps) {
   const CURRENT_STEP_KEY = 'planhaus_intake_current_step';
   const COMPLETED_STEPS_KEY = 'planhaus_intake_completed_steps';
 
+  // Load existing intake data
+  const { data: existingIntake, isLoading: intakeLoading } = useQuery({
+    queryKey: ['/api/intake'],
+    queryFn: () => apiRequest('/api/intake'),
+    retry: false,
+  });
+
   // Load form data from localStorage on mount (only if no database data exists)
   useEffect(() => {
     // Only load from localStorage if we don't have existing intake data
@@ -246,13 +253,6 @@ export default function Intake({ onComplete }: IntakeProps) {
     localStorage.removeItem(CURRENT_STEP_KEY);
     localStorage.removeItem(COMPLETED_STEPS_KEY);
   };
-
-  // Load existing intake data
-  const { data: existingIntake, isLoading: intakeLoading } = useQuery({
-    queryKey: ['/api/intake'],
-    queryFn: () => apiRequest('/api/intake'),
-    retry: false,
-  });
 
   // Populate form data when existing intake data is loaded
   useEffect(() => {
