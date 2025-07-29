@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Heart, User, Mail, Lock, UserPlus, LogIn } from "lucide-react";
+import { Heart, User, Mail, Lock, UserPlus, LogIn, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -162,23 +162,77 @@ export default function Auth({ onAuth }: AuthProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-champagne/20 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="w-16 h-16 gradient-blush-rose rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <Heart className="text-white" size={32} />
+    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-cream to-champagne/30 flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Background decorative elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-1/4 left-1/4 w-32 h-32 bg-gradient-to-br from-blush/20 to-rose-200/20 rounded-full blur-3xl animate-gentle-float"></div>
+        <div className="absolute bottom-1/3 right-1/4 w-40 h-40 bg-gradient-to-br from-champagne/30 to-rose-300/20 rounded-full blur-3xl animate-gentle-float" style={{ animationDelay: '2s' }}></div>
+        <div className="absolute top-1/2 right-1/3 w-6 h-6 text-rose-300/40 animate-sparkle">
+          <Sparkles className="w-full h-full" />
+        </div>
+      </div>
+
+      <div className="w-full max-w-md relative z-10">
+        {/* Elegant Hero Section */}
+        <div className="text-center mb-12 animate-fade-in">
+          {/* Animated Heart Icon with Gradient */}
+          <div className="relative mb-8">
+            <div className="w-20 h-20 bg-gradient-to-br from-rose-400 via-pink-400 to-rose-500 rounded-full flex items-center justify-center mx-auto shadow-soft animate-gentle-float">
+              <Heart className="text-white w-10 h-10 fill-current" />
+            </div>
+            {/* Subtle sparkle decoration */}
+            <div className="absolute -top-1 -right-1 w-4 h-4 text-rose-300 animate-sparkle">
+              <Sparkles className="w-full h-full" />
+            </div>
           </div>
-          <h1 className="font-serif text-3xl font-bold text-gray-800 mb-2">PlanHaus</h1>
-          <p className="text-gray-600">AI-Powered Wedding Planning</p>
+          
+          {/* Main Headline - Bold Serif */}
+          <h1 className="font-playfair text-5xl md:text-6xl font-bold text-gray-800 mb-4 animate-slide-up tracking-tight">
+            PlanHaus
+          </h1>
+          
+          {/* Decorative Divider */}
+          <div className="flex items-center justify-center mb-6 animate-fade-in" style={{ animationDelay: '0.3s' }}>
+            <div className="w-12 h-px bg-gradient-to-r from-transparent via-rose-300 to-transparent"></div>
+            <div className="mx-3 w-2 h-2 bg-rose-300 rounded-full animate-sparkle"></div>
+            <div className="w-12 h-px bg-gradient-to-r from-transparent via-rose-300 to-transparent"></div>
+          </div>
+          
+          {/* Subheadline - Clean Sans-serif */}
+          <p className="font-inter text-xl md:text-2xl text-gray-600 mb-8 animate-slide-up leading-relaxed" style={{ animationDelay: '0.4s' }}>
+            A smarter way to plan your best day—with AI that gets you.
+          </p>
+          
+          {/* CTA Button */}
+          <div className="animate-slide-up" style={{ animationDelay: '0.6s' }}>
+            <button
+              onClick={() => demoLoginMutation.mutate()}
+              disabled={demoLoginMutation.isPending}
+              className="inline-flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-rose-400 to-pink-500 text-white font-dm-sans font-medium rounded-full shadow-soft hover:shadow-medium hover:from-rose-500 hover:to-pink-600 transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed mb-6"
+            >
+              {demoLoginMutation.isPending ? (
+                "Starting your journey..."
+              ) : (
+                <>
+                  <Heart className="w-4 h-4 fill-current" />
+                  Try the Demo
+                </>
+              )}
+            </button>
+          </div>
+          
+          {/* Subtle tagline */}
+          <p className="text-sm text-gray-500 font-inter animate-fade-in" style={{ animationDelay: '0.8s' }}>
+            Or create your account below to get started
+          </p>
         </div>
 
-        <Card className="shadow-xl border-0">
-          <CardHeader className="text-center">
-            <CardTitle className="text-2xl">
+        <Card className="shadow-soft border-0 bg-white/80 backdrop-blur-glass">
+          <CardHeader className="text-center pb-4">
+            <CardTitle className="text-2xl font-dm-serif text-gray-800">
               {isLogin ? "Welcome Back" : "Create Account"}
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="font-inter text-gray-600">
               {isLogin 
                 ? "Sign in to continue planning your perfect wedding"
                 : "Start your wedding planning journey with AI assistance"
@@ -190,7 +244,7 @@ export default function Auth({ onAuth }: AuthProps) {
             {isLogin ? (
               <form onSubmit={handleLoginSubmit} className="space-y-4">
                 <div className="space-y-2">
-                  <Label className="flex items-center gap-2">
+                  <Label className="flex items-center gap-2 font-dm-sans font-medium text-gray-700">
                     <Mail size={16} />
                     Email
                   </Label>
@@ -202,11 +256,12 @@ export default function Auth({ onAuth }: AuthProps) {
                     autoComplete="email"
                     autoFocus={isLogin}
                     required
+                    className="font-inter"
                   />
                 </div>
                 
                 <div className="space-y-2">
-                  <Label className="flex items-center gap-2">
+                  <Label className="flex items-center gap-2 font-dm-sans font-medium text-gray-700">
                     <Lock size={16} />
                     Password
                   </Label>
@@ -217,12 +272,13 @@ export default function Auth({ onAuth }: AuthProps) {
                     onChange={(e) => setLoginData(prev => ({ ...prev, password: e.target.value }))}
                     autoComplete="current-password"
                     required
+                    className="font-inter"
                   />
                 </div>
 
                 <Button 
                   type="submit" 
-                  className="w-full gradient-blush-rose"
+                  className="w-full bg-gradient-to-r from-rose-400 to-pink-500 hover:from-rose-500 hover:to-pink-600 text-white font-dm-sans shadow-soft"
                   disabled={loginMutation.isPending}
                 >
                   {loginMutation.isPending ? (
@@ -235,25 +291,25 @@ export default function Auth({ onAuth }: AuthProps) {
                   )}
                 </Button>
 
-                <div className="text-center text-sm text-gray-500 my-4">or</div>
+                <div className="text-center text-sm text-gray-500 my-4 font-inter">or</div>
 
                 <Button 
                   type="button"
                   onClick={() => demoLoginMutation.mutate()}
-                  className="w-full bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  className="w-full bg-gray-100 text-gray-700 hover:bg-gray-200 font-dm-sans"
                   disabled={demoLoginMutation.isPending}
                 >
                   {demoLoginMutation.isPending ? (
                     "Logging in..."
                   ) : (
-                    "Try Demo (demo@example.com)"
+                    "Continue with Demo"
                   )}
                 </Button>
               </form>
             ) : (
               <form onSubmit={handleRegisterSubmit} className="space-y-4">
                 <div className="space-y-2">
-                  <Label className="flex items-center gap-2">
+                  <Label className="flex items-center gap-2 font-dm-sans font-medium text-gray-700">
                     <User size={16} />
                     Username
                   </Label>
@@ -264,11 +320,12 @@ export default function Auth({ onAuth }: AuthProps) {
                     autoComplete="name"
                     autoFocus={!isLogin}
                     required
+                    className="font-inter"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="flex items-center gap-2">
+                  <Label className="flex items-center gap-2 font-dm-sans font-medium text-gray-700">
                     <Mail size={16} />
                     Email
                   </Label>
@@ -279,11 +336,12 @@ export default function Auth({ onAuth }: AuthProps) {
                     onChange={(e) => setRegisterData(prev => ({ ...prev, email: e.target.value }))}
                     autoComplete="email"
                     required
+                    className="font-inter"
                   />
                 </div>
                 
                 <div className="space-y-2">
-                  <Label className="flex items-center gap-2">
+                  <Label className="flex items-center gap-2 font-dm-sans font-medium text-gray-700">
                     <Lock size={16} />
                     Password
                   </Label>
@@ -294,12 +352,13 @@ export default function Auth({ onAuth }: AuthProps) {
                     onChange={(e) => setRegisterData(prev => ({ ...prev, password: e.target.value }))}
                     autoComplete="new-password"
                     required
+                    className="font-inter"
                   />
                 </div>
 
                 <Button 
                   type="submit" 
-                  className="w-full gradient-blush-rose"
+                  className="w-full bg-gradient-to-r from-rose-400 to-pink-500 hover:from-rose-500 hover:to-pink-600 text-white font-dm-sans shadow-soft"
                   disabled={registerMutation.isPending}
                 >
                   {registerMutation.isPending ? (
@@ -321,7 +380,7 @@ export default function Auth({ onAuth }: AuthProps) {
               <Button
                 variant="link"
                 onClick={() => handleModeSwitch(!isLogin)}
-                className="text-gray-600 hover:text-blush"
+                className="text-gray-600 hover:text-rose-500 font-inter"
               >
                 {isLogin 
                   ? "Don't have an account? Sign up" 
