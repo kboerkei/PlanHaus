@@ -1,8 +1,9 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Bot, Send, Sparkles, Calendar, DollarSign, Users, RotateCcw } from "lucide-react";
+import { Bot, Send, Sparkles, Calendar, DollarSign, Users, RotateCcw, Upload, FileText, X, CheckCircle, AlertCircle } from "lucide-react";
+import { useDropzone } from "react-dropzone";
 
 // Enhanced interface for chat messages with additional properties
 interface ChatMessage {
@@ -12,12 +13,24 @@ interface ChatMessage {
   timestamp: Date;
   isTyping?: boolean;
   isError?: boolean;
+  isFileAnalysis?: boolean;
+  fileName?: string;
+}
+
+// Interface for uploaded files with analysis
+interface UploadedFile {
+  file: File;
+  status: 'uploading' | 'success' | 'error';
+  analysis?: string;
+  error?: string;
 }
 
 export default function AIAssistant() {
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [lastQuickAction, setLastQuickAction] = useState<string | null>(null);
+  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
+  const [showFileUpload, setShowFileUpload] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
   
   // Mock intake form summary - in a real app, this would come from the intake data
@@ -33,7 +46,13 @@ export default function AIAssistant() {
     }
   ]);
 
-  const handleQuickAction = (actionMessage: string) => {
+  const handleQuickAction = (actionMessage: string, isFileUpload: boolean = false) => {
+    // Handle file upload action differently
+    if (isFileUpload) {
+      setShowFileUpload(!showFileUpload);
+      return;
+    }
+    
     // Prevent double-click spamming - check if this is the same as last quick action
     if (lastQuickAction === actionMessage || isLoading) {
       return;
@@ -55,30 +74,149 @@ export default function AIAssistant() {
     }, 2000);
   };
 
+  // File analysis function
+  const analyzeFile = async (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const sessionId = localStorage.getItem('sessionId');
+      const response = await fetch('/api/analyzeFile', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${sessionId}`,
+        },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Analysis failed');
+      }
+
+      const result = await response.json();
+      return result.analysis;
+    } catch (error) {
+      throw error instanceof Error ? error : new Error('Unknown error occurred');
+    }
+  };
+
+  // Handle file drops
+  const onDrop = useCallback(async (acceptedFiles: File[]) => {
+    // Add files with uploading status
+    const newFiles: UploadedFile[] = acceptedFiles.map(file => ({
+      file,
+      status: 'uploading' as const,
+    }));
+
+    setUploadedFiles(prev => [...prev, ...newFiles]);
+
+    // Process each file
+    for (let i = 0; i < acceptedFiles.length; i++) {
+      const file = acceptedFiles[i];
+      
+      // Add user message for file upload
+      setChatHistory(prev => [...prev, {
+        id: Date.now() + i,
+        type: 'user' as const,
+        message: `📎 Uploaded: ${file.name}`,
+        timestamp: new Date(),
+        fileName: file.name
+      }]);
+      
+      try {
+        const analysis = await analyzeFile(file);
+        
+        setUploadedFiles(prev => 
+          prev.map(uploadedFile => 
+            uploadedFile.file === file 
+              ? { ...uploadedFile, status: 'success', analysis }
+              : uploadedFile
+          )
+        );
+
+        // Add AI response with analysis
+        setChatHistory(prev => [...prev, {
+          id: Date.now() + i + 1000,
+          type: 'ai' as const,
+          message: analysis,
+          timestamp: new Date(),
+          isFileAnalysis: true,
+          fileName: file.name
+        }]);
+
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Analysis failed';
+        
+        setUploadedFiles(prev => 
+          prev.map(uploadedFile => 
+            uploadedFile.file === file 
+              ? { ...uploadedFile, status: 'error', error: errorMessage }
+              : uploadedFile
+          )
+        );
+
+        // Add error message to chat
+        setChatHistory(prev => [...prev, {
+          id: Date.now() + i + 2000,
+          type: 'ai' as const,
+          message: `Sorry, I couldn't analyze ${file.name}. ${errorMessage}`,
+          timestamp: new Date(),
+          isError: true
+        }]);
+      }
+    }
+  }, []);
+
+  const { getRootProps, getInputProps, isDragActive, isDragReject } = useDropzone({
+    onDrop,
+    accept: {
+      'application/pdf': ['.pdf'],
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
+      'application/vnd.ms-excel': ['.xls'],
+      'text/csv': ['.csv'],
+    },
+    maxSize: 10 * 1024 * 1024, // 10MB
+    multiple: true,
+    noClick: !showFileUpload,
+    noDrag: !showFileUpload,
+  });
+
   const quickActions = [
     {
       icon: Calendar,
       title: "Generate Timeline",
       description: "Create a custom wedding planning timeline",
-      message: "Can you help me create a detailed wedding planning timeline? My wedding is in 6 months and I need to know what to do when."
+      message: "Can you help me create a detailed wedding planning timeline? My wedding is in 6 months and I need to know what to do when.",
+      isFileUpload: false
     },
     {
       icon: DollarSign,
       title: "Budget Breakdown",
       description: "Get a detailed budget analysis",
-      message: "I need help creating a realistic budget breakdown for my wedding. My total budget is around $50,000."
+      message: "I need help creating a realistic budget breakdown for my wedding. My total budget is around $50,000.",
+      isFileUpload: false
     },
     {
       icon: Users,
       title: "Vendor Suggestions",
       description: "Find recommended vendors in your area",
-      message: "Can you help me find wedding vendors in Austin, Texas? I need recommendations for photographers, caterers, and florists with good reviews and reasonable pricing."
+      message: "Can you help me find wedding vendors in Austin, Texas? I need recommendations for photographers, caterers, and florists with good reviews and reasonable pricing.",
+      isFileUpload: false
     },
     {
       icon: Sparkles,
       title: "Style Inspiration",
       description: "Get personalized theme and style ideas",
-      message: "I'm looking for wedding theme and style inspiration. I love garden parties and romantic, elegant vibes."
+      message: "I'm looking for wedding theme and style inspiration. I love garden parties and romantic, elegant vibes.",
+      isFileUpload: false
+    },
+    {
+      icon: Upload,
+      title: "Analyze Documents",
+      description: "Upload contracts, budgets, or planning files",
+      message: "",
+      isFileUpload: true
     }
   ];
 
@@ -206,7 +344,13 @@ export default function AIAssistant() {
               {quickActions.map((action, index) => {
                 const Icon = action.icon;
                 return (
-                  <Card key={index} className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => handleQuickAction(action.message)}>
+                  <Card 
+                    key={index} 
+                    className={`cursor-pointer hover:shadow-md transition-shadow ${
+                      action.isFileUpload && showFileUpload ? 'ring-2 ring-rose-300 bg-rose-50' : ''
+                    }`} 
+                    onClick={() => handleQuickAction(action.message, action.isFileUpload)}
+                  >
                     <CardContent className="p-3 sm:p-4">
                       <div className="flex items-start space-x-2 sm:space-x-3">
                         <div className="w-8 h-8 sm:w-10 sm:h-10 gradient-blush-rose rounded-lg flex items-center justify-center flex-shrink-0">
@@ -256,6 +400,13 @@ export default function AIAssistant() {
                           </div>
                         ) : (
                           <>
+                            {/* File analysis indicator */}
+                            {chat.isFileAnalysis && (
+                              <div className="flex items-center gap-2 mb-2 text-xs text-gray-600">
+                                <FileText size={14} />
+                                <span>Analysis of: {chat.fileName}</span>
+                              </div>
+                            )}
                             <p className="text-sm whitespace-pre-wrap">{chat.message}</p>
                             <div className="flex items-center justify-between mt-2">
                               {/* Enhanced timestamp formatting */}
@@ -290,6 +441,66 @@ export default function AIAssistant() {
                   <div ref={chatEndRef} />
                 </div>
                 
+                {/* File Upload Dropzone - shown when file upload is active */}
+                {showFileUpload && (
+                  <div className="mb-4">
+                    <div
+                      {...getRootProps()}
+                      className={`
+                        border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-all duration-200
+                        ${isDragActive && !isDragReject 
+                          ? 'border-rose-400 bg-rose-50 scale-[1.02]' 
+                          : isDragReject 
+                          ? 'border-red-400 bg-red-50' 
+                          : 'border-gray-300 hover:border-rose-400 hover:bg-rose-50'
+                        }
+                      `}
+                    >
+                      <input {...getInputProps()} />
+                      
+                      <div className="flex flex-col items-center gap-3">
+                        <Upload 
+                          className={`w-8 h-8 ${
+                            isDragActive && !isDragReject 
+                              ? 'text-rose-500' 
+                              : isDragReject 
+                              ? 'text-red-500' 
+                              : 'text-gray-400'
+                          }`} 
+                        />
+                        
+                        {isDragReject ? (
+                          <div className="text-center">
+                            <p className="text-red-600 font-medium">Invalid file type</p>
+                            <p className="text-sm text-red-500">Only PDF, Excel, and CSV files are supported</p>
+                          </div>
+                        ) : isDragActive ? (
+                          <p className="text-rose-600 font-medium">Drop your wedding documents here</p>
+                        ) : (
+                          <div className="text-center">
+                            <p className="text-gray-700 font-medium">Drop wedding documents here</p>
+                            <p className="text-sm text-gray-500 mt-1">or click to browse files</p>
+                            <p className="text-xs text-gray-400 mt-2">Supports PDF, Excel (.xlsx, .xls), and CSV files up to 10MB</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    
+                    {/* Close file upload */}
+                    <div className="flex justify-end mt-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setShowFileUpload(false)}
+                        className="text-gray-500 hover:text-gray-700"
+                      >
+                        <X size={16} className="mr-1" />
+                        Close
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
                 <div className="flex space-x-2">
                   <Input
                     value={message}
