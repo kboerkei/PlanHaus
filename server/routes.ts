@@ -4,7 +4,7 @@ import { z } from "zod";
 import { storage } from "./storage";
 import { initializeWebSocketService } from "./services/websocket";
 import { logInfo, logError } from "./utils/logger";
-import { requireAuth } from "./middleware/auth";
+import { requireAuth, addSession } from "./middleware/auth";
 import { validateBody } from "./utils/validation";
 import { getOrCreateDefaultProject } from "./utils/projects";
 import { RequestWithUser } from "./types/express";
@@ -66,6 +66,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use(generalRateLimit);
   app.use('/api/auth', authRateLimit);
   app.use('/api/ai', aiRateLimit);
+
+  // Add demo login route first (before modular routes)
+  app.post("/api/auth/demo-login", async (req, res) => {
+    try {
+      const user = await storage.getUserByEmail("demo@example.com");
+      
+      if (!user) {
+        return res.status(404).json({ message: "Demo user not found" });
+      }
+
+      // Create a simple session ID for compatibility and store it in sessions map
+      const sessionId = `demo_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      addSession(sessionId, user.id);
+
+      res.json({ 
+        user: { 
+          id: user.id, 
+          username: user.username, 
+          email: user.email, 
+          avatar: user.avatar,
+          hasCompletedIntake: user.hasCompletedIntake 
+        },
+        sessionId 
+      });
+    } catch (error) {
+      console.error('Demo login error:', error);
+      res.status(500).json({ message: "Demo login failed" });
+    }
+  });
 
   // Register modular routes with cookie-based auth
   app.use("/api/auth", authRoutes);

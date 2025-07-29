@@ -150,6 +150,51 @@ router.post('/login', async (req, res) => {
   }
 });
 
+// Demo login for development/testing
+router.post('/demo-login', async (req, res) => {
+  try {
+    // Get the demo user
+    const user = await storage.getUserByEmail('demo@example.com');
+    if (!user) {
+      return res.status(404).json({ error: 'Demo user not found' });
+    }
+
+    // Generate token for demo user
+    const token = generateToken({
+      id: user.id,
+      email: user.email,
+      username: user.username,
+      role: user.role
+    });
+
+    // Log demo login activity
+    await storage.logActivity({
+      projectId: 0, // System-level activity
+      userId: user.id,
+      action: 'Demo login',
+      entityType: 'user',
+      entityId: user.id,
+      entityName: user.username,
+      details: { loginType: 'demo' },
+      isVisible: false,
+    });
+
+    res.json({
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        hasCompletedIntake: user.hasCompletedIntake,
+        avatar: user.avatar,
+      },
+      sessionId: token // For compatibility with existing frontend
+    });
+  } catch (error) {
+    console.error('Demo login error:', error);
+    res.status(500).json({ error: 'Demo login failed' });
+  }
+});
+
 // Get current user profile
 router.get('/me', authenticateUser, async (req, res) => {
   try {

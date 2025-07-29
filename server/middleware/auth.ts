@@ -43,7 +43,10 @@ export function verifyToken(token: string): any {
   }
 }
 
-// Authentication middleware
+// Simple session storage for demo compatibility
+const sessions = new Map<string, { userId: number }>();
+
+// Authentication middleware that supports both JWT tokens and simple session IDs
 export async function authenticateUser(req: Request, res: Response, next: NextFunction) {
   try {
     const authHeader = req.headers.authorization;
@@ -53,13 +56,25 @@ export async function authenticateUser(req: Request, res: Response, next: NextFu
       return res.status(401).json({ error: 'Access token required' });
     }
 
-    const decoded = verifyToken(token);
-    if (!decoded) {
-      return res.status(401).json({ error: 'Invalid or expired token' });
+    let userId: number;
+
+    // Check if it's a simple session ID (demo_*)
+    if (token.startsWith('demo_')) {
+      if (!sessions.has(token)) {
+        return res.status(401).json({ error: 'Invalid or expired token' });
+      }
+      userId = sessions.get(token)!.userId;
+    } else {
+      // Try JWT token verification
+      const decoded = verifyToken(token);
+      if (!decoded) {
+        return res.status(401).json({ error: 'Invalid or expired token' });
+      }
+      userId = decoded.id;
     }
 
     // Get user from database to ensure they still exist
-    const user = await storage.getUserById(decoded.id);
+    const user = await storage.getUserById(userId);
     if (!user) {
       return res.status(401).json({ error: 'User not found' });
     }
@@ -71,11 +86,19 @@ export async function authenticateUser(req: Request, res: Response, next: NextFu
       role: user.role
     };
 
+    // Also set userId for backward compatibility
+    (req as any).userId = user.id;
+
     next();
   } catch (error) {
     console.error('Authentication error:', error);
     res.status(500).json({ error: 'Authentication failed' });
   }
+}
+
+// Function to add session (used by demo login)
+export function addSession(sessionId: string, userId: number) {
+  sessions.set(sessionId, { userId });
 }
 
 // Project permission middleware
