@@ -63,10 +63,21 @@ router.post("/chat", requireAuth, async (req: RequestWithUser, res) => {
       });
     }
     
-    // Get comprehensive project context for personalized responses
+    // Get comprehensive user and project context for personalized responses
     let weddingData: any = {};
     try {
+      // Get user data for intake information
+      const user = storage.getUserById(req.userId);
       const project = await getOrCreateDefaultProject(req.userId);
+      
+      // Extract user intake information for personalization
+      const userName = user?.username?.split(' ')[0] || 'there'; // Get first name
+      const weddingDate = project.date;
+      const userGuestCount = project.guestCount;
+      const userBudget = project.budget;
+      const weddingVenue = project.venue;
+      const weddingTheme = project.theme;
+      const weddingStyle = project.style;
       
       // Get additional wedding data from storage
       const tasks = await storage.getTasksByProjectId(project.id);
@@ -74,18 +85,23 @@ router.post("/chat", requireAuth, async (req: RequestWithUser, res) => {
       const budget = await storage.getBudgetItemsByProjectId(project.id);
       
       // Calculate days until wedding
-      const weddingDate = new Date(project.date);
       const today = new Date();
-      const daysUntilWedding = Math.ceil((weddingDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+      const daysUntilWedding = weddingDate ? Math.ceil((new Date(weddingDate).getTime() - today.getTime()) / (1000 * 60 * 60 * 24)) : null;
       
-      // Build rich context for AI
+      // Calculate actual guest count from guest list
+      const actualGuestCount = guests?.reduce((sum, guest) => sum + (guest.partySize || 1), 0) || 0;
+      
+      // Build rich context with real intake data
       weddingData = {
-        coupleNames: project.name || "Emma & Jake",
-        weddingDate: project.date ? new Date(project.date).toLocaleDateString() : "your wedding day",
-        daysUntilWedding: daysUntilWedding > 0 ? daysUntilWedding : "soon",
-        guestCount: guests?.length || 0,
-        budget: project.budget || "not set",
-        location: project.location || "your venue",
+        coupleNames: project.name || "the happy couple",
+        userName,
+        weddingDate: weddingDate ? new Date(weddingDate).toLocaleDateString() : "your wedding day",
+        daysUntilWedding: daysUntilWedding && daysUntilWedding > 0 ? daysUntilWedding : "soon",
+        guestCount: actualGuestCount || userGuestCount || 0,
+        budget: userBudget || "not set",
+        location: weddingVenue || "your venue",
+        theme: weddingTheme,
+        style: weddingStyle,
         completedTasks: tasks?.filter((task: any) => task.isCompleted).length || 0,
         totalTasks: tasks?.length || 0,
         budgetSpent: budget?.reduce((sum: number, item: any) => sum + (item.actualCost || 0), 0) || 0,

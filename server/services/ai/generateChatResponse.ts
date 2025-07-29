@@ -2,11 +2,14 @@ import { generateChatResponse as generateChatResponseFromClient } from "./client
 
 export interface ChatResponseData {
   coupleNames?: string;
+  userName?: string;
   weddingDate?: string;
   daysUntilWedding?: string | number;
   guestCount?: number;
   budget?: string | number;
   location?: string;
+  theme?: string;
+  style?: string;
   completedTasks?: number;
   totalTasks?: number;
   budgetSpent?: number;
@@ -17,12 +20,15 @@ export async function generateChatResponse(
   weddingData: ChatResponseData,
   userMessage: string
 ): Promise<string> {
-  // Extract personalized wedding details
+  // Extract personalized wedding details from user intake data
   const coupleNames = weddingData.coupleNames || "the happy couple";
+  const userName = weddingData.userName || "there";
   const weddingDate = weddingData.weddingDate || "your wedding day";
   const guestCount = weddingData.guestCount || "your guests";
   const budgetTotal = weddingData.budget || "your budget";
   const location = weddingData.location || "your venue";
+  const theme = weddingData.theme || "your chosen theme";
+  const style = weddingData.style || "your style preferences";
   const completedTasks = weddingData.completedTasks || 0;
   const totalTasks = weddingData.totalTasks || 0;
   const daysUntilWedding = weddingData.daysUntilWedding || "many";
@@ -36,7 +42,9 @@ You are planning for:
 - Wedding date: ${weddingDate} (${daysUntilWedding} days away)
 - Guest count: ${guestCount || "unknown"}
 - Budget: $${budgetTotal || "unknown"}
-- Location: ${location || "unknown"}
+- Venue: ${location || "unknown"}
+- Theme: ${theme || "not specified"}
+- Style: ${style || "not specified"}
 - Progress: ${completedTasks}/${totalTasks} tasks completed
 
 You should:
