@@ -200,6 +200,21 @@ export const inspirationItems = pgTable("inspiration_items", {
   addedAt: timestamp("added_at").defaultNow().notNull(),
 });
 
+// Activity Log for tracking all wedding planning changes
+export const activityLog = pgTable("activity_log", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id").notNull(),
+  userId: integer("user_id").notNull(),
+  userName: text("user_name").notNull(),
+  section: text("section").notNull(), // 'Creative Details', 'Budget', 'Guest List', etc.
+  action: text("action").notNull(), // 'Created', 'Updated', 'Deleted', 'Completed'
+  entityType: text("entity_type").notNull(), // 'creative_detail', 'budget_item', 'guest', etc.
+  entityId: integer("entity_id"), // ID of the changed record
+  details: text("details").notNull(), // Human readable description
+  timestamp: timestamp("timestamp").defaultNow().notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 export const activities = pgTable("activities", {
   id: serial("id").primaryKey(),
   projectId: integer("project_id").notNull(),
@@ -361,6 +376,12 @@ export const insertTimelineEventSchema = createInsertSchema(timelineEvents).omit
 export const insertInspirationItemSchema = createInsertSchema(inspirationItems).omit({
   id: true,
   addedAt: true,
+});
+
+export const insertActivityLogSchema = createInsertSchema(activityLog).omit({
+  id: true,
+  timestamp: true,
+  createdAt: true,
 });
 
 export const insertActivitySchema = createInsertSchema(activities).omit({
@@ -671,6 +692,9 @@ export type WeddingOverview = typeof weddingOverview.$inferSelect;
 export type InsertWeddingOverview = z.infer<typeof insertWeddingOverviewSchema>;
 export type CreativeDetail = typeof creativeDetails.$inferSelect;
 export type InsertCreativeDetail = z.infer<typeof insertCreativeDetailSchema>;
+
+export type ActivityLogEntry = typeof activityLog.$inferSelect;
+export type InsertActivityLogEntry = z.infer<typeof insertActivityLogSchema>;
 
 // Seating Chart Tables
 export const seatingTables = pgTable("seating_tables", {

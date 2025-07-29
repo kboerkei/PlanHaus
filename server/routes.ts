@@ -42,6 +42,7 @@ import exportRoutes from "./routes/export";
 import collaboratorRoutes from "./routes/collaborators";
 import invitationRoutes from "./routes/invitations";
 import activityRoutes from "./routes/activities";
+import activityLogRoutes from "./routes/activity-log";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
@@ -115,6 +116,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Register collaboration routes with auth
   app.use("/api/collaborators", requireAuth, collaboratorRoutes);
+  app.use("/api/activities", requireAuth, activityLogRoutes);
   app.use("/api/invitations", requireAuth, invitationRoutes);
   app.use("/api/activities", requireAuth, activityRoutes);
 

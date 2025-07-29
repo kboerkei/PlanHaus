@@ -1,7 +1,7 @@
 import {
   users, weddingProjects, collaborators, invitations, userSessions, verificationTokens,
   defaultTasks, tasks, guests, vendors, vendorPayments, budgetItems,
-  timelineEvents, inspirationItems, activities, shoppingLists, shoppingItems,
+  timelineEvents, inspirationItems, activities, activityLog, shoppingLists, shoppingItems,
   schedules, scheduleEvents, intakeData, weddingOverview, creativeDetails, seatingTables, seatingAssignments,
   type User, type InsertUser, type WeddingProject, type InsertWeddingProject,
   type Collaborator, type InsertCollaborator, type Invitation, type InsertInvitation,
@@ -11,6 +11,7 @@ import {
   type VendorPayment, type InsertVendorPayment,
   type BudgetItem, type InsertBudgetItem, type TimelineEvent, type InsertTimelineEvent,
   type InspirationItem, type InsertInspirationItem, type Activity, type InsertActivity,
+  type ActivityLogEntry, type InsertActivityLogEntry,
   type ShoppingList, type InsertShoppingList, type ShoppingItem, type InsertShoppingItem,
   type Schedule, type InsertSchedule, type ScheduleEvent, type InsertScheduleEvent,
   type IntakeData, type InsertIntakeData, type WeddingOverview, type InsertWeddingOverview,
@@ -118,6 +119,15 @@ export interface IStorage {
   createActivity(activity: InsertActivity): Promise<Activity>;
   getActivitiesByProjectId(projectId: number, limit?: number, offset?: number, includeInvisible?: boolean): Promise<Activity[]>;
   getActivityStats(projectId: number, days: number): Promise<any>;
+
+  // Activity Log
+  getActivityLog(params: {
+    projectId: number;
+    userId?: number;
+    section?: string;
+    limit?: number;
+  }): Promise<(ActivityLogEntry & { user: User })[]>;
+  createActivityLogEntry(activity: InsertActivityLogEntry): Promise<ActivityLogEntry>;
 
   // User management
   updateUser(id: number, updates: Partial<InsertUser>): Promise<User | undefined>;
@@ -1597,6 +1607,67 @@ export class DatabaseStorage implements IStorage {
       assignments: assignmentsWithGuests,
       unassignedGuests,
     };
+  }
+
+  // Activity Log Methods
+  async getActivityLog(params: {
+    projectId: number;
+    userId?: number;
+    section?: string;
+    limit?: number;
+  }): Promise<(ActivityLogEntry & { user: User })[]> {
+    try {
+      let query = db
+        .select({
+          id: activityLog.id,
+          projectId: activityLog.projectId,
+          userId: activityLog.userId,
+          userName: activityLog.userName,
+          section: activityLog.section,
+          action: activityLog.action,
+          entityType: activityLog.entityType,
+          entityId: activityLog.entityId,  
+          details: activityLog.details,
+          timestamp: activityLog.timestamp,
+          createdAt: activityLog.createdAt,
+          user: {
+            id: users.id,
+            username: users.username,
+            email: users.email,
+            avatar: users.avatar,
+            hasCompletedIntake: users.hasCompletedIntake
+          }
+        })
+        .from(activityLog)
+        .innerJoin(users, eq(activityLog.userId, users.id))
+        .where(eq(activityLog.projectId, params.projectId))
+        .orderBy(desc(activityLog.timestamp));
+
+      if (params.userId) {
+        query = query.where(and(eq(activityLog.projectId, params.projectId), eq(activityLog.userId, params.userId)));
+      }
+
+      if (params.section) {
+        query = query.where(and(eq(activityLog.projectId, params.projectId), eq(activityLog.section, params.section)));
+      }
+
+      if (params.limit) {
+        query = query.limit(params.limit);
+      }
+
+      return await query;
+    } catch (error) {
+      console.error('Error fetching activity log:', error);
+      return [];
+    }
+  }
+
+  async createActivityLogEntry(activity: InsertActivityLogEntry): Promise<ActivityLogEntry> {
+    const [result] = await db
+      .insert(activityLog)
+      .values(activity)
+      .returning();
+    return result;
   }
 }
 
