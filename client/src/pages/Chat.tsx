@@ -1,4 +1,5 @@
 import { useState } from "react";
+import FileDropzone from "../components/FileDropzone";
 
 export default function Chat() {
   const [messages, setMessages] = useState([
@@ -7,71 +8,7 @@ export default function Chat() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
 
-    const formData = new FormData();
-    formData.append("file", file);
-
-    try {
-      const sessionId = localStorage.getItem("sessionId");
-      const res = await fetch("/api/upload", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${sessionId}`,
-        },
-        body: formData,
-      });
-
-      const { message, fileUrl } = await res.json();
-      alert(message || "File uploaded!");
-
-      // Optionally add to message thread:
-      setMessages((prev) => [
-        ...prev,
-        { sender: "user", text: `Uploaded file: ${file.name}` },
-      ]);
-    } catch (error) {
-      alert("Upload failed. Please try again.");
-      console.error("Upload error:", error);
-    }
-  };
-
-  const handleFileAnalysis = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const formData = new FormData();
-    formData.append("file", file);
-
-    try {
-      const sessionId = localStorage.getItem("sessionId");
-      setLoading(true);
-      
-      const res = await fetch("/api/analyzeFile", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${sessionId}`,
-        },
-        body: formData,
-      });
-
-      const { analysis, fileName } = await res.json();
-      
-      // Add analysis to chat
-      setMessages((prev) => [
-        ...prev,
-        { sender: "user", text: `📄 Analyzed: ${fileName}` },
-        { sender: "ai", text: analysis }
-      ]);
-    } catch (error) {
-      alert("Analysis failed. Please try again.");
-      console.error("Analysis error:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const sendMessage = async () => {
     if (!input.trim()) return;
@@ -107,67 +44,65 @@ export default function Chat() {
     setLoading(false);
   };
 
+  const handleAnalysisComplete = (fileName: string, analysis: string) => {
+    setMessages((prev) => [
+      ...prev,
+      { sender: "user", text: `📄 Analyzed: ${fileName}` },
+      { sender: "ai", text: analysis }
+    ]);
+  };
+
   return (
-    <div className="p-4 max-w-xl mx-auto bg-white rounded-xl shadow-md h-[80vh] flex flex-col">
-      <div className="flex-1 overflow-y-auto space-y-4">
-        {messages.map((msg, i) => (
-          <div
-            key={i}
-            className={`p-3 rounded-lg w-fit max-w-[75%] ${
-              msg.sender === "ai"
-                ? "bg-soft-gold text-left"
-                : "bg-blush text-right self-end"
-            }`}
-          >
-            {msg.text}
+    <div className="p-6 max-w-4xl mx-auto space-y-8">
+      {/* Chat Section */}
+      <div className="bg-white rounded-xl shadow-md h-[50vh] flex flex-col">
+        <div className="p-4 border-b border-gray-200">
+          <h2 className="text-lg font-semibold text-gray-900">Chat with PlanBot</h2>
+        </div>
+        
+        <div className="flex-1 overflow-y-auto space-y-4 p-4">
+          {messages.map((msg, i) => (
+            <div
+              key={i}
+              className={`p-3 rounded-lg w-fit max-w-[75%] ${
+                msg.sender === "ai"
+                  ? "bg-soft-gold text-left"
+                  : "bg-blush text-right self-end ml-auto"
+              }`}
+            >
+              {msg.text}
+            </div>
+          ))}
+          {loading && <p className="text-muted-foreground animate-pulse">PlanBot is typing...</p>}
+        </div>
+        
+        <div className="p-4 border-t border-gray-200">
+          <div className="flex gap-2">
+            <input
+              className="flex-1 border rounded p-2"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+              placeholder="Ask me anything..."
+            />
+            <button
+              onClick={sendMessage}
+              className="bg-champagne px-4 py-2 rounded text-white font-semibold hover:bg-champagne/90 transition-colors"
+            >
+              Send
+            </button>
           </div>
-        ))}
-        {loading && <p className="text-muted-foreground animate-pulse">PlanBot is typing...</p>}
+        </div>
       </div>
-      <div className="mt-4 space-y-2">
-        <div className="flex gap-2">
-          <input
-            className="flex-1 border rounded p-2"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-            placeholder="Ask me anything..."
-          />
-          <button
-            onClick={sendMessage}
-            className="bg-champagne px-4 py-2 rounded text-white font-semibold"
-          >
-            Send
-          </button>
-        </div>
-        <div className="flex justify-start gap-4">
-          <input
-            type="file"
-            onChange={handleFileUpload}
-            className="hidden"
-            id="file-upload"
-          />
-          <label
-            htmlFor="file-upload"
-            className="cursor-pointer text-sm text-champagne underline"
-          >
-            Upload a file
-          </label>
-          
-          <input
-            type="file"
-            onChange={handleFileAnalysis}
-            className="hidden"
-            id="file-analysis"
-            accept=".pdf,.xlsx,.xls,.csv"
-          />
-          <label
-            htmlFor="file-analysis"
-            className="cursor-pointer text-sm text-champagne underline"
-          >
-            Analyze document
-          </label>
-        </div>
+
+      {/* File Analysis Section */}
+      <div className="bg-white rounded-xl shadow-md p-6">
+        <h2 className="text-xl font-semibold text-gray-900 mb-4">Document Analysis</h2>
+        <p className="text-gray-600 mb-6">
+          Upload wedding contracts, budgets, or planning documents for AI-powered analysis and recommendations.
+        </p>
+        
+        <FileDropzone onAnalysisComplete={handleAnalysisComplete} />
       </div>
     </div>
   );
