@@ -115,12 +115,6 @@ export default function TimelineModern() {
       </div>
     );
   }
-        title: "Error",
-        description: error.message || "Failed to delete task",
-        variant: "destructive",
-      });
-    }
-  });
 
   // Toggle task completion
   const toggleTaskCompletion = (task: any) => {

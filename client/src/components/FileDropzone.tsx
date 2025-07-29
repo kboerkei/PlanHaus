@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Upload, File, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+import { Upload, File, CheckCircle, AlertCircle, Loader2, X } from 'lucide-react';
 
 interface UploadedFile {
   file: File;
@@ -100,6 +100,10 @@ export default function FileDropzone({ onAnalysisComplete }: FileDropzoneProps) 
     setUploadedFiles([]);
   };
 
+  const removeFile = (index: number) => {
+    setUploadedFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
   return (
     <div className="w-full max-w-2xl mx-auto">
       {/* Dropzone */}
@@ -174,56 +178,43 @@ export default function FileDropzone({ onAnalysisComplete }: FileDropzoneProps) 
                 className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm"
               >
                 <div className="flex items-start gap-3">
-                  <File className="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" />
+                  <div className="flex-shrink-0">
+                    {uploadedFile.status === 'uploading' && <Loader2 className="w-5 h-5 text-champagne animate-spin" />}
+                    {uploadedFile.status === 'success' && <CheckCircle className="w-5 h-5 text-green-600" />}
+                    {uploadedFile.status === 'error' && <AlertCircle className="w-5 h-5 text-red-600" />}
+                  </div>
                   
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-2">
+                    <div className="flex items-center justify-between mb-1">
                       <p className="text-sm font-medium text-gray-900 truncate">
                         {uploadedFile.file.name}
                       </p>
-                      
-                      {uploadedFile.status === 'uploading' && (
-                        <Loader2 className="w-4 h-4 text-blush animate-spin" />
-                      )}
-                      {uploadedFile.status === 'success' && (
-                        <CheckCircle className="w-4 h-4 text-green-500" />
-                      )}
-                      {uploadedFile.status === 'error' && (
-                        <AlertCircle className="w-4 h-4 text-red-500" />
-                      )}
+                      <button
+                        onClick={() => removeFile(index)}
+                        className="text-gray-400 hover:text-gray-600 transition-colors"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
                     </div>
-
-                    <p className="text-xs text-gray-500 mb-3">
+                    
+                    <p className="text-xs text-gray-500 mb-2">
                       {(uploadedFile.file.size / 1024 / 1024).toFixed(2)} MB
                     </p>
 
-                    {/* Status Messages */}
                     {uploadedFile.status === 'uploading' && (
-                      <div className="mb-3">
-                        <div className="flex items-center gap-2 text-sm text-blush">
-                          <div className="w-2 h-2 bg-blush rounded-full animate-pulse"></div>
-                          Analyzing document...
-                        </div>
-                      </div>
+                      <p className="text-sm text-champagne">Analyzing...</p>
                     )}
 
                     {uploadedFile.status === 'error' && (
-                      <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-md">
-                        <p className="text-sm text-red-700">
-                          {uploadedFile.error}
-                        </p>
-                      </div>
+                      <p className="text-sm text-red-600">{uploadedFile.error}</p>
                     )}
 
-                    {/* AI Analysis */}
                     {uploadedFile.status === 'success' && uploadedFile.analysis && (
-                      <div className="bg-soft-gold/10 border border-soft-gold/20 rounded-md p-4">
-                        <h4 className="text-sm font-medium text-gray-900 mb-2">
-                          AI Analysis Summary
-                        </h4>
-                        <div className="text-sm text-gray-700 whitespace-pre-wrap">
+                      <div className="mt-3 p-3 bg-soft-gold/10 rounded-lg">
+                        <h4 className="text-sm font-medium text-gray-900 mb-2">AI Analysis:</h4>
+                        <p className="text-sm text-gray-700 leading-relaxed">
                           {uploadedFile.analysis}
-                        </div>
+                        </p>
                       </div>
                     )}
                   </div>
