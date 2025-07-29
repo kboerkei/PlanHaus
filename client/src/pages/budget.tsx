@@ -389,21 +389,31 @@ function BudgetOverviewAnalytics({ budgetItems, budgetSummary }: {
   const totalVariance = totalActual - totalEstimated;
   const budgetUsage = totalEstimated > 0 ? (totalActual / totalEstimated) * 100 : 0;
 
-  // Category mapping for chart display
-  const CATEGORY_NAMES = {
-    0: 'Venue',
-    1: 'Catering',
-    2: 'Photography',
-    3: 'Flowers',
-    4: 'Music',
-    5: 'Transportation',
-    6: 'Attire',
-    7: 'Rings',
-    8: 'Invitations',
-    9: 'Decorations',
-    10: 'Beauty',
-    11: 'Favors',
-    12: 'Other'
+  // Category display names mapping
+  const getCategoryDisplayName = (category: string) => {
+    const categoryMap: { [key: string]: string } = {
+      'venue': 'Venue',
+      'catering': 'Catering', 
+      'photography': 'Photography',
+      'flowers': 'Flowers',
+      'music': 'Music',
+      'transportation': 'Transportation',
+      'attire': 'Attire',
+      'rings': 'Rings',
+      'invitations': 'Invitations',
+      'decorations': 'Decorations',
+      'beauty': 'Beauty',
+      'favors': 'Favors',
+      'other': 'Other'
+    };
+    
+    // If it's a string category, use the mapping or capitalize the first letter
+    if (typeof category === 'string') {
+      return categoryMap[category.toLowerCase()] || category.charAt(0).toUpperCase() + category.slice(1).toLowerCase();
+    }
+    
+    // If it's a number (legacy data), convert to string and use mapping
+    return categoryMap[String(category)] || `Category ${category}`;
   };
 
   // Category data for charts
@@ -416,7 +426,7 @@ function BudgetOverviewAnalytics({ budgetItems, budgetSummary }: {
     ];
     
     return budgetSummary.categories.map((cat: any, index: number) => ({
-      category: CATEGORY_NAMES[cat.category as keyof typeof CATEGORY_NAMES] || cat.category,
+      category: getCategoryDisplayName(cat.category),
       estimated: cat.estimated,
       actual: cat.actual,
       variance: cat.actual - cat.estimated,

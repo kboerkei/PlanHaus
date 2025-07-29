@@ -45,7 +45,7 @@ export default function Guests() {
 
   // Fetch data using hooks
   const { data: projects, isLoading: projectsLoading } = useProjects();
-  const currentProject = projects?.find(p => p.name === "Emma & Jake's Wedding") || projects?.[0];
+  const currentProject = projects?.find((p: any) => p.name === "Emma & Jake's Wedding") || projects?.[0];
   const projectId = currentProject?.id?.toString();
   
   const { data: guests = [], isLoading: guestsLoading, error: guestsError } = useGuests(projectId);
@@ -56,7 +56,7 @@ export default function Guests() {
   const filteredGuests = useMemo(() => {
     if (!guests) return [];
     
-    return guests.filter(guest => {
+    return guests.filter((guest: any) => {
       const matchesSearch = !searchTerm || 
         guest.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         guest.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -79,13 +79,13 @@ export default function Guests() {
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedGuests(filteredGuests.map(guest => guest.id));
+      setSelectedGuests(filteredGuests.map((guest: any) => guest.id));
     } else {
       setSelectedGuests([]);
     }
   };
 
-  const handleBulkRsvpUpdate = async (rsvpStatus: string) => {
+  const handleBulkRsvpUpdate = async (rsvpStatus: "pending" | "yes" | "no" | "maybe") => {
     if (selectedGuests.length === 0) return;
     
     try {
