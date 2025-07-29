@@ -23,14 +23,10 @@ const router = Router();
 // Apply AI rate limiting to all AI routes
 router.use(aiRateLimit);
 
-// Chat endpoint validation schema
+// Chat endpoint validation schema - allow flexible input
 const chatSchema = z.object({
-  message: z.string().min(1).max(1000),
-  context: z.object({
-    projectId: z.number().optional(),
-    currentPage: z.string().optional()
-  }).optional()
-});
+  message: z.string().min(1).max(1000)
+}).passthrough(); // Allow additional fields like context
 
 // Vendor search validation schema
 const vendorSearchSchema = z.object({
@@ -48,7 +44,7 @@ const timelineSchema = z.object({
 // Import validation from client
 import { validateOpenAIKey } from "../services/ai/client";
 
-router.post("/chat", requireAuth, validateBody(chatSchema), async (req: RequestWithUser, res) => {
+router.post("/chat", requireAuth, async (req: RequestWithUser, res) => {
   if (!validateOpenAIKey()) {
     logWarning('ai', 'OpenAI API key not configured', { userId: req.userId });
     return res.status(503).json({ 
@@ -60,8 +56,15 @@ router.post("/chat", requireAuth, validateBody(chatSchema), async (req: RequestW
   try {
     const { message, context } = req.body;
     
+    // Manual validation since we removed the schema validation
+    if (!message || typeof message !== 'string' || message.trim().length === 0) {
+      return res.status(400).json({ 
+        message: "Message is required and must be a non-empty string" 
+      });
+    }
+    
     // Get comprehensive project context for personalized responses
-    let weddingData = {};
+    let weddingData: any = {};
     try {
       const project = await getOrCreateDefaultProject(req.userId);
       
@@ -83,10 +86,10 @@ router.post("/chat", requireAuth, validateBody(chatSchema), async (req: RequestW
         guestCount: guests?.length || 0,
         budget: project.budget || "not set",
         location: project.location || "your venue",
-        completedTasks: tasks?.filter(task => task.isCompleted).length || 0,
+        completedTasks: tasks?.filter((task: any) => task.isCompleted).length || 0,
         totalTasks: tasks?.length || 0,
-        budgetSpent: budget?.reduce((sum, item) => sum + (item.actualCost || 0), 0) || 0,
-        currentPage: context?.currentPage || "chat"
+        budgetSpent: budget?.reduce((sum: number, item: any) => sum + (item.actualCost || 0), 0) || 0,
+        currentPage: typeof context === 'string' ? context : context?.currentPage || "chat"
       };
     } catch (error) {
       logWarning('ai', 'Failed to get project context for chat', { userId: req.userId });
