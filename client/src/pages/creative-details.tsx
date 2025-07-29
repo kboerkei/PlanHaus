@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,9 +10,19 @@ import { Badge } from "@/components/ui/badge";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { type CreativeDetail, type InsertCreativeDetail } from "@shared/schema";
-import { ChevronDown, ChevronRight, Plus, Upload, User, Calendar, Edit, Trash2, CheckCircle, Clock } from "lucide-react";
+import { ChevronDown, ChevronRight, Plus, Upload, User, Calendar, Edit, Trash2, CheckCircle, Clock, AlertCircle, Users } from "lucide-react";
 import { useDropzone } from "react-dropzone";
 import { useToast } from "@/hooks/use-toast";
+import { 
+  getCreativeDetails, 
+  createCreativeDetail, 
+  updateCreativeDetail, 
+  deleteCreativeDetail,
+  getCollaborators,
+  canEdit,
+  syncLocalStorageToSupabase,
+  type Collaborator
+} from '@/lib/supabase-creative-details';
 
 // Enhanced category definitions with comprehensive fields and AI support
 const categories = [
@@ -161,6 +171,9 @@ export default function CreativeDetails() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingDetail, setEditingDetail] = useState<CreativeDetail | null>(null);
   const [uploadingFiles, setUploadingFiles] = useState<{[key: number]: boolean}>({});
+  const [collaborators, setCollaborators] = useState<Collaborator[]>([]);
+  const [userCanEdit, setUserCanEdit] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [formData, setFormData] = useState<CreativeDetailFormData>({
     category: '',
     title: '',
@@ -173,21 +186,56 @@ export default function CreativeDetails() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Fetch creative details
+  // Check authentication status
+  useEffect(() => {
+    const sessionId = localStorage.getItem('sessionId');
+    const user = localStorage.getItem('user');
+    const authenticated = !!(sessionId && user);
+    setIsAuthenticated(authenticated);
+
+    if (authenticated) {
+      // Sync localStorage data to Supabase when authenticated
+      syncLocalStorageToSupabase();
+    }
+  }, []);
+
+  // Load collaborators and check permissions
+  useEffect(() => {
+    const loadCollaborators = async () => {
+      try {
+        const projectCollaborators = await getCollaborators(1); // Current project
+        setCollaborators(projectCollaborators);
+        
+        const editPermission = await canEdit(1);
+        setUserCanEdit(editPermission);
+      } catch (error) {
+        console.error('Error loading collaborators:', error);
+      }
+    };
+
+    if (isAuthenticated) {
+      loadCollaborators();
+    }
+  }, [isAuthenticated]);
+
+  // Fetch creative details using our Supabase service
   const { data: details = [], isLoading } = useQuery({
-    queryKey: ['/api/creative-details'],
+    queryKey: ['creative-details', 1], // Project ID 1
+    queryFn: () => getCreativeDetails(1),
     select: (data) => data as CreativeDetail[]
   });
 
-  // Create/update mutation
+  // Create/update mutation using our Supabase service
   const createDetailMutation = useMutation({
-    mutationFn: async (data: InsertCreativeDetail) => {
-      const url = editingDetail ? `/api/creative-details/${editingDetail.id}` : '/api/creative-details';
-      const method = editingDetail ? 'PUT' : 'POST';
-      return apiRequest(url, { method, body: JSON.stringify(data) });
+    mutationFn: async (data: Omit<CreativeDetail, 'id' | 'createdAt' | 'updatedAt'>) => {
+      if (editingDetail) {
+        return updateCreativeDetail(editingDetail.id, data);
+      } else {
+        return createCreativeDetail(data);
+      }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/creative-details'] });
+      queryClient.invalidateQueries({ queryKey: ['creative-details'] });
       setIsFormOpen(false);
       setEditingDetail(null);
       resetForm();
@@ -205,16 +253,23 @@ export default function CreativeDetails() {
     },
   });
 
-  // Delete mutation
+  // Delete mutation using our Supabase service
   const deleteDetailMutation = useMutation({
     mutationFn: async (id: number) => {
-      return apiRequest(`/api/creative-details/${id}`, { method: 'DELETE' });
+      return deleteCreativeDetail(id);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/creative-details'] });
+      queryClient.invalidateQueries({ queryKey: ['creative-details'] });
       toast({
         title: 'Detail deleted',
         description: 'Creative detail has been removed successfully.',
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to delete creative detail',
+        variant: 'destructive',
       });
     },
   });
@@ -240,7 +295,7 @@ export default function CreativeDetails() {
       }
 
       const result = await response.json();
-      queryClient.invalidateQueries({ queryKey: ['/api/creative-details'] });
+      queryClient.invalidateQueries({ queryKey: ['creative-details'] });
       return result;
     } catch (error) {
       throw error;
@@ -385,6 +440,55 @@ export default function CreativeDetails() {
         <h1 className="text-4xl font-serif font-bold text-gray-900 mb-4">Creative Details</h1>
         <p className="text-lg text-gray-600 max-w-2xl mx-auto">Organize all the special touches that make your wedding uniquely yours</p>
         
+        {/* Authentication Status Banner */}
+        {!isAuthenticated && (
+          <div className="mt-6 max-w-2xl mx-auto">
+            <Card className="bg-gradient-to-r from-amber-50 to-orange-50 border-amber-200">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-center space-x-3">
+                  <AlertCircle className="w-5 h-5 text-amber-600" />
+                  <div>
+                    <p className="text-sm font-medium text-amber-800">
+                      You're working offline
+                    </p>
+                    <p className="text-xs text-amber-700">
+                      Sign in to sync your data and collaborate with others
+                    </p>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="border-amber-300 text-amber-700 hover:bg-amber-100"
+                    onClick={() => window.location.href = '/auth'}
+                  >
+                    Sign In
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+        
+        {isAuthenticated && collaborators.length > 0 && (
+          <div className="mt-6 max-w-2xl mx-auto">
+            <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-center space-x-3">
+                  <Users className="w-5 h-5 text-blue-600" />
+                  <div>
+                    <p className="text-sm font-medium text-blue-800">
+                      Collaborating with {collaborators.length} team member{collaborators.length !== 1 ? 's' : ''}
+                    </p>
+                    <p className="text-xs text-blue-700">
+                      Your changes sync in real-time
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+        
         {/* Enhanced Summary Stats */}
         <div className="flex justify-center space-x-8 mt-6">
           <div className="text-center">
@@ -462,18 +566,20 @@ export default function CreativeDetails() {
                     <Badge variant="secondary" className="bg-white/50 text-gray-700 px-3 py-1">
                       {categoryDetails.length} {categoryDetails.length === 1 ? 'item' : 'items'}
                     </Badge>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        openCreateForm(category.id);
-                      }}
-                      className="bg-gradient-to-r from-blush/10 to-rose-gold/10 border-blush/30 text-blush hover:bg-blush/20 rounded-lg"
-                    >
-                      <Plus className="w-4 h-4 mr-1" />
-                      Add
-                    </Button>
+                    {userCanEdit && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openCreateForm(category.id);
+                        }}
+                        className="bg-gradient-to-r from-blush/10 to-rose-gold/10 border-blush/30 text-blush hover:bg-blush/20 rounded-lg"
+                      >
+                        <Plus className="w-4 h-4 mr-1" />
+                        Add
+                      </Button>
+                    )}
                     {category.hasAI && (
                       <Button
                         variant="outline"
@@ -528,20 +634,29 @@ export default function CreativeDetails() {
                                 )}
                               </div>
                               <div className="flex items-center space-x-2 ml-4">
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => openEditForm(detail)}
-                                >
-                                  <Edit className="w-4 h-4" />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => deleteDetailMutation.mutate(detail.id)}
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </Button>
+                                {userCanEdit && (
+                                  <>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => openEditForm(detail)}
+                                    >
+                                      <Edit className="w-4 h-4" />
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => deleteDetailMutation.mutate(detail.id)}
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </Button>
+                                  </>
+                                )}
+                                {!userCanEdit && (
+                                  <Badge variant="outline" className="text-xs">
+                                    View Only
+                                  </Badge>
+                                )}
                               </div>
                             </div>
 
@@ -744,13 +859,35 @@ export default function CreativeDetails() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                 <div>
                   <Label htmlFor="assignedTo">Assigned To</Label>
-                  <Input
-                    id="assignedTo"
-                    value={formData.assignedTo || ''}
-                    onChange={(e) => setFormData(prev => ({ ...prev, assignedTo: e.target.value }))}
-                    placeholder="Person responsible..."
-                    className="mt-1"
-                  />
+                  {collaborators.length > 0 ? (
+                    <Select 
+                      value={formData.assignedTo?.toString() || ''} 
+                      onValueChange={(value) => setFormData(prev => ({ ...prev, assignedTo: value ? parseInt(value) : undefined }))}
+                    >
+                      <SelectTrigger className="mt-1">
+                        <SelectValue placeholder="Choose collaborator..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">Unassigned</SelectItem>
+                        {collaborators.map(collaborator => (
+                          <SelectItem key={collaborator.id} value={collaborator.userId.toString()}>
+                            {collaborator.user?.firstName || collaborator.user?.username || `User ${collaborator.userId}`}
+                            <Badge variant="outline" className="ml-2 text-xs">
+                              {collaborator.role}
+                            </Badge>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <Input
+                      id="assignedTo"
+                      value={formData.assignedTo?.toString() || ''}
+                      onChange={(e) => setFormData(prev => ({ ...prev, assignedTo: e.target.value ? parseInt(e.target.value) : undefined }))}
+                      placeholder="Person responsible..."
+                      className="mt-1"
+                    />
+                  )}
                 </div>
 
                 <div>

@@ -1,89 +1,95 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { storage } from '../storage';
-import { authenticateUser, requireAdmin, requireViewer } from '../middleware/auth';
+import { storage } from '../storage.js';
+import { authenticateUser } from '../middleware/auth.js';
 
 const router = Router();
 
-// Update collaborator role schema
-const updateRoleSchema = z.object({
-  role: z.enum(['admin', 'editor', 'viewer']),
+// Get collaborators for a project
+router.get('/', authenticateUser, async (req, res) => {
+  try {
+    const projectId = parseInt(req.query.projectId as string);
+    
+    if (!projectId) {
+      return res.status(400).json({ error: 'Project ID required' });
+    }
+
+    const projectCollaborators = await storage.getCollaboratorsByProjectId(projectId);
+
+    res.json(projectCollaborators);
+  } catch (error) {
+    console.error('Error fetching collaborators:', error);
+    res.status(500).json({ error: 'Failed to fetch collaborators' });
+  }
 });
 
-// Get collaborators for a project
-router.get('/project/:projectId', authenticateUser, async (req, res) => {
+// Add collaborator to project
+router.post('/', authenticateUser, async (req, res) => {
   try {
-    const projectId = parseInt(req.params.projectId);
-    const collaborators = await storage.getCollaboratorsByProjectId(projectId);
-
-    res.json({
-      collaborators: collaborators.map(collab => ({
-        id: collab.id,
-        role: collab.role,
-        status: collab.status,
-        joinedAt: collab.joinedAt,
-        user: {
-          id: collab.user.id,
-          username: collab.user.username,
-          email: collab.user.email,
-          firstName: collab.user.firstName,
-          lastName: collab.user.lastName,
-          avatar: collab.user.avatar,
-        }
-      }))
+    const schema = z.object({
+      projectId: z.number(),
+      email: z.string().email(),
+      role: z.enum(['Owner', 'Planner', 'Collaborator', 'Viewer'])
     });
+
+    const { projectId, email, role } = schema.parse(req.body);
+
+    // Find user by email
+    const user = await storage.getUserByEmail(email);
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found with this email' });
+    }
+
+    // Check if user is already a collaborator
+    const existing = await storage.getUserProjectRole(user.id, projectId);
+
+    if (existing) {
+      return res.status(400).json({ error: 'User is already a collaborator' });
+    }
+
+    // Add collaborator
+    const newCollaborator = await storage.addCollaborator({
+      projectId,
+      userId: user.id,
+      role,
+      invitedBy: req.user!.id,
+      status: 'active'
+    });
+
+    res.status(201).json(newCollaborator);
   } catch (error) {
-    console.error('Get collaborators error:', error);
-    res.status(500).json({ error: 'Failed to get collaborators' });
+    console.error('Error adding collaborator:', error);
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+    }
+    res.status(500).json({ error: 'Failed to add collaborator' });
   }
 });
 
 // Update collaborator role
-router.patch('/:id/role', authenticateUser, async (req, res) => {
+router.patch('/:id', authenticateUser, async (req, res) => {
   try {
     const collaboratorId = parseInt(req.params.id);
-    const { role } = updateRoleSchema.parse(req.body);
-    
-    const updatedCollaborator = await storage.updateCollaboratorRole(collaboratorId, role);
-    
-    if (!updatedCollaborator) {
+    const schema = z.object({
+      role: z.enum(['Owner', 'Planner', 'Collaborator', 'Viewer'])
+    });
+
+    const { role } = schema.parse(req.body);
+
+    const updated = await storage.updateCollaboratorRole(collaboratorId, role);
+
+    if (!updated) {
       return res.status(404).json({ error: 'Collaborator not found' });
     }
 
-    // Get collaborator details for logging
-    const collaborators = await storage.getCollaboratorsByProjectId(updatedCollaborator.projectId);
-    const collaborator = collaborators.find(c => c.id === collaboratorId);
-
-    // Log activity
-    await storage.logActivity({
-      projectId: updatedCollaborator.projectId,
-      userId: req.user!.id,
-      action: `Changed ${collaborator?.user.username || 'user'}'s role to ${role}`,
-      entityType: 'collaborator',
-      entityId: collaboratorId,
-      entityName: collaborator?.user.username || 'Unknown',
-      details: { 
-        oldRole: collaborator?.role, 
-        newRole: role, 
-        changedBy: req.user!.username 
-      },
-      isVisible: true,
-    });
-
-    res.json({
-      message: 'Collaborator role updated successfully',
-      collaborator: {
-        id: updatedCollaborator.id,
-        role: updatedCollaborator.role,
-        updatedAt: updatedCollaborator.updatedAt,
-      }
-    });
+    res.json(updated);
   } catch (error) {
+    console.error('Error updating collaborator:', error);
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Invalid input data', details: error.errors });
+      return res.status(400).json({ error: 'Invalid request data', details: error.errors });
     }
-    console.error('Update collaborator role error:', error);
-    res.status(500).json({ error: 'Failed to update collaborator role' });
+    res.status(500).json({ error: 'Failed to update collaborator' });
   }
 });
 
@@ -91,66 +97,17 @@ router.patch('/:id/role', authenticateUser, async (req, res) => {
 router.delete('/:id', authenticateUser, async (req, res) => {
   try {
     const collaboratorId = parseInt(req.params.id);
-    
-    // Get collaborator details before deletion for logging
-    const projectId = parseInt(req.body.projectId);
-    const collaborators = await storage.getCollaboratorsByProjectId(projectId);
-    const collaborator = collaborators.find(c => c.id === collaboratorId);
-    
-    if (!collaborator) {
-      return res.status(404).json({ error: 'Collaborator not found' });
-    }
-
-    // Prevent removing the last admin
-    const adminCount = collaborators.filter(c => c.role === 'admin').length;
-    if (collaborator.role === 'admin' && adminCount === 1) {
-      return res.status(400).json({ 
-        error: 'Cannot remove the last admin from the project' 
-      });
-    }
 
     const success = await storage.removeCollaborator(collaboratorId);
-    
+
     if (!success) {
       return res.status(404).json({ error: 'Collaborator not found' });
     }
 
-    // Log activity
-    await storage.logActivity({
-      projectId,
-      userId: req.user!.id,
-      action: `Removed ${collaborator.user.username} from project`,
-      entityType: 'collaborator',
-      entityId: collaboratorId,
-      entityName: collaborator.user.username,
-      details: { 
-        removedRole: collaborator.role, 
-        removedBy: req.user!.username 
-      },
-      isVisible: true,
-    });
-
     res.json({ message: 'Collaborator removed successfully' });
   } catch (error) {
-    console.error('Remove collaborator error:', error);
+    console.error('Error removing collaborator:', error);
     res.status(500).json({ error: 'Failed to remove collaborator' });
-  }
-});
-
-// Get user's role in a project
-router.get('/project/:projectId/my-role', authenticateUser, async (req, res) => {
-  try {
-    const projectId = parseInt(req.params.projectId);
-    const role = await storage.getUserProjectRole(req.user!.id, projectId);
-    
-    if (!role) {
-      return res.status(403).json({ error: 'Not a collaborator on this project' });
-    }
-
-    res.json({ role });
-  } catch (error) {
-    console.error('Get user role error:', error);
-    res.status(500).json({ error: 'Failed to get user role' });
   }
 });
 

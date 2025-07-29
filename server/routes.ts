@@ -113,10 +113,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use("/api/analyzeFile", analyzeFileRoutes);
   app.use("/api/export", requireAuth, exportRoutes);
   
-  // Register collaboration routes
-  app.use("/api/collaborators", collaboratorRoutes);
-  app.use("/api/invitations", invitationRoutes);
-  app.use("/api/activities", activityRoutes);
+  // Register collaboration routes with auth
+  app.use("/api/collaborators", requireAuth, collaboratorRoutes);
+  app.use("/api/invitations", requireAuth, invitationRoutes);
+  app.use("/api/activities", requireAuth, activityRoutes);
 
   // Add simple dashboard stats endpoint
   app.get("/api/dashboard/stats", requireAuth, async (req: RequestWithUser, res) => {

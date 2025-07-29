@@ -37,7 +37,7 @@ export const collaborators = pgTable("collaborators", {
   id: serial("id").primaryKey(),
   projectId: integer("project_id").notNull(),
   userId: integer("user_id").notNull(),
-  role: text("role").notNull(), // 'admin', 'editor', 'viewer'
+  role: text("role", { enum: ['Owner', 'Planner', 'Collaborator', 'Viewer'] }).notNull(),
   invitedBy: integer("invited_by").notNull(),
   status: text("status").notNull().default("active"), // 'pending', 'active', 'inactive'
   permissions: jsonb("permissions"), // Custom permissions object
@@ -538,6 +538,7 @@ export const creativeDetails = pgTable("creative_details", {
   fileName: text("file_name"), // Original file name
   assignedTo: integer("assigned_to").references(() => users.id),
   dueDate: timestamp("due_date"),
+  status: text("status", { enum: ['Not Started', 'In Progress', 'Complete'] }).default('Not Started'),
   isCompleted: boolean("is_completed").default(false),
   completedDate: timestamp("completed_date"),
   priority: text("priority").default("medium"), // 'high', 'medium', 'low'
