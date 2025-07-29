@@ -17,8 +17,9 @@ import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { format, differenceInDays } from "date-fns";
 import { useEffect, useState, useMemo, memo } from "react";
-import { useAbortController, useDebouncedValue, usePerformanceMonitor } from "@/hooks/usePerformance";
-import { useScreenReader, useReducedMotion } from "@/hooks/useAccessibility";
+import { useDebounce, usePerformanceMonitor } from "@/hooks/usePerformance";
+import { useScreenReader } from "@/hooks/useAccessibility";
+import { useReducedMotion } from "@/components/accessibility/AccessibleComponents";
 
 type Task = {
   id: string;

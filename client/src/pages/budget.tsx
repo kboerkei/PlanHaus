@@ -1,5 +1,5 @@
 import { useState, useMemo, Suspense, memo } from "react";
-import { useDebouncedValue, useAbortController, usePerformanceMonitor } from "@/hooks/usePerformance";
+import { useDebounce, usePerformanceMonitor } from "@/hooks/usePerformance";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -54,8 +54,8 @@ const Budget = memo(() => {
   usePerformanceMonitor('Budget');
   
   // Debounce search input for better performance
-  const debouncedSearchTerm = useDebouncedValue(searchTerm, 300);
-  const { getAbortSignal } = useAbortController();
+  const debouncedSearchTerm = useDebounce(searchTerm, 300);
+  // AbortController will be implemented in a future enhancement
 
   // Fetch data using hooks
   const { data: projects, isLoading: projectsLoading } = useProjects();

@@ -32,7 +32,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { toast } from 'react-hot-toast';
 import { formatDistanceToNow } from 'date-fns';
-import type { Task } from '@/shared/schema';
+import type { Task } from '@/../shared/schema';
 
 interface KanbanBoardProps {
   tasks: Task[];

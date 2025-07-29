@@ -1,7 +1,11 @@
-import { useState } from "react";
-import FileDropzone from "../components/FileDropzone";
+import { useState, memo, useCallback } from "react";
+import { OptimizedFileDropzone } from "../components/enhanced/OptimizedFileDropzone";
+import { useToast } from '@/hooks/use-toast';
+import { sanitizeText } from "../utils/sanitize";
+import { ErrorBoundary } from "../components/ui/ErrorBoundary";
 
-export default function Chat() {
+const ChatComponent = memo(() => {
+  const { toast } = useToast();
   const [messages, setMessages] = useState([
     { sender: "ai", text: "Hi! I'm PlanBot. How can I help you today?" },
   ]);
@@ -10,10 +14,11 @@ export default function Chat() {
 
 
 
-  const sendMessage = async () => {
+  const sendMessage = useCallback(async () => {
     if (!input.trim()) return;
 
-    const newMessages = [...messages, { sender: "user", text: input }];
+    const sanitizedInput = sanitizeText(input);
+    const newMessages = [...messages, { sender: "user", text: sanitizedInput }];
     setMessages(newMessages);
     setInput("");
     setLoading(true);
@@ -21,36 +26,58 @@ export default function Chat() {
     try {
       const res = await fetch("/api/ai/chat", {
         method: "POST",
-        body: JSON.stringify({ message: input }),
+        body: JSON.stringify({ message: sanitizedInput }),
         headers: { 
           "Content-Type": "application/json",
           "Authorization": `Bearer ${localStorage.getItem('sessionId')}`
         },
       });
+
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+      }
+
       const { response } = await res.json();
 
       setMessages([
         ...newMessages,
         { sender: "ai", text: response },
       ]);
+
+      toast({
+        title: 'Message sent',
+        description: 'AI response received'
+      });
+
     } catch (error) {
       console.error('Chat error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      
       setMessages([
         ...newMessages,
         { sender: "ai", text: "Sorry, I'm having trouble connecting right now. Please try again." },
       ]);
+
+      toast({
+        title: 'Message failed',
+        description: errorMessage,
+        variant: 'destructive'
+      });
     }
     
     setLoading(false);
-  };
+  }, [input, messages, toast]);
 
-  const handleAnalysisComplete = (fileName: string, analysis: string) => {
+  const handleAnalysisComplete = useCallback((fileName: string, analysis: string) => {
+    const sanitizedFileName = sanitizeText(fileName);
+    const sanitizedAnalysis = sanitizeText(analysis);
+    
     setMessages((prev) => [
       ...prev,
-      { sender: "user", text: `📄 Analyzed: ${fileName}` },
-      { sender: "ai", text: analysis }
+      { sender: "user", text: `📄 Analyzed: ${sanitizedFileName}` },
+      { sender: "ai", text: sanitizedAnalysis }
     ]);
-  };
+  }, []);
 
   return (
     <div className="p-6 max-w-4xl mx-auto space-y-8">
@@ -102,8 +129,18 @@ export default function Chat() {
           Upload wedding contracts, budgets, or planning documents for AI-powered analysis and recommendations.
         </p>
         
-        <FileDropzone onAnalysisComplete={handleAnalysisComplete} />
+        <OptimizedFileDropzone onAnalysisComplete={handleAnalysisComplete} />
       </div>
     </div>
+  );
+});
+
+ChatComponent.displayName = 'ChatComponent';
+
+export default function Chat() {
+  return (
+    <ErrorBoundary>
+      <ChatComponent />
+    </ErrorBoundary>
   );
 }
