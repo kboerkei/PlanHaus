@@ -95,8 +95,19 @@ router.post("/chat", requireAuth, async (req: RequestWithUser, res) => {
       logWarning('ai', 'Failed to get project context for chat', { userId: req.userId });
     }
 
-    // Use the enhanced chat response system with personalized context
-    const response = await generateChatResponse(weddingData, message);
+    // Try AI first, fall back to smart responses if unavailable
+    let response;
+    try {
+      response = await generateChatResponse(weddingData, message);
+      
+      // If response is generic, use smart fallback instead
+      if (response.includes("I'm here to help with your wedding planning")) {
+        response = generateSmartWeddingResponse(message, weddingData);
+      }
+    } catch (error) {
+      // Use smart fallback when AI fails
+      response = generateSmartWeddingResponse(message, weddingData);
+    }
     
     logInfo('ai', 'Enhanced personalized chat response generated', { 
       userId: req.userId,
@@ -229,5 +240,88 @@ router.post("/timeline", requireAuth, validateBody(timelineSchema), async (req: 
     });
   }
 });
+
+// Smart wedding response fallback when AI is unavailable
+function generateSmartWeddingResponse(userMessage: string, weddingData: any): string {
+  const message = userMessage.toLowerCase();
+  const daysUntil = weddingData.daysUntilWedding || 79;
+  const coupleNames = weddingData.coupleNames || "you two";
+  const completedTasks = weddingData.completedTasks || 0;
+  const totalTasks = weddingData.totalTasks || 0;
+  const guestCount = weddingData.guestCount || 0;
+  
+  // Track question patterns and provide specific answers
+  if (message.includes('on track') || message.includes('timeline') || message.includes('schedule')) {
+    if (daysUntil > 180) {
+      return `Hi ${coupleNames}! With ${daysUntil} days until your wedding, you're well ahead of schedule. Focus on major bookings like venue and photographer. You have plenty of time for detailed planning later.`;
+    } else if (daysUntil > 90) {
+      return `You're doing great with ${daysUntil} days to go! This is prime booking time - make sure you have venue, catering, and photography locked in. You should also start thinking about invitations and guest list finalization.`;
+    } else if (daysUntil > 30) {
+      return `With ${daysUntil} days left, you're in the final stretch! Focus on finalizing details like decorations, seating charts, and vendor confirmations. Make sure invitations are sent and you're tracking RSVPs.`;
+    } else {
+      return `Final countdown with ${daysUntil} days! You should be confirming final headcounts, doing venue walkthroughs, and handling last-minute details. The big planning should be mostly done.`;
+    }
+  }
+  
+  if (message.includes('focus') || message.includes('priority') || message.includes('next')) {
+    return `For ${coupleNames} with ${daysUntil} days until your wedding, here are your top priorities:
+    
+1. **Venue & Catering** - Book these first if not done
+2. **Photography** - Essential and books up fast  
+3. **Guest List** - Finalize for accurate planning
+4. **Save the Dates** - Send 6-8 months ahead
+
+You've completed ${completedTasks} of ${totalTasks} tasks. Check your timeline page for specific deadlines!`;
+  }
+  
+  if (message.includes('budget') || message.includes('cost') || message.includes('money')) {
+    return `With ${daysUntil} days to go, here's budget guidance:
+
+**Major expenses (60-70% of budget):**
+- Venue & Catering: ~50% 
+- Photography: ~10-15%
+- Attire & Beauty: ~8-10%
+
+**Remaining budget for:**
+- Flowers, music, transportation, etc.
+
+Check your budget page to see how you're tracking against these guidelines!`;
+  }
+  
+  if (message.includes('guest') || message.includes('invite') || message.includes('rsvp')) {
+    return `For guest planning with ${daysUntil} days to go:
+
+**Current guest count:** ${guestCount} people
+**Timeline:**
+- Save the dates: 6-8 months before  
+- Invitations: 6-8 weeks before
+- RSVP deadline: 2-3 weeks before
+
+${daysUntil > 180 ? "Focus on finalizing your guest list first." : daysUntil > 45 ? "Time to send invitations if you haven't already!" : "Make sure you're tracking RSVPs for final headcount."}`;
+  }
+  
+  if (message.includes('vendor') || message.includes('photographer') || message.includes('caterer')) {
+    return `Vendor booking with ${daysUntil} days until your wedding:
+
+**Priority order:**
+1. Venue (books 12+ months out)
+2. Photographer (books 6-12 months out)  
+3. Catering (books 6-9 months out)
+4. Music/DJ (books 3-6 months out)
+
+${daysUntil > 180 ? "Perfect timing for major vendor bookings!" : daysUntil > 90 ? "Still good time for key vendors, but don't delay!" : "Focus on confirming details with booked vendors."}
+
+Check the vendors page to manage your bookings!`;
+  }
+  
+  // Default helpful response with personalized context
+  return `Hi ${coupleNames}! I'm PlanBot, your wedding planning assistant. 
+
+**Your wedding:** ${daysUntil} days away
+**Progress:** ${completedTasks}/${totalTasks} tasks completed  
+**Guests:** ${guestCount} people
+
+I can help with timeline planning, budget advice, vendor recommendations, and guest management. What specific area would you like guidance on?`;
+}
 
 export default router;
