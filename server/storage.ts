@@ -2,7 +2,7 @@ import {
   users, weddingProjects, collaborators, invitations, userSessions, verificationTokens,
   defaultTasks, tasks, guests, vendors, vendorPayments, budgetItems,
   timelineEvents, inspirationItems, activities, shoppingLists, shoppingItems,
-  schedules, scheduleEvents, intakeData, weddingOverview,
+  schedules, scheduleEvents, intakeData, weddingOverview, creativeDetails,
   type User, type InsertUser, type WeddingProject, type InsertWeddingProject,
   type Collaborator, type InsertCollaborator, type Invitation, type InsertInvitation,
   type UserSession, type InsertUserSession, type VerificationToken, type InsertVerificationToken,
@@ -13,7 +13,8 @@ import {
   type InspirationItem, type InsertInspirationItem, type Activity, type InsertActivity,
   type ShoppingList, type InsertShoppingList, type ShoppingItem, type InsertShoppingItem,
   type Schedule, type InsertSchedule, type ScheduleEvent, type InsertScheduleEvent,
-  type IntakeData, type InsertIntakeData, type WeddingOverview, type InsertWeddingOverview
+  type IntakeData, type InsertIntakeData, type WeddingOverview, type InsertWeddingOverview,
+  type CreativeDetail, type InsertCreativeDetail
 } from "@shared/schema";
 
 export interface IStorage {
@@ -104,6 +105,13 @@ export interface IStorage {
   updateInspirationItem(id: number, updates: Partial<InsertInspirationItem>): Promise<InspirationItem | undefined>;
   deleteInspirationItem(id: number): Promise<boolean>;
 
+  // Creative Details
+  createCreativeDetail(detail: InsertCreativeDetail): Promise<CreativeDetail>;
+  getCreativeDetails(projectId: number): Promise<CreativeDetail[]>;
+  getCreativeDetailById(id: number): Promise<CreativeDetail | undefined>;
+  updateCreativeDetail(id: number, updates: Partial<InsertCreativeDetail>): Promise<CreativeDetail>;
+  deleteCreativeDetail(id: number): Promise<boolean>;
+
   // Activities
   logActivity(activity: InsertActivity): Promise<Activity>;
   createActivity(activity: InsertActivity): Promise<Activity>;
@@ -150,6 +158,13 @@ export interface IStorage {
   createWeddingOverview(overview: InsertWeddingOverview): Promise<WeddingOverview>;
   getWeddingOverviewByProjectId(projectId: number): Promise<WeddingOverview | undefined>;
   updateWeddingOverview(projectId: number, updates: Partial<InsertWeddingOverview>): Promise<WeddingOverview | undefined>;
+
+  // Creative Details
+  createCreativeDetail(insertDetail: InsertCreativeDetail): Promise<CreativeDetail>;
+  getCreativeDetails(projectId: number): Promise<CreativeDetail[]>;
+  getCreativeDetailById(id: number): Promise<CreativeDetail | undefined>;
+  updateCreativeDetail(id: number, updates: Partial<InsertCreativeDetail>): Promise<CreativeDetail>;
+  deleteCreativeDetail(id: number): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {
@@ -1409,6 +1424,45 @@ export class DatabaseStorage implements IStorage {
     await db
       .delete(userSessions)
       .where(lt(userSessions.expiresAt, new Date()));
+  }
+
+  // Creative Details methods
+  async createCreativeDetail(insertDetail: InsertCreativeDetail): Promise<CreativeDetail> {
+    const [detail] = await db
+      .insert(creativeDetails)
+      .values(insertDetail)
+      .returning();
+    return detail;
+  }
+
+  async getCreativeDetails(projectId: number): Promise<CreativeDetail[]> {
+    return await db
+      .select()
+      .from(creativeDetails)
+      .where(eq(creativeDetails.projectId, projectId))
+      .orderBy(desc(creativeDetails.createdAt));
+  }
+
+  async getCreativeDetailById(id: number): Promise<CreativeDetail | undefined> {
+    const [detail] = await db
+      .select()
+      .from(creativeDetails)
+      .where(eq(creativeDetails.id, id));
+    return detail || undefined;
+  }
+
+  async updateCreativeDetail(id: number, updates: Partial<InsertCreativeDetail>): Promise<CreativeDetail> {
+    const [detail] = await db
+      .update(creativeDetails)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(creativeDetails.id, id))
+      .returning();
+    return detail;
+  }
+
+  async deleteCreativeDetail(id: number): Promise<boolean> {
+    const result = await db.delete(creativeDetails).where(eq(creativeDetails.id, id));
+    return result.rowCount > 0;
   }
 }
 

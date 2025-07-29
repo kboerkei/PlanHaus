@@ -30,6 +30,7 @@ import taskRoutes from "./routes/tasks";
 import guestRoutes from "./routes/guests";
 import vendorRoutes from "./routes/vendors";
 import budgetRoutes from "./routes/budget";
+import creativeDetailsRoutes from "./routes/creative-details";
 import aiRoutes from "./routes/ai";
 import aiSuggestionsRoutes from "./routes/ai-suggestions";
 import uploadRoutes from "./routes/uploads";
@@ -103,6 +104,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use("/api/guests", requireAuth, guestRoutes);
   app.use("/api/vendors", requireAuth, vendorRoutes);
   app.use("/api/budget-items", requireAuth, budgetRoutes);
+  app.use("/api/creative-details", requireAuth, creativeDetailsRoutes);
   app.use("/api/ai", requireAuth, aiRoutes);
   app.use("/api/ai", requireAuth, aiSuggestionsRoutes);
   app.use("/api/upload", requireAuth, uploadRoutes);

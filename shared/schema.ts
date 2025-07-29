@@ -526,6 +526,34 @@ export const insertWeddingOverviewSchema = createInsertSchema(weddingOverview).o
   updatedAt: true,
 });
 
+export const creativeDetails = pgTable("creative_details", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id").notNull(),
+  category: text("category").notNull(), // 'signature_drinks', 'signage', 'guestbook', 'must_have_photos', 'color_palette', 'diy_projects', 'custom_favors', 'special_songs'
+  title: text("title").notNull(),
+  description: text("description"),
+  notes: text("notes"),
+  imageUrl: text("image_url"), // For uploaded images/files
+  fileUrl: text("file_url"), // For other file uploads
+  fileName: text("file_name"), // Original file name
+  assignedTo: integer("assigned_to").references(() => users.id),
+  dueDate: timestamp("due_date"),
+  isCompleted: boolean("is_completed").default(false),
+  completedDate: timestamp("completed_date"),
+  priority: text("priority").default("medium"), // 'high', 'medium', 'low'
+  tags: text("tags").array().default([]),
+  additionalData: jsonb("additional_data"), // For category-specific fields like cocktail ingredients, song details, etc.
+  createdBy: integer("created_by").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertCreativeDetailSchema = createInsertSchema(creativeDetails).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export const intakeData = pgTable("intake_data", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull().unique(),
@@ -640,6 +668,8 @@ export type IntakeData = typeof intakeData.$inferSelect;
 export type InsertIntakeData = z.infer<typeof insertIntakeDataSchema>;
 export type WeddingOverview = typeof weddingOverview.$inferSelect;
 export type InsertWeddingOverview = z.infer<typeof insertWeddingOverviewSchema>;
+export type CreativeDetail = typeof creativeDetails.$inferSelect;
+export type InsertCreativeDetail = z.infer<typeof insertCreativeDetailSchema>;
 
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
@@ -662,6 +692,7 @@ export const weddingProjectsRelations = relations(weddingProjects, ({ one, many 
   timelineEvents: many(timelineEvents),
   inspirationItems: many(inspirationItems),
   activities: many(activities),
+  creativeDetails: many(creativeDetails),
 }));
 
 export const collaboratorsRelations = relations(collaborators, ({ one }) => ({
@@ -854,3 +885,18 @@ export type ScheduleEvent = typeof scheduleEvents.$inferSelect;
 export type InsertScheduleEvent = z.infer<typeof insertScheduleEventSchema>;
 export type WeddingOverview = typeof weddingOverview.$inferSelect;
 export type InsertWeddingOverview = z.infer<typeof insertWeddingOverviewSchema>;
+
+export const creativeDetailsRelations = relations(creativeDetails, ({ one }) => ({
+  project: one(weddingProjects, {
+    fields: [creativeDetails.projectId],
+    references: [weddingProjects.id],
+  }),
+  creator: one(users, {
+    fields: [creativeDetails.createdBy],
+    references: [users.id],
+  }),
+  assignee: one(users, {
+    fields: [creativeDetails.assignedTo],
+    references: [users.id],
+  }),
+}));

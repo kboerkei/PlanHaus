@@ -23,6 +23,7 @@ import Vendors from "@/pages/vendors";
 import Inspiration from "@/pages/inspiration";
 import Resources from "@/pages/resources";
 import Schedules from "@/pages/schedules";
+import CreativeDetails from "@/pages/creative-details";
 import Intake from "@/pages/intake";
 import IntakeWizard from "@/pages/IntakeWizard";
 import Sidebar from "@/components/layout/sidebar";
@@ -68,6 +69,7 @@ function Router({ user, onLogout, isNewUser, onIntakeComplete }: { user: User; o
                 <Route path="/guests" component={Guests} />
                 <Route path="/vendors" component={Vendors} />
                 <Route path="/inspiration" component={Inspiration} />
+                <Route path="/creative-details" component={CreativeDetails} />
                 <Route path="/resources" component={Resources} />
                 <Route path="/schedules" component={Schedules} />
                 <Route path="/profile">
