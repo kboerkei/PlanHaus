@@ -7,19 +7,26 @@ export default function Chat() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      // Add a message showing the file was uploaded
-      const newMessages = [...messages, { 
-        sender: "user", 
-        text: `📎 Uploaded file: ${file.name}` 
-      }];
-      setMessages([
-        ...newMessages,
-        { sender: "ai", text: "I can see you've uploaded a file! While I can't process files directly yet, you can tell me about what's in the file and I'll help you with your wedding planning based on that information." }
-      ]);
-    }
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const res = await fetch("/api/upload", {
+      method: "POST",
+      body: formData,
+    });
+
+    const { message, fileUrl } = await res.json();
+    alert(message || "File uploaded!");
+
+    // Optionally add to message thread:
+    setMessages((prev) => [
+      ...prev,
+      { sender: "user", text: `Uploaded file: ${file.name}` },
+    ]);
   };
 
   const sendMessage = async () => {
