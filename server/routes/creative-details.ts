@@ -1,114 +1,97 @@
 import { Router } from 'express';
-import { z } from 'zod';
-import { storage } from '../storage.js';
-import { authenticateUser } from '../middleware/auth.js';
+import { storage } from '../storage';
+import { requireAuth, RequestWithUser } from '../middleware/auth';
+import { validateBody } from '../utils/validation';
+import { getOrCreateDefaultProject } from '../utils/projects';
 import { insertCreativeDetailSchema } from '@shared/schema';
+import { logInfo, logError } from '../utils/logger';
 
 const router = Router();
 
-// Get creative details for a project
-router.get('/', authenticateUser, async (req, res) => {
+// Get all creative details for current project
+router.get('/api/creative-details', requireAuth, async (req: RequestWithUser, res) => {
   try {
-    const projectId = parseInt(req.query.projectId as string) || 1; // Default to current project
-    const details = await storage.getCreativeDetails(projectId);
-    res.json(details);
+    const project = await getOrCreateDefaultProject(req.userId);
+    const creativeDetails = await storage.getCreativeDetailsByProjectId(project.id);
+    res.json(creativeDetails);
   } catch (error) {
-    console.error('Error fetching creative details:', error);
-    res.status(500).json({ error: 'Failed to fetch creative details' });
+    logError('creative-details', error, { userId: req.userId });
+    res.status(500).json({ message: "Failed to fetch creative details" });
   }
 });
 
-// Create creative detail
-router.post('/', authenticateUser, async (req, res) => {
+// Create new creative detail
+router.post('/api/creative-details', requireAuth, validateBody(insertCreativeDetailSchema), async (req: RequestWithUser, res) => {
   try {
-    const data = insertCreativeDetailSchema.parse({
-      ...req.body,
-      createdBy: req.user!.id,
-      projectId: req.body.projectId || 1 // Default to current project
-    });
-
-    const detail = await storage.createCreativeDetail(data);
+    const project = await getOrCreateDefaultProject(req.userId);
+    const creativeDetailData = { 
+      ...req.body, 
+      projectId: project.id,
+      createdBy: req.userId 
+    };
+    const creativeDetail = await storage.createCreativeDetail(creativeDetailData);
     
-    // Log activity
-    await storage.logActivity({
-      projectId: data.projectId,
-      userId: req.user!.id,
-      action: 'created',
-      entityType: 'creative_detail',
-      entityId: detail.id,
-      details: `Created creative detail: ${detail.title}`
-    });
-
-    res.status(201).json(detail);
+    logInfo('creative-details', `Creative detail created: ${creativeDetail.title}`, { userId: req.userId });
+    res.status(201).json(creativeDetail);
   } catch (error) {
-    console.error('Error creating creative detail:', error);
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Invalid request data', details: error.errors });
-    }
-    res.status(500).json({ error: 'Failed to create creative detail' });
+    logError('creative-details', error, { userId: req.userId });
+    res.status(500).json({ message: "Failed to create creative detail" });
   }
 });
 
 // Update creative detail
-router.patch('/:id', authenticateUser, async (req, res) => {
+router.put('/api/creative-details/:id', requireAuth, validateBody(insertCreativeDetailSchema.partial()), async (req: RequestWithUser, res) => {
   try {
-    const detailId = parseInt(req.params.id);
-    const updates = req.body;
-
-    const detail = await storage.updateCreativeDetail(detailId, updates);
+    const creativeDetailId = parseInt(req.params.id);
+    const creativeDetail = await storage.getCreativeDetailById(creativeDetailId);
     
-    if (!detail) {
-      return res.status(404).json({ error: 'Creative detail not found' });
+    if (!creativeDetail) {
+      return res.status(404).json({ message: "Creative detail not found" });
     }
 
-    // Log activity
-    await storage.logActivity({
-      projectId: detail.projectId,
-      userId: req.user!.id,
-      action: 'updated',
-      entityType: 'creative_detail',
-      entityId: detail.id,
-      details: `Updated creative detail: ${detail.title}`
-    });
+    // Verify access through project ownership
+    const projects = await storage.getWeddingProjectsByUserId(req.userId);
+    const hasAccess = projects.some(p => p.id === creativeDetail.projectId);
+    
+    if (!hasAccess) {
+      return res.status(403).json({ message: "Access denied" });
+    }
 
-    res.json(detail);
+    const updatedCreativeDetail = await storage.updateCreativeDetail(creativeDetailId, req.body);
+    
+    logInfo('creative-details', `Creative detail updated: ${creativeDetailId}`, { userId: req.userId });
+    res.json(updatedCreativeDetail);
   } catch (error) {
-    console.error('Error updating creative detail:', error);
-    res.status(500).json({ error: 'Failed to update creative detail' });
+    logError('creative-details', error, { userId: req.userId, creativeDetailId: req.params.id });
+    res.status(500).json({ message: "Failed to update creative detail" });
   }
 });
 
 // Delete creative detail
-router.delete('/:id', authenticateUser, async (req, res) => {
+router.delete('/api/creative-details/:id', requireAuth, async (req: RequestWithUser, res) => {
   try {
-    const detailId = parseInt(req.params.id);
+    const creativeDetailId = parseInt(req.params.id);
+    const creativeDetail = await storage.getCreativeDetailById(creativeDetailId);
     
-    // Get detail before deletion for logging
-    const detail = await storage.getCreativeDetailById(detailId);
-    if (!detail) {
-      return res.status(404).json({ error: 'Creative detail not found' });
+    if (!creativeDetail) {
+      return res.status(404).json({ message: "Creative detail not found" });
     }
 
-    const success = await storage.deleteCreativeDetail(detailId);
+    // Verify access through project ownership
+    const projects = await storage.getWeddingProjectsByUserId(req.userId);
+    const hasAccess = projects.some(p => p.id === creativeDetail.projectId);
     
-    if (!success) {
-      return res.status(404).json({ error: 'Creative detail not found' });
+    if (!hasAccess) {
+      return res.status(403).json({ message: "Access denied" });
     }
 
-    // Log activity
-    await storage.logActivity({
-      projectId: detail.projectId,
-      userId: req.user!.id,
-      action: 'deleted',
-      entityType: 'creative_detail',
-      entityId: detail.id,
-      details: `Deleted creative detail: ${detail.title}`
-    });
-
-    res.json({ message: 'Creative detail deleted successfully' });
+    await storage.deleteCreativeDetail(creativeDetailId);
+    
+    logInfo('creative-details', `Creative detail deleted: ${creativeDetailId}`, { userId: req.userId });
+    res.json({ message: "Creative detail deleted successfully" });
   } catch (error) {
-    console.error('Error deleting creative detail:', error);
-    res.status(500).json({ error: 'Failed to delete creative detail' });
+    logError('creative-details', error, { userId: req.userId, creativeDetailId: req.params.id });
+    res.status(500).json({ message: "Failed to delete creative detail" });
   }
 });
 

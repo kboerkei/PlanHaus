@@ -4,10 +4,9 @@ import { z } from "zod";
 import { storage } from "./storage";
 import { initializeWebSocketService } from "./services/websocket";
 import { logInfo, logError } from "./utils/logger";
-import { requireAuth, addSession } from "./middleware/auth";
+import { requireAuth, addSession, RequestWithUser } from "./middleware/auth";
 import { validateBody } from "./utils/validation";
 import { getOrCreateDefaultProject } from "./utils/projects";
-import { RequestWithUser } from "./types/express";
 import { 
   insertInspirationItemSchema, insertScheduleSchema, insertScheduleEventSchema, 
   insertIntakeDataSchema, insertWeddingOverviewSchema

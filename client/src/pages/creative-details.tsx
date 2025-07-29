@@ -13,16 +13,53 @@ import { type CreativeDetail, type InsertCreativeDetail } from "@shared/schema";
 import { ChevronDown, ChevronRight, Plus, Upload, User, Calendar, Edit, Trash2, CheckCircle, Clock, AlertCircle, Users } from "lucide-react";
 import { useDropzone } from "react-dropzone";
 import { useToast } from "@/hooks/use-toast";
-import { 
-  getCreativeDetails, 
-  createCreativeDetail, 
-  updateCreativeDetail, 
-  deleteCreativeDetail,
-  getCollaborators,
-  canEdit,
-  syncLocalStorageToSupabase,
-  type Collaborator
-} from '@/lib/supabase-creative-details';
+// API functions for creative details
+const getCreativeDetails = async () => {
+  const sessionId = localStorage.getItem('sessionId') || 'demo_session';
+  const response = await fetch('/api/creative-details', {
+    headers: { Authorization: `Bearer ${sessionId}` }
+  });
+  if (!response.ok) throw new Error('Failed to fetch creative details');
+  return response.json();
+};
+
+const createCreativeDetail = async (detail: any) => {
+  const sessionId = localStorage.getItem('sessionId') || 'demo_session';
+  const response = await fetch('/api/creative-details', {
+    method: 'POST',
+    headers: { 
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${sessionId}`
+    },
+    body: JSON.stringify(detail)
+  });
+  if (!response.ok) throw new Error('Failed to create creative detail');
+  return response.json();
+};
+
+const updateCreativeDetail = async (id: number, updates: any) => {
+  const sessionId = localStorage.getItem('sessionId') || 'demo_session';
+  const response = await fetch(`/api/creative-details/${id}`, {
+    method: 'PUT',
+    headers: { 
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${sessionId}`
+    },
+    body: JSON.stringify(updates)
+  });
+  if (!response.ok) throw new Error('Failed to update creative detail');
+  return response.json();
+};
+
+const deleteCreativeDetail = async (id: number) => {
+  const sessionId = localStorage.getItem('sessionId') || 'demo_session';
+  const response = await fetch(`/api/creative-details/${id}`, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${sessionId}` }
+  });
+  if (!response.ok) throw new Error('Failed to delete creative detail');
+  return response.json();
+};
 
 // Enhanced category definitions with comprehensive fields and AI support
 const categories = [
@@ -65,6 +102,27 @@ const categories = [
       { name: "sendByDates", label: "Send-by Dates", type: "text" },
       { name: "designLink", label: "Design Inspiration Link", type: "text" },
       { name: "envelopeDetails", label: "Envelope Details", type: "textarea", placeholder: "Return address, stamp type, etc." }
+    ]
+  },
+  {
+    id: 'small_details',
+    title: 'Small Details',
+    icon: '🔍',
+    description: 'Important logistics and responsibilities for your wedding day',
+    color: 'bg-gradient-to-br from-slate-50 to-gray-50 border-slate-200 hover:shadow-lg',
+    fields: [
+      { name: "brideWalkingWith", label: "Who is bringing the bride to the venue?", type: "text" },
+      { name: "groomWalkingWith", label: "Who is bringing the groom to the venue?", type: "text" },
+      { name: "weddingPartyTransport", label: "How is the wedding party getting home?", type: "textarea" },
+      { name: "ringsToVenue", label: "Who is responsible for bringing the rings to the venue?", type: "text" },
+      { name: "dressToVenue", label: "Who is responsible for bringing the dress to the venue?", type: "text" },
+      { name: "belongingsTransport", label: "Who is responsible for getting the bride and groom's belongings into their getaway car?", type: "textarea" },
+      { name: "getawayCar", label: "Who is driving the getaway car?", type: "text" },
+      { name: "decorTakeHome", label: "Who is in charge of taking all the decor home from the venue?", type: "text" },
+      { name: "giftsFromVenue", label: "Who is in charge of taking all the gifts home from the venue?", type: "text" },
+      { name: "floralsDisposal", label: "Are the florals to be trashed or is someone taking them home?", type: "textarea" },
+      { name: "bouquetPreservation", label: "Who is responsible for caring for your bouquet if you are having it preserved?", type: "textarea" },
+      { name: "finalVenueSweep", label: "Who will do a final sweep of the venue for any items left by wedding party and guests?", type: "text" }
     ]
   },
   {

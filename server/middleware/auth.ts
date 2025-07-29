@@ -3,18 +3,15 @@ import jwt from 'jsonwebtoken';
 import { storage } from '../storage';
 
 // Extend Express Request type to include user
-declare global {
-  namespace Express {
-    interface Request {
-      user?: {
-        id: number;
-        email: string;
-        username: string;
-        role: string;
-      };
-      projectRole?: string;
-    }
-  }
+export interface RequestWithUser extends Request {
+  userId: number;
+  user?: {
+    id: number;
+    email: string;
+    username: string;
+    role: string;
+  };
+  projectRole?: string;
 }
 
 // JWT Secret (in production, this should be in environment variables)
@@ -52,7 +49,7 @@ export function addSession(sessionId: string, userId: number) {
 }
 
 // Authentication middleware that supports both JWT tokens and simple session IDs
-export async function authenticateUser(req: Request, res: Response, next: NextFunction) {
+export async function authenticateUser(req: RequestWithUser, res: Response, next: NextFunction) {
   try {
     const authHeader = req.headers.authorization;
     const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
@@ -92,7 +89,7 @@ export async function authenticateUser(req: Request, res: Response, next: NextFu
     };
 
     // Also set userId for backward compatibility
-    (req as any).userId = user.id;
+    req.userId = user.id;
 
     next();
   } catch (error) {
@@ -105,7 +102,7 @@ export async function authenticateUser(req: Request, res: Response, next: NextFu
 
 // Project permission middleware
 export async function checkProjectPermission(requiredRole: 'admin' | 'editor' | 'viewer' = 'viewer') {
-  return async (req: Request, res: Response, next: NextFunction) => {
+  return async (req: RequestWithUser, res: Response, next: NextFunction) => {
     try {
       if (!req.user) {
         return res.status(401).json({ error: 'Authentication required' });
