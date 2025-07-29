@@ -38,6 +38,41 @@ export default function Chat() {
     }
   };
 
+  const handleFileAnalysis = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const sessionId = localStorage.getItem("sessionId");
+      setLoading(true);
+      
+      const res = await fetch("/api/analyzeFile", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${sessionId}`,
+        },
+        body: formData,
+      });
+
+      const { analysis, fileName } = await res.json();
+      
+      // Add analysis to chat
+      setMessages((prev) => [
+        ...prev,
+        { sender: "user", text: `📄 Analyzed: ${fileName}` },
+        { sender: "ai", text: analysis }
+      ]);
+    } catch (error) {
+      alert("Analysis failed. Please try again.");
+      console.error("Analysis error:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const sendMessage = async () => {
     if (!input.trim()) return;
 
@@ -105,7 +140,7 @@ export default function Chat() {
             Send
           </button>
         </div>
-        <div className="flex justify-start">
+        <div className="flex justify-start gap-4">
           <input
             type="file"
             onChange={handleFileUpload}
@@ -117,6 +152,20 @@ export default function Chat() {
             className="cursor-pointer text-sm text-champagne underline"
           >
             Upload a file
+          </label>
+          
+          <input
+            type="file"
+            onChange={handleFileAnalysis}
+            className="hidden"
+            id="file-analysis"
+            accept=".pdf,.xlsx,.xls,.csv"
+          />
+          <label
+            htmlFor="file-analysis"
+            className="cursor-pointer text-sm text-champagne underline"
+          >
+            Analyze document
           </label>
         </div>
       </div>

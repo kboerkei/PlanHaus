@@ -33,6 +33,7 @@ import budgetRoutes from "./routes/budget";
 import aiRoutes from "./routes/ai";
 import aiSuggestionsRoutes from "./routes/ai-suggestions";
 import uploadRoutes from "./routes/uploads";
+import analyzeFileRoutes from "./routes/analyzeFile";
 import exportRoutes from "./routes/export";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -71,6 +72,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use("/api/ai", requireAuth, aiRoutes);
   app.use("/api/ai", requireAuth, aiSuggestionsRoutes);
   app.use("/api/upload", requireAuth, uploadRoutes);
+  app.use("/api/analyzeFile", analyzeFileRoutes);
   app.use("/api/export", requireAuth, exportRoutes);
 
   // Add simple dashboard stats endpoint
