@@ -102,11 +102,11 @@ router.post("/chat", requireAuth, async (req: RequestWithUser, res) => {
       
       // If response is generic, use smart fallback instead
       if (response.includes("I'm here to help with your wedding planning")) {
-        response = generateSmartWeddingResponse(message, weddingData);
+        response = await generateSmartWeddingResponse(message, weddingData);
       }
     } catch (error) {
       // Use smart fallback when AI fails
-      response = generateSmartWeddingResponse(message, weddingData);
+      response = await generateSmartWeddingResponse(message, weddingData);
     }
     
     logInfo('ai', 'Enhanced personalized chat response generated', { 
@@ -241,14 +241,88 @@ router.post("/timeline", requireAuth, validateBody(timelineSchema), async (req: 
   }
 });
 
-// Smart wedding response fallback when AI is unavailable
-function generateSmartWeddingResponse(userMessage: string, weddingData: any): string {
+// Enhanced AI response system with real data integration
+async function generateSmartWeddingResponse(userMessage: string, weddingData: any): Promise<string> {
   const message = userMessage.toLowerCase();
   const daysUntil = weddingData.daysUntilWedding || 79;
   const coupleNames = weddingData.coupleNames || "you two";
   const completedTasks = weddingData.completedTasks || 0;
   const totalTasks = weddingData.totalTasks || 0;
   const guestCount = weddingData.guestCount || 0;
+  const budget = weddingData.budget || 0;
+  
+  // Enhanced condition handling with real data integration
+  if (message.includes("next") || message.includes("what now") || message.includes("focus") || message.includes("priority")) {
+    try {
+      // Get actual task data to provide specific next steps
+      const tasks = storage.getTasksByProjectId(1); // Using demo project ID
+      const pendingTasks = tasks.filter((task: any) => !task.completed).slice(0, 3);
+      
+      if (pendingTasks.length > 0) {
+        const taskList = pendingTasks.map((task, index) => 
+          `${index + 1}. **${task.title}** ${task.dueDate ? `(Due: ${new Date(task.dueDate).toLocaleDateString()})` : ''}`
+        ).join('\n');
+        
+        return `Based on your current progress, here are your next 3 priority tasks:
+
+${taskList}
+
+With ${daysUntil} days until ${coupleNames}'s wedding, focus on these items to stay on track. You've completed ${completedTasks} of ${totalTasks} total tasks.`;
+      }
+    } catch (error) {
+      // Fallback if task data unavailable
+    }
+    
+    return `For ${coupleNames} with ${daysUntil} days until your wedding, here are your top priorities:
+    
+1. **Venue & Catering** - Book these first if not done
+2. **Photography** - Essential and books up fast  
+3. **Guest List** - Finalize for accurate planning
+4. **Save the Dates** - Send 6-8 months ahead
+
+You've completed ${completedTasks} of ${totalTasks} tasks. Check your timeline page for specific deadlines!`;
+  }
+
+  if (message.includes("budget") || message.includes("cost") || message.includes("money")) {
+    try {
+      // Get actual budget data for personalized advice
+      const budgetItems = storage.getBudgetItemsByProjectId(1);
+      const totalSpent = budgetItems.reduce((sum: number, item: any) => sum + (item.actualCost || 0), 0);
+      const totalBudgeted = budgetItems.reduce((sum: number, item: any) => sum + (item.estimatedCost || 0), 0);
+      
+      if (totalBudgeted > 0) {
+        const percentSpent = Math.round((totalSpent / totalBudgeted) * 100);
+        const remaining = totalBudgeted - totalSpent;
+        
+        return `Help with your $${totalBudgeted.toLocaleString()} wedding budget:
+
+**Current Status:**
+- Spent: $${totalSpent.toLocaleString()} (${percentSpent}%)
+- Remaining: $${remaining.toLocaleString()}
+
+**Budget Allocation Guidelines:**
+- Venue & Catering: ~50% ($${Math.round(totalBudgeted * 0.5).toLocaleString()})
+- Photography: ~10-15% ($${Math.round(totalBudgeted * 0.12).toLocaleString()})
+- Attire & Beauty: ~8-10% ($${Math.round(totalBudgeted * 0.09).toLocaleString()})
+
+${percentSpent > 80 ? "⚠️ You're approaching your budget limit - consider reviewing remaining expenses." : percentSpent > 60 ? "You're making good progress - keep tracking expenses carefully." : "You have good budget flexibility for remaining planning."}`;
+      }
+    } catch (error) {
+      // Fallback if budget data unavailable
+    }
+    
+    return `With ${daysUntil} days to go, here's budget guidance:
+
+**Major expenses (60-70% of budget):**
+- Venue & Catering: ~50% 
+- Photography: ~10-15%
+- Attire & Beauty: ~8-10%
+
+**Remaining budget for:**
+- Flowers, music, transportation, etc.
+
+Check your budget page to see how you're tracking against these guidelines!`;
+  }
   
   // Track question patterns and provide specific answers
   if (message.includes('on track') || message.includes('timeline') || message.includes('schedule')) {
@@ -261,31 +335,6 @@ function generateSmartWeddingResponse(userMessage: string, weddingData: any): st
     } else {
       return `Final countdown with ${daysUntil} days! You should be confirming final headcounts, doing venue walkthroughs, and handling last-minute details. The big planning should be mostly done.`;
     }
-  }
-  
-  if (message.includes('focus') || message.includes('priority') || message.includes('next')) {
-    return `For ${coupleNames} with ${daysUntil} days until your wedding, here are your top priorities:
-    
-1. **Venue & Catering** - Book these first if not done
-2. **Photography** - Essential and books up fast  
-3. **Guest List** - Finalize for accurate planning
-4. **Save the Dates** - Send 6-8 months ahead
-
-You've completed ${completedTasks} of ${totalTasks} tasks. Check your timeline page for specific deadlines!`;
-  }
-  
-  if (message.includes('budget') || message.includes('cost') || message.includes('money')) {
-    return `With ${daysUntil} days to go, here's budget guidance:
-
-**Major expenses (60-70% of budget):**
-- Venue & Catering: ~50% 
-- Photography: ~10-15%
-- Attire & Beauty: ~8-10%
-
-**Remaining budget for:**
-- Flowers, music, transportation, etc.
-
-Check your budget page to see how you're tracking against these guidelines!`;
   }
   
   if (message.includes('guest') || message.includes('invite') || message.includes('rsvp')) {
