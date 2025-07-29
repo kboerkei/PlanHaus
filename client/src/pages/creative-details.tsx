@@ -14,63 +14,63 @@ import { ChevronDown, ChevronRight, Plus, Upload, User, Calendar, Edit, Trash2, 
 import { useDropzone } from "react-dropzone";
 import { useToast } from "@/hooks/use-toast";
 
-// Category definitions with icons and metadata
+// Category definitions with icons and metadata - matching PlanHaus aesthetic
 const categories = [
   {
     id: 'signature_drinks',
     title: 'Signature Drinks',
     icon: '🍹',
     description: 'Custom cocktails and special beverages for your wedding',
-    color: 'bg-amber-50 border-amber-200',
+    color: 'bg-gradient-to-br from-amber-50 to-orange-50 border-amber-200 hover:shadow-lg',
   },
   {
     id: 'signage',
     title: 'Signage',
     icon: '🪧',
     description: 'Welcome signs, directional signage, and custom displays',
-    color: 'bg-blue-50 border-blue-200',
+    color: 'bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200 hover:shadow-lg',
   },
   {
     id: 'guestbook',
     title: 'Guestbook',
     icon: '📖',
     description: 'Creative alternatives to traditional guest books',
-    color: 'bg-green-50 border-green-200',
+    color: 'bg-gradient-to-br from-emerald-50 to-green-50 border-emerald-200 hover:shadow-lg',
   },
   {
     id: 'must_have_photos',
     title: 'Must-Have Photos',
     icon: '📸',
     description: 'Essential photo moments and shot lists',
-    color: 'bg-purple-50 border-purple-200',
+    color: 'bg-gradient-to-br from-purple-50 to-pink-50 border-purple-200 hover:shadow-lg',
   },
   {
     id: 'color_palette',
     title: 'Color Palette',
     icon: '🎨',
     description: 'Wedding colors, themes, and design inspiration',
-    color: 'bg-pink-50 border-pink-200',
+    color: 'bg-gradient-to-br from-pink-50 to-rose-50 border-pink-200 hover:shadow-lg',
   },
   {
     id: 'diy_projects',
     title: 'DIY Projects',
     icon: '✂️',
     description: 'Handmade decorations and craft projects',
-    color: 'bg-indigo-50 border-indigo-200',
+    color: 'bg-gradient-to-br from-indigo-50 to-purple-50 border-indigo-200 hover:shadow-lg',
   },
   {
-    id: 'custom_favors',
-    title: 'Custom Favors',
+    id: 'favors',
+    title: 'Favors',
     icon: '🎁',
     description: 'Personalized wedding favors and guest gifts',
-    color: 'bg-rose-50 border-rose-200',
+    color: 'bg-gradient-to-br from-rose-50 to-pink-50 border-rose-200 hover:shadow-lg',
   },
   {
     id: 'special_songs',
     title: 'Special Songs',
     icon: '🎶',
     description: 'Music playlist and meaningful songs',
-    color: 'bg-emerald-50 border-emerald-200',
+    color: 'bg-gradient-to-br from-teal-50 to-cyan-50 border-teal-200 hover:shadow-lg',
   },
 ];
 
@@ -310,9 +310,32 @@ export default function CreativeDetails() {
 
   return (
     <div className="p-6 max-w-6xl mx-auto">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Creative Details</h1>
-        <p className="text-gray-600">Organize all the special touches that make your wedding uniquely yours</p>
+      {/* Enhanced Header with PlanHaus styling */}
+      <div className="mb-8 text-center">
+        <h1 className="text-4xl font-serif font-bold text-gray-900 mb-4">Creative Details</h1>
+        <p className="text-lg text-gray-600 max-w-2xl mx-auto">Organize all the special touches that make your wedding uniquely yours</p>
+        
+        {/* Summary Stats */}
+        <div className="flex justify-center space-x-8 mt-6">
+          <div className="text-center">
+            <div className="text-2xl font-bold gradient-text bg-gradient-to-r from-blush to-rose-gold">
+              {details?.length || 0}
+            </div>
+            <div className="text-sm text-gray-500">Total Details</div>
+          </div>
+          <div className="text-center">
+            <div className="text-2xl font-bold gradient-text bg-gradient-to-r from-champagne to-sage">
+              {categories.length}
+            </div>
+            <div className="text-sm text-gray-500">Categories</div>
+          </div>
+          <div className="text-center">
+            <div className="text-2xl font-bold gradient-text bg-gradient-to-r from-sage to-blush">
+              {details?.filter(d => d.dueDate && new Date(d.dueDate) < new Date()).length || 0}
+            </div>
+            <div className="text-sm text-gray-500">Due Soon</div>
+          </div>
+        </div>
       </div>
 
       <div className="space-y-4">
@@ -321,7 +344,7 @@ export default function CreativeDetails() {
           const isExpanded = expandedCategories.has(category.id);
           
           return (
-            <Card key={category.id} className={`${category.color} transition-all duration-200`}>
+            <Card key={category.id} className={`${category.color} transition-all duration-300 transform hover:scale-[1.02] rounded-2xl shadow-md`}>
               <CardHeader 
                 className="cursor-pointer"
                 onClick={() => toggleCategory(category.id)}

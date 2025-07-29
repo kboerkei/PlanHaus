@@ -242,25 +242,48 @@ function TableCard({
       exit={{ opacity: 0, scale: 0.9 }}
       className="relative"
     >
-      <Card className="h-full border-2 hover:border-rose-200 transition-colors">
-        <CardHeader className="pb-3">
+      <Card className="h-full hover:shadow-xl transition-all duration-300 bg-gradient-to-br from-white to-gray-50 border-gray-200 rounded-2xl shadow-md hover:scale-[1.02] transform">
+        <CardHeader className="pb-4 bg-gradient-to-r from-blush/10 to-rose-gold/10 rounded-t-2xl">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-lg font-semibold text-rose-800 flex items-center gap-2">
-              <Armchair className="h-5 w-5" />
-              {table.name}
+            <CardTitle className="flex items-center gap-3 text-lg">
+              <div className="p-2 bg-gradient-to-br from-blush to-rose-gold rounded-xl shadow-sm">
+                <Armchair className="h-5 w-5 text-white" />
+              </div>
+              <span className="font-serif font-bold text-gray-900">{table.name}</span>
             </CardTitle>
             <div className="flex gap-1">
-              <Button variant="ghost" size="sm" onClick={onEditTable}>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onEditTable}
+                className="h-9 w-9 p-0 text-gray-500 hover:text-blush hover:bg-blush/10 rounded-xl transition-colors"
+              >
                 <Edit3 className="h-4 w-4" />
               </Button>
-              <Button variant="ghost" size="sm" onClick={onDeleteTable}>
-                <Trash2 className="h-4 w-4 text-red-500" />
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onDeleteTable}
+                className="h-9 w-9 p-0 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-xl transition-colors"
+              >
+                <Trash2 className="h-4 w-4" />
               </Button>
             </div>
           </div>
-          <p className="text-sm text-gray-600">
-            {assignedGuests.length} of {table.maxSeats} seats filled
-          </p>
+          <div className="flex items-center gap-2 text-sm text-gray-600">
+            <div className="flex items-center gap-1">
+              <Users className="h-4 w-4" />
+              <span className="font-medium">{assignedGuests.length} of {table.maxSeats}</span>
+            </div>
+            <span className="text-gray-400">•</span>
+            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+              availableSeats === 0 
+                ? 'bg-gray-100 text-gray-600' 
+                : 'bg-green-100 text-green-700'
+            }`}>
+              {availableSeats === 0 ? 'Full' : `${availableSeats} available`}
+            </span>
+          </div>
         </CardHeader>
         
         <CardContent className="space-y-3">
@@ -272,17 +295,19 @@ function TableCard({
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 20 }}
-                className="flex items-center justify-between p-2 bg-rose-50 rounded-lg"
+                className="flex items-center justify-between p-3 bg-gradient-to-r from-blush/20 to-rose-gold/20 rounded-xl border border-blush/30"
               >
-                <div className="flex items-center gap-2">
-                  <Users className="h-4 w-4 text-rose-600" />
-                  <span className="text-sm font-medium">{assignment.guest.name}</span>
+                <div className="flex items-center gap-3">
+                  <div className="p-1.5 bg-gradient-to-br from-blush to-rose-gold rounded-lg">
+                    <Users className="h-3 w-3 text-white" />
+                  </div>
+                  <span className="text-sm font-medium text-gray-900">{assignment.guest.name}</span>
                 </div>
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => onRemoveGuest(assignment.id)}
-                  className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
+                  className="h-7 w-7 p-0 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
                 >
                   <UserMinus className="h-3 w-3" />
                 </Button>
@@ -303,7 +328,7 @@ function TableCard({
               variant="outline"
               size="sm"
               onClick={onAssignGuest}
-              className="w-full border-rose-200 text-rose-600 hover:bg-rose-50"
+              className="w-full border-blush/30 text-blush hover:bg-blush/10 hover:border-blush/50 rounded-xl transition-all duration-200 font-medium"
             >
               <UserPlus className="h-4 w-4 mr-2" />
               Add Guest
@@ -430,28 +455,25 @@ export default function SeatingChart() {
   const unassignedGuests = seatingData?.unassignedGuests || [];
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Seating Chart</h1>
-          <p className="text-gray-600 mt-1">
-            Organize your guests into tables for the perfect wedding layout
-          </p>
-        </div>
+    <div className="p-6 max-w-7xl mx-auto">
+      {/* Enhanced Header with PlanHaus styling */}
+      <div className="mb-8 text-center">
+        <h1 className="text-4xl font-serif font-bold text-gray-900 mb-4">Seating Chart</h1>
+        <p className="text-lg text-gray-600 max-w-2xl mx-auto">Organize your guests into tables for the perfect wedding layout</p>
         
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={exportToCSV}>
+        {/* Action Buttons */}
+        <div className="flex justify-center gap-3 mt-6">
+          <Button variant="outline" onClick={exportToCSV} className="rounded-full">
             <FileText className="h-4 w-4 mr-2" />
             Export CSV
           </Button>
-          <Button variant="outline" onClick={exportToPDF}>
+          <Button variant="outline" onClick={exportToPDF} className="rounded-full">
             <Download className="h-4 w-4 mr-2" />
             Export PDF
           </Button>
           <Dialog open={showTableForm} onOpenChange={setShowTableForm}>
             <DialogTrigger asChild>
-              <Button>
+              <Button className="rounded-full bg-gradient-to-r from-blush to-rose-gold hover:from-rose-400 hover:to-pink-600 shadow-lg">
                 <Plus className="h-4 w-4 mr-2" />
                 Add Table
               </Button>
@@ -466,77 +488,92 @@ export default function SeatingChart() {
         </div>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-rose-600">{tables.length}</div>
-            <div className="text-sm text-gray-600">Tables</div>
+      {/* Enhanced Stats Dashboard */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
+        <Card className="bg-gradient-to-br from-rose-50 to-pink-50 border-rose-200 rounded-2xl shadow-md hover:shadow-lg transition-all duration-300">
+          <CardContent className="p-6 text-center">
+            <div className="text-3xl font-bold gradient-text bg-gradient-to-r from-rose-600 to-pink-600">
+              {tables.length}
+            </div>
+            <div className="text-sm font-medium text-gray-600 mt-1">Tables</div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-blue-600">{assignments.length}</div>
-            <div className="text-sm text-gray-600">Assigned Guests</div>
+        <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200 rounded-2xl shadow-md hover:shadow-lg transition-all duration-300">
+          <CardContent className="p-6 text-center">
+            <div className="text-3xl font-bold gradient-text bg-gradient-to-r from-blue-600 to-indigo-600">
+              {assignments.length}
+            </div>
+            <div className="text-sm font-medium text-gray-600 mt-1">Assigned</div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-amber-600">{unassignedGuests.length}</div>
-            <div className="text-sm text-gray-600">Unassigned</div>
+        <Card className="bg-gradient-to-br from-amber-50 to-orange-50 border-amber-200 rounded-2xl shadow-md hover:shadow-lg transition-all duration-300">
+          <CardContent className="p-6 text-center">
+            <div className="text-3xl font-bold gradient-text bg-gradient-to-r from-amber-600 to-orange-600">
+              {unassignedGuests.length}
+            </div>
+            <div className="text-sm font-medium text-gray-600 mt-1">Unassigned</div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-green-600">
+        <Card className="bg-gradient-to-br from-emerald-50 to-green-50 border-emerald-200 rounded-2xl shadow-md hover:shadow-lg transition-all duration-300">
+          <CardContent className="p-6 text-center">
+            <div className="text-3xl font-bold gradient-text bg-gradient-to-r from-emerald-600 to-green-600">
               {tables.reduce((total, table) => total + table.maxSeats, 0)}
             </div>
-            <div className="text-sm text-gray-600">Total Seats</div>
+            <div className="text-sm font-medium text-gray-600 mt-1">Total Seats</div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Unassigned Guests */}
+      {/* Unassigned Guests with Enhanced Styling */}
       {unassignedGuests.length > 0 && (
-        <Card>
+        <Card className="bg-gradient-to-br from-amber-50 to-orange-50 border-amber-200 rounded-2xl shadow-md">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5 text-amber-600" />
+            <CardTitle className="flex items-center gap-3 text-amber-800">
+              <div className="p-2 bg-amber-200 rounded-xl">
+                <Users className="h-5 w-5" />
+              </div>
               Unassigned Guests ({unassignedGuests.length})
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-3">
               {unassignedGuests.map((guest) => (
-                <div
+                <motion.div
                   key={guest.id}
-                  className="px-3 py-1 bg-amber-100 text-amber-800 rounded-full text-sm font-medium"
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="px-4 py-2 bg-gradient-to-r from-amber-100 to-orange-100 text-amber-800 rounded-full text-sm font-medium shadow-sm hover:shadow-md transition-all duration-200 border border-amber-200"
                 >
                   {guest.name}
-                </div>
+                </motion.div>
               ))}
             </div>
           </CardContent>
         </Card>
       )}
 
-      {/* Tables Grid */}
+      {/* Tables Grid with Enhanced Empty State */}
       {tables.length === 0 ? (
-        <Card className="text-center py-12">
+        <Card className="text-center py-16 bg-gradient-to-br from-gray-50 to-blue-50 border-gray-200 rounded-2xl shadow-lg">
           <CardContent>
-            <Armchair className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No tables created yet</h3>
-            <p className="text-gray-600 mb-4">
-              Start by creating your first table to organize your wedding seating
+            <div className="bg-gradient-to-br from-blush to-rose-gold p-4 rounded-full w-20 h-20 mx-auto mb-6 flex items-center justify-center">
+              <Armchair className="h-10 w-10 text-white" />
+            </div>
+            <h3 className="text-2xl font-serif font-bold text-gray-900 mb-3">No tables created yet</h3>
+            <p className="text-gray-600 mb-6 max-w-md mx-auto text-lg">
+              Start by creating your first table to organize your wedding seating arrangement
             </p>
-            <Button onClick={() => setShowTableForm(true)}>
-              <Plus className="h-4 w-4 mr-2" />
+            <Button 
+              onClick={() => setShowTableForm(true)}
+              className="bg-gradient-to-r from-blush to-rose-gold hover:from-rose-400 hover:to-pink-600 shadow-lg rounded-full px-8 py-3"
+            >
+              <Plus className="h-5 w-5 mr-2" />
               Create Your First Table
             </Button>
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           <AnimatePresence>
             {tables.map((table) => (
               <TableCard
