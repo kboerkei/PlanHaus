@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Home, Bot, Calendar, DollarSign, Users, Store, Clock, Palette, User, MoreHorizontal, Globe, Heart, Menu, Armchair } from "lucide-react";
+import { Home, Bot, Calendar, DollarSign, Users, Store, Clock, Palette, User, MoreHorizontal, Globe, Heart, Menu, Armchair, FileText, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -13,11 +13,13 @@ const primaryNavigation = [
 ];
 
 const secondaryNavigation = [
+  { name: "Overview", href: "/overview", icon: FileText },
   { name: "AI Assistant", href: "/ai-assistant", icon: Bot },
   { name: "Seating Chart", href: "/seating-chart", icon: Armchair },
   { name: "Vendors", href: "/vendors", icon: Store },
   { name: "Schedules", href: "/schedules", icon: Clock },
   { name: "Inspiration", href: "/inspiration", icon: Palette },
+  { name: "Creative Details", href: "/creative-details", icon: Sparkles },
   { name: "Resources", href: "/resources", icon: Globe },
   { name: "Profile", href: "/profile", icon: User },
 ];

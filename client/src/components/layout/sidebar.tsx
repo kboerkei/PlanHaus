@@ -1,9 +1,10 @@
 import { Link, useLocation } from "wouter";
-import { Heart, Home, Bot, Calendar, DollarSign, Users, Store, Palette, User, Clock, Globe, Sparkles, Armchair, UserPlus, Activity } from "lucide-react";
+import { Heart, Home, Bot, Calendar, DollarSign, Users, Store, Palette, User, Clock, Globe, Sparkles, Armchair, UserPlus, Activity, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navigation = [
   { name: "Dashboard", href: "/", icon: Home },
+  { name: "Overview", href: "/overview", icon: FileText },
   { name: "AI Assistant", href: "/ai-assistant", icon: Bot },
   { name: "Timeline", href: "/timeline", icon: Calendar },
   { name: "Budget", href: "/budget", icon: DollarSign },
