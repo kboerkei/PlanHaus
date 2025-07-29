@@ -88,23 +88,15 @@ export async function generateChatResponse(
   }
 
   try {
-    const messages = [
-      {
-        role: "system" as const,
-        content: systemMessage
-      },
-      {
-        role: "user" as const,
-        content: userPrompt
-      }
-    ];
 
     const response = await openai.chat.completions.create({
-      model: "gpt-4o",
-      messages: messages,
-      // No JSON format required for chat responses
-      max_tokens: 500,
-      temperature: 0.7
+      model: "gpt-4o", // or "gpt-3.5-turbo" for speed
+      messages: [
+        { role: "system", content: systemMessage },
+        { role: "user", content: userPrompt },
+      ],
+      temperature: 0.7,
+      max_tokens: 500
     });
 
     const content = response.choices[0].message.content;
