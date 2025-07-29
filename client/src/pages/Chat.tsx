@@ -14,19 +14,28 @@ export default function Chat() {
     const formData = new FormData();
     formData.append("file", file);
 
-    const res = await fetch("/api/upload", {
-      method: "POST",
-      body: formData,
-    });
+    try {
+      const sessionId = localStorage.getItem("sessionId");
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${sessionId}`,
+        },
+        body: formData,
+      });
 
-    const { message, fileUrl } = await res.json();
-    alert(message || "File uploaded!");
+      const { message, fileUrl } = await res.json();
+      alert(message || "File uploaded!");
 
-    // Optionally add to message thread:
-    setMessages((prev) => [
-      ...prev,
-      { sender: "user", text: `Uploaded file: ${file.name}` },
-    ]);
+      // Optionally add to message thread:
+      setMessages((prev) => [
+        ...prev,
+        { sender: "user", text: `Uploaded file: ${file.name}` },
+      ]);
+    } catch (error) {
+      alert("Upload failed. Please try again.");
+      console.error("Upload error:", error);
+    }
   };
 
   const sendMessage = async () => {
