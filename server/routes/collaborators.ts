@@ -8,12 +8,7 @@ const router = Router();
 // Get collaborators for a project
 router.get('/', authenticateUser, async (req, res) => {
   try {
-    const projectId = parseInt(req.query.projectId as string);
-    
-    if (!projectId) {
-      return res.status(400).json({ error: 'Project ID required' });
-    }
-
+    const projectId = parseInt(req.query.projectId as string) || 1; // Default to current project
     const projectCollaborators = await storage.getCollaboratorsByProjectId(projectId);
 
     res.json(projectCollaborators);
