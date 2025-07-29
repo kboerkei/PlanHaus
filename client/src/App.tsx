@@ -13,6 +13,7 @@ import Profile from "@/pages/profile";
 import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/dashboard";
 import AIAssistant from "@/pages/ai-assistant";
+import Chat from "@/pages/Chat";
 import Overview from "@/pages/overview";
 import Timeline from "@/pages/timeline";
 import Budget from "@/pages/budget";
@@ -58,6 +59,7 @@ function Router({ user, onLogout, isNewUser, onIntakeComplete }: { user: User; o
                   <IntakeWizard />
                 </Route>
                 <Route path="/ai-assistant" component={AIAssistant} />
+                <Route path="/chat" component={Chat} />
                 <Route path="/overview" component={Overview} />
                 <Route path="/timeline" component={Timeline} />
                 <Route path="/budget" component={Budget} />
