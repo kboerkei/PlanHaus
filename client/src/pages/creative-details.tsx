@@ -14,64 +14,134 @@ import { ChevronDown, ChevronRight, Plus, Upload, User, Calendar, Edit, Trash2, 
 import { useDropzone } from "react-dropzone";
 import { useToast } from "@/hooks/use-toast";
 
-// Category definitions with icons and metadata - matching PlanHaus aesthetic
+// Enhanced category definitions with comprehensive fields and AI support
 const categories = [
   {
     id: 'signature_drinks',
     title: 'Signature Drinks',
     icon: '🍹',
-    description: 'Custom cocktails and special beverages for your wedding',
+    description: 'Create custom cocktails for your special day',
     color: 'bg-gradient-to-br from-amber-50 to-orange-50 border-amber-200 hover:shadow-lg',
+    fields: [
+      { name: "drinkName", label: "Drink Name", type: "text", required: true },
+      { name: "ingredients", label: "Ingredients", type: "textarea" },
+      { name: "whoMaking", label: "Who is Making It", type: "text" },
+      { name: "servingStyle", label: "Serving Style", type: "select", 
+        options: ["Individual Cocktails", "Punch Bowl", "Signature Bar", "Welcome Drinks"] }
+    ],
+    hasAI: true
   },
   {
     id: 'signage',
-    title: 'Signage',
+    title: 'Signage & Paper Goods',
     icon: '🪧',
-    description: 'Welcome signs, directional signage, and custom displays',
+    description: 'Welcome signs, table numbers, and decorative elements',
     color: 'bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200 hover:shadow-lg',
+    fields: [
+      { name: "itemName", label: "Item Name", type: "text", required: true, placeholder: "e.g. Welcome Sign" },
+      { name: "textMockup", label: "Text Content", type: "textarea", placeholder: "What should it say?" },
+      { name: "fontStyle", label: "Font/Style Notes", type: "text" },
+      { name: "printVendor", label: "Print Vendor Info", type: "text" }
+    ]
   },
   {
-    id: 'guestbook',
-    title: 'Guestbook',
-    icon: '📖',
-    description: 'Creative alternatives to traditional guest books',
-    color: 'bg-gradient-to-br from-emerald-50 to-green-50 border-emerald-200 hover:shadow-lg',
+    id: 'invitations',
+    title: 'Invitation Suite',
+    icon: '💌',
+    description: 'Save the dates, invites, and all paper goods',
+    color: 'bg-gradient-to-br from-purple-50 to-pink-50 border-purple-200 hover:shadow-lg',
+    fields: [
+      { name: "itemList", label: "Item List", type: "textarea", placeholder: "Save the dates, invites, inserts, etc." },
+      { name: "sendByDates", label: "Send-by Dates", type: "text" },
+      { name: "designLink", label: "Design Inspiration Link", type: "text" },
+      { name: "envelopeDetails", label: "Envelope Details", type: "textarea", placeholder: "Return address, stamp type, etc." }
+    ]
+  },
+  {
+    id: 'favors',
+    title: 'Welcome Bags & Favors',
+    icon: '🎁',
+    description: 'Thank you gifts and welcome bag contents',
+    color: 'bg-gradient-to-br from-rose-50 to-pink-50 border-rose-200 hover:shadow-lg',
+    fields: [
+      { name: "contentsList", label: "Contents List", type: "textarea", required: true },
+      { name: "assemblyPlan", label: "Assembly Plan", type: "textarea" },
+      { name: "notes", label: "Notes", type: "textarea", placeholder: "Custom tags, allergies, etc." },
+      { name: "assignedCollaborator", label: "Assigned Collaborator", type: "text" }
+    ]
   },
   {
     id: 'must_have_photos',
     title: 'Must-Have Photos',
     icon: '📸',
-    description: 'Essential photo moments and shot lists',
-    color: 'bg-gradient-to-br from-purple-50 to-pink-50 border-purple-200 hover:shadow-lg',
-  },
-  {
-    id: 'color_palette',
-    title: 'Color Palette',
-    icon: '🎨',
-    description: 'Wedding colors, themes, and design inspiration',
-    color: 'bg-gradient-to-br from-pink-50 to-rose-50 border-pink-200 hover:shadow-lg',
-  },
-  {
-    id: 'diy_projects',
-    title: 'DIY Projects',
-    icon: '✂️',
-    description: 'Handmade decorations and craft projects',
+    description: 'Important shots you don\'t want to miss',
     color: 'bg-gradient-to-br from-indigo-50 to-purple-50 border-indigo-200 hover:shadow-lg',
-  },
-  {
-    id: 'favors',
-    title: 'Favors',
-    icon: '🎁',
-    description: 'Personalized wedding favors and guest gifts',
-    color: 'bg-gradient-to-br from-rose-50 to-pink-50 border-rose-200 hover:shadow-lg',
+    fields: [
+      { name: "photoDescription", label: "Photo Description", type: "text", required: true },
+      { name: "moment", label: "Tag Moment", type: "select",
+        options: ["Pre-Ceremony", "Getting Ready", "First Look", "Ceremony", "Golden Hour", "Reception", "Dancing", "Send-off"] },
+      { name: "assignedPhotographer", label: "Assign to Photographer", type: "text" }
+    ]
   },
   {
     id: 'special_songs',
     title: 'Special Songs',
-    icon: '🎶',
-    description: 'Music playlist and meaningful songs',
+    icon: '🎵',
+    description: 'Music for key moments throughout your day',
     color: 'bg-gradient-to-br from-teal-50 to-cyan-50 border-teal-200 hover:shadow-lg',
+    fields: [
+      { name: "moment", label: "Moment", type: "select", required: true,
+        options: ["Aisle Walk", "First Dance", "Parent Dances", "Processional", "Ceremony", "Recessional", "Cocktail Hour", "Reception"] },
+      { name: "songName", label: "Song Name", type: "text" },
+      { name: "artist", label: "Artist", type: "text" }
+    ],
+    hasAI: true
   },
+  {
+    id: 'color_palette',
+    title: 'Moodboard / Color Palette',
+    icon: '🎨',
+    description: 'Your wedding color scheme and visual inspiration',
+    color: 'bg-gradient-to-br from-pink-50 to-rose-50 border-pink-200 hover:shadow-lg',
+    fields: [
+      { name: "pinterestLink", label: "Pinterest Link or Image Upload", type: "text", placeholder: "Paste Pinterest URL or upload images" },
+      { name: "hexCodes", label: "HEX Codes", type: "text", placeholder: "#FFFFFF, #000000" },
+      { name: "colorSwatches", label: "Color Swatches/Names", type: "text", placeholder: "Blush, Sage Green, Cream" }
+    ],
+    hasAI: true,
+    aiLabel: "Generate palette from image"
+  },
+  {
+    id: 'diy_projects',
+    title: 'DIY Projects',
+    icon: '🔨',
+    description: 'Handmade touches and crafting projects',
+    color: 'bg-gradient-to-br from-emerald-50 to-green-50 border-emerald-200 hover:shadow-lg',
+    fields: [
+      { name: "projectName", label: "Project Name", type: "text", required: true },
+      { name: "materialsList", label: "Materials List", type: "textarea" },
+      { name: "dueDate", label: "Due Date", type: "date" },
+      { name: "assignedPerson", label: "Assigned Person", type: "text" },
+      { name: "status", label: "Status", type: "select",
+        options: ["Not Started", "In Progress", "Complete"] }
+    ],
+    hasAI: true
+  },
+  {
+    id: 'special_touches',
+    title: 'Special Touches',
+    icon: '✨',
+    description: 'Unity ceremony, guestbook, cake topper, and extra magic',
+    color: 'bg-gradient-to-br from-violet-50 to-purple-50 border-violet-200 hover:shadow-lg',
+    fields: [
+      { name: "customNapkins", label: "Custom Napkins", type: "text" },
+      { name: "unityCeremony", label: "Unity Ceremony Ideas", type: "textarea" },
+      { name: "guestbookType", label: "Guestbook Type", type: "select",
+        options: ["Traditional Book", "Photo Album", "Wishing Tree", "Polaroid Station", "Custom Canvas", "Digital Guestbook"] },
+      { name: "cakeTopper", label: "Cake Topper", type: "text" },
+      { name: "extraMagic", label: "Any Extra Magic", type: "textarea", placeholder: "Special surprises, unique touches, etc." }
+    ]
+  }
 ];
 
 interface CreativeDetailFormData {
@@ -315,7 +385,7 @@ export default function CreativeDetails() {
         <h1 className="text-4xl font-serif font-bold text-gray-900 mb-4">Creative Details</h1>
         <p className="text-lg text-gray-600 max-w-2xl mx-auto">Organize all the special touches that make your wedding uniquely yours</p>
         
-        {/* Summary Stats */}
+        {/* Enhanced Summary Stats */}
         <div className="flex justify-center space-x-8 mt-6">
           <div className="text-center">
             <div className="text-2xl font-bold gradient-text bg-gradient-to-r from-blush to-rose-gold">
@@ -331,10 +401,41 @@ export default function CreativeDetails() {
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold gradient-text bg-gradient-to-r from-sage to-blush">
-              {details?.filter(d => d.dueDate && new Date(d.dueDate) < new Date()).length || 0}
+              {details?.filter(d => d.dueDate && new Date(d.dueDate) < new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)).length || 0}
             </div>
-            <div className="text-sm text-gray-500">Due Soon</div>
+            <div className="text-sm text-gray-500">Due This Week</div>
           </div>
+          <div className="text-center">
+            <div className="text-2xl font-bold gradient-text bg-gradient-to-r from-purple-400 to-indigo-500">
+              {details?.filter(d => d.isCompleted).length || 0}
+            </div>
+            <div className="text-sm text-gray-500">Completed</div>
+          </div>
+        </div>
+
+        {/* Mini Activity Log */}
+        <div className="mt-8 max-w-2xl mx-auto">
+          <Card className="bg-gradient-to-r from-cream/30 to-champagne/30 border-champagne/40">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg font-serif text-center">Recent Activity</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2 text-sm text-gray-600">
+                {details?.slice(0, 3).map((detail, index) => (
+                  <div key={detail.id} className="flex items-center justify-between py-1">
+                    <span>✨ Added "{detail.title}" to {categories.find(c => c.id === detail.category)?.title}</span>
+                    <span className="text-xs text-gray-400">
+                      {new Date(detail.createdAt || Date.now()).toLocaleDateString()}
+                    </span>
+                  </div>
+                )) || (
+                  <div className="text-center py-4 text-gray-500">
+                    <p>Start adding creative details to see your activity here!</p>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
 
@@ -358,7 +459,7 @@ export default function CreativeDetails() {
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <Badge variant="secondary">
+                    <Badge variant="secondary" className="bg-white/50 text-gray-700 px-3 py-1">
                       {categoryDetails.length} {categoryDetails.length === 1 ? 'item' : 'items'}
                     </Badge>
                     <Button
@@ -368,10 +469,24 @@ export default function CreativeDetails() {
                         e.stopPropagation();
                         openCreateForm(category.id);
                       }}
+                      className="bg-gradient-to-r from-blush/10 to-rose-gold/10 border-blush/30 text-blush hover:bg-blush/20 rounded-lg"
                     >
                       <Plus className="w-4 h-4 mr-1" />
                       Add
                     </Button>
+                    {category.hasAI && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toast({ title: "AI Suggestions Coming Soon!", description: "This feature will provide intelligent recommendations for your wedding planning." });
+                        }}
+                        className="bg-gradient-to-r from-purple-50 to-indigo-50 border-purple-200 text-purple-700 hover:bg-purple-100 rounded-lg"
+                      >
+                        ✨ AI
+                      </Button>
+                    )}
                     {isExpanded ? (
                       <ChevronDown className="w-5 h-5 text-gray-500" />
                     ) : (
@@ -529,79 +644,147 @@ export default function CreativeDetails() {
         })}
       </div>
 
-      {/* Create/Edit Form Dialog */}
+      {/* Enhanced Create/Edit Form Dialog */}
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>
+            <DialogTitle className="text-xl font-serif">
               {editingDetail ? 'Edit' : 'Add'} {categories.find(c => c.id === formData.category)?.title || 'Creative Detail'}
             </DialogTitle>
           </DialogHeader>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <Label htmlFor="title">Title *</Label>
-              <Input
-                id="title"
-                value={formData.title}
-                onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-                placeholder="Enter a descriptive title..."
-                required
-              />
-            </div>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Category-Specific Fields */}
+            {formData.category && categories.find(c => c.id === formData.category)?.fields?.map((field, index) => (
+              <div key={index}>
+                <Label htmlFor={field.name} className="text-sm font-medium text-gray-700">
+                  {field.label} {field.required && <span className="text-red-500">*</span>}
+                </Label>
+                
+                {field.type === 'text' && (
+                  <Input
+                    id={field.name}
+                    value={formData.title || ''}
+                    onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+                    placeholder={field.placeholder || `Enter ${field.label.toLowerCase()}...`}
+                    required={field.required}
+                    className="mt-1"
+                  />
+                )}
+                
+                {field.type === 'textarea' && (
+                  <Textarea
+                    id={field.name}
+                    value={formData.description || ''}
+                    onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                    placeholder={field.placeholder || `Enter ${field.label.toLowerCase()}...`}
+                    rows={3}
+                    className="mt-1"
+                  />
+                )}
+                
+                {field.type === 'select' && field.options && (
+                  <Select 
+                    value={formData.notes || ''}
+                    onValueChange={(value) => setFormData(prev => ({ ...prev, notes: value }))}
+                  >
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder={`Select ${field.label.toLowerCase()}...`} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {field.options.map(option => (
+                        <SelectItem key={option} value={option}>
+                          {option}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+                
+                {field.type === 'date' && (
+                  <Input
+                    id={field.name}
+                    type="date"
+                    value={formData.dueDate || ''}
+                    onChange={(e) => setFormData(prev => ({ ...prev, dueDate: e.target.value }))}
+                    className="mt-1"
+                  />
+                )}
+              </div>
+            ))}
 
-            <div>
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                value={formData.description}
-                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                placeholder="Brief description of this item..."
-                rows={2}
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="notes">Notes</Label>
-              <Textarea
-                id="notes"
-                value={formData.notes}
-                onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
-                placeholder="Additional notes, instructions, or ideas..."
-                rows={3}
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
+            {/* Standard Fields */}
+            <div className="border-t pt-6">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">Additional Details</h3>
+              
               <div>
-                <Label htmlFor="priority">Priority</Label>
-                <Select 
-                  value={formData.priority} 
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, priority: value }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select priority" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="low">Low</SelectItem>
-                    <SelectItem value="medium">Medium</SelectItem>
-                    <SelectItem value="high">High</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Label htmlFor="title">Title *</Label>
+                <Input
+                  id="title"
+                  value={formData.title}
+                  onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+                  placeholder="Enter a descriptive title..."
+                  required
+                  className="mt-1"
+                />
               </div>
 
-              <div>
-                <Label htmlFor="dueDate">Due Date</Label>
-                <Input
-                  id="dueDate"
-                  type="date"
-                  value={formData.dueDate}
-                  onChange={(e) => setFormData(prev => ({ ...prev, dueDate: e.target.value }))}
+              <div className="mt-4">
+                <Label htmlFor="description">Description</Label>
+                <Textarea
+                  id="description"
+                  value={formData.description}
+                  onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                  placeholder="Brief description of this item..."
+                  rows={2}
+                  className="mt-1"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                <div>
+                  <Label htmlFor="assignedTo">Assigned To</Label>
+                  <Input
+                    id="assignedTo"
+                    value={formData.assignedTo || ''}
+                    onChange={(e) => setFormData(prev => ({ ...prev, assignedTo: e.target.value }))}
+                    placeholder="Person responsible..."
+                    className="mt-1"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="priority">Priority</Label>
+                  <Select 
+                    value={formData.priority} 
+                    onValueChange={(value) => setFormData(prev => ({ ...prev, priority: value }))}
+                  >
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="Select priority" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="low">Low</SelectItem>
+                      <SelectItem value="medium">Medium</SelectItem>
+                      <SelectItem value="high">High</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="mt-4">
+                <Label htmlFor="notes">Additional Notes</Label>
+                <Textarea
+                  id="notes"
+                  value={formData.notes}
+                  onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
+                  placeholder="Additional notes, instructions, or special requirements..."
+                  rows={3}
+                  className="mt-1"
                 />
               </div>
             </div>
 
-            <div className="flex justify-end space-x-3 pt-4">
+            <div className="flex justify-end space-x-3 pt-6 border-t">
               <Button
                 type="button"
                 variant="outline"
@@ -609,19 +792,20 @@ export default function CreativeDetails() {
                   setIsFormOpen(false);
                   resetForm();
                 }}
+                className="px-6"
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
                 disabled={createDetailMutation.isPending}
-                className="gradient-blush-rose text-white"
+                className="bg-gradient-to-r from-blush to-rose-gold hover:from-rose-400 hover:to-pink-600 px-6"
               >
                 {createDetailMutation.isPending 
                   ? 'Saving...' 
                   : editingDetail 
-                  ? 'Update' 
-                  : 'Create'
+                  ? 'Update Detail' 
+                  : 'Create Detail'
                 }
               </Button>
             </div>

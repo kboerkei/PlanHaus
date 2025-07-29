@@ -1,0 +1,82 @@
+Expand the “Creative Details” section of my PlanHaus wedding planning app.
+
+Create an elegant, responsive dashboard page that includes collapsible sections (accordion-style or tabs) for each of the following categories:
+
+---
+
+🌸 Sections to Include (Each should support editable fields and optional image upload):
+
+1. **Signature Drinks**
+   - Drink name
+   - Ingredients
+   - Image upload
+   - Who is making it
+   - Serving style (dropdown)
+
+2. **Signage & Paper Goods**
+   - Item name (e.g. Welcome Sign)
+   - Text mockup field (what it should say)
+   - Font/style notes
+   - Image upload
+   - Print vendor info
+
+3. **Invitation Suite**
+   - Item list (save the dates, invites, inserts)
+   - Send-by dates
+   - Link or image for design inspiration
+   - Envelope details (return address, stamp type)
+
+4. **Welcome Bags & Favors**
+   - Contents list
+   - Assembly plan
+   - Notes (custom tags, allergies, etc.)
+   - Assigned collaborator
+
+5. **Must-Have Photos**
+   - Photo description
+   - Upload inspiration image
+   - Assign to photographer
+   - Tag moments (pre-ceremony, golden hour, reception, etc.)
+
+6. **Special Songs**
+   - Moment (aisle walk, first dance, etc.)
+   - Song name
+   - Artist
+   - “Ask AI” suggestion button
+
+7. **Moodboard / Color Palette**
+   - Upload images or paste link to Pinterest
+   - Input HEX codes or color swatches
+   - Add “Generate palette from image” (placeholder for AI)
+
+8. **DIY Projects**
+   - Project name
+   - Materials list
+   - Due date
+   - Assigned person
+   - Status: Not Started / In Progress / Complete
+
+9. **Special Touches**
+   - Custom napkins
+   - Unity ceremony ideas
+   - Guestbook type
+   - Cake topper
+   - Any extra magic the user wants to note
+
+---
+
+🎨 Design:
+- Use Tailwind CSS for clean layout and consistent styling
+- Rounded corners, light blush/cream background, drop shadow cards
+- Fun emoji or icon at the top of each section (e.g. 🍹🪧📸🎶)
+- Collapsible panels for mobile friendliness
+- Floating “+ Add New” button for adding custom fields within each section
+
+📦 Technical:
+- Store each category’s data in state or localStorage for now
+- Build reusable components (e.g. EditableCard, UploadSection)
+- Prepare components to later support backend save or sync
+
+🧠 Bonus:
+- Add an “Ask AI for Ideas” button in Signature Drinks, Songs, DIY Projects, and Moodboard
+- Create a mini activity log (who updated what and when)
