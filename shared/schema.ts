@@ -9,8 +9,14 @@ export const users = pgTable("users", {
   email: text("email").notNull().unique(),
   password: text("password").notNull(),
   avatar: text("avatar"),
+  role: text("role").notNull().default("user"), // 'user', 'planner', 'admin'
+  firstName: text("first_name"),
+  lastName: text("last_name"),
   hasCompletedIntake: boolean("has_completed_intake").default(false).notNull(),
+  isEmailVerified: boolean("is_email_verified").default(false).notNull(),
+  lastLoginAt: timestamp("last_login_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
 export const weddingProjects = pgTable("wedding_projects", {
@@ -31,9 +37,26 @@ export const collaborators = pgTable("collaborators", {
   id: serial("id").primaryKey(),
   projectId: integer("project_id").notNull(),
   userId: integer("user_id").notNull(),
-  role: text("role").notNull(), // 'admin', 'edit', 'view'
+  role: text("role").notNull(), // 'admin', 'editor', 'viewer'
   invitedBy: integer("invited_by").notNull(),
+  status: text("status").notNull().default("active"), // 'pending', 'active', 'inactive'
+  permissions: jsonb("permissions"), // Custom permissions object
   joinedAt: timestamp("joined_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Invitation system for collaboration
+export const invitations = pgTable("invitations", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id").notNull(),
+  email: text("email").notNull(),
+  role: text("role").notNull(), // 'admin', 'editor', 'viewer'
+  token: text("token").notNull().unique(),
+  invitedBy: integer("invited_by").notNull(),
+  status: text("status").notNull().default("pending"), // 'pending', 'accepted', 'expired', 'cancelled'
+  expiresAt: timestamp("expires_at").notNull(),
+  acceptedAt: timestamp("accepted_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
 // Default wedding checklist template
@@ -182,10 +205,12 @@ export const activities = pgTable("activities", {
   projectId: integer("project_id").notNull(),
   userId: integer("user_id").notNull(),
   action: text("action").notNull(),
-  target: text("target"),
-  targetId: integer("target_id"),
-  details: jsonb("details"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+  entityType: text("entity_type"), // 'task', 'guest', 'vendor', 'budget', etc.
+  entityId: integer("entity_id"),
+  entityName: text("entity_name"), // For display purposes
+  details: jsonb("details"), // Additional context about the action
+  isVisible: boolean("is_visible").default(true).notNull(), // For filtering sensitive actions
+  timestamp: timestamp("timestamp").defaultNow().notNull(),
 });
 
 export const shoppingLists = pgTable("shopping_lists", {
@@ -254,6 +279,26 @@ export const scheduleEvents = pgTable("schedule_events", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// User sessions for authentication
+export const userSessions = pgTable("user_sessions", {
+  id: text("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  expiresAt: timestamp("expires_at").notNull(),
+  data: jsonb("data"), // Session data
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Email verification tokens
+export const verificationTokens = pgTable("verification_tokens", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  token: text("token").notNull().unique(),
+  type: text("type").notNull(), // 'email_verification', 'password_reset'
+  expiresAt: timestamp("expires_at").notNull(),
+  usedAt: timestamp("used_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -319,6 +364,20 @@ export const insertInspirationItemSchema = createInsertSchema(inspirationItems).
 });
 
 export const insertActivitySchema = createInsertSchema(activities).omit({
+  id: true,
+  timestamp: true,
+});
+
+export const insertInvitationSchema = createInsertSchema(invitations).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertUserSessionSchema = createInsertSchema(userSessions).omit({
+  createdAt: true,
+});
+
+export const insertVerificationTokenSchema = createInsertSchema(verificationTokens).omit({
   id: true,
   createdAt: true,
 });
@@ -537,10 +596,50 @@ export const insertIntakeDataSchema = createInsertSchema(intakeData).omit({
 });
 
 // Types  
+export type User = typeof users.$inferSelect;
+export type InsertUser = z.infer<typeof insertUserSchema>;
+export type WeddingProject = typeof weddingProjects.$inferSelect;
+export type InsertWeddingProject = z.infer<typeof insertWeddingProjectSchema>;
+export type Collaborator = typeof collaborators.$inferSelect;
+export type InsertCollaborator = z.infer<typeof insertCollaboratorSchema>;
+export type Invitation = typeof invitations.$inferSelect;
+export type InsertInvitation = z.infer<typeof insertInvitationSchema>;
+export type UserSession = typeof userSessions.$inferSelect;
+export type InsertUserSession = z.infer<typeof insertUserSessionSchema>;
+export type VerificationToken = typeof verificationTokens.$inferSelect;
+export type InsertVerificationToken = z.infer<typeof insertVerificationTokenSchema>;
 export type DefaultTask = typeof defaultTasks.$inferSelect;
-export type InsertDefaultTask = typeof defaultTasks.$inferInsert;
+export type InsertDefaultTask = z.infer<typeof insertDefaultTaskSchema>;
+export type Task = typeof tasks.$inferSelect;
+export type InsertTask = z.infer<typeof insertTaskSchema>;
+export type TaskNote = typeof taskNotes.$inferSelect;
+export type InsertTaskNote = z.infer<typeof insertTaskNoteSchema>;
+export type Guest = typeof guests.$inferSelect;
+export type InsertGuest = z.infer<typeof insertGuestSchema>;
+export type Vendor = typeof vendors.$inferSelect;
+export type InsertVendor = z.infer<typeof insertVendorSchema>;
+export type VendorPayment = typeof vendorPayments.$inferSelect;
+export type InsertVendorPayment = z.infer<typeof insertVendorPaymentSchema>;
+export type BudgetItem = typeof budgetItems.$inferSelect;
+export type InsertBudgetItem = z.infer<typeof insertBudgetItemSchema>;
+export type TimelineEvent = typeof timelineEvents.$inferSelect;
+export type InsertTimelineEvent = z.infer<typeof insertTimelineEventSchema>;
+export type InspirationItem = typeof inspirationItems.$inferSelect;
+export type InsertInspirationItem = z.infer<typeof insertInspirationItemSchema>;
+export type Activity = typeof activities.$inferSelect;
+export type InsertActivity = z.infer<typeof insertActivitySchema>;
+export type ShoppingList = typeof shoppingLists.$inferSelect;
+export type InsertShoppingList = z.infer<typeof insertShoppingListSchema>;
+export type ShoppingItem = typeof shoppingItems.$inferSelect;
+export type InsertShoppingItem = z.infer<typeof insertShoppingItemSchema>;
+export type Schedule = typeof schedules.$inferSelect;
+export type InsertSchedule = z.infer<typeof insertScheduleSchema>;
+export type ScheduleEvent = typeof scheduleEvents.$inferSelect;
+export type InsertScheduleEvent = z.infer<typeof insertScheduleEventSchema>;
 export type IntakeData = typeof intakeData.$inferSelect;
-export type InsertIntakeData = typeof intakeData.$inferInsert;
+export type InsertIntakeData = z.infer<typeof insertIntakeDataSchema>;
+export type WeddingOverview = typeof weddingOverview.$inferSelect;
+export type InsertWeddingOverview = z.infer<typeof insertWeddingOverviewSchema>;
 
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({

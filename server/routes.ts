@@ -36,6 +36,11 @@ import uploadRoutes from "./routes/uploads";
 import analyzeFileRoutes from "./routes/analyzeFile";
 import exportRoutes from "./routes/export";
 
+// Import collaboration routes
+import collaboratorRoutes from "./routes/collaborators";
+import invitationRoutes from "./routes/invitations";
+import activityRoutes from "./routes/activities";
+
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
   
@@ -74,6 +79,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use("/api/upload", requireAuth, uploadRoutes);
   app.use("/api/analyzeFile", analyzeFileRoutes);
   app.use("/api/export", requireAuth, exportRoutes);
+  
+  // Register collaboration routes
+  app.use("/api/collaborators", collaboratorRoutes);
+  app.use("/api/invitations", invitationRoutes);
+  app.use("/api/activities", activityRoutes);
 
   // Add simple dashboard stats endpoint
   app.get("/api/dashboard/stats", requireAuth, async (req: RequestWithUser, res) => {

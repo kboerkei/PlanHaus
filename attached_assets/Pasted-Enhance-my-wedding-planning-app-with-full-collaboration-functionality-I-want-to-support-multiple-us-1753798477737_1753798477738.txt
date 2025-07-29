@@ -1,0 +1,81 @@
+Enhance my wedding planning app with full collaboration functionality. I want to support multiple users (e.g., bride, groom, planner, mother-of-the-bride) being able to log in and access the same wedding instance, with different permissions and activity tracking.
+
+Here’s what I need:
+
+---
+
+🧩 DATABASE MODELS
+
+1. Add the following tables/models:
+- `User`: id, name, email, passwordHash, role
+- `Wedding`: id, coupleName, date, location, etc.
+- `WeddingUser`: id, userId (FK), weddingId (FK), role ("admin" | "editor" | "viewer")
+- `ActivityLog`: id, weddingId (FK), userId (FK), action, timestamp
+
+---
+
+🔐 AUTH & ACCOUNT LINKING
+
+2. Set up secure auth (using sessions or JWT):
+- Allow users to sign up/log in
+- After logging in, users can either:
+  a. Create a new wedding
+  b. Join an existing wedding if invited
+- A user can be linked to multiple weddings via the `WeddingUser` join table
+
+---
+
+📧 INVITE FLOW
+
+3. Build an “Invite a collaborator” flow:
+- UI component in the dashboard to invite users by email
+- Select role (editor/viewer/admin)
+- Generate a unique invite token (JWT or UUID)
+- Send invite link via email (or display copyable link)
+- When invitee clicks the link, they’re prompted to sign up and are linked to the correct wedding
+
+---
+
+✅ PERMISSION CONTROL
+
+4. Add middleware that:
+- Checks if a user is associated with the current wedding
+- Checks their role (e.g., only admins can update budget)
+- Returns 403 Forbidden for unauthorized actions
+
+---
+
+📜 ACTIVITY LOGGING
+
+5. On all major user actions (e.g. adding a task, editing vendor, uploading a file), automatically log to `ActivityLog` with:
+- User ID
+- Wedding ID
+- Action description (string)
+- Timestamp
+
+Then:
+- Build a front-end view of the activity log (timeline or list)
+- Format like: “Kat updated the guest list — 2 hours ago”
+
+---
+
+🖥️ DASHBOARD IMPROVEMENTS
+
+6. On the dashboard:
+- Show a list of all collaborators and their roles
+- Allow admins to remove collaborators or change their roles
+- Show recent activity (latest 5-10 actions)
+
+---
+
+🧪 OPTIONAL EXTRAS
+
+7. Add soft animations when new collaborators are added
+8. Add drag-and-drop reordering for guests or tasks (if not already)
+9. Include “You” badges when showing logged-in user in collaborator lists
+
+---
+
+Use Node + Express on the backend, Prisma or raw SQL for DB if needed, React with Tailwind on the front end, and make sure it works within my current Replit setup.
+
+Let me know if you need more details!

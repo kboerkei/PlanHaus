@@ -1,9 +1,12 @@
 import {
-  users, weddingProjects, collaborators, defaultTasks, tasks, guests, vendors, vendorPayments, budgetItems,
+  users, weddingProjects, collaborators, invitations, userSessions, verificationTokens,
+  defaultTasks, tasks, guests, vendors, vendorPayments, budgetItems,
   timelineEvents, inspirationItems, activities, shoppingLists, shoppingItems,
   schedules, scheduleEvents, intakeData, weddingOverview,
   type User, type InsertUser, type WeddingProject, type InsertWeddingProject,
-  type Collaborator, type InsertCollaborator, type DefaultTask, type InsertDefaultTask,
+  type Collaborator, type InsertCollaborator, type Invitation, type InsertInvitation,
+  type UserSession, type InsertUserSession, type VerificationToken, type InsertVerificationToken,
+  type DefaultTask, type InsertDefaultTask,
   type Task, type InsertTask, type Guest, type InsertGuest, type Vendor, type InsertVendor,
   type VendorPayment, type InsertVendorPayment,
   type BudgetItem, type InsertBudgetItem, type TimelineEvent, type InsertTimelineEvent,
@@ -32,6 +35,20 @@ export interface IStorage {
   getCollaboratorsByProjectId(projectId: number): Promise<(Collaborator & { user: User })[]>;
   updateCollaboratorRole(id: number, role: string): Promise<Collaborator | undefined>;
   removeCollaborator(id: number): Promise<boolean>;
+  getUserProjectRole(userId: number, projectId: number): Promise<string | undefined>;
+
+  // Invitations
+  createInvitation(invitation: InsertInvitation): Promise<Invitation>;
+  getInvitationByToken(token: string): Promise<Invitation | undefined>;
+  acceptInvitation(token: string, userId: number): Promise<{ success: boolean; collaborator?: Collaborator }>;
+  cancelInvitation(id: number): Promise<boolean>;
+  getInvitationsByProjectId(projectId: number): Promise<Invitation[]>;
+
+  // User Sessions
+  createSession(session: InsertUserSession): Promise<UserSession>;
+  getSessionById(sessionId: string): Promise<UserSession | undefined>;
+  deleteSession(sessionId: string): Promise<boolean>;
+  cleanExpiredSessions(): Promise<void>;
 
   // Default Tasks
   createDefaultTask(task: InsertDefaultTask): Promise<DefaultTask>;
@@ -88,8 +105,13 @@ export interface IStorage {
   deleteInspirationItem(id: number): Promise<boolean>;
 
   // Activities
+  logActivity(activity: InsertActivity): Promise<Activity>;
   createActivity(activity: InsertActivity): Promise<Activity>;
-  getActivitiesByProjectId(projectId: number): Promise<(Activity & { user: User })[]>;
+  getActivitiesByProjectId(projectId: number, limit?: number, offset?: number, includeInvisible?: boolean): Promise<Activity[]>;
+  getActivityStats(projectId: number, days: number): Promise<any>;
+
+  // User management
+  updateUser(id: number, updates: Partial<InsertUser>): Promise<User | undefined>;
 
   // Shopping Lists
   createShoppingList(list: InsertShoppingList): Promise<ShoppingList>;
@@ -609,7 +631,7 @@ export class MemStorage implements IStorage {
 
 // Database Storage Implementation
 import { db } from "./db";
-import { eq, sql } from "drizzle-orm";
+import { eq, sql, and, or, asc, desc, isNull, gte, lte, lt } from "drizzle-orm";
 
 export class DatabaseStorage implements IStorage {
   async createUser(insertUser: InsertUser): Promise<User> {
@@ -1224,6 +1246,169 @@ export class DatabaseStorage implements IStorage {
       .where(eq(weddingOverview.projectId, projectId))
       .returning();
     return overview || undefined;
+  }
+
+  // Enhanced Activities methods
+  async logActivity(insertActivity: InsertActivity): Promise<Activity> {
+    const [activity] = await db.insert(activities).values(insertActivity).returning();
+    return activity;
+  }
+
+  async getActivitiesByProjectId(
+    projectId: number, 
+    limit: number = 50, 
+    offset: number = 0, 
+    includeInvisible: boolean = false
+  ): Promise<Activity[]> {
+    let whereConditions = [eq(activities.projectId, projectId)];
+    
+    if (!includeInvisible) {
+      whereConditions.push(eq(activities.isVisible, true));
+    }
+
+    return await db
+      .select()
+      .from(activities)
+      .where(and(...whereConditions))
+      .orderBy(desc(activities.timestamp))
+      .limit(limit)
+      .offset(offset);
+  }
+
+  async getActivityStats(projectId: number, days: number): Promise<any> {
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - days);
+
+    const stats = await db
+      .select({
+        entityType: activities.entityType,
+        action: activities.action,
+        count: sql<number>`count(*)`.as('count'),
+      })
+      .from(activities)
+      .where(and(
+        eq(activities.projectId, projectId),
+        gte(activities.timestamp, cutoffDate),
+        eq(activities.isVisible, true)
+      ))
+      .groupBy(activities.entityType, activities.action)
+      .orderBy(desc(sql`count(*)`));
+
+    return stats;
+  }
+
+  // User management
+  async updateUser(id: number, updates: Partial<InsertUser>): Promise<User | undefined> {
+    const [user] = await db
+      .update(users)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(users.id, id))
+      .returning();
+    return user || undefined;
+  }
+
+  // Enhanced Collaborator methods
+  async getUserProjectRole(userId: number, projectId: number): Promise<string | undefined> {
+    const [collaborator] = await db
+      .select({ role: collaborators.role })
+      .from(collaborators)
+      .where(and(
+        eq(collaborators.userId, userId),
+        eq(collaborators.projectId, projectId)
+      ));
+    
+    return collaborator?.role;
+  }
+
+  // Invitation methods
+  async createInvitation(invitation: InsertInvitation): Promise<Invitation> {
+    const [result] = await db.insert(invitations).values(invitation).returning();
+    return result;
+  }
+
+  async getInvitationByToken(token: string): Promise<Invitation | undefined> {
+    const [invitation] = await db
+      .select()
+      .from(invitations)
+      .where(eq(invitations.token, token));
+    return invitation || undefined;
+  }
+
+  async acceptInvitation(token: string, userId: number): Promise<{ success: boolean; collaborator?: Collaborator }> {
+    try {
+      const invitation = await this.getInvitationByToken(token);
+      
+      if (!invitation || invitation.status !== 'pending' || new Date() > invitation.expiresAt) {
+        return { success: false };
+      }
+
+      // Create collaborator
+      const collaboratorData = {
+        projectId: invitation.projectId,
+        userId,
+        role: invitation.role,
+        invitedBy: invitation.invitedBy,
+        joinedAt: new Date(),
+        status: 'active',
+        permissions: null,
+      };
+      
+      const collaborator = await this.addCollaborator(collaboratorData);
+
+      // Mark invitation as accepted
+      await db
+        .update(invitations)
+        .set({ status: 'accepted', acceptedAt: new Date() })
+        .where(eq(invitations.id, invitation.id));
+
+      return { success: true, collaborator };
+    } catch (error) {
+      console.error('Accept invitation error:', error);
+      return { success: false };
+    }
+  }
+
+  async cancelInvitation(id: number): Promise<boolean> {
+    const result = await db
+      .update(invitations)
+      .set({ status: 'cancelled' })
+      .where(eq(invitations.id, id));
+    return result.rowCount > 0;
+  }
+
+  async getInvitationsByProjectId(projectId: number): Promise<Invitation[]> {
+    return await db
+      .select()
+      .from(invitations)
+      .where(eq(invitations.projectId, projectId))
+      .orderBy(desc(invitations.createdAt));
+  }
+
+  // User session methods
+  async createSession(session: InsertUserSession): Promise<UserSession> {
+    const [result] = await db.insert(userSessions).values(session).returning();
+    return result;
+  }
+
+  async getSessionById(sessionId: string): Promise<UserSession | undefined> {
+    const [session] = await db
+      .select()
+      .from(userSessions)
+      .where(eq(userSessions.id, sessionId));
+    return session || undefined;
+  }
+
+  async deleteSession(sessionId: string): Promise<boolean> {
+    const result = await db
+      .delete(userSessions)
+      .where(eq(userSessions.id, sessionId));
+    return result.rowCount > 0;
+  }
+
+  async cleanExpiredSessions(): Promise<void> {
+    await db
+      .delete(userSessions)
+      .where(lt(userSessions.expiresAt, new Date()));
   }
 }
 
