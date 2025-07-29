@@ -24,6 +24,7 @@ import Inspiration from "@/pages/inspiration";
 import Resources from "@/pages/resources";
 import Schedules from "@/pages/schedules";
 import CreativeDetails from "@/pages/creative-details";
+import SeatingChart from "@/pages/seating-chart";
 import Intake from "@/pages/intake";
 import IntakeWizard from "@/pages/IntakeWizard";
 import Sidebar from "@/components/layout/sidebar";
@@ -67,6 +68,7 @@ function Router({ user, onLogout, isNewUser, onIntakeComplete }: { user: User; o
                 <Route path="/timeline" component={Timeline} />
                 <Route path="/budget" component={Budget} />
                 <Route path="/guests" component={Guests} />
+                <Route path="/seating-chart" component={SeatingChart} />
                 <Route path="/vendors" component={Vendors} />
                 <Route path="/inspiration" component={Inspiration} />
                 <Route path="/creative-details" component={CreativeDetails} />

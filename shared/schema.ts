@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, jsonb, decimal } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, jsonb, decimal, varchar } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -670,6 +670,44 @@ export type WeddingOverview = typeof weddingOverview.$inferSelect;
 export type InsertWeddingOverview = z.infer<typeof insertWeddingOverviewSchema>;
 export type CreativeDetail = typeof creativeDetails.$inferSelect;
 export type InsertCreativeDetail = z.infer<typeof insertCreativeDetailSchema>;
+
+// Seating Chart Tables
+export const seatingTables = pgTable("seating_tables", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id").notNull().references(() => weddingProjects.id, { onDelete: "cascade" }),
+  name: varchar("name", { length: 100 }).notNull(),
+  maxSeats: integer("max_seats").default(8),
+  notes: text("notes"),
+  position: jsonb("position"), // {x: number, y: number} for future drag-and-drop
+  createdBy: integer("created_by").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const seatingAssignments = pgTable("seating_assignments", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id").notNull().references(() => weddingProjects.id, { onDelete: "cascade" }),
+  tableId: integer("table_id").notNull().references(() => seatingTables.id, { onDelete: "cascade" }),
+  guestId: integer("guest_id").notNull().references(() => guests.id, { onDelete: "cascade" }),
+  seatNumber: integer("seat_number"), // Optional seat number within table
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertSeatingTableSchema = createInsertSchema(seatingTables).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertSeatingAssignmentSchema = createInsertSchema(seatingAssignments).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type SeatingTable = typeof seatingTables.$inferSelect;
+export type InsertSeatingTable = z.infer<typeof insertSeatingTableSchema>;
+export type SeatingAssignment = typeof seatingAssignments.$inferSelect;
+export type InsertSeatingAssignment = z.infer<typeof insertSeatingAssignmentSchema>;
 
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({

@@ -2,7 +2,7 @@ import {
   users, weddingProjects, collaborators, invitations, userSessions, verificationTokens,
   defaultTasks, tasks, guests, vendors, vendorPayments, budgetItems,
   timelineEvents, inspirationItems, activities, shoppingLists, shoppingItems,
-  schedules, scheduleEvents, intakeData, weddingOverview, creativeDetails,
+  schedules, scheduleEvents, intakeData, weddingOverview, creativeDetails, seatingTables, seatingAssignments,
   type User, type InsertUser, type WeddingProject, type InsertWeddingProject,
   type Collaborator, type InsertCollaborator, type Invitation, type InsertInvitation,
   type UserSession, type InsertUserSession, type VerificationToken, type InsertVerificationToken,
@@ -14,7 +14,8 @@ import {
   type ShoppingList, type InsertShoppingList, type ShoppingItem, type InsertShoppingItem,
   type Schedule, type InsertSchedule, type ScheduleEvent, type InsertScheduleEvent,
   type IntakeData, type InsertIntakeData, type WeddingOverview, type InsertWeddingOverview,
-  type CreativeDetail, type InsertCreativeDetail
+  type CreativeDetail, type InsertCreativeDetail, type SeatingTable, type InsertSeatingTable,
+  type SeatingAssignment, type InsertSeatingAssignment
 } from "@shared/schema";
 
 export interface IStorage {
@@ -165,6 +166,24 @@ export interface IStorage {
   getCreativeDetailById(id: number): Promise<CreativeDetail | undefined>;
   updateCreativeDetail(id: number, updates: Partial<InsertCreativeDetail>): Promise<CreativeDetail>;
   deleteCreativeDetail(id: number): Promise<boolean>;
+
+  // Seating Charts
+  createSeatingTable(insertTable: InsertSeatingTable): Promise<SeatingTable>;
+  getSeatingTables(projectId: number): Promise<SeatingTable[]>;
+  getSeatingTableById(id: number): Promise<SeatingTable | undefined>;
+  updateSeatingTable(id: number, updates: Partial<InsertSeatingTable>): Promise<SeatingTable>;
+  deleteSeatingTable(id: number): Promise<boolean>;
+  
+  createSeatingAssignment(insertAssignment: InsertSeatingAssignment): Promise<SeatingAssignment>;
+  getSeatingAssignments(projectId: number): Promise<SeatingAssignment[]>;
+  getSeatingAssignmentsByTableId(tableId: number): Promise<SeatingAssignment[]>;
+  deleteSeatingAssignment(id: number): Promise<boolean>;
+  deleteSeatingAssignmentByGuestId(guestId: number): Promise<boolean>;
+  getSeatingChartData(projectId: number): Promise<{
+    tables: SeatingTable[];
+    assignments: (SeatingAssignment & { guest: { id: number; name: string; email?: string } })[];
+    unassignedGuests: { id: number; name: string; email?: string }[];
+  }>;
 }
 
 export class MemStorage implements IStorage {
@@ -1463,6 +1482,121 @@ export class DatabaseStorage implements IStorage {
   async deleteCreativeDetail(id: number): Promise<boolean> {
     const result = await db.delete(creativeDetails).where(eq(creativeDetails.id, id));
     return result.rowCount > 0;
+  }
+
+  // Seating Chart methods
+  async createSeatingTable(insertTable: InsertSeatingTable): Promise<SeatingTable> {
+    const [table] = await db
+      .insert(seatingTables)
+      .values(insertTable)
+      .returning();
+    return table;
+  }
+
+  async getSeatingTables(projectId: number): Promise<SeatingTable[]> {
+    return await db
+      .select()
+      .from(seatingTables)
+      .where(eq(seatingTables.projectId, projectId))
+      .orderBy(desc(seatingTables.createdAt));
+  }
+
+  async getSeatingTableById(id: number): Promise<SeatingTable | undefined> {
+    const [table] = await db
+      .select()
+      .from(seatingTables)
+      .where(eq(seatingTables.id, id));
+    return table || undefined;
+  }
+
+  async updateSeatingTable(id: number, updates: Partial<InsertSeatingTable>): Promise<SeatingTable> {
+    const [table] = await db
+      .update(seatingTables)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(seatingTables.id, id))
+      .returning();
+    return table;
+  }
+
+  async deleteSeatingTable(id: number): Promise<boolean> {
+    const result = await db.delete(seatingTables).where(eq(seatingTables.id, id));
+    return result.rowCount > 0;
+  }
+
+  async createSeatingAssignment(insertAssignment: InsertSeatingAssignment): Promise<SeatingAssignment> {
+    const [assignment] = await db
+      .insert(seatingAssignments)
+      .values(insertAssignment)
+      .returning();
+    return assignment;
+  }
+
+  async getSeatingAssignments(projectId: number): Promise<SeatingAssignment[]> {
+    return await db
+      .select()
+      .from(seatingAssignments)
+      .where(eq(seatingAssignments.projectId, projectId));
+  }
+
+  async getSeatingAssignmentsByTableId(tableId: number): Promise<SeatingAssignment[]> {
+    return await db
+      .select()
+      .from(seatingAssignments)
+      .where(eq(seatingAssignments.tableId, tableId));
+  }
+
+  async deleteSeatingAssignment(id: number): Promise<boolean> {
+    const result = await db.delete(seatingAssignments).where(eq(seatingAssignments.id, id));
+    return result.rowCount > 0;
+  }
+
+  async deleteSeatingAssignmentByGuestId(guestId: number): Promise<boolean> {
+    const result = await db.delete(seatingAssignments).where(eq(seatingAssignments.guestId, guestId));
+    return result.rowCount > 0;
+  }
+
+  async getSeatingChartData(projectId: number): Promise<{
+    tables: SeatingTable[];
+    assignments: (SeatingAssignment & { guest: { id: number; name: string; email?: string } })[];
+    unassignedGuests: { id: number; name: string; email?: string }[];
+  }> {
+    const tables = await this.getSeatingTables(projectId);
+    
+    const assignmentsWithGuests = await db
+      .select({
+        id: seatingAssignments.id,
+        projectId: seatingAssignments.projectId,
+        tableId: seatingAssignments.tableId,
+        guestId: seatingAssignments.guestId,
+        seatNumber: seatingAssignments.seatNumber,
+        createdAt: seatingAssignments.createdAt,
+        guest: {
+          id: guests.id,
+          name: guests.name,
+          email: guests.email,
+        }
+      })
+      .from(seatingAssignments)
+      .innerJoin(guests, eq(seatingAssignments.guestId, guests.id))
+      .where(eq(seatingAssignments.projectId, projectId));
+
+    const allGuests = await db
+      .select({
+        id: guests.id,
+        name: guests.name,
+        email: guests.email,
+      })
+      .from(guests)
+      .where(eq(guests.projectId, projectId));
+
+    const assignedGuestIds = new Set(assignmentsWithGuests.map(a => a.guestId));
+    const unassignedGuests = allGuests.filter(guest => !assignedGuestIds.has(guest.id));
+
+    return {
+      tables,
+      assignments: assignmentsWithGuests,
+      unassignedGuests,
+    };
   }
 }
 
