@@ -16,12 +16,9 @@ export default function Chat() {
     setLoading(true);
 
     try {
-      const res = await fetch("/api/ai/chat", {
+      const res = await fetch("/api/ai", {
         method: "POST",
-        body: JSON.stringify({ 
-          message: input,
-          context: "wedding_planning_assistant" 
-        }),
+        body: JSON.stringify({ prompt: input }),
         headers: { 
           "Content-Type": "application/json",
           "Authorization": `Bearer ${localStorage.getItem('sessionId')}`

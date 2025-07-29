@@ -44,6 +44,72 @@ const timelineSchema = z.object({
 // Import validation from client
 import { validateOpenAIKey } from "../services/ai/client";
 
+// Simple AI endpoint that accepts { prompt: string } and returns { response: string }
+router.post("/", requireAuth, async (req: RequestWithUser, res) => {
+  try {
+    const { prompt } = req.body;
+    
+    if (!prompt?.trim()) {
+      return res.status(400).json({ 
+        error: 'Prompt is required'
+      });
+    }
+
+    // Get user and project data for personalized responses
+    const projects = await storage.getProjectsByUserId(req.userId);
+    const currentProject = projects[0];
+    const intake = await storage.getIntakeByUserId(req.userId);
+
+    if (!currentProject) {
+      return res.status(404).json({ error: 'No wedding project found' });
+    }
+
+    // Calculate wedding timeline context
+    const weddingDate = new Date(currentProject.date);
+    const today = new Date();
+    const daysUntilWedding = Math.ceil((weddingDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+
+    // Get actual task and budget data for context
+    const tasks = await storage.getTasksByProjectId(currentProject.id);
+    const budgetItems = await storage.getBudgetItemsByProjectId(currentProject.id);
+    const guests = await storage.getGuestsByProjectId(currentProject.id);
+
+    // Calculate real statistics
+    const completedTasks = tasks.filter(task => task.completed).length;
+    const totalTasks = tasks.length;
+    const budgetTotal = budgetItems.reduce((sum, item) => sum + (item.estimatedCost || 0), 0);
+    const guestCount = guests.reduce((sum, guest) => sum + (guest.partySize || 1), 0);
+
+    // Enhanced wedding context from intake data
+    const coupleNames = currentProject.name || `${intake?.partner1FirstName || 'Partner 1'} & ${intake?.partner2FirstName || 'Partner 2'}'s Wedding`;
+    const location = intake?.venue || currentProject.venue || 'your venue';
+    const theme = intake?.theme || currentProject.theme || 'your theme';
+    const style = intake?.style || currentProject.style || 'your style';
+
+    const weddingData = {
+      coupleNames,
+      daysUntilWedding,
+      completedTasks,
+      totalTasks,
+      guestCount,
+      budget: budgetTotal,
+      location,
+      theme,
+      style,
+      weddingDate: currentProject.date
+    };
+
+    // Use enhanced AI service with real data integration
+    const response = await generateChatResponse(weddingData, prompt);
+
+    res.json({ response });
+
+  } catch (error) {
+    logError('ai', error as Error, { userId: req.userId });
+    res.status(500).json({ response: "I'm having trouble right now. Please try again." });
+  }
+});
+
 router.post("/chat", requireAuth, async (req: RequestWithUser, res) => {
   if (!validateOpenAIKey()) {
     logWarning('ai', 'OpenAI API key not configured', { userId: req.userId });
