@@ -20,7 +20,7 @@ router.post("/", upload.single("file"), (req, res) => {
 
   // Move or rename if needed:
   const tempPath = file.path;
-  const targetPath = path.join(__dirname, "../uploads", file.originalname);
+  const targetPath = path.join(process.cwd(), "uploads", file.originalname);
 
   fs.rename(tempPath, targetPath, (err) => {
     if (err) return res.status(500).json({ message: "File move error." });
