@@ -7,6 +7,21 @@ export default function Chat() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Add a message showing the file was uploaded
+      const newMessages = [...messages, { 
+        sender: "user", 
+        text: `📎 Uploaded file: ${file.name}` 
+      }];
+      setMessages([
+        ...newMessages,
+        { sender: "ai", text: "I can see you've uploaded a file! While I can't process files directly yet, you can tell me about what's in the file and I'll help you with your wedding planning based on that information." }
+      ]);
+    }
+  };
+
   const sendMessage = async () => {
     if (!input.trim()) return;
 
@@ -58,20 +73,36 @@ export default function Chat() {
         ))}
         {loading && <p className="text-muted-foreground animate-pulse">PlanBot is typing...</p>}
       </div>
-      <div className="mt-4 flex gap-2">
-        <input
-          className="flex-1 border rounded p-2"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-          placeholder="Ask me anything..."
-        />
-        <button
-          onClick={sendMessage}
-          className="bg-champagne px-4 py-2 rounded text-white font-semibold"
-        >
-          Send
-        </button>
+      <div className="mt-4 space-y-2">
+        <div className="flex gap-2">
+          <input
+            className="flex-1 border rounded p-2"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+            placeholder="Ask me anything..."
+          />
+          <button
+            onClick={sendMessage}
+            className="bg-champagne px-4 py-2 rounded text-white font-semibold"
+          >
+            Send
+          </button>
+        </div>
+        <div className="flex justify-start">
+          <input
+            type="file"
+            onChange={handleFileUpload}
+            className="hidden"
+            id="file-upload"
+          />
+          <label
+            htmlFor="file-upload"
+            className="cursor-pointer text-sm text-champagne underline"
+          >
+            Upload a file
+          </label>
+        </div>
       </div>
     </div>
   );
