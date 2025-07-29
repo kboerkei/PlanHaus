@@ -63,7 +63,7 @@ export async function generatePromptResponse<T>(
     return JSON.parse(content);
   } catch (error) {
     if (context) {
-      logError(context.source, error, { 
+      logError(context.source, error as Error, { 
         inputs: context.inputs,
         systemMessage: systemMessage.substring(0, 100) + '...',
         userPrompt: userPrompt.substring(0, 200) + '...'
@@ -71,6 +71,68 @@ export async function generatePromptResponse<T>(
     }
     
     return fallback;
+  }
+}
+
+/**
+ * Generate plain text chat responses (no JSON formatting)
+ */
+export async function generateChatResponse(
+  systemMessage: string,
+  userPrompt: string,
+  context?: { source: string; inputs?: Record<string, any> }
+): Promise<string> {
+  // Validate API key at runtime
+  if (!validateOpenAIKey()) {
+    throw new Error("OpenAI API key not configured");
+  }
+
+  try {
+    const messages = [
+      {
+        role: "system" as const,
+        content: systemMessage
+      },
+      {
+        role: "user" as const,
+        content: userPrompt
+      }
+    ];
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: messages,
+      // No JSON format required for chat responses
+      max_tokens: 500,
+      temperature: 0.7
+    });
+
+    const content = response.choices[0].message.content;
+    
+    if (!content) {
+      throw new Error("No content received from OpenAI");
+    }
+
+    // Log full response in debug mode
+    if (isDebugMode && context) {
+      logInfo(context.source, 'OpenAI Chat Response', { 
+        prompt: userPrompt.substring(0, 200) + '...',
+        response: content.substring(0, 500) + '...',
+        usage: response.usage
+      });
+    }
+
+    return content;
+  } catch (error) {
+    if (context) {
+      logError(context.source, error as Error, { 
+        inputs: context.inputs,
+        systemMessage: systemMessage.substring(0, 100) + '...',
+        userPrompt: userPrompt.substring(0, 200) + '...'
+      });
+    }
+    
+    throw error; // Re-throw so calling function can handle with fallbacks
   }
 }
 
@@ -132,7 +194,7 @@ export async function generateImageAnalysisResponse<T>(
     return JSON.parse(content);
   } catch (error) {
     if (context) {
-      logError(context.source, error, { 
+      logError(context.source, error as Error, { 
         inputs: context.inputs,
         imageFormat,
         systemMessage: systemMessage.substring(0, 100) + '...'

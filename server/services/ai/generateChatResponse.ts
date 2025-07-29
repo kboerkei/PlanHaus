@@ -1,4 +1,4 @@
-import { generatePromptResponse } from "./client";
+import { generateChatResponse as generateChatResponseFromClient } from "./client";
 
 export interface ChatResponseData {
   coupleNames?: string;
@@ -54,18 +54,17 @@ Based on ${coupleNames}'s wedding planning context and current progress, provide
 Keep it friendly and personalized to their specific situation.`;
 
   try {
-    const response = await generatePromptResponse(
+    const response = await generateChatResponseFromClient(
       systemMessage,
       userPrompt,
-      "I'm here to help with your wedding planning! What specific aspect would you like guidance on?",
       { 
         source: 'generateChatResponse',
         inputs: { userMessage, coupleNames, daysUntilWedding }
       }
     );
 
-    // Return the response as a string
-    return typeof response === 'string' ? response : response?.recommendation || response?.response || generateSmartFallback(userMessage, weddingData);
+    // Return the response directly as a string (no JSON parsing needed)
+    return response;
   } catch (error) {
     console.error('Chat response generation failed:', error);
     
