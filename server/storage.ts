@@ -91,6 +91,7 @@ export interface IStorage {
 
   // Budget Items
   createBudgetItem(item: InsertBudgetItem): Promise<BudgetItem>;
+  getBudgetItemById(id: number): Promise<BudgetItem | undefined>;
   getBudgetItemsByProjectId(projectId: number): Promise<BudgetItem[]>;
   updateBudgetItem(id: number, updates: Partial<InsertBudgetItem>): Promise<BudgetItem | undefined>;
   deleteBudgetItem(id: number): Promise<boolean>;
@@ -545,6 +546,10 @@ export class MemStorage implements IStorage {
     };
     this.budgetItems.set(id, item);
     return item;
+  }
+
+  async getBudgetItemById(id: number): Promise<BudgetItem | undefined> {
+    return this.budgetItems.get(id) || undefined;
   }
 
   async getBudgetItemsByProjectId(projectId: number): Promise<BudgetItem[]> {
@@ -1046,6 +1051,11 @@ export class DatabaseStorage implements IStorage {
   async createBudgetItem(insertItem: InsertBudgetItem): Promise<BudgetItem> {
     const [item] = await db.insert(budgetItems).values(insertItem).returning();
     return item;
+  }
+
+  async getBudgetItemById(id: number): Promise<BudgetItem | undefined> {
+    const [item] = await db.select().from(budgetItems).where(eq(budgetItems.id, id));
+    return item || undefined;
   }
 
   async getBudgetItemsByProjectId(projectId: number): Promise<BudgetItem[]> {

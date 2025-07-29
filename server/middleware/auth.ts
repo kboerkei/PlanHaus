@@ -46,6 +46,11 @@ export function verifyToken(token: string): any {
 // Simple session storage for demo compatibility
 const sessions = new Map<string, { userId: number }>();
 
+// Add session helper
+export function addSession(sessionId: string, userId: number) {
+  sessions.set(sessionId, { userId });
+}
+
 // Authentication middleware that supports both JWT tokens and simple session IDs
 export async function authenticateUser(req: Request, res: Response, next: NextFunction) {
   try {
@@ -96,10 +101,7 @@ export async function authenticateUser(req: Request, res: Response, next: NextFu
   }
 }
 
-// Function to add session (used by demo login)
-export function addSession(sessionId: string, userId: number) {
-  sessions.set(sessionId, { userId });
-}
+
 
 // Project permission middleware
 export async function checkProjectPermission(requiredRole: 'admin' | 'editor' | 'viewer' = 'viewer') {

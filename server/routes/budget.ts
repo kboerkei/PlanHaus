@@ -17,7 +17,7 @@ router.get("/", requireAuth, async (req: RequestWithUser, res) => {
     
     res.json(budgetItems);
   } catch (error) {
-    logError('budget', error, { userId: req.userId });
+    logError('budget', error as Error, { userId: req.userId });
     res.status(500).json({ message: "Failed to fetch budget items" });
   }
 });
@@ -30,9 +30,9 @@ router.get("/project/:projectId", requireAuth, async (req: RequestWithUser, res)
     const budgetItems = await storage.getBudgetItemsByProjectId(projectId);
     res.json(budgetItems);
   } catch (error) {
-    logError('budget', error, { userId: req.userId, projectId: req.params.projectId });
+    logError('budget', error as Error, { userId: req.userId, projectId: req.params.projectId });
     
-    if (error.message.includes('not found')) {
+    if ((error as Error).message.includes('not found')) {
       return res.status(404).json({ message: "Project not found" });
     }
     
@@ -65,9 +65,9 @@ router.post("/", requireAuth, validateBody(insertBudgetItemSchema), async (req: 
     
     res.status(201).json(budgetItem);
   } catch (error) {
-    logError('budget', error, { userId: req.userId });
+    logError('budget', error as Error, { userId: req.userId });
     
-    if (error.message.includes('not found')) {
+    if ((error as Error).message.includes('not found')) {
       return res.status(404).json({ message: "Project not found" });
     }
     
@@ -99,9 +99,9 @@ router.put("/:id", requireAuth, validateBody(insertBudgetItemSchema.partial()), 
     
     res.json(updatedBudgetItem);
   } catch (error) {
-    logError('budget', error, { userId: req.userId, budgetItemId: req.params.id });
+    logError('budget', error as Error, { userId: req.userId, budgetItemId: req.params.id });
     
-    if (error.message.includes('not found')) {
+    if ((error as Error).message.includes('not found')) {
       return res.status(404).json({ message: "Budget item or project not found" });
     }
     
@@ -133,9 +133,9 @@ router.delete("/:id", requireAuth, async (req: RequestWithUser, res) => {
     
     res.json({ message: "Budget item deleted successfully" });
   } catch (error) {
-    logError('budget', error, { userId: req.userId, budgetItemId: req.params.id });
+    logError('budget', error as Error, { userId: req.userId, budgetItemId: req.params.id });
     
-    if (error.message.includes('not found')) {
+    if ((error as Error).message.includes('not found')) {
       return res.status(404).json({ message: "Budget item or project not found" });
     }
     

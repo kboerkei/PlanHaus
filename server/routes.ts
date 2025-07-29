@@ -121,9 +121,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use("/api/activity-log", requireAuth, activityRoutes);
 
   // Add simple dashboard stats endpoint
-  app.get("/api/dashboard/stats", requireAuth, async (req: RequestWithUser, res) => {
+  app.get("/api/dashboard/stats", requireAuth, async (req, res) => {
+    const authenticatedReq = req as RequestWithUser;
     try {
-      const project = await getOrCreateDefaultProject(req.userId);
+      const project = await getOrCreateDefaultProject(authenticatedReq.userId);
       
       // Get all data for stats calculation
       const [tasks, guests, budget, vendors] = await Promise.all([
@@ -163,18 +164,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         daysUntilWedding: project.date ? Math.max(0, Math.ceil((new Date(project.date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))) : 0
       });
     } catch (error) {
-      logError('dashboard', error, { userId: req.userId });
+      logError('dashboard', error as Error, { userId: authenticatedReq.userId });
       res.status(500).json({ message: "Failed to fetch dashboard stats" });
     }
   });
 
   // Add intake endpoint
-  app.get("/api/intake", requireAuth, async (req: any, res) => {
+  app.get("/api/intake", requireAuth, async (req, res) => {
+    const authenticatedReq = req as RequestWithUser;
     try {
-      const intake = await storage.getIntakeDataByUserId(req.userId);
+      const intake = await storage.getIntakeDataByUserId(authenticatedReq.userId);
       res.json(intake || null);
     } catch (error) {
-      logError('intake', error, { userId: req.userId });
+      logError('intake', error as Error, { userId: authenticatedReq.userId });
       res.status(500).json({ message: "Failed to fetch intake data" });
     }
   });
@@ -213,7 +215,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
     } catch (error) {
-      logError('pinterest', error, { userId: req.userId });
+      logError('pinterest', error as Error, { userId: req.userId });
       res.status(500).json({ error: 'Failed to import Pinterest board' });
     }
   });
@@ -225,7 +227,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const inspirationItems = await storage.getInspirationItemsByProjectId(project.id);
       res.json(inspirationItems);
     } catch (error) {
-      logError('inspiration', error, { userId: req.userId });
+      logError('inspiration', error as Error, { userId: req.userId });
       res.status(500).json({ message: "Failed to fetch inspiration items" });
     }
   });
@@ -239,7 +241,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       logInfo('inspiration', `Inspiration item added: ${inspiration.title}`, { userId: req.userId });
       res.status(201).json(inspiration);
     } catch (error) {
-      logError('inspiration', error, { userId: req.userId });
+      logError('inspiration', error as Error, { userId: req.userId });
       res.status(500).json({ message: "Failed to add inspiration item" });
     }
   });
