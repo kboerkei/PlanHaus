@@ -45,7 +45,7 @@ export function useCreateGuest(projectId: string) {
 export function useUpdateGuest(projectId: string) {
   return useMutation({
     mutationFn: ({ id, data }: { id: number; data: Partial<GuestFormData> }) =>
-      apiRequest(`/api/guests/${id}`, {
+      apiRequest(`/api/projects/${projectId}/guests/${id}`, {
         method: 'PATCH',
         body: JSON.stringify(data),
       }),
@@ -58,7 +58,7 @@ export function useUpdateGuest(projectId: string) {
 
 export function useDeleteGuest(projectId: string) {
   return useMutation({
-    mutationFn: (id: number) => apiRequest(`/api/guests/${id}`, {
+    mutationFn: (id: number) => apiRequest(`/api/projects/${projectId}/guests/${id}`, {
       method: 'DELETE',
     }),
     onSuccess: () => {

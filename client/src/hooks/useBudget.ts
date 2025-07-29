@@ -12,7 +12,7 @@ export function useBudget(projectId?: string) {
 
 export function useCreateBudgetItem(projectId: string) {
   return useMutation({
-    mutationFn: (data: any) => apiRequest('/api/budget-items', {
+    mutationFn: (data: any) => apiRequest(`/api/projects/${projectId}/budget`, {
       method: 'POST',
       body: JSON.stringify({
         ...data,
@@ -29,7 +29,7 @@ export function useCreateBudgetItem(projectId: string) {
 export function useUpdateBudgetItem(projectId: string) {
   return useMutation({
     mutationFn: ({ id, data }: { id: number; data: any }) =>
-      apiRequest(`/api/budget-items/${id}`, {
+      apiRequest(`/api/projects/${projectId}/budget/${id}`, {
         method: 'PATCH',
         body: JSON.stringify(data),
       }),
@@ -42,7 +42,7 @@ export function useUpdateBudgetItem(projectId: string) {
 
 export function useDeleteBudgetItem(projectId: string) {
   return useMutation({
-    mutationFn: (id: number) => apiRequest(`/api/budget-items/${id}`, {
+    mutationFn: (id: number) => apiRequest(`/api/projects/${projectId}/budget/${id}`, {
       method: 'DELETE',
     }),
     onSuccess: () => {

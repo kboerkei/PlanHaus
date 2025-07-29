@@ -12,7 +12,7 @@ export function useVendors(projectId?: string) {
 
 export function useCreateVendor(projectId: string) {
   return useMutation({
-    mutationFn: (data: VendorFormData) => apiRequest('/api/vendors', {
+    mutationFn: (data: VendorFormData) => apiRequest(`/api/projects/${projectId}/vendors`, {
       method: 'POST',
       body: JSON.stringify({
         ...data,
@@ -29,7 +29,7 @@ export function useCreateVendor(projectId: string) {
 export function useUpdateVendor(projectId: string) {
   return useMutation({
     mutationFn: ({ id, data }: { id: number; data: Partial<VendorFormData> }) =>
-      apiRequest(`/api/vendors/${id}`, {
+      apiRequest(`/api/projects/${projectId}/vendors/${id}`, {
         method: 'PATCH',
         body: JSON.stringify(data),
       }),
@@ -42,7 +42,7 @@ export function useUpdateVendor(projectId: string) {
 
 export function useDeleteVendor(projectId: string) {
   return useMutation({
-    mutationFn: (id: number) => apiRequest(`/api/vendors/${id}`, {
+    mutationFn: (id: number) => apiRequest(`/api/projects/${projectId}/vendors/${id}`, {
       method: 'DELETE',
     }),
     onSuccess: () => {

@@ -11,7 +11,7 @@ export function useTasks(projectId?: string) {
 
 export function useCreateTask(projectId: string) {
   return useMutation({
-    mutationFn: (data: TaskFormData) => apiRequest('/api/tasks', {
+    mutationFn: (data: TaskFormData) => apiRequest(`/api/projects/${projectId}/tasks`, {
       method: 'POST',
       body: JSON.stringify({
         ...data,
@@ -30,7 +30,7 @@ export function useCreateTask(projectId: string) {
 export function useUpdateTask(projectId: string) {
   return useMutation({
     mutationFn: ({ id, data }: { id: number; data: Partial<TaskFormData> }) =>
-      apiRequest(`/api/tasks/${id}`, {
+      apiRequest(`/api/projects/${projectId}/tasks/${id}`, {
         method: 'PATCH',
         body: JSON.stringify({
           ...data,
@@ -47,7 +47,7 @@ export function useUpdateTask(projectId: string) {
 export function useCompleteTask(projectId: string) {
   return useMutation({
     mutationFn: ({ id, isCompleted }: { id: number; isCompleted: boolean }) =>
-      apiRequest(`/api/tasks/${id}`, {
+      apiRequest(`/api/projects/${projectId}/tasks/${id}`, {
         method: 'PATCH',
         body: JSON.stringify({ 
           status: isCompleted ? 'completed' : 'pending',
@@ -63,7 +63,7 @@ export function useCompleteTask(projectId: string) {
 
 export function useDeleteTask(projectId: string) {
   return useMutation({
-    mutationFn: (id: number) => apiRequest(`/api/tasks/${id}`, {
+    mutationFn: (id: number) => apiRequest(`/api/projects/${projectId}/tasks/${id}`, {
       method: 'DELETE',
     }),
     onSuccess: () => {
