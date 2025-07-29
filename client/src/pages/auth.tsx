@@ -227,7 +227,7 @@ export default function Auth({ onAuth }: AuthProps) {
           </p>
         </div>
 
-        <Card className="shadow-soft border-0 bg-white/80 backdrop-blur-glass">
+        <Card className="shadow-soft border-0 bg-white">
           <CardHeader className="text-center pb-4">
             <CardTitle className="text-2xl font-dm-serif text-gray-800">
               {isLogin ? "Welcome Back" : "Create Account"}
