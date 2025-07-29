@@ -61,7 +61,23 @@ Examples:
 
 Never say you're just an AI model — you're their planning partner!`;
 
-  const userPrompt = userMessage;
+  // Preprocess user prompts for better AI performance and context
+  let userPrompt = userMessage;
+  const messageLower = userMessage.toLowerCase();
+  
+  if (messageLower.includes("next") || messageLower.includes("what now") || messageLower.includes("focus")) {
+    userPrompt = `Based on this couple's wedding checklist and timeline, what are the next 3 most important tasks they should focus on? Their wedding is on ${weddingDate} (${daysUntilWedding} days away). Consider their current progress: ${completedTasks}/${totalTasks} tasks completed.`;
+  } else if (messageLower.includes("budget") || messageLower.includes("cost") || messageLower.includes("money") || messageLower.includes("spending")) {
+    userPrompt = `Help this couple with their wedding budget planning. Their budget is $${budgetTotal} and their wedding is ${daysUntilWedding} days away. Provide specific budget allocation advice and spending priorities for their timeline.`;
+  } else if (messageLower.includes("theme") || messageLower.includes("style") || messageLower.includes("decor")) {
+    userPrompt = `The couple's wedding theme is "${theme}" with a "${style}" style preference. Their venue is ${location}. Provide specific decoration and styling advice that matches their vision for their ${weddingDate} wedding.`;
+  } else if (messageLower.includes("timeline") || messageLower.includes("schedule") || messageLower.includes("behind") || messageLower.includes("on track")) {
+    userPrompt = `Evaluate this couple's wedding planning timeline. They have ${daysUntilWedding} days until their ${weddingDate} wedding and have completed ${completedTasks} out of ${totalTasks} tasks. Are they on track? What should they prioritize?`;
+  } else if (messageLower.includes("guest") || messageLower.includes("invite") || messageLower.includes("rsvp")) {
+    userPrompt = `Help with wedding guest planning. They're expecting ${guestCount} guests for their ${weddingDate} wedding (${daysUntilWedding} days away). Provide guidance on invitations, RSVPs, and guest management for their timeline.`;
+  } else if (messageLower.includes("vendor") || messageLower.includes("photographer") || messageLower.includes("caterer") || messageLower.includes("venue")) {
+    userPrompt = `Assist with wedding vendor planning. Their wedding is at ${location} on ${weddingDate} (${daysUntilWedding} days away) with ${guestCount} guests and a $${budgetTotal} budget. What vendor priorities should they focus on for their timeline?`;
+  }
 
   try {
     const response = await generateChatResponseFromClient(

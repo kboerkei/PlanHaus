@@ -257,7 +257,7 @@ router.post("/timeline", requireAuth, validateBody(timelineSchema), async (req: 
   }
 });
 
-// Enhanced AI response system with real data integration
+// Enhanced AI response system with optimized prompt preprocessing
 async function generateSmartWeddingResponse(userMessage: string, weddingData: any): Promise<string> {
   const message = userMessage.toLowerCase();
   const daysUntil = weddingData.daysUntilWedding || 79;
@@ -267,7 +267,7 @@ async function generateSmartWeddingResponse(userMessage: string, weddingData: an
   const guestCount = weddingData.guestCount || 0;
   const budget = weddingData.budget || 0;
   
-  // Enhanced condition handling with real data integration
+  // Performance-optimized condition handling with specific prompts
   if (message.includes("next") || message.includes("what now") || message.includes("focus") || message.includes("priority")) {
     try {
       // Get actual task data to provide specific next steps

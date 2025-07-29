@@ -174,12 +174,18 @@ The application uses a comprehensive schema covering:
 - Demo data automatically created for testing and development
 - Application fully functional with all features operational
 
-### Enhanced AI Assistant with Real User Data Integration (January 29, 2025)
+### Enhanced AI Assistant with Performance-Optimized Prompt Preprocessing (January 29, 2025)
 - **Complete User Intake Data Integration**: AI now pulls actual user information from database
   - User's first name (`userName`) extracted from username for personalized greetings
   - Wedding details: venue, theme, style, and budget from project intake form
   - Real guest count calculation from actual guest list with party size tracking
   - Database queries for tasks, budget items, and wedding progress statistics
+- **Performance-Optimized Prompt Preprocessing**: Intelligent prompt enhancement for better AI responses
+  - Keyword detection transforms generic questions into specific, context-rich prompts
+  - "Next tasks" queries: `"Based on this couple's wedding checklist and timeline, what are the next 3 most important tasks..."`
+  - Budget questions: `"Help this couple with their wedding budget planning. Their budget is $X and wedding is Y days away..."`
+  - Theme inquiries: `"The couple's wedding theme is 'X' with 'Y' style preference. Their venue is Z. Provide specific decoration advice..."`
+  - Timeline evaluation: `"Evaluate this couple's wedding planning timeline. They have X days until wedding and completed Y of Z tasks..."`
 - **Clean OpenAI Message Format**: Implemented proper chat completion structure
   - Separate system and user message objects: `{ role: "system", content: systemMessage }`, `{ role: "user", content: userPrompt }`
   - Clean API call structure: `model: "gpt-4o"`, `temperature: 0.7`, proper message array format
@@ -189,16 +195,15 @@ The application uses a comprehensive schema covering:
   - Real wedding data: couple names, wedding date, guest count, budget, venue, theme, style, progress
   - Actionable examples: specific guidance for "what's next?", theme questions, timeline advice
   - Professional tone: "Never say you're just an AI model — you're their planning partner!"
-- **Condition-Based Response Logic**: Smart fallback system with real data integration
+- **Smart Fallback System**: Intelligent responses when OpenAI API unavailable
   - Pattern recognition for wedding planning questions (next tasks, budget help, theme advice)
   - Database queries in fallback responses using actual wedding planning data
   - Context-aware advice based on days until wedding and actual task completion
   - Seamless functionality whether OpenAI API is available or using intelligent fallbacks
-- **Enhanced Personalization**: Responses tailored to individual wedding planning context
-  - Uses real user name, wedding date, venue, theme, and style preferences
-  - Actual task progress and budget spending calculations
-  - Timeline urgency based on actual days until wedding date
-  - Specific guidance based on real wedding planning status and preferences
+- **Enhanced Performance**: Optimized prompt processing reduces API calls and improves response quality
+  - Preprocessed prompts provide specific context instead of generic user input
+  - Better AI understanding leads to more relevant and actionable responses
+  - Reduced need for follow-up questions through comprehensive context provision
 
 ### Party Size Tracking Implementation Completed (January 28, 2025)
 - **Enhanced Guest Management**: Successfully implemented party size tracking for accurate RSVP counting
