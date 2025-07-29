@@ -7,6 +7,7 @@ import { getOrCreateDefaultProject } from "../utils/projects";
 import { logError, logInfo, logWarning } from "../utils/logger";
 import { RequestWithUser } from "../types/express";
 import { AI_PROMPTS, formatPrompt } from "../prompts";
+import { storage } from "../storage";
 import { 
   generateWeddingTimeline, 
   generateBudgetBreakdown, 
@@ -15,6 +16,7 @@ import {
   analyzeWeddingTheme,
   type WeddingPlanningInput
 } from "../services/ai";
+import { generateChatResponse } from "../services/ai/generateChatResponse";
 
 const router = Router();
 
@@ -58,30 +60,46 @@ router.post("/chat", requireAuth, validateBody(chatSchema), async (req: RequestW
   try {
     const { message, context } = req.body;
     
-    // Get project context if available
-    let projectContext = {};
-    if (context?.projectId) {
-      try {
-        const project = await getOrCreateDefaultProject(req.userId);
-        projectContext = {
-          weddingDate: project.date,
-          location: project.location,
-          budget: project.budget,
-          guestCount: project.guestCount
-        };
-      } catch (error) {
-        logWarning('ai', 'Failed to get project context for chat', { userId: req.userId });
-      }
+    // Get comprehensive project context for personalized responses
+    let weddingData = {};
+    try {
+      const project = await getOrCreateDefaultProject(req.userId);
+      
+      // Get additional wedding data from storage
+      const tasks = await storage.getTasksByProjectId(project.id);
+      const guests = await storage.getGuestsByProjectId(project.id);
+      const budget = await storage.getBudgetItemsByProjectId(project.id);
+      
+      // Calculate days until wedding
+      const weddingDate = new Date(project.date);
+      const today = new Date();
+      const daysUntilWedding = Math.ceil((weddingDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+      
+      // Build rich context for AI
+      weddingData = {
+        coupleNames: project.name || "Emma & Jake",
+        weddingDate: project.date ? new Date(project.date).toLocaleDateString() : "your wedding day",
+        daysUntilWedding: daysUntilWedding > 0 ? daysUntilWedding : "soon",
+        guestCount: guests?.length || 0,
+        budget: project.budget || "not set",
+        location: project.location || "your venue",
+        completedTasks: tasks?.filter(task => task.isCompleted).length || 0,
+        totalTasks: tasks?.length || 0,
+        budgetSpent: budget?.reduce((sum, item) => sum + (item.actualCost || 0), 0) || 0,
+        currentPage: context?.currentPage || "chat"
+      };
+    } catch (error) {
+      logWarning('ai', 'Failed to get project context for chat', { userId: req.userId });
     }
 
-    const prompt = formatPrompt(AI_PROMPTS.WEDDING_CHAT, {
-      ...projectContext,
-      question: message
-    });
-
-    const response = await generatePersonalizedRecommendation(prompt);
+    // Use the enhanced chat response system with personalized context
+    const response = await generateChatResponse(weddingData, message);
     
-    logInfo('ai', 'Chat response generated', { userId: req.userId });
+    logInfo('ai', 'Enhanced personalized chat response generated', { 
+      userId: req.userId,
+      daysUntilWedding: weddingData.daysUntilWedding,
+      completedTasks: weddingData.completedTasks
+    });
     
     res.json({ 
       response,

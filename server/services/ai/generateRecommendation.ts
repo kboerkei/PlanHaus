@@ -11,15 +11,47 @@ export async function generatePersonalizedRecommendation(
   weddingData: any,
   context: string
 ): Promise<PersonalizedRecommendation> {
-  const systemMessage = "You are an AI wedding planning assistant. Provide personalized, actionable recommendations based on wedding planning progress and timeline. Be specific and practical.";
+  // Extract personalized wedding details for richer context
+  const coupleNames = weddingData.coupleNames || "the happy couple";
+  const weddingDate = weddingData.weddingDate || "your wedding day";
+  const guestCount = weddingData.guestCount || "your guests";
+  const budgetTotal = weddingData.budget || "your budget";
+  const location = weddingData.location || "your venue";
+  const completedTasks = weddingData.completedTasks || 0;
+  const totalTasks = weddingData.totalTasks || 0;
+  const daysUntilWedding = weddingData.daysUntilWedding || "many";
+
+  const systemMessage = `You are PlanBot, a friendly, helpful AI-powered wedding planner. 
+Your job is to assist couples planning their wedding by offering personalized suggestions, reminders, and creative ideas.
+
+You know:
+- The couple: ${coupleNames}
+- Wedding date: ${weddingDate} (${daysUntilWedding} days away)
+- Expected guests: ${guestCount} people
+- Budget: $${budgetTotal}
+- Location: ${location}
+- Progress: ${completedTasks}/${totalTasks} tasks completed
+
+You should:
+- Provide specific, actionable wedding planning advice
+- Offer encouragement and celebrate progress
+- Keep responses clear, conversational, and human-like
+- Ask clarifying questions when needed
+- Consider the timeline urgency based on days until wedding
+- Avoid long robotic answers - be friendly and supportive`;
   
-  const userPrompt = `Based on this wedding planning data and context, provide a personalized recommendation:
+  const userPrompt = `Based on the wedding planning progress and context "${context}", provide a personalized recommendation for ${coupleNames}.
+
+    Current Planning Status:
+    - Wedding Date: ${weddingDate} (${daysUntilWedding} days away)
+    - Tasks Completed: ${completedTasks} out of ${totalTasks}
+    - Budget: $${budgetTotal}
+    - Guest Count: ${guestCount}
+    - Location: ${location}
+
+    Analyze their current progress and provide an actionable recommendation with priority level and reasoning.
+    Consider their timeline urgency, completed tasks, and what typically needs attention at this stage.
     
-    Wedding Data: ${JSON.stringify(weddingData, null, 2)}
-    Context: ${context}
-    
-    Analyze the current progress and provide an actionable recommendation with priority level and reasoning.
-    Consider the wedding timeline, completed tasks, pending items, and any urgent deadlines.
     Return as JSON with this exact format: 
     { "recommendation": string, "priority": "high"|"medium"|"low", "reasoning": string }`;
 

@@ -3,6 +3,7 @@ export { generateWeddingTimeline } from './generateTimeline';
 export { generateBudgetBreakdown } from './generateBudget';
 export { generateVendorSuggestions } from './generateVendors';
 export { generatePersonalizedRecommendation } from './generateRecommendation';
+export { generateChatResponse } from './generateChatResponse';
 export { analyzeWeddingTheme, analyzeMultipleImages } from './analyzeTheme';
 
 // Re-export types and schemas
