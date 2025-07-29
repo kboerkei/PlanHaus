@@ -186,7 +186,7 @@ The application uses a comprehensive schema covering:
   - User feedback through alert messages and chat thread integration
   - Supports file uploads with visual confirmation in chat messages
 - **Enhanced API Structure**: Simplified AI endpoint accepts `{ prompt: string }` and returns `{ response: string }`
-- **File Analysis API**: Added `/api/analyzeFile` endpoint for PDF and Excel processing with OpenAI analysis
+- **File Analysis API**: Added `/api/analyzeFile` endpoint for PDF and Excel processing with streamlined OpenAI analysis prompt
 - **Enhanced Error Handling**: Added try-catch for API calls with user-friendly error messages
 - **Performance Optimized**: Simple component structure with minimal re-renders and clean state management
 

@@ -93,25 +93,18 @@ router.post("/", upload.single("file"), requireAuth, async (req: RequestWithUser
     const fileType = file.mimetype === 'application/pdf' ? 'PDF document' : 'spreadsheet';
     
     // Create AI prompt for analysis
-    const analysisPrompt = `Analyze this uploaded wedding ${fileType} and provide a helpful summary with key points and recommendations for the couple's wedding planning.
+    const prompt = `
+You're an expert wedding planning assistant. Analyze this uploaded ${fileType} and summarize its contents for the user.
 
 File content:
-${extractedText.substring(0, 4000)} ${extractedText.length > 4000 ? '...(truncated)' : ''}
-
-Please provide:
-1. A brief summary of what this document contains
-2. Key financial information (if applicable)
-3. Important dates or deadlines (if any)
-4. Recommendations or action items for the couple
-5. Any potential concerns or things to watch out for
-
-Keep the response practical and wedding-planning focused.`;
+${extractedText}
+`;
 
     // Get AI analysis using the existing chat response system
     const aiAnalysis = await generateChatResponse({
       coupleNames: "the couple",
       currentPage: "file analysis"
-    }, analysisPrompt);
+    }, prompt);
 
     res.json({
       message: "File analyzed successfully",
