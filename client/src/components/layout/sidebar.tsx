@@ -22,8 +22,8 @@ export default function Sidebar() {
   const [location] = useLocation();
 
   return (
-    <aside className="fixed left-0 top-0 h-full w-64 bg-white shadow-lg border-r border-gray-100 hidden lg:block z-30">
-      <div className="p-6 border-b border-gray-100">
+    <aside className="fixed left-0 top-0 h-screen w-64 bg-white shadow-lg border-r border-gray-100 hidden lg:flex lg:flex-col z-30">
+      <div className="p-6 border-b border-gray-100 flex-shrink-0">
         <div className="flex items-center space-x-3">
           <div className="w-10 h-10 gradient-blush-rose rounded-xl flex items-center justify-center">
             <Heart className="text-white" size={20} />
@@ -35,7 +35,8 @@ export default function Sidebar() {
         </div>
       </div>
       
-      <nav className="p-6">
+      <div className="flex-1 overflow-y-auto">
+        <nav className="p-6">
         <ul className="space-y-2">
           {navigation.map((item) => {
             const Icon = item.icon;
@@ -105,8 +106,9 @@ export default function Sidebar() {
               </div>
             </div>
           </div>
-        </div>
-      </nav>
+          </div>
+        </nav>
+      </div>
     </aside>
   );
 }
