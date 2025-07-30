@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -259,10 +259,12 @@ export default function Schedules() {
   };
 
   // Set initial active tab when schedules load
-  if (schedules.length > 0 && !activeScheduleTab) {
-    setActiveScheduleTab(schedules[0].id.toString());
-    setSelectedSchedule(schedules[0]);
-  }
+  useEffect(() => {
+    if (schedules.length > 0 && !activeScheduleTab) {
+      setActiveScheduleTab(schedules[0].id.toString());
+      setSelectedSchedule(schedules[0]);
+    }
+  }, [schedules, activeScheduleTab]);
 
   const handleTabChange = (scheduleId: string) => {
     setActiveScheduleTab(scheduleId);
