@@ -59,7 +59,7 @@ const Budget = memo(() => {
 
   // Fetch data using hooks
   const { data: projects, isLoading: projectsLoading } = useProjects();
-  const currentProject = projects?.find(p => p.name === "Emma & Jake's Wedding") || projects?.[0];
+  const currentProject = projects?.find((p: any) => p.name === "Emma & Jake's Wedding") || projects?.[0];
   const projectId = currentProject?.id?.toString();
   
 
@@ -76,7 +76,7 @@ const Budget = memo(() => {
   const filteredItems = useMemo(() => {
     if (!budgetItems) return [];
     
-    return budgetItems.filter(item => {
+    return budgetItems.filter((item: any) => {
       const matchesSearch = !debouncedSearchTerm || 
         item.item?.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
         item.category?.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
@@ -91,7 +91,7 @@ const Budget = memo(() => {
 
   // Calculate totals from filtered items
   const filteredTotals = useMemo(() => {
-    return filteredItems.reduce((acc, item) => {
+    return filteredItems.reduce((acc: any, item: any) => {
       const estimatedCost = parseFloat(item.estimatedCost) || 0;
       const actualCost = parseFloat(item.actualCost) || 0;
       
@@ -172,7 +172,10 @@ const Budget = memo(() => {
                 </Button>
               }
             />
-            <BudgetEntryDialog projectId={projectId} />
+            <Button size="sm" className="gap-2">
+              <DollarSign className="h-4 w-4" />
+              Add Item
+            </Button>
           </div>
         </div>
 
@@ -283,7 +286,10 @@ const Budget = memo(() => {
                   }
                 </p>
                 {(!searchTerm && !filterCategory) && (
-                  <BudgetEntryDialog projectId={projectId} />
+                  <Button className="gap-2">
+                    <DollarSign className="h-4 w-4" />
+                    Add Budget Item
+                  </Button>
                 )}
               </CardContent>
             </Card>
@@ -322,15 +328,9 @@ const Budget = memo(() => {
                             </div>
                           )}
                           <div className="flex items-center gap-2">
-                            <BudgetEntryDialog
-                              projectId={projectId}
-                              budgetItem={item}
-                              trigger={
-                                <Button variant="outline" size="sm">
-                                  Edit
-                                </Button>
-                              }
-                            />
+                            <Button variant="outline" size="sm">
+                              Edit
+                            </Button>
                           </div>
                         </div>
                         
@@ -465,7 +465,7 @@ function BudgetOverviewAnalytics({ budgetItems, budgetSummary }: {
     }
     
     // Check for categories over budget
-    categoryData.forEach(cat => {
+    categoryData.forEach((cat: any) => {
       if (cat.variance > 0) {
         alertList.push({
           type: 'warning',
@@ -480,8 +480,8 @@ function BudgetOverviewAnalytics({ budgetItems, budgetSummary }: {
   // Top spending categories
   const topCategories = useMemo(() => {
     return categoryData
-      .filter(cat => cat.actual > 0)
-      .sort((a, b) => b.actual - a.actual)
+      .filter((cat: any) => cat.actual > 0)
+      .sort((a: any, b: any) => b.actual - a.actual)
       .slice(0, 5);
   }, [categoryData]);
 
@@ -572,22 +572,22 @@ function BudgetOverviewAnalytics({ budgetItems, budgetSummary }: {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {categoryData.filter(item => item.actual > 0).length > 0 ? (
+            {categoryData.filter((item: any) => item.actual > 0).length > 0 ? (
               <ResponsiveContainer width="100%" height={300}>
                 <RechartsPieChart>
                   <Pie
-                    data={categoryData.filter(item => item.actual > 0)}
+                    data={categoryData.filter((item: any) => item.actual > 0)}
                     cx="50%"
                     cy="50%"
                     labelLine={false}
-                    label={({ category, actual, percent }) => 
+                    label={({ category, actual, percent }: any) => 
                       percent > 10 ? `${category}: ${formatCurrency(actual)}` : ''
                     }
                     outerRadius={100}
                     fill="#8884d8"
                     dataKey="actual"
                   >
-                    {categoryData.filter(item => item.actual > 0).map((entry, index) => (
+                    {categoryData.filter((item: any) => item.actual > 0).map((entry: any, index: number) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
@@ -595,8 +595,8 @@ function BudgetOverviewAnalytics({ budgetItems, budgetSummary }: {
                   <Legend 
                     verticalAlign="bottom" 
                     height={36}
-                    formatter={(value, entry) => 
-                      `${value}: ${formatCurrency(entry.payload.actual)}`
+                    formatter={(value: any, entry: any) => 
+                      `${value}: ${formatCurrency(entry.payload?.actual || 0)}`
                     }
                   />
                 </RechartsPieChart>
@@ -702,7 +702,7 @@ function BudgetOverviewAnalytics({ budgetItems, budgetSummary }: {
         <CardContent>
           {topCategories.length > 0 ? (
             <div className="space-y-4">
-              {topCategories.map((category, index) => (
+              {topCategories.map((category: any, index: number) => (
                 <div key={category.category} className="flex items-center justify-between p-3 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors">
                   <div className="flex items-center space-x-3">
                     <div className="text-lg font-bold text-gray-700 bg-white rounded-full w-8 h-8 flex items-center justify-center">

@@ -13,8 +13,8 @@ import LoadingSpinner from "@/components/ui/loading-spinner";
 import ExportDialog from "@/components/export/ExportDialog";
 import { EnhancedErrorBoundary } from "@/components/ui/enhanced-error-boundary";
 import { SkeletonCard } from "@/components/ui/enhanced-loading";
-import { EnhancedCard, StatCard, AnimatedCard } from "@/components/ui/enhanced-cards";
-import { SearchInput, EnhancedSelect } from "@/components/ui/enhanced-forms";
+import { EnhancedCard, StatCard } from "@/components/ui/enhanced-cards";
+import { SearchInput } from "@/components/ui/enhanced-forms";
 import { AccessibleButton } from "@/components/ui/accessibility-enhancements";
 import { useDebounce, usePerformanceMonitor } from "@/hooks/usePerformanceOptimization";
 import { motion, AnimatePresence } from "framer-motion";
@@ -325,7 +325,7 @@ export default function Vendors() {
             <Checkbox
               id="show-booked-only"
               checked={showBookedOnly}
-              onCheckedChange={setShowBookedOnly}
+              onCheckedChange={(checked) => setShowBookedOnly(checked === true)}
             />
             <label htmlFor="show-booked-only" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
               Show booked only
@@ -477,9 +477,9 @@ export default function Vendors() {
                         )}
                       </div>
 
-                      {vendor.rating > 0 && (
+                      {vendor.rating && vendor.rating > 0 && (
                         <div className="flex items-center gap-2 mt-2">
-                          <div className="flex">{renderStars(vendor.rating)}</div>
+                          <div className="flex">{renderStars(vendor.rating || 0)}</div>
                           <span className="text-sm text-gray-600">({vendor.rating}/5)</span>
                         </div>
                       )}

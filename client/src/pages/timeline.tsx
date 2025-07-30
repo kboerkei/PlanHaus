@@ -17,7 +17,7 @@ import ExportDialog from "@/components/export/ExportDialog";
 import { EnhancedErrorBoundary } from "@/components/ui/enhanced-error-boundary";
 import { SkeletonCard } from "@/components/ui/enhanced-loading";
 import { EnhancedCard, StatCard, ProgressCard } from "@/components/ui/enhanced-cards";
-import { SearchInput, EnhancedSelect } from "@/components/ui/enhanced-forms";
+import { SearchInput } from "@/components/ui/enhanced-forms";
 import { AccessibleButton } from "@/components/ui/accessibility-enhancements";
 import { useDebounce, usePerformanceMonitor } from "@/hooks/usePerformanceOptimization";
 import { motion, AnimatePresence } from "framer-motion";
