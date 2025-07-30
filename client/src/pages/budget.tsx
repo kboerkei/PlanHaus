@@ -596,7 +596,7 @@ function BudgetOverviewAnalytics({ budgetItems, budgetSummary }: {
                     verticalAlign="bottom" 
                     height={36}
                     formatter={(value: any, entry: any) => 
-                      `${value}: ${formatCurrency(entry.payload?.actual || 0)}`
+                      `${value}: ${formatCurrency(entry?.payload?.actual || 0)}`
                     }
                   />
                 </RechartsPieChart>

@@ -273,11 +273,13 @@ export const seatingTables = pgTable("seating_tables", {
   id: serial("id").primaryKey(),
   projectId: integer("project_id").notNull(),
   name: text("name").notNull(), // e.g., "Table 1", "Head Table"
-  capacity: integer("capacity").notNull(),
-  shape: text("shape").default('round'), // 'round', 'rectangle', 'square'
-  location: text("location"), // Room section or description
+  maxSeats: integer("max_seats").notNull(),
+  capacity: integer("capacity"),
   notes: text("notes"),
+  position: jsonb("position"),
+  createdBy: integer("created_by").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
 export const seatingAssignments = pgTable("seating_assignments", {
