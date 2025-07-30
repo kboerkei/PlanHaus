@@ -1,6 +1,20 @@
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
+import {
+  DndContext,
+  DragEndEvent,
+  DragOverlay,
+  DragStartEvent,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  closestCenter,
+} from "@dnd-kit/core";
+import {
+  useDraggable,
+  useDroppable,
+} from "@dnd-kit/core";
 import { 
   Plus, 
   Users, 
@@ -220,33 +234,69 @@ function GuestAssignmentDialog({
   );
 }
 
-// Table Card Component
-function TableCard({ 
+// Draggable Guest Component
+function DraggableGuest({ guest, assignment }: { guest: Guest; assignment?: SeatingAssignment }) {
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+    id: `guest-${guest.id}`,
+    data: { guest, assignment }
+  });
+
+  const style = transform ? {
+    transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
+  } : undefined;
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...listeners}
+      {...attributes}
+      className={`flex items-center gap-3 p-3 bg-gradient-to-r from-blush/20 to-rose-gold/20 rounded-xl border border-blush/30 cursor-grab active:cursor-grabbing ${
+        isDragging ? 'opacity-50 scale-105' : ''
+      } hover:shadow-md transition-all duration-200`}
+    >
+      <div className="p-1.5 bg-gradient-to-br from-blush to-rose-gold rounded-lg">
+        <Users className="h-3 w-3 text-white" />
+      </div>
+      <span className="text-sm font-medium text-gray-900">{guest.name}</span>
+      <Move className="h-3 w-3 text-gray-400 ml-auto" />
+    </div>
+  );
+}
+
+// Droppable Table Component
+function DroppableTable({ 
   table, 
   assignments, 
   onEditTable, 
-  onDeleteTable, 
-  onAssignGuest, 
+  onDeleteTable,
   onRemoveGuest 
 }: {
   table: SeatingTable;
   assignments: SeatingAssignment[];
   onEditTable: () => void;
   onDeleteTable: () => void;
-  onAssignGuest: () => void;
   onRemoveGuest: (assignmentId: number) => void;
 }) {
   const assignedGuests = assignments.filter(a => a.tableId === table.id);
   const availableSeats = table.maxSeats - assignedGuests.length;
 
+  const { setNodeRef, isOver } = useDroppable({
+    id: `table-${table.id}`,
+    data: { table }
+  });
+
   return (
     <motion.div
+      ref={setNodeRef}
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.9 }}
       className="relative"
     >
-      <Card className="h-full hover:shadow-xl transition-all duration-300 bg-gradient-to-br from-white to-gray-50 border-gray-200 rounded-2xl shadow-md hover:scale-[1.02] transform">
+      <Card className={`h-full hover:shadow-xl transition-all duration-300 bg-gradient-to-br from-white to-gray-50 border-gray-200 rounded-2xl shadow-md hover:scale-[1.02] transform ${
+        isOver ? 'ring-2 ring-blush ring-opacity-50 bg-blush/5' : ''
+      }`}>
         <CardHeader className="pb-4 bg-gradient-to-r from-blush/10 to-rose-gold/10 rounded-t-2xl">
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-3 text-lg">
@@ -290,7 +340,7 @@ function TableCard({
           </div>
         </CardHeader>
         
-        <CardContent className="space-y-3">
+        <CardContent className="space-y-3 group">
           {/* Assigned Guests */}
           <AnimatePresence>
             {assignedGuests.map((assignment) => (
@@ -299,19 +349,14 @@ function TableCard({
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 20 }}
-                className="flex items-center justify-between p-3 bg-gradient-to-r from-blush/20 to-rose-gold/20 rounded-xl border border-blush/30"
+                className="relative"
               >
-                <div className="flex items-center gap-3">
-                  <div className="p-1.5 bg-gradient-to-br from-blush to-rose-gold rounded-lg">
-                    <Users className="h-3 w-3 text-white" />
-                  </div>
-                  <span className="text-sm font-medium text-gray-900">{assignment.guest.name}</span>
-                </div>
+                <DraggableGuest guest={assignment.guest} assignment={assignment} />
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => onRemoveGuest(assignment.id)}
-                  className="h-7 w-7 p-0 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
+                  className="absolute top-2 right-2 h-6 w-6 p-0 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
                 >
                   <UserMinus className="h-3 w-3" />
                 </Button>
@@ -321,8 +366,10 @@ function TableCard({
           
           {/* Empty Seats */}
           {Array.from({ length: availableSeats }, (_, i) => (
-            <div key={i} className="p-2 border-2 border-dashed border-gray-200 rounded-lg text-center text-gray-400 text-sm">
-              Empty seat
+            <div key={i} className={`p-2 border-2 border-dashed border-gray-200 rounded-lg text-center text-gray-400 text-sm transition-all duration-200 ${
+              isOver ? 'border-blush bg-blush/5' : ''
+            }`}>
+              {isOver ? 'Drop guest here' : 'Empty seat'}
             </div>
           ))}
           
@@ -355,8 +402,18 @@ export default function SeatingChart() {
   const [showTableForm, setShowTableForm] = useState(false);
   const [editingTable, setEditingTable] = useState<SeatingTable | null>(null);
   const [showGuestAssignment, setShowGuestAssignment] = useState<SeatingTable | null>(null);
+  const [activeDragItem, setActiveDragItem] = useState<any>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Drag and drop sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    })
+  );
 
   // Fetch seating chart data
   const { data: seatingData, isLoading } = useQuery<SeatingChartData>({
@@ -388,6 +445,63 @@ export default function SeatingChart() {
       toast({ title: "Failed to remove guest", variant: "destructive" });
     },
   });
+
+  // Assign guest mutation
+  const assignGuestMutation = useMutation({
+    mutationFn: ({ tableId, guestId }: { tableId: number; guestId: number }) =>
+      apiRequest("/api/seating-chart/assignments", { 
+        method: "POST", 
+        body: JSON.stringify({ tableId, guestId }),
+        headers: { "Content-Type": "application/json" }
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/seating-chart"] });
+      toast({ title: "Guest assigned successfully!" });
+    },
+    onError: () => {
+      toast({ title: "Failed to assign guest", variant: "destructive" });
+    },
+  });
+
+  // Drag handlers
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveDragItem(event.active.data.current);
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    setActiveDragItem(null);
+
+    if (!over) return;
+
+    const draggedGuest = active.data.current?.guest;
+    const draggedAssignment = active.data.current?.assignment;
+    const targetTable = over.data.current?.table;
+
+    if (!draggedGuest || !targetTable) return;
+
+    // Check if table has available seats
+    const currentAssignments = seatingData?.assignments.filter(a => a.tableId === targetTable.id) || [];
+    if (currentAssignments.length >= targetTable.maxSeats) {
+      toast({ title: "Table is full", description: "Cannot assign more guests to this table.", variant: "destructive" });
+      return;
+    }
+
+    // If guest is already assigned to a table, remove them first
+    if (draggedAssignment) {
+      // Guest is moving between tables
+      assignGuestMutation.mutate({
+        tableId: targetTable.id,
+        guestId: draggedGuest.id
+      });
+    } else {
+      // Guest is being assigned for the first time
+      assignGuestMutation.mutate({
+        tableId: targetTable.id,
+        guestId: draggedGuest.id
+      });
+    }
+  };
 
   // Export functions
   const exportToPDF = () => {
@@ -459,7 +573,13 @@ export default function SeatingChart() {
   const unassignedGuests = seatingData?.unassignedGuests || [];
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCenter}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+    >
+      <div className="p-6 max-w-7xl mx-auto">
       {/* Enhanced Header with PlanHaus styling */}
       <div className="mb-8 text-center">
         <h1 className="text-4xl font-serif font-bold text-gray-900 mb-4">Seating Chart</h1>
@@ -546,9 +666,8 @@ export default function SeatingChart() {
                   key={guest.id}
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  className="px-4 py-2 bg-gradient-to-r from-amber-100 to-orange-100 text-amber-800 rounded-full text-sm font-medium shadow-sm hover:shadow-md transition-all duration-200 border border-amber-200"
                 >
-                  {guest.name}
+                  <DraggableGuest guest={guest} />
                 </motion.div>
               ))}
             </div>
@@ -580,13 +699,12 @@ export default function SeatingChart() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           <AnimatePresence>
             {tables.map((table) => (
-              <TableCard
+              <DroppableTable
                 key={table.id}
                 table={table}
                 assignments={assignments}
                 onEditTable={() => setEditingTable(table)}
                 onDeleteTable={() => deleteTableMutation.mutate(table.id)}
-                onAssignGuest={() => setShowGuestAssignment(table)}
                 onRemoveGuest={(assignmentId) => removeGuestMutation.mutate(assignmentId)}
               />
             ))}
@@ -626,6 +744,23 @@ export default function SeatingChart() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Drag Overlay */}
+      <DragOverlay>
+        {activeDragItem ? (
+          <div className="bg-white shadow-lg rounded-xl border border-blush p-3 rotate-6 scale-110">
+            <div className="flex items-center gap-3">
+              <div className="p-1.5 bg-gradient-to-br from-blush to-rose-gold rounded-lg">
+                <Users className="h-3 w-3 text-white" />
+              </div>
+              <span className="text-sm font-medium text-gray-900">
+                {activeDragItem.guest?.name}
+              </span>
+            </div>
+          </div>
+        ) : null}
+      </DragOverlay>
     </div>
+  </DndContext>
   );
 }
