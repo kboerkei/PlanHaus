@@ -409,6 +409,36 @@ export const insertShoppingListSchema = createInsertSchema(shoppingLists).omit({
   updatedAt: true,
 });
 
+// Creative Details table
+export const creativeDetails = pgTable("creative_details", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id").notNull(),
+  category: text("category").notNull(), // 'signature_drinks', 'signage', 'small_details', etc.
+  title: text("title").notNull(),
+  description: text("description"),
+  notes: text("notes"),
+  imageUrl: text("image_url"),
+  fileUrl: text("file_url"),
+  fileName: text("file_name"),
+  assignedTo: integer("assigned_to"),
+  dueDate: timestamp("due_date"),
+  isCompleted: boolean("is_completed").default(false).notNull(),
+  completedDate: timestamp("completed_date"),
+  priority: text("priority").notNull().default("medium"), // 'low', 'medium', 'high', 'urgent'
+  status: text("status").notNull().default("Not Started"), // 'Not Started', 'In Progress', 'Complete'
+  tags: text("tags").array().default([]),
+  additionalData: jsonb("additional_data"), // For custom form fields
+  createdBy: integer("created_by").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertCreativeDetailSchema = createInsertSchema(creativeDetails).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export const insertShoppingItemSchema = createInsertSchema(shoppingItems).omit({
   id: true,
   createdAt: true,
@@ -547,34 +577,7 @@ export const insertWeddingOverviewSchema = createInsertSchema(weddingOverview).o
   updatedAt: true,
 });
 
-export const creativeDetails = pgTable("creative_details", {
-  id: serial("id").primaryKey(),
-  projectId: integer("project_id").notNull(),
-  category: text("category").notNull(), // 'signature_drinks', 'signage', 'guestbook', 'must_have_photos', 'color_palette', 'diy_projects', 'custom_favors', 'special_songs'
-  title: text("title").notNull(),
-  description: text("description"),
-  notes: text("notes"),
-  imageUrl: text("image_url"), // For uploaded images/files
-  fileUrl: text("file_url"), // For other file uploads
-  fileName: text("file_name"), // Original file name
-  assignedTo: integer("assigned_to").references(() => users.id),
-  dueDate: timestamp("due_date"),
-  status: text("status", { enum: ['Not Started', 'In Progress', 'Complete'] }).default('Not Started'),
-  isCompleted: boolean("is_completed").default(false),
-  completedDate: timestamp("completed_date"),
-  priority: text("priority").default("medium"), // 'high', 'medium', 'low'
-  tags: text("tags").array().default([]),
-  additionalData: jsonb("additional_data"), // For category-specific fields like cocktail ingredients, song details, etc.
-  createdBy: integer("created_by").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
 
-export const insertCreativeDetailSchema = createInsertSchema(creativeDetails).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
 
 export const intakeData = pgTable("intake_data", {
   id: serial("id").primaryKey(),

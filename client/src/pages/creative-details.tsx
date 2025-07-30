@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { type CreativeDetail, type CreateCreativeDetail } from "../../../shared/types";
+import { type CreativeDetail, type InsertCreativeDetail } from "@shared/schema";
 import { ChevronDown, ChevronRight, Plus, Upload, User, Calendar, Edit, Trash2, CheckCircle, Clock, AlertCircle, Users } from "lucide-react";
 import { useDropzone } from "react-dropzone";
 import { useToast } from "@/hooks/use-toast";
@@ -229,7 +229,7 @@ export default function CreativeDetails() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingDetail, setEditingDetail] = useState<CreativeDetail | null>(null);
   const [uploadingFiles, setUploadingFiles] = useState<{[key: number]: boolean}>({});
-  const [collaborators, setCollaborators] = useState<Collaborator[]>([]);
+  const [collaborators, setCollaborators] = useState<any[]>([]);
   const [userCanEdit, setUserCanEdit] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [formData, setFormData] = useState<CreativeDetailFormData>({
@@ -252,8 +252,8 @@ export default function CreativeDetails() {
     setIsAuthenticated(authenticated);
 
     if (authenticated) {
-      // Sync localStorage data to Supabase when authenticated
-      syncLocalStorageToSupabase();
+      // Authentication is working, no sync needed for demo
+      console.log('User authenticated:', authenticated);
     }
   }, []);
 
@@ -261,11 +261,9 @@ export default function CreativeDetails() {
   useEffect(() => {
     const loadCollaborators = async () => {
       try {
-        const projectCollaborators = await getCollaborators(1); // Current project
-        setCollaborators(projectCollaborators);
-        
-        const editPermission = await canEdit(1);
-        setUserCanEdit(editPermission);
+        // For demo, assume user can edit and has no collaborators
+        setCollaborators([]);
+        setUserCanEdit(true);
       } catch (error) {
         console.error('Error loading collaborators:', error);
       }
@@ -276,11 +274,17 @@ export default function CreativeDetails() {
     }
   }, [isAuthenticated]);
 
-  // Fetch creative details using our Supabase service
+  // Fetch creative details using our API
   const { data: details = [], isLoading } = useQuery({
-    queryKey: ['creative-details', 1], // Project ID 1
-    queryFn: () => getCreativeDetails(1),
-    select: (data) => data as CreativeDetail[]
+    queryKey: ['creative-details'],
+    queryFn: async () => {
+      const sessionId = localStorage.getItem('sessionId') || 'demo_session';
+      const response = await fetch('/api/creative-details', {
+        headers: { Authorization: `Bearer ${sessionId}` }
+      });
+      if (!response.ok) throw new Error('Failed to fetch creative details');
+      return response.json();
+    }
   });
 
   // Create/update mutation using our Supabase service
