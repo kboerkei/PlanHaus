@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { Calendar, CheckCircle, Clock, Filter, AlertCircle, Target, TrendingUp, Download } from "lucide-react";
+import { Calendar, CheckCircle, Clock, Filter, AlertCircle, Target, TrendingUp, Download, Search, Zap } from "lucide-react";
 import { format, differenceInDays } from "date-fns";
 import { useProjects } from "@/hooks/useProjects";
 import { useTasks } from "@/hooks/useTimeline";
@@ -14,6 +14,13 @@ import TaskFormDialog from "@/components/timeline/TaskFormDialog";
 import TaskCard from "@/components/timeline/TaskCard";
 import LoadingSpinner from "@/components/ui/loading-spinner";
 import ExportDialog from "@/components/export/ExportDialog";
+import { EnhancedErrorBoundary } from "@/components/ui/enhanced-error-boundary";
+import { SkeletonCard } from "@/components/ui/enhanced-loading";
+import { EnhancedCard, StatCard, ProgressCard } from "@/components/ui/enhanced-cards";
+import { SearchInput, EnhancedSelect } from "@/components/ui/enhanced-forms";
+import { AccessibleButton } from "@/components/ui/accessibility-enhancements";
+import { useDebounce, usePerformanceMonitor } from "@/hooks/usePerformanceOptimization";
+import { motion, AnimatePresence } from "framer-motion";
 
 const priorityFilters = [
   { value: "all", label: "All Priorities" },

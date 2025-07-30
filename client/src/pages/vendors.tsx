@@ -5,12 +5,19 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
-import { Building, Mail, Phone, Globe, MapPin, Filter, Star, CheckCircle, Clock, AlertCircle, Download } from "lucide-react";
+import { Building, Mail, Phone, Globe, MapPin, Filter, Star, CheckCircle, Clock, AlertCircle, Download, Search, Sparkles } from "lucide-react";
 import { useProjects } from "@/hooks/useProjects";
 import { useVendors } from "@/hooks/useVendors";
 import VendorFormDialog from "@/components/vendors/VendorFormDialog";
 import LoadingSpinner from "@/components/ui/loading-spinner";
 import ExportDialog from "@/components/export/ExportDialog";
+import { EnhancedErrorBoundary } from "@/components/ui/enhanced-error-boundary";
+import { SkeletonCard } from "@/components/ui/enhanced-loading";
+import { EnhancedCard, StatCard, AnimatedCard } from "@/components/ui/enhanced-cards";
+import { SearchInput, EnhancedSelect } from "@/components/ui/enhanced-forms";
+import { AccessibleButton } from "@/components/ui/accessibility-enhancements";
+import { useDebounce, usePerformanceMonitor } from "@/hooks/usePerformanceOptimization";
+import { motion, AnimatePresence } from "framer-motion";
 
 // Define vendor type for TypeScript
 type Vendor = {

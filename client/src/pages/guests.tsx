@@ -5,13 +5,20 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Users, Mail, Phone, MapPin, Filter, UserPlus, Send, Download } from "lucide-react";
+import { Users, Mail, Phone, MapPin, Filter, UserPlus, Send, Download, Search, Eye, EyeOff } from "lucide-react";
 import { useProjects } from "@/hooks/useProjects";
 import { useGuests, useGuestStats, useBulkUpdateGuests } from "@/hooks/useGuests";
 import GuestFormDialog from "@/components/guests/GuestFormDialog";
 import QuickRSVPButtons from "@/components/guests/QuickRSVPButtons";
 import LoadingSpinner from "@/components/ui/loading-spinner";
 import ExportDialog from "@/components/export/ExportDialog";
+import { EnhancedErrorBoundary } from "@/components/ui/enhanced-error-boundary";
+import { SkeletonTable } from "@/components/ui/enhanced-loading";
+import { EnhancedCard, StatCard } from "@/components/ui/enhanced-cards";
+import { SearchInput } from "@/components/ui/enhanced-forms";
+import { AccessibleButton } from "@/components/ui/accessibility-enhancements";
+import { useDebounce } from "@/hooks/usePerformanceOptimization";
+import { motion, AnimatePresence } from "framer-motion";
 
 const groupFilters = [
   { value: "all", label: "All Groups" },
