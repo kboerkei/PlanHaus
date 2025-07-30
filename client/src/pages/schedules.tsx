@@ -8,7 +8,7 @@ import { format } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Clock, MapPin, Plus, Edit, Trash2, Users, Camera } from "lucide-react";
+import { Calendar, Clock, MapPin, Plus, Edit, Trash2 } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -18,6 +18,36 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
+// Type definitions
+interface Schedule {
+  id: number;
+  projectId: number;
+  name: string;
+  date: string;
+  type: string;
+  description?: string;
+  location?: string;
+}
+
+interface ScheduleEvent {
+  id: number;
+  scheduleId: number;
+  title: string;
+  description?: string;
+  startTime: string;
+  endTime?: string;
+  location?: string;
+  type: string;
+  notes?: string;
+}
+
+interface Project {
+  id: number;
+  name: string;
+  date: string;
+}
+
+// Schemas
 const scheduleSchema = z.object({
   name: z.string().min(1, "Schedule name is required"),
   date: z.string().min(1, "Date is required"),
@@ -59,28 +89,28 @@ const eventTypes = [
 export default function Schedules() {
   const [isScheduleDialogOpen, setIsScheduleDialogOpen] = useState(false);
   const [isEventDialogOpen, setIsEventDialogOpen] = useState(false);
-  const [isEditEventDialogOpen, setIsEditEventDialogOpen] = useState(false);
-  const [selectedSchedule, setSelectedSchedule] = useState<any>(null);
-  const [editingEvent, setEditingEvent] = useState<any>(null);
+  const [selectedSchedule, setSelectedSchedule] = useState<Schedule | null>(null);
   const [activeScheduleTab, setActiveScheduleTab] = useState("");
   const { toast } = useToast();
 
-  const { data: projects } = useQuery({
-    queryKey: ['/api/projects']
+  // Queries with proper typing
+  const { data: projects = [] } = useQuery<Project[]>({
+    queryKey: ['/api/projects'],
   });
 
-  const currentProject = projects?.find(p => p.name === "Emma & Jake's Wedding") || projects?.[0];
+  const currentProject = projects.find(p => p.name === "Emma & Jake's Wedding") || projects[0];
 
-  const { data: schedules = [], isLoading, error } = useQuery({
+  const { data: schedules = [], isLoading } = useQuery<Schedule[]>({
     queryKey: ['/api/projects', currentProject?.id, 'schedules'],
-    enabled: !!currentProject?.id
+    enabled: !!currentProject?.id,
   });
 
-  const { data: events = [] } = useQuery({
+  const { data: events = [] } = useQuery<ScheduleEvent[]>({
     queryKey: ['/api/schedule-events', selectedSchedule?.id],
-    enabled: !!selectedSchedule?.id
+    enabled: !!selectedSchedule?.id,
   });
 
+  // Forms
   const scheduleForm = useForm<ScheduleFormData>({
     resolver: zodResolver(scheduleSchema),
     defaultValues: {
@@ -105,160 +135,58 @@ export default function Schedules() {
     },
   });
 
-  // Handle null or error states
-  if (error || schedules === null) {
-    return (
-      <div className="p-3 sm:p-6 mobile-safe-spacing">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center py-12">
-            <Calendar className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-800 mb-2">Welcome to Schedule Management</h3>
-            <p className="text-gray-600 mb-6">Create detailed schedules for your wedding day and events.</p>
-            <Button className="gradient-blush-rose text-white">
-              <Plus size={16} className="mr-2" />
-              Create First Schedule
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
+  // Mutations
   const createScheduleMutation = useMutation({
-    mutationFn: (data: ScheduleFormData) => apiRequest(`/api/projects/${projects?.[0]?.id}/schedules`, {
-      method: 'POST',
-      body: JSON.stringify(data),
-      headers: { 'Content-Type': 'application/json' }
-    }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/projects', '1', 'schedules'] });
-      scheduleForm.reset();
-      setIsScheduleDialogOpen(false);
-      toast({ title: "Schedule created successfully!" });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: error?.message || "Failed to create schedule",
-        variant: "destructive",
-      });
-    }
-  });
-
-  const createEventMutation = useMutation({
-    mutationFn: (data: EventFormData) => {
-      if (!selectedSchedule?.id) {
-        throw new Error("No schedule selected");
-      }
-      return apiRequest(`/api/schedule-events`, {
+    mutationFn: (data: ScheduleFormData) => 
+      apiRequest(`/api/projects/${currentProject?.id}/schedules`, {
         method: 'POST',
-        body: JSON.stringify({
-          ...data,
-          scheduleId: selectedSchedule.id,
-          projectId: projects?.[0]?.id || 1,
-          createdBy: 1 // Demo user
-        }),
-        headers: { 'Content-Type': 'application/json' }
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/schedule-events', selectedSchedule?.id] });
-      eventForm.reset();
-      setIsEventDialogOpen(false);
-      toast({ title: "Event added successfully!" });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: error?.message || "Failed to add event",
-        variant: "destructive",
-      });
-    }
-  });
-
-  const editEventMutation = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: EventFormData }) => 
-      apiRequest(`/api/schedule-events/${id}`, {
-        method: 'PUT',
         body: JSON.stringify(data),
         headers: { 'Content-Type': 'application/json' }
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/schedule-events'] });
-      setIsEditEventDialogOpen(false);
-      setEditingEvent(null);
-      eventForm.reset();
+      queryClient.invalidateQueries({ queryKey: ['/api/projects', currentProject?.id, 'schedules'] });
+      setIsScheduleDialogOpen(false);
+      scheduleForm.reset();
       toast({
-        title: "Event updated",
-        description: "Event has been updated successfully.",
+        title: "Schedule created",
+        description: "Your schedule has been created successfully.",
       });
     },
-    onError: (error: any) => {
+    onError: () => {
       toast({
         title: "Error",
-        description: error?.message || "Failed to update event.",
+        description: "Failed to create schedule.",
         variant: "destructive",
       });
     },
   });
 
-  const deleteEventMutation = useMutation({
-    mutationFn: (id: number) => apiRequest(`/api/schedule-events/${id}`, {
-      method: 'DELETE',
-    }),
+  const createEventMutation = useMutation({
+    mutationFn: (data: EventFormData) => 
+      apiRequest('/api/schedule-events', {
+        method: 'POST',
+        body: JSON.stringify({ ...data, scheduleId: selectedSchedule?.id }),
+        headers: { 'Content-Type': 'application/json' }
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/schedule-events'] });
+      setIsEventDialogOpen(false);
+      eventForm.reset();
       toast({
-        title: "Event deleted",
-        description: "Event has been removed from the schedule.",
+        title: "Event added",
+        description: "Event has been added to the schedule.",
       });
     },
-    onError: (error: any) => {
+    onError: () => {
       toast({
         title: "Error",
-        description: error?.message || "Failed to delete event.",
+        description: "Failed to add event.",
         variant: "destructive",
       });
     },
   });
 
-  const onScheduleSubmit = (data: ScheduleFormData) => {
-    createScheduleMutation.mutate(data);
-  };
-
-  const onEventSubmit = (data: EventFormData) => {
-    if (editingEvent) {
-      editEventMutation.mutate({ id: editingEvent.id, data });
-    } else {
-      createEventMutation.mutate(data);
-    }
-  };
-
-  const handleEditEvent = (event: any) => {
-    setEditingEvent(event);
-    // Format time from datetime to HH:MM format
-    const startTime = new Date(event.startTime).toTimeString().slice(0, 5);
-    const endTime = event.endTime ? new Date(event.endTime).toTimeString().slice(0, 5) : "";
-    
-    eventForm.reset({
-      title: event.title,
-      description: event.description || "",
-      startTime: startTime,
-      endTime: endTime,
-      location: event.location || "",
-      type: event.type,
-      notes: event.notes || "",
-    });
-    setIsEditEventDialogOpen(true);
-  };
-
-  const handleDeleteEvent = (id: number) => {
-    if (confirm('Are you sure you want to delete this event?')) {
-      deleteEventMutation.mutate(id);
-    }
-  };
-
-  // Set initial active tab when schedules load
+  // Effects
   useEffect(() => {
     if (schedules.length > 0 && !activeScheduleTab) {
       setActiveScheduleTab(schedules[0].id.toString());
@@ -266,14 +194,23 @@ export default function Schedules() {
     }
   }, [schedules, activeScheduleTab]);
 
+  // Handlers
+  const onScheduleSubmit = (data: ScheduleFormData) => {
+    createScheduleMutation.mutate(data);
+  };
+
+  const onEventSubmit = (data: EventFormData) => {
+    createEventMutation.mutate(data);
+  };
+
   const handleTabChange = (scheduleId: string) => {
     setActiveScheduleTab(scheduleId);
     const schedule = schedules.find(s => s.id.toString() === scheduleId);
-    setSelectedSchedule(schedule);
+    setSelectedSchedule(schedule || null);
   };
 
-  const getTypeColor = (type: string) => {
-    const colors = {
+  const getTypeColor = (type: string): string => {
+    const colors: Record<string, string> = {
       wedding_day: "bg-red-100 text-red-800",
       rehearsal: "bg-blue-100 text-blue-800",
       welcome_party: "bg-green-100 text-green-800",
@@ -283,8 +220,8 @@ export default function Schedules() {
     return colors[type] || "bg-gray-100 text-gray-800";
   };
 
-  const getEventTypeColor = (type: string) => {
-    const colors = {
+  const getEventTypeColor = (type: string): string => {
+    const colors: Record<string, string> = {
       ceremony: "bg-pink-100 text-pink-800",
       reception: "bg-purple-100 text-purple-800",
       photos: "bg-blue-100 text-blue-800",
@@ -295,11 +232,21 @@ export default function Schedules() {
     return colors[type] || "bg-gray-100 text-gray-800";
   };
 
-  if (!projects?.[0]) {
+  if (!currentProject) {
     return (
       <div className="p-6">
         <div className="text-center">
           <p className="text-gray-500">Create a wedding project to get started with schedules.</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="p-6">
+        <div className="text-center">
+          <p className="text-gray-500">Loading schedules...</p>
         </div>
       </div>
     );
@@ -323,586 +270,426 @@ export default function Schedules() {
             </div>
           </div>
           <Dialog open={isScheduleDialogOpen} onOpenChange={setIsScheduleDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button className="gradient-blush-rose text-white">
-                    <Plus size={16} className="mr-2" />
-                    New Schedule
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-md">
-                  <DialogHeader>
-                    <DialogTitle>Create New Schedule</DialogTitle>
-                    <DialogDescription>
-                      Create a timeline for wedding events like rehearsal dinner, ceremony, or reception.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <Form {...scheduleForm}>
-                    <form onSubmit={scheduleForm.handleSubmit(onScheduleSubmit)} className="space-y-4">
-                      <FormField
-                        control={scheduleForm.control}
-                        name="name"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Schedule Name *</FormLabel>
-                            <FormControl>
-                              <Input placeholder="e.g., Wedding Day Schedule" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={scheduleForm.control}
-                        name="date"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Date *</FormLabel>
-                            <FormControl>
-                              <Input type="date" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={scheduleForm.control}
-                        name="type"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Schedule Type *</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select type" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {scheduleTypes.map(type => (
-                                  <SelectItem key={type.value} value={type.value}>
-                                    {type.label}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={scheduleForm.control}
-                        name="location"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Primary Location</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Main venue or location" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={scheduleForm.control}
-                        name="description"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Description</FormLabel>
-                            <FormControl>
-                              <Textarea placeholder="Schedule overview..." {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <div className="flex justify-end space-x-2">
-                        <Button type="button" variant="outline" onClick={() => setIsScheduleDialogOpen(false)}>
-                          Cancel
-                        </Button>
-                        <Button 
-                          type="submit" 
-                          className="gradient-blush-rose text-white"
-                          disabled={createScheduleMutation.isPending}
-                        >
-                          {createScheduleMutation.isPending ? "Creating..." : "Create Schedule"}
-                        </Button>
-                      </div>
-                    </form>
-                  </Form>
-                </DialogContent>
+            <DialogTrigger asChild>
+              <Button className="gradient-blush-rose text-white">
+                <Plus size={16} className="mr-2" />
+                New Schedule
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Create New Schedule</DialogTitle>
+                <DialogDescription>
+                  Create a timeline for wedding events like rehearsal dinner, ceremony, or reception.
+                </DialogDescription>
+              </DialogHeader>
+              <Form {...scheduleForm}>
+                <form onSubmit={scheduleForm.handleSubmit(onScheduleSubmit)} className="space-y-4">
+                  <FormField
+                    control={scheduleForm.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Schedule Name *</FormLabel>
+                        <FormControl>
+                          <Input placeholder="e.g., Wedding Day Schedule" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={scheduleForm.control}
+                    name="date"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Date *</FormLabel>
+                        <FormControl>
+                          <Input type="date" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={scheduleForm.control}
+                    name="type"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Schedule Type *</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select schedule type" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {scheduleTypes.map((type) => (
+                              <SelectItem key={type.value} value={type.value}>
+                                {type.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={scheduleForm.control}
+                    name="location"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Location</FormLabel>
+                        <FormControl>
+                          <Input placeholder="e.g., Sunset Ranch Austin" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={scheduleForm.control}
+                    name="description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Description</FormLabel>
+                        <FormControl>
+                          <Textarea 
+                            placeholder="Describe this schedule..."
+                            className="resize-none"
+                            rows={3}
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <div className="flex justify-end space-x-2 pt-4">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setIsScheduleDialogOpen(false)}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      type="submit"
+                      className="gradient-blush-rose text-white"
+                      disabled={createScheduleMutation.isPending}
+                    >
+                      {createScheduleMutation.isPending ? "Creating..." : "Create Schedule"}
+                    </Button>
+                  </div>
+                </form>
+              </Form>
+            </DialogContent>
           </Dialog>
         </div>
 
         {schedules.length === 0 ? (
-              <Card>
-                <CardContent className="flex flex-col items-center justify-center py-12">
-                  <Calendar className="w-16 h-16 text-gray-400 mb-4" />
-                  <h3 className="text-lg font-semibold text-gray-700 mb-2">No schedules yet</h3>
-                  <p className="text-gray-500 text-center mb-6">
-                    Create your first schedule to organize wedding day events and activities.
-                  </p>
-                  <Button 
-                    onClick={() => setIsScheduleDialogOpen(true)}
-                    className="gradient-blush-rose text-white"
-                  >
-                    <Plus size={16} className="mr-2" />
-                    Create First Schedule
-                  </Button>
-                </CardContent>
-              </Card>
-            ) : (
-              <Tabs value={activeScheduleTab} onValueChange={handleTabChange}>
-                <TabsList className="grid w-full grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 h-auto bg-transparent">
-                  {schedules.map((schedule) => (
-                    <TabsTrigger
-                      key={schedule.id}
-                      value={schedule.id.toString()}
-                      className="flex flex-col items-start p-4 h-auto data-[state=active]:bg-white data-[state=active]:shadow-sm border border-gray-200 rounded-lg"
-                    >
-                      <div className="flex items-center justify-between w-full mb-1">
-                        <span className="font-medium text-sm">{schedule.name}</span>
-                        <Badge className={getTypeColor(schedule.type)}>
-                          {scheduleTypes.find(t => t.value === schedule.type)?.label}
-                        </Badge>
-                      </div>
-                      <div className="flex items-center text-xs text-gray-500">
-                        <Calendar size={12} className="mr-1" />
-                        {schedule.date ? (() => {
-                          try {
-                            return format(new Date(schedule.date), 'MMM dd, yyyy');
-                          } catch {
-                            return 'Invalid date';
-                          }
-                        })() : 'Date not set'}
-                      </div>
-                      {schedule.location && (
-                        <div className="flex items-center text-xs text-gray-500 mt-1">
-                          <MapPin size={12} className="mr-1" />
-                          {schedule.location}
-                        </div>
-                      )}
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
+          <Card>
+            <CardContent className="flex flex-col items-center justify-center py-12">
+              <Calendar className="w-16 h-16 text-gray-400 mb-4" />
+              <h3 className="text-lg font-semibold text-gray-700 mb-2">No schedules yet</h3>
+              <p className="text-gray-500 text-center mb-6">
+                Create your first schedule to organize wedding day events and activities.
+              </p>
+              <Button 
+                onClick={() => setIsScheduleDialogOpen(true)}
+                className="gradient-blush-rose text-white"
+              >
+                <Plus size={16} className="mr-2" />
+                Create First Schedule
+              </Button>
+            </CardContent>
+          </Card>
+        ) : (
+          <Tabs value={activeScheduleTab} onValueChange={handleTabChange}>
+            <TabsList className="grid w-full grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 h-auto bg-transparent">
+              {schedules.map((schedule) => (
+                <TabsTrigger
+                  key={schedule.id}
+                  value={schedule.id.toString()}
+                  className="flex flex-col items-start p-4 h-auto data-[state=active]:bg-white data-[state=active]:shadow-sm border border-gray-200 rounded-lg"
+                >
+                  <div className="flex items-center justify-between w-full mb-1">
+                    <span className="font-medium text-sm">{schedule.name}</span>
+                    <Badge className={getTypeColor(schedule.type)}>
+                      {scheduleTypes.find(t => t.value === schedule.type)?.label}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center text-xs text-gray-500">
+                    <Calendar size={12} className="mr-1" />
+                    {schedule.date ? (() => {
+                      try {
+                        return format(new Date(schedule.date), 'MMM dd, yyyy');
+                      } catch {
+                        return 'Invalid date';
+                      }
+                    })() : 'Date not set'}
+                  </div>
+                  {schedule.location && (
+                    <div className="flex items-center text-xs text-gray-500 mt-1">
+                      <MapPin size={12} className="mr-1" />
+                      {schedule.location}
+                    </div>
+                  )}
+                </TabsTrigger>
+              ))}
+            </TabsList>
 
-                {schedules.map((schedule) => (
-                  <TabsContent key={schedule.id} value={schedule.id.toString()}>
-                    <Card>
-                      <CardHeader>
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <CardTitle className="flex items-center space-x-3">
-                              <span>{schedule.name}</span>
-                              <Badge className={getTypeColor(schedule.type)}>
-                                {scheduleTypes.find(t => t.value === schedule.type)?.label}
-                              </Badge>
-                            </CardTitle>
-                            <div className="flex items-center space-x-4 text-sm text-gray-600 mt-2">
-                              <div className="flex items-center">
-                                <Calendar size={16} className="mr-1" />
-                                {schedule.date ? (() => {
-                                  try {
-                                    return format(new Date(schedule.date), 'EEEE, MMMM dd, yyyy');
-                                  } catch {
-                                    return 'Invalid date';
-                                  }
-                                })() : 'Date not set'}
-                              </div>
-                              {schedule.location && (
-                                <div className="flex items-center">
-                                  <MapPin size={16} className="mr-1" />
-                                  {schedule.location}
-                                </div>
-                              )}
+            {schedules.map((schedule) => (
+              <TabsContent key={schedule.id} value={schedule.id.toString()}>
+                <Card>
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <CardTitle className="flex items-center space-x-3">
+                          <span>{schedule.name}</span>
+                          <Badge className={getTypeColor(schedule.type)}>
+                            {scheduleTypes.find(t => t.value === schedule.type)?.label}
+                          </Badge>
+                        </CardTitle>
+                        <div className="flex items-center space-x-4 text-sm text-gray-600 mt-2">
+                          <div className="flex items-center">
+                            <Calendar size={16} className="mr-1" />
+                            {schedule.date ? (() => {
+                              try {
+                                return format(new Date(schedule.date), 'EEEE, MMMM dd, yyyy');
+                              } catch {
+                                return 'Invalid date';
+                              }
+                            })() : 'Date not set'}
+                          </div>
+                          {schedule.location && (
+                            <div className="flex items-center">
+                              <MapPin size={16} className="mr-1" />
+                              {schedule.location}
                             </div>
-                            {schedule.description && (
-                              <p className="text-gray-600 mt-2">{schedule.description}</p>
-                            )}
-                          </div>
-                          <Dialog open={isEventDialogOpen} onOpenChange={setIsEventDialogOpen}>
-                            <DialogTrigger asChild>
-                              <Button size="sm" className="gradient-blush-rose text-white">
-                                <Plus size={16} className="mr-2" />
-                                Add Event
-                              </Button>
-                            </DialogTrigger>
-                            <DialogContent className="sm:max-w-md">
-                              <DialogHeader>
-                                <DialogTitle>Add Event to {schedule.name}</DialogTitle>
-                              </DialogHeader>
-                              <Form {...eventForm}>
-                                <form onSubmit={eventForm.handleSubmit(onEventSubmit)} className="space-y-4">
-                                  <FormField
-                                    control={eventForm.control}
-                                    name="title"
-                                    render={({ field }) => (
-                                      <FormItem>
-                                        <FormLabel>Event Title *</FormLabel>
-                                        <FormControl>
-                                          <Input placeholder="e.g., Ceremony" {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                      </FormItem>
-                                    )}
-                                  />
-                                  <FormField
-                                    control={eventForm.control}
-                                    name="type"
-                                    render={({ field }) => (
-                                      <FormItem>
-                                        <FormLabel>Event Type *</FormLabel>
-                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                          <FormControl>
-                                            <SelectTrigger>
-                                              <SelectValue placeholder="Select type" />
-                                            </SelectTrigger>
-                                          </FormControl>
-                                          <SelectContent>
-                                            {eventTypes.map(type => (
-                                              <SelectItem key={type.value} value={type.value}>
-                                                {type.label}
-                                              </SelectItem>
-                                            ))}
-                                          </SelectContent>
-                                        </Select>
-                                        <FormMessage />
-                                      </FormItem>
-                                    )}
-                                  />
-                                  <div className="grid grid-cols-2 gap-4">
-                                    <FormField
-                                      control={eventForm.control}
-                                      name="startTime"
-                                      render={({ field }) => (
-                                        <FormItem>
-                                          <FormLabel>Start Time *</FormLabel>
-                                          <FormControl>
-                                            <Input type="time" {...field} />
-                                          </FormControl>
-                                          <FormMessage />
-                                        </FormItem>
-                                      )}
-                                    />
-                                    <FormField
-                                      control={eventForm.control}
-                                      name="endTime"
-                                      render={({ field }) => (
-                                        <FormItem>
-                                          <FormLabel>End Time</FormLabel>
-                                          <FormControl>
-                                            <Input type="time" {...field} />
-                                          </FormControl>
-                                          <FormMessage />
-                                        </FormItem>
-                                      )}
-                                    />
-                                  </div>
-                                  <FormField
-                                    control={eventForm.control}
-                                    name="location"
-                                    render={({ field }) => (
-                                      <FormItem>
-                                        <FormLabel>Location</FormLabel>
-                                        <FormControl>
-                                          <Input placeholder="Event location" {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                      </FormItem>
-                                    )}
-                                  />
-                                  <FormField
-                                    control={eventForm.control}
-                                    name="description"
-                                    render={({ field }) => (
-                                      <FormItem>
-                                        <FormLabel>Description</FormLabel>
-                                        <FormControl>
-                                          <Textarea placeholder="Event details..." {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                      </FormItem>
-                                    )}
-                                  />
-                                  <div className="flex justify-end space-x-2">
-                                    <Button type="button" variant="outline" onClick={() => setIsEventDialogOpen(false)}>
-                                      Cancel
-                                    </Button>
-                                    <Button 
-                                      type="submit" 
-                                      className="gradient-blush-rose text-white"
-                                      disabled={createEventMutation.isPending}
-                                    >
-                                      {createEventMutation.isPending ? "Adding..." : "Add Event"}
-                                    </Button>
-                                  </div>
-                                </form>
-                              </Form>
-                            </DialogContent>
-                          </Dialog>
+                          )}
                         </div>
-                      </CardHeader>
-                      <CardContent>
-                        {events.length === 0 ? (
-                          <div className="text-center py-8">
-                            <Clock className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                            <p className="text-gray-600 font-medium">No events scheduled</p>
-                            <p className="text-sm text-gray-500 mb-4">Add your first event to this schedule</p>
-                            <Button 
-                              onClick={() => setIsEventDialogOpen(true)}
-                              className="gradient-blush-rose text-white"
+                        {schedule.description && (
+                          <p className="text-sm text-gray-500 mt-2">{schedule.description}</p>
+                        )}
+                      </div>
+                      <Dialog open={isEventDialogOpen} onOpenChange={setIsEventDialogOpen}>
+                        <DialogTrigger asChild>
+                          <Button className="gradient-blush-rose text-white">
+                            <Plus size={16} className="mr-2" />
+                            Add Event
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-md">
+                          <DialogHeader>
+                            <DialogTitle>Add Event</DialogTitle>
+                            <DialogDescription>
+                              Add a new event to {schedule.name}
+                            </DialogDescription>
+                          </DialogHeader>
+                          <Form {...eventForm}>
+                            <form onSubmit={eventForm.handleSubmit(onEventSubmit)} className="space-y-4">
+                              <FormField
+                                control={eventForm.control}
+                                name="title"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Event Title *</FormLabel>
+                                    <FormControl>
+                                      <Input placeholder="e.g., Ceremony" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              <FormField
+                                control={eventForm.control}
+                                name="type"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Event Type *</FormLabel>
+                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                      <FormControl>
+                                        <SelectTrigger>
+                                          <SelectValue placeholder="Select event type" />
+                                        </SelectTrigger>
+                                      </FormControl>
+                                      <SelectContent>
+                                        {eventTypes.map((type) => (
+                                          <SelectItem key={type.value} value={type.value}>
+                                            {type.label}
+                                          </SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              <div className="grid grid-cols-2 gap-4">
+                                <FormField
+                                  control={eventForm.control}
+                                  name="startTime"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>Start Time *</FormLabel>
+                                      <FormControl>
+                                        <Input type="time" {...field} />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                                <FormField
+                                  control={eventForm.control}
+                                  name="endTime"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>End Time</FormLabel>
+                                      <FormControl>
+                                        <Input type="time" {...field} />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                              </div>
+                              <FormField
+                                control={eventForm.control}
+                                name="location"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Location</FormLabel>
+                                    <FormControl>
+                                      <Input placeholder="e.g., Main Chapel" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              <FormField
+                                control={eventForm.control}
+                                name="description"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Description</FormLabel>
+                                    <FormControl>
+                                      <Textarea 
+                                        placeholder="Event details..."
+                                        className="resize-none"
+                                        rows={3}
+                                        {...field}
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              <div className="flex justify-end space-x-2 pt-4">
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  onClick={() => setIsEventDialogOpen(false)}
+                                >
+                                  Cancel
+                                </Button>
+                                <Button
+                                  type="submit"
+                                  className="gradient-blush-rose text-white"
+                                  disabled={createEventMutation.isPending}
+                                >
+                                  {createEventMutation.isPending ? "Adding..." : "Add Event"}
+                                </Button>
+                              </div>
+                            </form>
+                          </Form>
+                        </DialogContent>
+                      </Dialog>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    {events.length === 0 ? (
+                      <div className="text-center py-8">
+                        <Clock className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                        <p className="text-gray-600 font-medium">No events scheduled</p>
+                        <p className="text-sm text-gray-500 mb-4">Add your first event to this schedule</p>
+                        <Button 
+                          onClick={() => setIsEventDialogOpen(true)}
+                          className="gradient-blush-rose text-white"
+                        >
+                          <Plus size={16} className="mr-2" />
+                          Add Event
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {events
+                          .sort((a, b) => {
+                            const timeA = a.startTime.includes('T') 
+                              ? a.startTime.match(/T(\d{2}):(\d{2})/)?.[0] || '00:00'
+                              : a.startTime;
+                            const timeB = b.startTime.includes('T') 
+                              ? b.startTime.match(/T(\d{2}):(\d{2})/)?.[0] || '00:00'
+                              : b.startTime;
+                            return timeA.localeCompare(timeB);
+                          })
+                          .map((event) => (
+                            <div
+                              key={event.id}
+                              className="flex items-center justify-between p-4 border rounded-lg hover:shadow-sm transition-shadow"
                             >
-                              <Plus size={16} className="mr-2" />
-                              Add Event
-                            </Button>
-                          </div>
-                        ) : (
-                          <div className="space-y-4">
-                            {events
-                              .sort((a, b) => {
-                                try {
-                                  // Helper function to extract time for comparison
-                                  const getTimeForSort = (timeStr) => {
-                                    if (timeStr.includes('T')) {
-                                      // Extract time from ISO string like "2000-01-01T08:00:00.000Z"
-                                      const timeMatch = timeStr.match(/T(\d{2}):(\d{2})/);
-                                      if (timeMatch) {
-                                        return parseInt(timeMatch[1]) * 60 + parseInt(timeMatch[2]);
-                                      }
-                                    }
-                                    // Handle simple time format like "08:00"
-                                    const [hours, minutes] = timeStr.split(':').map(Number);
-                                    return hours * 60 + minutes;
-                                  };
-                                  
-                                  return getTimeForSort(a.startTime) - getTimeForSort(b.startTime);
-                                } catch {
-                                  return 0;
-                                }
-                              })
-                              .map((event) => (
-                              <div key={event.id} className="flex items-start space-x-4 p-4 border border-gray-200 rounded-lg">
-                                <div className="flex-shrink-0">
-                                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blush to-rose-gold flex items-center justify-center">
-                                    {event.type === 'ceremony' && <Users className="text-white" size={20} />}
-                                    {event.type === 'reception' && <Calendar className="text-white" size={20} />}
-                                    {event.type === 'photos' && <Camera className="text-white" size={20} />}
-                                    {!['ceremony', 'reception', 'photos'].includes(event.type) && <Clock className="text-white" size={20} />}
-                                  </div>
+                              <div className="flex-1">
+                                <div className="flex items-center space-x-3 mb-2">
+                                  <h4 className="font-medium text-gray-900">{event.title}</h4>
+                                  <Badge className={getEventTypeColor(event.type)}>
+                                    {eventTypes.find(t => t.value === event.type)?.label}
+                                  </Badge>
                                 </div>
-                                <div className="flex-1">
-                                  <div className="flex items-center justify-between mb-2">
-                                    <h4 className="font-semibold text-gray-800">{event.title}</h4>
-                                    <div className="flex items-center space-x-2">
-                                      <Badge className={getEventTypeColor(event.type)}>
-                                        {eventTypes.find(t => t.value === event.type)?.label}
-                                      </Badge>
-                                      <Button
-                                        size="sm"
-                                        variant="outline"
-                                        onClick={() => handleEditEvent(event)}
-                                        className="h-7 w-7 p-0"
-                                      >
-                                        <Edit size={14} />
-                                      </Button>
-                                      <Button
-                                        size="sm"
-                                        variant="outline"
-                                        onClick={() => handleDeleteEvent(event.id)}
-                                        className="h-7 w-7 p-0 text-red-500 hover:text-red-700 hover:border-red-300"
-                                      >
-                                        <Trash2 size={14} />
-                                      </Button>
-                                    </div>
-                                  </div>
-                                  <div className="flex items-center space-x-4 text-sm text-gray-600 mb-2">
-                                    <div className="flex items-center">
-                                      <Clock size={14} className="mr-1" />
-                                      {(() => {
-                                        try {
-                                          // Handle both time strings and ISO date strings
-                                          let timeStr = event.startTime;
-                                          if (timeStr.includes('T')) {
-                                            // Extract time from ISO string like "2000-01-01T08:00:00.000Z"
-                                            const timeMatch = timeStr.match(/T(\d{2}):(\d{2})/);
-                                            if (timeMatch) {
-                                              const hours = parseInt(timeMatch[1]);
-                                              const minutes = timeMatch[2];
-                                              const period = hours >= 12 ? 'PM' : 'AM';
-                                              const displayHours = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
-                                              return `${displayHours}:${minutes} ${period}`;
-                                            }
-                                          }
-                                          return format(new Date(`2000-01-01T${timeStr}`), 'h:mm a');
-                                        } catch {
-                                          return event.startTime;
+                                <div className="flex items-center space-x-4 text-sm text-gray-600">
+                                  <div className="flex items-center">
+                                    <Clock size={14} className="mr-1" />
+                                    {event.startTime.includes('T') 
+                                      ? (() => {
+                                          const timeMatch = event.startTime.match(/T(\d{2}):(\d{2})/);
+                                          return timeMatch ? `${timeMatch[1]}:${timeMatch[2]}` : event.startTime;
+                                        })()
+                                      : event.startTime
+                                    }
+                                    {event.endTime && (
+                                      <>
+                                        {" - "}
+                                        {event.endTime.includes('T') 
+                                          ? (() => {
+                                              const timeMatch = event.endTime.match(/T(\d{2}):(\d{2})/);
+                                              return timeMatch ? `${timeMatch[1]}:${timeMatch[2]}` : event.endTime;
+                                            })()
+                                          : event.endTime
                                         }
-                                      })()}
-                                      {event.endTime && (
-                                        <span> - {(() => {
-                                          try {
-                                            // Handle both time strings and ISO date strings
-                                            let timeStr = event.endTime;
-                                            if (timeStr.includes('T')) {
-                                              // Extract time from ISO string like "2000-01-01T17:00:00.000Z"
-                                              const timeMatch = timeStr.match(/T(\d{2}):(\d{2})/);
-                                              if (timeMatch) {
-                                                const hours = parseInt(timeMatch[1]);
-                                                const minutes = timeMatch[2];
-                                                const period = hours >= 12 ? 'PM' : 'AM';
-                                                const displayHours = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
-                                                return `${displayHours}:${minutes} ${period}`;
-                                              }
-                                            }
-                                            return format(new Date(`2000-01-01T${timeStr}`), 'h:mm a');
-                                          } catch {
-                                            return event.endTime;
-                                          }
-                                        })()}</span>
-                                      )}
-                                    </div>
-                                    {event.location && (
-                                      <div className="flex items-center">
-                                        <MapPin size={14} className="mr-1" />
-                                        {event.location}
-                                      </div>
+                                      </>
                                     )}
                                   </div>
-                                  {event.description && (
-                                    <p className="text-sm text-gray-600">{event.description}</p>
+                                  {event.location && (
+                                    <div className="flex items-center">
+                                      <MapPin size={14} className="mr-1" />
+                                      {event.location}
+                                    </div>
                                   )}
                                 </div>
+                                {event.description && (
+                                  <p className="text-sm text-gray-500 mt-1">{event.description}</p>
+                                )}
                               </div>
-                            ))}
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  </TabsContent>
-                ))}
-              </Tabs>
-            )}
-
-        {/* Edit Event Dialog */}
-        <Dialog open={isEditEventDialogOpen} onOpenChange={setIsEditEventDialogOpen}>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>Edit Event</DialogTitle>
-              <DialogDescription>
-                Update the event details.
-              </DialogDescription>
-            </DialogHeader>
-            <Form {...eventForm}>
-              <form onSubmit={eventForm.handleSubmit(onEventSubmit)} className="space-y-4">
-                <FormField
-                  control={eventForm.control}
-                  name="title"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Event Title *</FormLabel>
-                      <FormControl>
-                        <Input placeholder="e.g., Ceremony" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={eventForm.control}
-                  name="type"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Event Type *</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select type" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {eventTypes.map(type => (
-                            <SelectItem key={type.value} value={type.value}>
-                              {type.label}
-                            </SelectItem>
+                            </div>
                           ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <div className="grid grid-cols-2 gap-4">
-                  <FormField
-                    control={eventForm.control}
-                    name="startTime"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Start Time *</FormLabel>
-                        <FormControl>
-                          <Input type="time" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
+                      </div>
                     )}
-                  />
-                  <FormField
-                    control={eventForm.control}
-                    name="endTime"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>End Time</FormLabel>
-                        <FormControl>
-                          <Input type="time" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                <FormField
-                  control={eventForm.control}
-                  name="location"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Location</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Event location" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={eventForm.control}
-                  name="description"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Description</FormLabel>
-                      <FormControl>
-                        <Textarea placeholder="Event details..." {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <div className="flex justify-end space-x-2">
-                  <Button type="button" variant="outline" onClick={() => {
-                    setIsEditEventDialogOpen(false);
-                    setEditingEvent(null);
-                    eventForm.reset();
-                  }}>
-                    Cancel
-                  </Button>
-                  <Button 
-                    type="submit" 
-                    className="gradient-blush-rose text-white"
-                    disabled={editEventMutation.isPending}
-                  >
-                    {editEventMutation.isPending ? "Updating..." : "Update Event"}
-                  </Button>
-                </div>
-              </form>
-            </Form>
-          </DialogContent>
-        </Dialog>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            ))}
+          </Tabs>
+        )}
       </div>
     </div>
   );
