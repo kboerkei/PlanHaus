@@ -1,0 +1,47 @@
+Do a comprehensive UI/UX review of my React + Tailwind app (PlanHaus), which helps brides, grooms, and planners collaborate on wedding planning.
+
+The audience is mostly DIY brides and planners, so the interface should be elegant, intuitive, mobile-friendly, and emotionally delightful.
+
+🔍 Analyze all key areas and suggest improvements:
+
+---
+
+🖥️ 1. **Dashboard & Layout**
+- Is the main dashboard intuitive and visually organized?
+- Should I be using card-based layouts or a sidebar nav?
+- Are there opportunities for progress tracking or milestone indicators?
+
+📱 2. **Responsiveness & Mobile Optimization**
+- Check all views for mobile usability and responsiveness.
+- Suggest better breakpoints or Tailwind classes.
+- Are buttons and touch targets big enough?
+
+🎨 3. **Styling & Aesthetics**
+- Are my color palette and fonts cohesive and modern?
+- Suggest changes to better reflect a romantic, creative, soft tone (blush, champagne, cream).
+- Recommend ways to apply shadows, gradients, and rounded corners tastefully.
+- Any Tailwind classes I should swap, remove, or add?
+
+🧩 4. **Components & Visual Hierarchy**
+- Is content grouped logically with good use of white space?
+- Are headers clear? Are buttons too flat or too loud?
+- Where can I reuse components (e.g., dashboard tiles, cards, modals)?
+
+🔄 5. **User Experience (UX)**
+- Does the navigation flow feel natural for first-time users?
+- Are forms easy to use? Are dropdowns or modals needed instead?
+- Are onboarding or AI assistant features easy to discover and use?
+- Are there clear calls to action (e.g., "Start Planning", "Upload Moodboard")?
+
+🛠️ 6. **Empty States & Loading UX**
+- Suggest placeholder or “empty state” views (e.g., “No guests added yet!”).
+- Review loading indicators or skeleton loaders — are they helpful and styled well?
+
+🔓 7. **Accessibility (a11y)**
+- Are font sizes and contrasts WCAG-compliant?
+- Do I have skip links or semantic HTML?
+- Can users tab through interactive elements?
+
+🔐 8. **Personalization & Delight**
+- Suggest small UI touches that surprise and delight users (e.g., AI welcome messages, name personalization).
+- Any microinteractions,
