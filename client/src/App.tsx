@@ -27,7 +27,7 @@ import CreativeDetails from "@/pages/creative-details-simple";
 import Collaborators from "@/pages/collaborators";
 import ActivityLog from "@/pages/activity-log";
 import SeatingChart from "@/pages/seating-chart";
-import Intake from "@/pages/intake";
+import IntakeSimple from "@/pages/intake-simple";
 import IntakeWizard from "@/pages/IntakeWizard";
 import Sidebar from "@/components/layout/sidebar";
 import Header from "@/components/layout/header";
@@ -58,7 +58,7 @@ function Router({ user, onLogout, isNewUser, onIntakeComplete }: { user: User; o
               <Switch>
                 <Route path="/" component={Dashboard} />
                 <Route path="/intake">
-                  <Intake onComplete={onIntakeComplete} />
+                  <IntakeSimple />
                 </Route>
                 <Route path="/intake-wizard">
                   <IntakeWizard />

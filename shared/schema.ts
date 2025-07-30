@@ -45,7 +45,6 @@ export const collaborators = pgTable("collaborators", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-// Invitation system for collaboration
 export const invitations = pgTable("invitations", {
   id: serial("id").primaryKey(),
   projectId: integer("project_id").notNull(),
@@ -59,7 +58,6 @@ export const invitations = pgTable("invitations", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-// Default wedding checklist template
 export const defaultTasks = pgTable("default_tasks", {
   id: serial("id").primaryKey(),
   taskName: text("task_name").notNull(),
@@ -123,29 +121,15 @@ export const vendors = pgTable("vendors", {
   phone: text("phone"),
   website: text("website"),
   address: text("address"),
-  quote: decimal("quote", { precision: 10, scale: 2 }),
-  status: text("status").default('pending'), // 'pending', 'contacted', 'booked', 'declined'
+  priceRange: text("price_range"),
+  rating: integer("rating"), // 1-5 star rating
   notes: text("notes"),
-  contractUrl: text("contract_url"),
+  status: text("status").default('researching'), // 'researching', 'contacted', 'quoted', 'booked'
   contractSigned: boolean("contract_signed").default(false),
-  contractSignedDate: timestamp("contract_signed_date"),
-  documents: text("documents").array(),
+  finalCost: decimal("final_cost", { precision: 10, scale: 2 }),
+  depositPaid: boolean("deposit_paid").default(false),
   addedBy: integer("added_by").notNull(),
   addedAt: timestamp("added_at").defaultNow().notNull(),
-});
-
-export const vendorPayments = pgTable("vendor_payments", {
-  id: serial("id").primaryKey(),
-  vendorId: integer("vendor_id").references(() => vendors.id).notNull(),
-  projectId: integer("project_id").notNull(),
-  paymentType: text("payment_type").notNull(), // 'deposit', 'first_payment', 'second_payment', 'final_payment', 'custom'
-  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
-  dueDate: timestamp("due_date").notNull(),
-  paidDate: timestamp("paid_date"),
-  isPaid: boolean("is_paid").default(false),
-  notes: text("notes"),
-  createdBy: integer("created_by").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
 export const budgetItems = pgTable("budget_items", {
@@ -176,17 +160,6 @@ export const timelineEvents = pgTable("timeline_events", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-export const taskNotes = pgTable("task_notes", {
-  id: serial("id").primaryKey(),
-  taskId: integer("task_id").references(() => tasks.id).notNull(),
-  projectId: integer("project_id").notNull(),
-  content: text("content").notNull(),
-  authorId: integer("author_id").notNull(),
-  authorName: text("author_name").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
-
 export const inspirationItems = pgTable("inspiration_items", {
   id: serial("id").primaryKey(),
   projectId: integer("project_id").notNull(),
@@ -198,21 +171,6 @@ export const inspirationItems = pgTable("inspiration_items", {
   tags: text("tags").array(),
   addedBy: integer("added_by").notNull(),
   addedAt: timestamp("added_at").defaultNow().notNull(),
-});
-
-// Activity Log for tracking all wedding planning changes
-export const activityLog = pgTable("activity_log", {
-  id: serial("id").primaryKey(),
-  projectId: integer("project_id").notNull(),
-  userId: integer("user_id").notNull(),
-  userName: text("user_name").notNull(),
-  section: text("section").notNull(), // 'Creative Details', 'Budget', 'Guest List', etc.
-  action: text("action").notNull(), // 'Created', 'Updated', 'Deleted', 'Completed'
-  entityType: text("entity_type").notNull(), // 'creative_detail', 'budget_item', 'guest', etc.
-  entityId: integer("entity_id"), // ID of the changed record
-  details: text("details").notNull(), // Human readable description
-  timestamp: timestamp("timestamp").defaultNow().notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
 export const activities = pgTable("activities", {
@@ -228,40 +186,6 @@ export const activities = pgTable("activities", {
   timestamp: timestamp("timestamp").defaultNow().notNull(),
 });
 
-export const shoppingLists = pgTable("shopping_lists", {
-  id: serial("id").primaryKey(),
-  projectId: integer("project_id").notNull(),
-  name: text("name").notNull(),
-  category: text("category").notNull(), // 'decor', 'day-of', 'attire', 'beauty', 'favors', 'other'
-  description: text("description"),
-  createdBy: integer("created_by").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
-
-export const shoppingItems = pgTable("shopping_items", {
-  id: serial("id").primaryKey(),
-  listId: integer("list_id").references(() => shoppingLists.id),
-  projectId: integer("project_id").notNull(),
-  name: text("name").notNull(),
-  description: text("description"),
-  category: text("category").notNull(),
-  quantity: integer("quantity").default(1),
-  estimatedPrice: decimal("estimated_price", { precision: 10, scale: 2 }),
-  actualPrice: decimal("actual_price", { precision: 10, scale: 2 }),
-  store: text("store"),
-  url: text("url"),
-  priority: text("priority").notNull().default("medium"), // 'high', 'medium', 'low'
-  status: text("status").notNull().default("needed"), // 'needed', 'ordered', 'purchased', 'returned'
-  notes: text("notes"),
-  dueDate: timestamp("due_date"),
-  purchasedDate: timestamp("purchased_date"),
-  assignedTo: integer("assigned_to").references(() => users.id),
-  createdBy: integer("created_by").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
-
 export const schedules = pgTable("schedules", {
   id: serial("id").primaryKey(),
   projectId: integer("project_id").notNull(),
@@ -273,696 +197,169 @@ export const schedules = pgTable("schedules", {
   isActive: boolean("is_active").default(true),
   createdBy: integer("created_by").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
 export const scheduleEvents = pgTable("schedule_events", {
   id: serial("id").primaryKey(),
-  scheduleId: integer("schedule_id").references(() => schedules.id),
+  scheduleId: integer("schedule_id").notNull(),
   projectId: integer("project_id").notNull(),
-  title: text("title").notNull(),
-  description: text("description"),
-  startTime: timestamp("start_time").notNull(),
-  endTime: timestamp("end_time"),
+  name: text("name").notNull(),
+  startTime: text("start_time").notNull(), // Format: "HH:MM"
+  endTime: text("end_time"),
+  duration: integer("duration"), // Duration in minutes
   location: text("location"),
-  type: text("type").notNull(), // 'ceremony', 'reception', 'photos', 'transportation', 'vendor', 'personal'
-  attendees: text("attendees").array(), // guest IDs or roles
-  notes: text("notes"),
-  vendorId: integer("vendor_id"),
-  createdBy: integer("created_by").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
-
-// User sessions for authentication
-export const userSessions = pgTable("user_sessions", {
-  id: text("id").primaryKey(),
-  userId: integer("user_id").notNull(),
-  expiresAt: timestamp("expires_at").notNull(),
-  data: jsonb("data"), // Session data
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
-
-// Email verification tokens
-export const verificationTokens = pgTable("verification_tokens", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull(),
-  token: text("token").notNull().unique(),
-  type: text("type").notNull(), // 'email_verification', 'password_reset'
-  expiresAt: timestamp("expires_at").notNull(),
-  usedAt: timestamp("used_at"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
-
-// Insert schemas
-export const insertUserSchema = createInsertSchema(users).omit({
-  id: true,
-  createdAt: true,
-});
-
-export const insertWeddingProjectSchema = createInsertSchema(weddingProjects).omit({
-  id: true,
-  createdAt: true,
-});
-
-export const insertCollaboratorSchema = createInsertSchema(collaborators).omit({
-  id: true,
-  joinedAt: true,
-});
-
-export const insertDefaultTaskSchema = createInsertSchema(defaultTasks).omit({
-  id: true,
-  createdAt: true,
-});
-
-export const insertTaskSchema = createInsertSchema(tasks).omit({
-  id: true,
-  createdAt: true,
-  completedAt: true,
-  updatedAt: true,
-});
-
-export const insertTaskNoteSchema = createInsertSchema(taskNotes).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const insertGuestSchema = createInsertSchema(guests).omit({
-  id: true,
-  addedAt: true,
-});
-
-export const insertVendorSchema = createInsertSchema(vendors).omit({
-  id: true,
-  addedAt: true,
-});
-
-export const insertVendorPaymentSchema = createInsertSchema(vendorPayments).omit({
-  id: true,
-  createdAt: true,
-});
-
-export const insertBudgetItemSchema = createInsertSchema(budgetItems).omit({
-  id: true,
-  createdAt: true,
-});
-
-export const insertTimelineEventSchema = createInsertSchema(timelineEvents).omit({
-  id: true,
-  createdAt: true,
-});
-
-export const insertInspirationItemSchema = createInsertSchema(inspirationItems).omit({
-  id: true,
-  addedAt: true,
-});
-
-export const insertActivityLogSchema = createInsertSchema(activityLog).omit({
-  id: true,
-  timestamp: true,
-  createdAt: true,
-});
-
-export const insertActivitySchema = createInsertSchema(activities).omit({
-  id: true,
-  timestamp: true,
-});
-
-export const insertInvitationSchema = createInsertSchema(invitations).omit({
-  id: true,
-  createdAt: true,
-});
-
-export const insertUserSessionSchema = createInsertSchema(userSessions).omit({
-  createdAt: true,
-});
-
-export const insertVerificationTokenSchema = createInsertSchema(verificationTokens).omit({
-  id: true,
-  createdAt: true,
-});
-
-export const insertShoppingListSchema = createInsertSchema(shoppingLists).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-// Creative Details table
-export const creativeDetails = pgTable("creative_details", {
-  id: serial("id").primaryKey(),
-  projectId: integer("project_id").notNull(),
-  category: text("category").notNull(), // 'signature_drinks', 'signage', 'small_details', etc.
-  title: text("title").notNull(),
   description: text("description"),
+  vendorId: integer("vendor_id"),
+  attendees: text("attendees").array(),
   notes: text("notes"),
-  imageUrl: text("image_url"),
-  fileUrl: text("file_url"),
-  fileName: text("file_name"),
-  assignedTo: integer("assigned_to"),
-  dueDate: timestamp("due_date"),
-  isCompleted: boolean("is_completed").default(false).notNull(),
-  completedDate: timestamp("completed_date"),
-  priority: text("priority").notNull().default("medium"), // 'low', 'medium', 'high', 'urgent'
-  status: text("status").notNull().default("Not Started"), // 'Not Started', 'In Progress', 'Complete'
-  tags: text("tags").array().default([]),
-  additionalData: jsonb("additional_data"), // For custom form fields
+  order: integer("order").default(0), // For custom ordering
   createdBy: integer("created_by").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-export const insertCreativeDetailSchema = createInsertSchema(creativeDetails).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const insertShoppingItemSchema = createInsertSchema(shoppingItems).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const insertScheduleSchema = createInsertSchema(schedules).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const insertScheduleEventSchema = createInsertSchema(scheduleEvents).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const weddingOverview = pgTable("wedding_overview", {
-  id: serial("id").primaryKey(),
-  projectId: integer("project_id").notNull().unique(),
-  weddingDate: text("wedding_date"),
-  ceremonyLocation: text("ceremony_location"),
-  cocktailHourLocation: text("cocktail_hour_location"),
-  receptionLocation: text("reception_location"),
-  
-  // Wedding Party
-  brideParty: jsonb("bride_party").$type<string[]>().default([]),
-  groomParty: jsonb("groom_party").$type<string[]>().default([]),
-  
-  // Important Dates
-  engagementParty: text("engagement_party"),
-  dressShoppingDate: text("dress_shopping_date"),
-  saveTheDateSent: text("save_the_date_sent"),
-  dressFitting: text("dress_fitting"),
-  bridalShower: text("bridal_shower"),
-  sendWeddingInvites: text("send_wedding_invites"),
-  bachelorBacheloretteParty: text("bachelor_bachelorette_party"),
-  rsvpDue: text("rsvp_due"),
-  rehearsalDinner: text("rehearsal_dinner"),
-  honeymoonStart: text("honeymoon_start"),
-  honeymoonEnd: text("honeymoon_end"),
-  
-  // Custom Important Dates (JSON array of {label, date, id} objects)
-  customImportantDates: jsonb("custom_important_dates").$type<Array<{id: string, label: string, date: string}>>().default([]),
-  
-  // Custom Questions for each section
-  customGettingStartedQuestions: jsonb("custom_getting_started_questions").$type<Array<{id: string, question: string, answer: string}>>().default([]),
-  customWeddingPartyQuestions: jsonb("custom_wedding_party_questions").$type<Array<{id: string, question: string, answer: string}>>().default([]),
-  customMiscellaneousQuestions: jsonb("custom_miscellaneous_questions").$type<Array<{id: string, question: string, answer: string}>>().default([]),
-  customCeremonyQuestions: jsonb("custom_ceremony_questions").$type<Array<{id: string, question: string, answer: string}>>().default([]),
-  customCocktailHourQuestions: jsonb("custom_cocktail_hour_questions").$type<Array<{id: string, question: string, answer: string}>>().default([]),
-  customReceptionQuestions: jsonb("custom_reception_questions").$type<Array<{id: string, question: string, answer: string}>>().default([]),
-  customMinorDetailsQuestions: jsonb("custom_minor_details_questions").$type<Array<{id: string, question: string, answer: string}>>().default([]),
-  
-  // Getting Started Questions
-  areYouPlanningTogether: text("are_you_planning_together"),
-  doYouWantOutdoorCeremony: text("do_you_want_outdoor_ceremony"),
-  
-  // Wedding Party Questions
-  willYouHaveBridalParty: text("will_you_have_bridal_party"),
-  howManyBridalParty: text("how_many_bridal_party"),
-  howWillYouAskBridalParty: text("how_will_you_ask_bridal_party"),
-  bridalPartyResponsibilities: text("bridal_party_responsibilities"),
-  bridalPartyAttire: text("bridal_party_attire"),
-  bridalPartyHairMakeup: text("bridal_party_hair_makeup"),
-  bridalPartyWalkingOrder: text("bridal_party_walking_order"),
-  
-  // Miscellaneous Questions
-  willYouNeedHotelBlock: text("will_you_need_hotel_block"),
-  willYouProvideTransportation: text("will_you_provide_transportation"),
-  willYouHaveDressCode: text("will_you_have_dress_code"),
-  whoWillHandOutTips: text("who_will_hand_out_tips"),
-  
-  // Ceremony Questions
-  doYouWantUnplugged: text("do_you_want_unplugged"),
-  doYouWantAisleRunner: text("do_you_want_aisle_runner"),
-  willYouHaveFlowerGirls: text("will_you_have_flower_girls"),
-  willYouHaveRingBearer: text("will_you_have_ring_bearer"),
-  whatTypeOfOfficiant: text("what_type_of_officiant"),
-  willYouWriteVows: text("will_you_write_vows"),
-  willYouUseUnityCandle: text("will_you_use_unity_candle"),
-  willYouDoSandCeremony: text("will_you_do_sand_ceremony"),
-  whoWillWalkBrideDown: text("who_will_walk_bride_down"),
-  whatWillCeremonyMusic: text("what_will_ceremony_music"),
-  whoWillPlayMusic: text("who_will_play_music"),
-  willYouHaveReceivingLine: text("will_you_have_receiving_line"),
-  whereWillYouTakePictures: text("where_will_you_take_pictures"),
-  willYouDoFirstLook: text("will_you_do_first_look"),
-  whatKindOfCeremonyDecor: text("what_kind_of_ceremony_decor"),
-  whoWillSetupTakedown: text("who_will_setup_takedown"),
-  
-  // Cocktail Hour Questions
-  whereWillCocktailHour: text("where_will_cocktail_hour"),
-  whatCocktailEntertainment: text("what_cocktail_entertainment"),
-  willYouServingFood: text("will_you_serving_food"),
-  willYouHaveSignatureBar: text("will_you_have_signature_bar"),
-  willYouHaveSpecialtyDrinks: text("will_you_have_specialty_drinks"),
-  willYouBeMingling: text("will_you_be_mingling"),
-  whatKindOfDecorCocktail: text("what_kind_of_decor_cocktail"),
-  
-  // Reception Questions
-  whereWillReception: text("where_will_reception"),
-  willYouDoReceivingLineReception: text("will_you_do_receiving_line_reception"),
-  howLongReception: text("how_long_reception"),
-  whatKindOfMeal: text("what_kind_of_meal"),
-  willYouHaveToasts: text("will_you_have_toasts"),
-  willYouHaveGuestbook: text("will_you_have_guestbook"),
-  willYouHaveWeddingFavor: text("will_you_have_wedding_favor"),
-  willYouServeCake: text("will_you_serve_cake"),
-  willYouCutCake: text("will_you_cut_cake"),
-
-  // Minor Details
-  brideWalkingWith: text("bride_walking_with"),
-  groomWalkingWith: text("groom_walking_with"),
-  weddingPartyTransport: text("wedding_party_transport"),
-  ringsToVenue: text("rings_to_venue"),
-  dressToVenue: text("dress_to_venue"),
-  belongingsTransport: text("belongings_transport"),
-  getawayCar: text("getaway_car"),
-  decorTakeHome: text("decor_take_home"),
-  giftsFromVenue: text("gifts_from_venue"),
-  floralsDisposal: text("florals_disposal"),
-  bouquetPreservation: text("bouquet_preservation"),
-  finalVenueSweep: text("final_venue_sweep"),
-  leftoverFood: text("leftover_food"),
-  lateNightSnack: text("late_night_snack"),
-  
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
-
-export const insertWeddingOverviewSchema = createInsertSchema(weddingOverview).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-
-
+// Intake form data storage
 export const intakeData = pgTable("intake_data", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull().unique(),
-  
-  // Couple Information  
+  userId: integer("user_id").notNull(),
+  // Couple Info
   partner1FirstName: text("partner1_first_name"),
   partner1LastName: text("partner1_last_name"),
   partner1Email: text("partner1_email"),
-  partner1Role: text("partner1_role"),
-  
   partner2FirstName: text("partner2_first_name"),
   partner2LastName: text("partner2_last_name"),
   partner2Email: text("partner2_email"),
-  partner2Role: text("partner2_role"),
-  
   hasWeddingPlanner: boolean("has_wedding_planner").default(false),
-  
   // Wedding Basics
-  weddingDate: timestamp("wedding_date"),
+  weddingDate: text("wedding_date"),
   ceremonyLocation: text("ceremony_location"),
   receptionLocation: text("reception_location"),
   estimatedGuests: integer("estimated_guests"),
-  totalBudget: decimal("total_budget", { precision: 10, scale: 2 }),
-  
+  totalBudget: text("total_budget"),
   // Style & Vision
   overallVibe: text("overall_vibe"),
   colorPalette: text("color_palette"),
-  mustHaveElements: jsonb("must_have_elements"),
-  pinterestBoards: jsonb("pinterest_boards"),
-  
+  mustHaveElements: text("must_have_elements").array(),
+  pinterestBoards: text("pinterest_boards").array(),
   // Priorities
-  topPriorities: jsonb("top_priorities"),
+  topPriorities: text("top_priorities").array(),
   nonNegotiables: text("non_negotiables"),
-  
   // Key People
-  vips: jsonb("vips"),
-  weddingParty: jsonb("wedding_party"),
+  vips: jsonb("vips"), // Array of {name, role} objects
+  weddingParty: jsonb("wedding_party"), // Array of {name, role} objects
   officiantStatus: text("officiant_status"),
-  
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-// Schema validations - All fields optional for flexible form saving
-export const insertIntakeDataSchema = createInsertSchema(intakeData).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-}).extend({
-  // Make all fields optional and nullable for progressive form filling
-  partner1FirstName: z.string().optional().nullable(),
-  partner1LastName: z.string().optional().nullable(),
-  partner1Email: z.string().optional().nullable(),
-  partner1Role: z.string().optional().nullable(),
-  partner2FirstName: z.string().optional().nullable(),
-  partner2LastName: z.string().optional().nullable(),
-  partner2Email: z.string().optional().nullable(),
-  partner2Role: z.string().optional().nullable(),
-  weddingDate: z.preprocess((val) => val ? new Date(val as string) : null, z.date().nullable().optional()),
-  ceremonyLocation: z.string().optional().nullable(),
-  receptionLocation: z.string().optional().nullable(),
-  estimatedGuests: z.number().optional().nullable(),
-  totalBudget: z.string().optional().nullable(),
-  overallVibe: z.string().optional().nullable(),
-  colorPalette: z.string().optional().nullable(),
-  nonNegotiables: z.string().optional().nullable(),
-  officiantStatus: z.string().optional().nullable(),
+// Creative Details Storage
+export const creativeDetails = pgTable("creative_details", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id").notNull(),
+  category: text("category").notNull(), // signage, drinks, photos, etc.
+  itemName: text("item_name").notNull(),
+  description: text("description"),
+  details: jsonb("details"), // Flexible JSON storage for category-specific fields
+  dueDate: timestamp("due_date"),
+  assignedTo: text("assigned_to"),
+  status: text("status").default('planning'), // 'planning', 'in_progress', 'completed'
+  notes: text("notes"),
+  addedBy: integer("added_by").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-// Types  
-export type User = typeof users.$inferSelect;
-export type InsertUser = z.infer<typeof insertUserSchema>;
-export type WeddingProject = typeof weddingProjects.$inferSelect;
-export type InsertWeddingProject = z.infer<typeof insertWeddingProjectSchema>;
-export type Collaborator = typeof collaborators.$inferSelect;
-export type InsertCollaborator = z.infer<typeof insertCollaboratorSchema>;
-export type Invitation = typeof invitations.$inferSelect;
-export type InsertInvitation = z.infer<typeof insertInvitationSchema>;
-export type UserSession = typeof userSessions.$inferSelect;
-export type InsertUserSession = z.infer<typeof insertUserSessionSchema>;
-export type VerificationToken = typeof verificationTokens.$inferSelect;
-export type InsertVerificationToken = z.infer<typeof insertVerificationTokenSchema>;
-export type DefaultTask = typeof defaultTasks.$inferSelect;
-export type InsertDefaultTask = z.infer<typeof insertDefaultTaskSchema>;
-export type Task = typeof tasks.$inferSelect;
-export type InsertTask = z.infer<typeof insertTaskSchema>;
-export type TaskNote = typeof taskNotes.$inferSelect;
-export type InsertTaskNote = z.infer<typeof insertTaskNoteSchema>;
-export type Guest = typeof guests.$inferSelect;
-export type InsertGuest = z.infer<typeof insertGuestSchema>;
-export type Vendor = typeof vendors.$inferSelect;
-export type InsertVendor = z.infer<typeof insertVendorSchema>;
-export type VendorPayment = typeof vendorPayments.$inferSelect;
-export type InsertVendorPayment = z.infer<typeof insertVendorPaymentSchema>;
-export type BudgetItem = typeof budgetItems.$inferSelect;
-export type InsertBudgetItem = z.infer<typeof insertBudgetItemSchema>;
-export type TimelineEvent = typeof timelineEvents.$inferSelect;
-export type InsertTimelineEvent = z.infer<typeof insertTimelineEventSchema>;
-export type InspirationItem = typeof inspirationItems.$inferSelect;
-export type InsertInspirationItem = z.infer<typeof insertInspirationItemSchema>;
-export type Activity = typeof activities.$inferSelect;
-export type InsertActivity = z.infer<typeof insertActivitySchema>;
-export type ShoppingList = typeof shoppingLists.$inferSelect;
-export type InsertShoppingList = z.infer<typeof insertShoppingListSchema>;
-export type ShoppingItem = typeof shoppingItems.$inferSelect;
-export type InsertShoppingItem = z.infer<typeof insertShoppingItemSchema>;
-export type Schedule = typeof schedules.$inferSelect;
-export type InsertSchedule = z.infer<typeof insertScheduleSchema>;
-export type ScheduleEvent = typeof scheduleEvents.$inferSelect;
-export type InsertScheduleEvent = z.infer<typeof insertScheduleEventSchema>;
-export type IntakeData = typeof intakeData.$inferSelect;
-export type InsertIntakeData = z.infer<typeof insertIntakeDataSchema>;
-export type WeddingOverview = typeof weddingOverview.$inferSelect;
-export type InsertWeddingOverview = z.infer<typeof insertWeddingOverviewSchema>;
-export type CreativeDetail = typeof creativeDetails.$inferSelect;
-export type InsertCreativeDetail = z.infer<typeof insertCreativeDetailSchema>;
-
-export type ActivityLogEntry = typeof activityLog.$inferSelect;
-export type InsertActivityLogEntry = z.infer<typeof insertActivityLogSchema>;
-
-// Seating Chart Tables
+// Seating Chart
 export const seatingTables = pgTable("seating_tables", {
   id: serial("id").primaryKey(),
-  projectId: integer("project_id").notNull().references(() => weddingProjects.id, { onDelete: "cascade" }),
-  name: varchar("name", { length: 100 }).notNull(),
-  maxSeats: integer("max_seats").default(8),
+  projectId: integer("project_id").notNull(),
+  name: text("name").notNull(), // e.g., "Table 1", "Head Table"
+  capacity: integer("capacity").notNull(),
+  shape: text("shape").default('round'), // 'round', 'rectangle', 'square'
+  location: text("location"), // Room section or description
   notes: text("notes"),
-  position: jsonb("position"), // {x: number, y: number} for future drag-and-drop
-  createdBy: integer("created_by").notNull().references(() => users.id),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
 export const seatingAssignments = pgTable("seating_assignments", {
   id: serial("id").primaryKey(),
-  projectId: integer("project_id").notNull().references(() => weddingProjects.id, { onDelete: "cascade" }),
-  tableId: integer("table_id").notNull().references(() => seatingTables.id, { onDelete: "cascade" }),
-  guestId: integer("guest_id").notNull().references(() => guests.id, { onDelete: "cascade" }),
-  seatNumber: integer("seat_number"), // Optional seat number within table
+  projectId: integer("project_id").notNull(),
+  tableId: integer("table_id").notNull(),
+  guestId: integer("guest_id").notNull(),
+  seatNumber: integer("seat_number"), // Optional specific seat number
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-export const insertSeatingTableSchema = createInsertSchema(seatingTables).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
+// Type definitions
+export type User = typeof users.$inferSelect;
+export type InsertUser = typeof users.$inferInsert;
 
-export const insertSeatingAssignmentSchema = createInsertSchema(seatingAssignments).omit({
-  id: true,
-  createdAt: true,
-});
+export type WeddingProject = typeof weddingProjects.$inferSelect;
+export type InsertWeddingProject = typeof weddingProjects.$inferInsert;
+
+export type Collaborator = typeof collaborators.$inferSelect;
+export type InsertCollaborator = typeof collaborators.$inferInsert;
+
+export type Invitation = typeof invitations.$inferSelect;
+export type InsertInvitation = typeof invitations.$inferInsert;
+
+export type DefaultTask = typeof defaultTasks.$inferSelect;
+export type InsertDefaultTask = typeof defaultTasks.$inferInsert;
+
+export type Task = typeof tasks.$inferSelect;
+export type InsertTask = typeof tasks.$inferInsert;
+
+export type Guest = typeof guests.$inferSelect;
+export type InsertGuest = typeof guests.$inferInsert;
+
+export type Vendor = typeof vendors.$inferSelect;
+export type InsertVendor = typeof vendors.$inferInsert;
+
+export type BudgetItem = typeof budgetItems.$inferSelect;
+export type InsertBudgetItem = typeof budgetItems.$inferInsert;
+
+export type TimelineEvent = typeof timelineEvents.$inferSelect;
+export type InsertTimelineEvent = typeof timelineEvents.$inferInsert;
+
+export type InspirationItem = typeof inspirationItems.$inferSelect;
+export type InsertInspirationItem = typeof inspirationItems.$inferInsert;
+
+export type Activity = typeof activities.$inferSelect;
+export type InsertActivity = typeof activities.$inferInsert;
+
+export type Schedule = typeof schedules.$inferSelect;
+export type InsertSchedule = typeof schedules.$inferInsert;
+
+export type ScheduleEvent = typeof scheduleEvents.$inferSelect;
+export type InsertScheduleEvent = typeof scheduleEvents.$inferInsert;
+
+export type IntakeData = typeof intakeData.$inferSelect;
+export type InsertIntakeData = typeof intakeData.$inferInsert;
+
+export type CreativeDetail = typeof creativeDetails.$inferSelect;
+export type InsertCreativeDetail = typeof creativeDetails.$inferInsert;
 
 export type SeatingTable = typeof seatingTables.$inferSelect;
-export type InsertSeatingTable = z.infer<typeof insertSeatingTableSchema>;
+export type InsertSeatingTable = typeof seatingTables.$inferInsert;
+
 export type SeatingAssignment = typeof seatingAssignments.$inferSelect;
-export type InsertSeatingAssignment = z.infer<typeof insertSeatingAssignmentSchema>;
+export type InsertSeatingAssignment = typeof seatingAssignments.$inferInsert;
 
-// Relations
-export const usersRelations = relations(users, ({ many }) => ({
-  weddingProjects: many(weddingProjects),
-  collaborators: many(collaborators),
-  tasks: many(tasks),
-  activities: many(activities),
-}));
-
-export const weddingProjectsRelations = relations(weddingProjects, ({ one, many }) => ({
-  creator: one(users, {
-    fields: [weddingProjects.createdBy],
-    references: [users.id],
-  }),
-  collaborators: many(collaborators),
-  tasks: many(tasks),
-  guests: many(guests),
-  vendors: many(vendors),
-  budgetItems: many(budgetItems),
-  timelineEvents: many(timelineEvents),
-  inspirationItems: many(inspirationItems),
-  activities: many(activities),
-  creativeDetails: many(creativeDetails),
-}));
-
-export const collaboratorsRelations = relations(collaborators, ({ one }) => ({
-  project: one(weddingProjects, {
-    fields: [collaborators.projectId],
-    references: [weddingProjects.id],
-  }),
-  user: one(users, {
-    fields: [collaborators.userId],
-    references: [users.id],
-  }),
-  inviter: one(users, {
-    fields: [collaborators.invitedBy],
-    references: [users.id],
-  }),
-}));
-
-export const tasksRelations = relations(tasks, ({ one }) => ({
-  project: one(weddingProjects, {
-    fields: [tasks.projectId],
-    references: [weddingProjects.id],
-  }),
-  creator: one(users, {
-    fields: [tasks.createdBy],
-    references: [users.id],
-  }),
-  assignee: one(users, {
-    fields: [tasks.assignedTo],
-    references: [users.id],
-  }),
-}));
-
-export const guestsRelations = relations(guests, ({ one }) => ({
-  project: one(weddingProjects, {
-    fields: [guests.projectId],
-    references: [weddingProjects.id],
-  }),
-  addedByUser: one(users, {
-    fields: [guests.addedBy],
-    references: [users.id],
-  }),
-}));
-
-export const vendorsRelations = relations(vendors, ({ one }) => ({
-  project: one(weddingProjects, {
-    fields: [vendors.projectId],
-    references: [weddingProjects.id],
-  }),
-  addedByUser: one(users, {
-    fields: [vendors.addedBy],
-    references: [users.id],
-  }),
-}));
-
-export const budgetItemsRelations = relations(budgetItems, ({ one }) => ({
-  project: one(weddingProjects, {
-    fields: [budgetItems.projectId],
-    references: [weddingProjects.id],
-  }),
-  creator: one(users, {
-    fields: [budgetItems.createdBy],
-    references: [users.id],
-  }),
-}));
-
-export const timelineEventsRelations = relations(timelineEvents, ({ one }) => ({
-  project: one(weddingProjects, {
-    fields: [timelineEvents.projectId],
-    references: [weddingProjects.id],
-  }),
-  creator: one(users, {
-    fields: [timelineEvents.createdBy],
-    references: [users.id],
-  }),
-}));
-
-export const inspirationItemsRelations = relations(inspirationItems, ({ one }) => ({
-  project: one(weddingProjects, {
-    fields: [inspirationItems.projectId],
-    references: [weddingProjects.id],
-  }),
-  addedByUser: one(users, {
-    fields: [inspirationItems.addedBy],
-    references: [users.id],
-  }),
-}));
-
-export const activitiesRelations = relations(activities, ({ one }) => ({
-  project: one(weddingProjects, {
-    fields: [activities.projectId],
-    references: [weddingProjects.id],
-  }),
-  user: one(users, {
-    fields: [activities.userId],
-    references: [users.id],
-  }),
-}));
-
-export const shoppingListsRelations = relations(shoppingLists, ({ one, many }) => ({
-  project: one(weddingProjects, {
-    fields: [shoppingLists.projectId],
-    references: [weddingProjects.id],
-  }),
-  createdBy: one(users, {
-    fields: [shoppingLists.createdBy],
-    references: [users.id],
-  }),
-  items: many(shoppingItems),
-}));
-
-export const shoppingItemsRelations = relations(shoppingItems, ({ one }) => ({
-  list: one(shoppingLists, {
-    fields: [shoppingItems.listId],
-    references: [shoppingLists.id],
-  }),
-  project: one(weddingProjects, {
-    fields: [shoppingItems.projectId],
-    references: [weddingProjects.id],
-  }),
-  assignedTo: one(users, {
-    fields: [shoppingItems.assignedTo],
-    references: [users.id],
-  }),
-  createdBy: one(users, {
-    fields: [shoppingItems.createdBy],
-    references: [users.id],
-  }),
-}));
-
-export const schedulesRelations = relations(schedules, ({ one, many }) => ({
-  project: one(weddingProjects, {
-    fields: [schedules.projectId],
-    references: [weddingProjects.id],
-  }),
-  createdBy: one(users, {
-    fields: [schedules.createdBy],
-    references: [users.id],
-  }),
-  events: many(scheduleEvents),
-}));
-
-export const scheduleEventsRelations = relations(scheduleEvents, ({ one }) => ({
-  schedule: one(schedules, {
-    fields: [scheduleEvents.scheduleId],
-    references: [schedules.id],
-  }),
-  project: one(weddingProjects, {
-    fields: [scheduleEvents.projectId],
-    references: [weddingProjects.id],
-  }),
-  vendor: one(vendors, {
-    fields: [scheduleEvents.vendorId],
-    references: [vendors.id],
-  }),
-  createdBy: one(users, {
-    fields: [scheduleEvents.createdBy],
-    references: [users.id],
-  }),
-}));
-
-export type User = typeof users.$inferSelect;
-export type InsertUser = z.infer<typeof insertUserSchema>;
-export type WeddingProject = typeof weddingProjects.$inferSelect;
-export type InsertWeddingProject = z.infer<typeof insertWeddingProjectSchema>;
-export type Collaborator = typeof collaborators.$inferSelect;
-export type InsertCollaborator = z.infer<typeof insertCollaboratorSchema>;
-export type Task = typeof tasks.$inferSelect;
-export type InsertTask = z.infer<typeof insertTaskSchema>;
-export type Guest = typeof guests.$inferSelect;
-export type InsertGuest = z.infer<typeof insertGuestSchema>;
-export type Vendor = typeof vendors.$inferSelect;
-export type InsertVendor = z.infer<typeof insertVendorSchema>;
-export type VendorPayment = typeof vendorPayments.$inferSelect;
-export type InsertVendorPayment = z.infer<typeof insertVendorPaymentSchema>;
-export type BudgetItem = typeof budgetItems.$inferSelect;
-export type InsertBudgetItem = z.infer<typeof insertBudgetItemSchema>;
-export type TimelineEvent = typeof timelineEvents.$inferSelect;
-export type InsertTimelineEvent = z.infer<typeof insertTimelineEventSchema>;
-export type InspirationItem = typeof inspirationItems.$inferSelect;
-export type InsertInspirationItem = z.infer<typeof insertInspirationItemSchema>;
-export type Activity = typeof activities.$inferSelect;
-export type InsertActivity = z.infer<typeof insertActivitySchema>;
-export type ShoppingList = typeof shoppingLists.$inferSelect;
-export type InsertShoppingList = z.infer<typeof insertShoppingListSchema>;
-export type ShoppingItem = typeof shoppingItems.$inferSelect;
-export type InsertShoppingItem = z.infer<typeof insertShoppingItemSchema>;
-export type Schedule = typeof schedules.$inferSelect;
-export type InsertSchedule = z.infer<typeof insertScheduleSchema>;
-export type ScheduleEvent = typeof scheduleEvents.$inferSelect;
-export type InsertScheduleEvent = z.infer<typeof insertScheduleEventSchema>;
-export type WeddingOverview = typeof weddingOverview.$inferSelect;
-export type InsertWeddingOverview = z.infer<typeof insertWeddingOverviewSchema>;
-
-export const creativeDetailsRelations = relations(creativeDetails, ({ one }) => ({
-  project: one(weddingProjects, {
-    fields: [creativeDetails.projectId],
-    references: [weddingProjects.id],
-  }),
-  creator: one(users, {
-    fields: [creativeDetails.createdBy],
-    references: [users.id],
-  }),
-  assignee: one(users, {
-    fields: [creativeDetails.assignedTo],
-    references: [users.id],
-  }),
-}));
+// Zod schemas for validation
+export const insertUserSchema = createInsertSchema(users);
+export const insertWeddingProjectSchema = createInsertSchema(weddingProjects);
+export const insertCollaboratorSchema = createInsertSchema(collaborators);
+export const insertInvitationSchema = createInsertSchema(invitations);
+export const insertDefaultTaskSchema = createInsertSchema(defaultTasks);
+export const insertTaskSchema = createInsertSchema(tasks);
+export const insertGuestSchema = createInsertSchema(guests);
+export const insertVendorSchema = createInsertSchema(vendors);
+export const insertBudgetItemSchema = createInsertSchema(budgetItems);
+export const insertTimelineEventSchema = createInsertSchema(timelineEvents);
+export const insertInspirationItemSchema = createInsertSchema(inspirationItems);
+export const insertActivitySchema = createInsertSchema(activities);
+export const insertScheduleSchema = createInsertSchema(schedules);
+export const insertScheduleEventSchema = createInsertSchema(scheduleEvents);
+export const insertIntakeDataSchema = createInsertSchema(intakeData);
+export const insertCreativeDetailSchema = createInsertSchema(creativeDetails);
+export const insertSeatingTableSchema = createInsertSchema(seatingTables);
+export const insertSeatingAssignmentSchema = createInsertSchema(seatingAssignments);

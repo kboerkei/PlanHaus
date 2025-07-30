@@ -9,7 +9,7 @@ import { validateBody } from "./utils/validation";
 import { getOrCreateDefaultProject } from "./utils/projects";
 import { 
   insertInspirationItemSchema, insertScheduleSchema, insertScheduleEventSchema, 
-  insertIntakeDataSchema, insertWeddingOverviewSchema
+  insertIntakeDataSchema
 } from "@shared/schema";
 
 // Import security middleware
@@ -36,6 +36,7 @@ import aiSuggestionsRoutes from "./routes/ai-suggestions";
 import uploadRoutes from "./routes/uploads";
 import analyzeFileRoutes from "./routes/analyzeFile";
 import exportRoutes from "./routes/export";
+import intakeRoutes from "./routes/intake";
 
 // Import collaboration routes
 import collaboratorRoutes from "./routes/collaborators";
@@ -424,19 +425,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/overview", requireAuth, validateBody(insertWeddingOverviewSchema), async (req: RequestWithUser, res) => {
-    try {
-      const project = await getOrCreateDefaultProject(req.userId);
-      const overviewData = { ...req.body, projectId: project.id };
-      const overview = await storage.createWeddingOverview(overviewData);
-      
-      logInfo('overview', 'Wedding overview updated', { userId: req.userId });
-      res.status(201).json(overview);
-    } catch (error) {
-      logError('overview', error, { userId: req.userId });
-      res.status(500).json({ message: "Failed to save overview data" });
-    }
-  });
+  // Overview endpoint simplified for now
 
   return httpServer;
 }

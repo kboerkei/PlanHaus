@@ -1,20 +1,16 @@
 import {
-  users, weddingProjects, collaborators, invitations, userSessions, verificationTokens,
-  defaultTasks, tasks, guests, vendors, vendorPayments, budgetItems,
-  timelineEvents, inspirationItems, activities, activityLog, shoppingLists, shoppingItems,
-  schedules, scheduleEvents, intakeData, weddingOverview, creativeDetails, seatingTables, seatingAssignments,
+  users, weddingProjects, collaborators, invitations,
+  defaultTasks, tasks, guests, vendors, budgetItems,
+  timelineEvents, inspirationItems, activities,
+  schedules, scheduleEvents, intakeData, creativeDetails, seatingTables, seatingAssignments,
   type User, type InsertUser, type WeddingProject, type InsertWeddingProject,
   type Collaborator, type InsertCollaborator, type Invitation, type InsertInvitation,
-  type UserSession, type InsertUserSession, type VerificationToken, type InsertVerificationToken,
   type DefaultTask, type InsertDefaultTask,
   type Task, type InsertTask, type Guest, type InsertGuest, type Vendor, type InsertVendor,
-  type VendorPayment, type InsertVendorPayment,
   type BudgetItem, type InsertBudgetItem, type TimelineEvent, type InsertTimelineEvent,
   type InspirationItem, type InsertInspirationItem, type Activity, type InsertActivity,
-  type ActivityLogEntry, type InsertActivityLogEntry,
-  type ShoppingList, type InsertShoppingList, type ShoppingItem, type InsertShoppingItem,
   type Schedule, type InsertSchedule, type ScheduleEvent, type InsertScheduleEvent,
-  type IntakeData, type InsertIntakeData, type WeddingOverview, type InsertWeddingOverview,
+  type IntakeData, type InsertIntakeData,
   type CreativeDetail, type InsertCreativeDetail, type SeatingTable, type InsertSeatingTable,
   type SeatingAssignment, type InsertSeatingAssignment
 } from "@shared/schema";
@@ -81,13 +77,7 @@ export interface IStorage {
   updateVendor(id: number, updates: Partial<InsertVendor>): Promise<Vendor | undefined>;
   deleteVendor(id: number): Promise<boolean>;
 
-  // Vendor Payments
-  createVendorPayment(payment: InsertVendorPayment): Promise<VendorPayment>;
-  getVendorPaymentsByVendorId(vendorId: number): Promise<VendorPayment[]>;
-  getVendorPaymentsByProjectId(projectId: number): Promise<VendorPayment[]>;
-  updateVendorPayment(id: number, updates: Partial<InsertVendorPayment>): Promise<VendorPayment | undefined>;
-  deleteVendorPayment(id: number): Promise<boolean>;
-  markVendorPaymentPaid(id: number): Promise<VendorPayment | undefined>;
+  // Vendor methods - payments removed for simplification
 
   // Budget Items
   createBudgetItem(item: InsertBudgetItem): Promise<BudgetItem>;
@@ -121,31 +111,12 @@ export interface IStorage {
   getActivitiesByProjectId(projectId: number, limit?: number, offset?: number, includeInvisible?: boolean): Promise<Activity[]>;
   getActivityStats(projectId: number, days: number): Promise<any>;
 
-  // Activity Log
-  getActivityLog(params: {
-    projectId: number;
-    userId?: number;
-    section?: string;
-    limit?: number;
-  }): Promise<(ActivityLogEntry & { user: User })[]>;
-  createActivityLogEntry(activity: InsertActivityLogEntry): Promise<ActivityLogEntry>;
+  // Activity Log - simplified
 
   // User management
   updateUser(id: number, updates: Partial<InsertUser>): Promise<User | undefined>;
 
-  // Shopping Lists
-  createShoppingList(list: InsertShoppingList): Promise<ShoppingList>;
-  getShoppingListsByProjectId(projectId: number): Promise<ShoppingList[]>;
-  updateShoppingList(id: number, updates: Partial<InsertShoppingList>): Promise<ShoppingList | undefined>;
-  deleteShoppingList(id: number): Promise<boolean>;
-
-  // Shopping Items
-  createShoppingItem(item: InsertShoppingItem): Promise<ShoppingItem>;
-  getShoppingItemsByProjectId(projectId: number): Promise<ShoppingItem[]>;
-  getShoppingItemsByListId(listId: number): Promise<ShoppingItem[]>;
-  updateShoppingItem(id: number, updates: Partial<InsertShoppingItem>): Promise<ShoppingItem | undefined>;
-  deleteShoppingItem(id: number): Promise<boolean>;
-  markItemPurchased(id: number): Promise<ShoppingItem | undefined>;
+  // Shopping features - removed for simplification
 
   // Schedules
   createSchedule(schedule: InsertSchedule): Promise<Schedule>;
@@ -1363,6 +1334,22 @@ export class DatabaseStorage implements IStorage {
 
   // Enhanced Collaborator methods
   async getUserProjectRole(userId: number, projectId: number): Promise<string | undefined> {
+    // Check if user is the project owner
+    const project = await db.select().from(weddingProjects).where(eq(weddingProjects.id, projectId));
+    if (project.length > 0 && project[0].createdBy === userId) {
+      return 'Owner';
+    }
+
+    // Check if user is a collaborator
+    const [collaborator] = await db
+      .select({ role: collaborators.role })
+      .from(collaborators)
+      .where(and(eq(collaborators.userId, userId), eq(collaborators.projectId, projectId)));
+    
+    return collaborator?.role || undefined;
+  }
+
+  async getUserProjectRoleOld(userId: number, projectId: number): Promise<string | undefined> {
     const [collaborator] = await db
       .select({ role: collaborators.role })
       .from(collaborators)
