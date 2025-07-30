@@ -1,3 +1,5 @@
+import { OptimizedDashboard } from "@/components/optimized/OptimizedDashboard";
+import { EnhancedErrorBoundary } from "@/components/ui/enhanced-error-boundary";
 import ProgressOverview from "@/components/dashboard/progress-overview";
 import AIAssistantCard from "@/components/dashboard/ai-assistant-card";
 import EnhancedQuickActions from "@/components/dashboard/enhanced-quick-actions";
@@ -17,9 +19,8 @@ import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { format, differenceInDays } from "date-fns";
 import { useEffect, useState, useMemo, memo } from "react";
-import { useDebounce, usePerformanceMonitor } from "@/hooks/usePerformance";
-import { useScreenReader } from "@/hooks/useAccessibility";
-import { useReducedMotion } from "@/components/accessibility/AccessibleComponents";
+import { usePerformanceMonitor } from "@/hooks/usePerformanceOptimization";
+
 
 type Task = {
   id: string;
@@ -441,9 +442,7 @@ function AnimatedDashboardStats() {
 
 const Dashboard = memo(() => {
   // Performance monitoring
-  usePerformanceMonitor('Dashboard');
-  const { announce } = useScreenReader();
-  const prefersReducedMotion = useReducedMotion();
+  const getMetrics = usePerformanceMonitor('Dashboard');
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-cream/50 to-background dark:from-background dark:via-background dark:to-background">
       <div className="relative overflow-hidden">
