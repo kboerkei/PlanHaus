@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { type CreativeDetail, type InsertCreativeDetail } from "@shared/schema";
+import { type CreativeDetail, type CreateCreativeDetail } from "../../../shared/types";
 import { ChevronDown, ChevronRight, Plus, Upload, User, Calendar, Edit, Trash2, CheckCircle, Clock, AlertCircle, Users } from "lucide-react";
 import { useDropzone } from "react-dropzone";
 import { useToast } from "@/hooks/use-toast";

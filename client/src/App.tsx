@@ -23,7 +23,7 @@ import Vendors from "@/pages/vendors";
 import Inspiration from "@/pages/inspiration";
 import Resources from "@/pages/resources";
 import Schedules from "@/pages/schedules";
-import CreativeDetails from "@/pages/creative-details";
+import CreativeDetails from "@/pages/creative-details-simple";
 import Collaborators from "@/pages/collaborators";
 import ActivityLog from "@/pages/activity-log";
 import SeatingChart from "@/pages/seating-chart";
