@@ -123,6 +123,17 @@
     --pearl: 36 10% 30%;
     --mauve: 300 20% 50%;
     
+    /* Extended Wedding Palette */
+    --soft-gold: 45 67% 88%;
+    --warm-ivory: 48 15% 96%;
+    --dusty-lavender: 280 15% 85%;
+    --sage-green: 95 25% 75%;
+    
+    /* Semantic Wedding Colors */
+    --success-wedding: var(--sage-green);
+    --warning-wedding: var(--rose-gold);
+    --info-wedding: var(--dusty-lavender);
+    
     /* Theme Background */
     --theme-bg: var(--background);
     --theme-surface: var(--card);
@@ -191,6 +202,37 @@
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+  }
+
+  /* Enhanced Wedding Component Styles */
+  .btn-wedding {
+    @apply bg-gradient-to-r from-blush to-rose-gold text-white 
+           hover:shadow-lg transition-all duration-300 
+           hover:scale-105 focus:ring-2 focus:ring-blush focus:ring-offset-2
+           shadow-md border-0;
+  }
+  
+  .btn-elegant {
+    @apply bg-champagne hover:bg-muted-gold text-gray-800 
+           border border-muted-gold/30 hover:border-muted-gold/50
+           transition-all duration-300 hover:shadow-md;
+  }
+  
+  .btn-soft {
+    @apply bg-cream border border-blush/20 hover:bg-blush/10 text-gray-700
+           transition-all duration-300 hover:shadow-sm;
+  }
+
+  .card-wedding {
+    @apply bg-white border border-blush/20 shadow-soft 
+           hover:shadow-medium transition-shadow duration-300
+           backdrop-blur-sm;
+  }
+  
+  .empty-state-wedding {
+    @apply flex flex-col items-center justify-center py-12 px-6 
+           text-center space-y-4 bg-gradient-to-br from-cream/30 to-champagne/20 
+           rounded-lg border border-blush/10 min-h-[300px];
   }
 
   /* Mobile-responsive utilities */
