@@ -270,13 +270,15 @@ function DroppableTable({
   assignments, 
   onEditTable, 
   onDeleteTable,
-  onRemoveGuest 
+  onRemoveGuest,
+  unassignedGuests 
 }: {
   table: SeatingTable;
   assignments: SeatingAssignment[];
   onEditTable: () => void;
   onDeleteTable: () => void;
   onRemoveGuest: (assignmentId: number) => void;
+  unassignedGuests: Guest[];
 }) {
   const assignedGuests = assignments.filter(a => a.tableId === table.id);
   const availableSeats = table.maxSeats - assignedGuests.length;
@@ -373,17 +375,11 @@ function DroppableTable({
             </div>
           ))}
           
-          {/* Add Guest Button */}
-          {availableSeats > 0 && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onAssignGuest}
-              className="w-full border-blush/30 text-blush hover:bg-blush/10 hover:border-blush/50 rounded-xl transition-all duration-200 font-medium"
-            >
-              <UserPlus className="h-4 w-4 mr-2" />
-              Add Guest
-            </Button>
+          {/* Drag and Drop Instructions */}
+          {availableSeats > 0 && unassignedGuests.length > 0 && (
+            <div className="text-center py-2 text-xs text-gray-500 border-2 border-dashed border-gray-200 rounded-xl">
+              Drag guests here to assign them
+            </div>
           )}
           
           {table.notes && (
@@ -706,6 +702,7 @@ export default function SeatingChart() {
                 onEditTable={() => setEditingTable(table)}
                 onDeleteTable={() => deleteTableMutation.mutate(table.id)}
                 onRemoveGuest={(assignmentId) => removeGuestMutation.mutate(assignmentId)}
+                unassignedGuests={unassignedGuests}
               />
             ))}
           </AnimatePresence>
