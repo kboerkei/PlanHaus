@@ -105,7 +105,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use("/api/guests", requireAuth, guestRoutes);
   app.use("/api/vendors", requireAuth, vendorRoutes);
   app.use("/api/budget", requireAuth, budgetRoutes);
-  app.use("/api/creative-details", requireAuth, creativeDetailsRoutes);
+  app.use("/api/creative-details", creativeDetailsRoutes);
   app.use("/api/seating-chart", requireAuth, seatingChartRoutes);
   app.use("/api/ai", requireAuth, aiRoutes);
   app.use("/api/ai-suggestions", requireAuth, aiSuggestionsRoutes);

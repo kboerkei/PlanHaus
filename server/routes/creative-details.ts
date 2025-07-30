@@ -9,10 +9,10 @@ import { logInfo, logError } from '../utils/logger';
 const router = Router();
 
 // Get all creative details for current project
-router.get('/api/creative-details', requireAuth, async (req: RequestWithUser, res) => {
+router.get('/', requireAuth, async (req: RequestWithUser, res) => {
   try {
     const project = await getOrCreateDefaultProject(req.userId);
-    const creativeDetails = await storage.getCreativeDetailsByProjectId(project.id);
+    const creativeDetails = await storage.getCreativeDetails(project.id);
     res.json(creativeDetails);
   } catch (error) {
     logError('creative-details', error, { userId: req.userId });
@@ -21,7 +21,7 @@ router.get('/api/creative-details', requireAuth, async (req: RequestWithUser, re
 });
 
 // Create new creative detail
-router.post('/api/creative-details', requireAuth, validateBody(insertCreativeDetailSchema), async (req: RequestWithUser, res) => {
+router.post('/', requireAuth, validateBody(insertCreativeDetailSchema), async (req: RequestWithUser, res) => {
   try {
     const project = await getOrCreateDefaultProject(req.userId);
     const creativeDetailData = { 
@@ -40,7 +40,7 @@ router.post('/api/creative-details', requireAuth, validateBody(insertCreativeDet
 });
 
 // Update creative detail
-router.put('/api/creative-details/:id', requireAuth, validateBody(insertCreativeDetailSchema.partial()), async (req: RequestWithUser, res) => {
+router.put('/:id', requireAuth, validateBody(insertCreativeDetailSchema.partial()), async (req: RequestWithUser, res) => {
   try {
     const creativeDetailId = parseInt(req.params.id);
     const creativeDetail = await storage.getCreativeDetailById(creativeDetailId);
@@ -68,7 +68,7 @@ router.put('/api/creative-details/:id', requireAuth, validateBody(insertCreative
 });
 
 // Delete creative detail
-router.delete('/api/creative-details/:id', requireAuth, async (req: RequestWithUser, res) => {
+router.delete('/:id', requireAuth, async (req: RequestWithUser, res) => {
   try {
     const creativeDetailId = parseInt(req.params.id);
     const creativeDetail = await storage.getCreativeDetailById(creativeDetailId);
