@@ -31,6 +31,7 @@ import vendorRoutes from "./routes/vendors";
 import budgetRoutes from "./routes/budget";
 import creativeDetailsRoutes from "./routes/creative-details";
 import seatingChartRoutes from "./routes/seating-chart";
+import schedulesRoutes from "./routes/schedules";
 import aiRoutes from "./routes/ai";
 import aiSuggestionsRoutes from "./routes/ai-suggestions";
 import uploadRoutes from "./routes/uploads";
@@ -108,6 +109,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use("/api/budget", requireAuth, budgetRoutes);
   app.use("/api/creative-details", creativeDetailsRoutes);
   app.use("/api/seating-chart", requireAuth, seatingChartRoutes);
+  app.use(schedulesRoutes);
   app.use("/api/ai", requireAuth, aiRoutes);
   app.use("/api/ai-suggestions", requireAuth, aiSuggestionsRoutes);
   app.use("/api/upload", uploadRoutes);
