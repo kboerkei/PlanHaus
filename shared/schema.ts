@@ -363,5 +363,5 @@ export const insertScheduleSchema = createInsertSchema(schedules);
 export const insertScheduleEventSchema = createInsertSchema(scheduleEvents);
 export const insertIntakeDataSchema = createInsertSchema(intakeData);
 export const insertCreativeDetailSchema = createInsertSchema(creativeDetails);
-export const insertSeatingTableSchema = createInsertSchema(seatingTables);
-export const insertSeatingAssignmentSchema = createInsertSchema(seatingAssignments);
+export const insertSeatingTableSchema = createInsertSchema(seatingTables).omit({ id: true, projectId: true, createdBy: true, createdAt: true, updatedAt: true });
+export const insertSeatingAssignmentSchema = createInsertSchema(seatingAssignments).omit({ id: true, projectId: true, createdAt: true });

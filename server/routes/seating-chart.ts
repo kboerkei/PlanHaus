@@ -4,15 +4,15 @@ import { requireAuth } from "../middleware/auth";
 import { validateBody } from "../utils/validation";
 import { insertSeatingTableSchema, insertSeatingAssignmentSchema, type SeatingTable, type InsertSeatingTable, type SeatingAssignment, type InsertSeatingAssignment } from "@shared/schema";
 import { logInfo, logError } from "../utils/logger";
-import { RequestWithUser } from "../types/express";
+// import { RequestWithUser } from "../types/express";
 import { getOrCreateDefaultProject } from "../utils/projects";
 
 const router = Router();
 
 // Get seating chart data (tables, assignments, unassigned guests)
-router.get("/", requireAuth, async (req: RequestWithUser, res: Response) => {
+router.get("/", requireAuth, async (req: Request, res: Response) => {
   try {
-    const userId = req.userId;
+    const userId = (req as any).userId;
     const project = await getOrCreateDefaultProject(userId);
     const seatingData = await storage.getSeatingChartData(project.id);
     
@@ -30,9 +30,9 @@ router.get("/", requireAuth, async (req: RequestWithUser, res: Response) => {
 });
 
 // Create a new table
-router.post("/tables", requireAuth, validateBody(insertSeatingTableSchema), async (req: RequestWithUser, res: Response) => {
+router.post("/tables", requireAuth, validateBody(insertSeatingTableSchema), async (req: Request, res: Response) => {
   try {
-    const userId = req.userId;
+    const userId = (req as any).userId;
     const data = req.body as InsertSeatingTable;
     const project = await getOrCreateDefaultProject(userId);
     
@@ -62,9 +62,9 @@ router.post("/tables", requireAuth, validateBody(insertSeatingTableSchema), asyn
 });
 
 // Update a table
-router.put("/tables/:id", requireAuth, validateBody(insertSeatingTableSchema), async (req: RequestWithUser, res: Response) => {
+router.put("/tables/:id", requireAuth, validateBody(insertSeatingTableSchema), async (req: Request, res: Response) => {
   try {
-    const userId = req.userId;
+    const userId = (req as any).userId;
     const tableId = parseInt(req.params.id);
     const data = req.body as Partial<InsertSeatingTable>;
     
@@ -105,9 +105,9 @@ router.put("/tables/:id", requireAuth, validateBody(insertSeatingTableSchema), a
 });
 
 // Delete a table
-router.delete("/tables/:id", requireAuth, async (req: RequestWithUser, res: Response) => {
+router.delete("/tables/:id", requireAuth, async (req: Request, res: Response) => {
   try {
-    const userId = req.userId;
+    const userId = (req as any).userId;
     const tableId = parseInt(req.params.id);
     
     if (isNaN(tableId)) {
@@ -147,9 +147,9 @@ router.delete("/tables/:id", requireAuth, async (req: RequestWithUser, res: Resp
 });
 
 // Assign guest to table
-router.post("/assignments", requireAuth, validateBody(insertSeatingAssignmentSchema), async (req: RequestWithUser, res: Response) => {
+router.post("/assignments", requireAuth, validateBody(insertSeatingAssignmentSchema), async (req: Request, res: Response) => {
   try {
-    const userId = req.userId;
+    const userId = (req as any).userId;
     const data = req.body as InsertSeatingAssignment;
     const project = await getOrCreateDefaultProject(userId);
     
@@ -185,9 +185,9 @@ router.post("/assignments", requireAuth, validateBody(insertSeatingAssignmentSch
 });
 
 // Remove guest from table
-router.delete("/assignments/:id", requireAuth, async (req: RequestWithUser, res: Response) => {
+router.delete("/assignments/:id", requireAuth, async (req: Request, res: Response) => {
   try {
-    const userId = req.userId;
+    const userId = (req as any).userId;
     const assignmentId = parseInt(req.params.id);
     
     if (isNaN(assignmentId)) {
@@ -209,9 +209,9 @@ router.delete("/assignments/:id", requireAuth, async (req: RequestWithUser, res:
 });
 
 // Remove guest from any table (by guest ID)
-router.delete("/assignments/guest/:guestId", requireAuth, async (req: RequestWithUser, res: Response) => {
+router.delete("/assignments/guest/:guestId", requireAuth, async (req: Request, res: Response) => {
   try {
-    const userId = req.userId;
+    const userId = (req as any).userId;
     const guestId = parseInt(req.params.guestId);
     
     if (isNaN(guestId)) {

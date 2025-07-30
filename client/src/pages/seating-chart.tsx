@@ -66,7 +66,11 @@ function TableFormDialog({ table, onClose }: { table?: SeatingTable; onClose: ()
 
   const createTableMutation = useMutation({
     mutationFn: (data: { name: string; maxSeats: number; notes?: string }) =>
-      apiRequest("/api/seating-chart/tables", { method: "POST", body: JSON.stringify(data) }),
+      apiRequest("/api/seating-chart/tables", { 
+        method: "POST", 
+        body: JSON.stringify(data),
+        headers: { "Content-Type": "application/json" }
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/seating-chart"] });
       toast({ title: "Table created successfully!" });
