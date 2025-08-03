@@ -46,12 +46,13 @@ export function useUpdateGuest(projectId: string) {
   return useMutation({
     mutationFn: ({ id, data }: { id: number; data: Partial<GuestFormData> }) =>
       apiRequest(`/api/projects/${projectId}/guests/${id}`, {
-        method: 'PATCH',
+        method: 'PUT',
         body: JSON.stringify(data),
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'guests'] });
       queryClient.invalidateQueries({ queryKey: ['/api/guests'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/dashboard', 'stats'] });
     },
   });
 }
@@ -78,6 +79,7 @@ export function useBulkUpdateGuests(projectId: string) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'guests'] });
       queryClient.invalidateQueries({ queryKey: ['/api/guests'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/dashboard', 'stats'] });
     },
   });
 }
