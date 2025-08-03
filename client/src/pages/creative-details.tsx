@@ -75,7 +75,7 @@ const categories = [
       { name: "whoMaking", label: "Who is Making It", type: "text" },
       { name: "servingStyle", label: "Serving Style", type: "select", 
         options: ["Individual Cocktails", "Punch Bowl", "Signature Bar", "Welcome Drinks"] }
-    ],
+    ] as CategoryField[],
     hasAI: true
   },
   {
@@ -85,11 +85,11 @@ const categories = [
     description: 'Welcome signs, table numbers, and decorative elements',
     color: 'bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200 hover:shadow-lg',
     fields: [
-      { name: "itemName", label: "Item Name", type: "text", required: true, placeholder: "e.g. Welcome Sign" },
+      { name: "title", label: "Item Name", type: "text", required: true, placeholder: "e.g. Welcome Sign" },
       { name: "textMockup", label: "Text Content", type: "textarea", placeholder: "What should it say?" },
       { name: "fontStyle", label: "Font/Style Notes", type: "text" },
       { name: "printVendor", label: "Print Vendor Info", type: "text" }
-    ]
+    ] as CategoryField[]
   },
   {
     id: 'invitations',
@@ -216,11 +216,20 @@ interface CreativeDetailFormData {
   category: string;
   title: string;
   description?: string;
-  notes?: string;
+  notes?: string | null;
   assignedTo?: number;
   dueDate?: string;
   priority: string;
   tags: string[];
+}
+
+interface CategoryField {
+  name: string;
+  label: string;
+  type: string;
+  required?: boolean;
+  placeholder?: string;
+  options?: string[];
 }
 
 export default function CreativeDetails() {
@@ -289,7 +298,7 @@ export default function CreativeDetails() {
 
   // Create/update mutation using our Supabase service
   const createDetailMutation = useMutation({
-    mutationFn: async (data: Omit<CreativeDetail, 'id' | 'createdAt' | 'updatedAt'>) => {
+    mutationFn: async (data: any) => {
       if (editingDetail) {
         return updateCreativeDetail(editingDetail.id, data);
       } else {

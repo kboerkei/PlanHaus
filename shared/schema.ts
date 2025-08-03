@@ -256,14 +256,21 @@ export const creativeDetails = pgTable("creative_details", {
   id: serial("id").primaryKey(),
   projectId: integer("project_id").notNull(),
   category: text("category").notNull(), // signage, drinks, photos, etc.
-  itemName: text("item_name").notNull(),
+  title: text("title").notNull(),
   description: text("description"),
-  details: jsonb("details"), // Flexible JSON storage for category-specific fields
-  dueDate: timestamp("due_date"),
-  assignedTo: text("assigned_to"),
-  status: text("status").default('planning'), // 'planning', 'in_progress', 'completed'
   notes: text("notes"),
-  addedBy: integer("added_by").notNull(),
+  imageUrl: text("image_url"),
+  fileUrl: text("file_url"),
+  fileName: text("file_name"),
+  assignedTo: integer("assigned_to"),
+  dueDate: timestamp("due_date"),
+  isCompleted: boolean("is_completed").default(false),
+  completedDate: timestamp("completed_date"),
+  priority: text("priority"),
+  tags: text("tags").array(),
+  additionalData: jsonb("additional_data"), // Flexible JSON storage for category-specific fields
+  status: text("status").default('planning'), // 'planning', 'in_progress', 'completed'
+  createdBy: integer("created_by").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
