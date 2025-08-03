@@ -83,6 +83,15 @@
     --pearl: 36 5% 95%;
     --mauve: 300 15% 75%;
     
+    /* Enhanced wedding shadow system */
+    --shadow-wedding-soft: 0 2px 12px rgba(330, 81%, 70%, 0.08);
+    --shadow-wedding-medium: 0 8px 25px rgba(330, 81%, 60%, 0.12);
+    --shadow-wedding-strong: 0 16px 40px rgba(330, 81%, 50%, 0.16);
+    
+    /* Gradient backgrounds */
+    --gradient-wedding: linear-gradient(135deg, hsl(var(--blush)) 0%, hsl(var(--rose-gold)) 100%);
+    --gradient-wedding-subtle: linear-gradient(135deg, hsl(var(--cream)) 0%, hsl(var(--ivory)) 100%);
+    
     /* Theme Background */
     --theme-bg: var(--background);
     --theme-surface: var(--card);

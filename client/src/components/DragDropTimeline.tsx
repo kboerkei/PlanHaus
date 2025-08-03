@@ -27,9 +27,10 @@ import { CalendarDays, Clock, Users, AlertTriangle, CheckCircle2, Star } from 'l
 import { useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { toast } from 'react-hot-toast';
+// @ts-ignore - canvas-confetti types
 import confetti from 'canvas-confetti';
 import { formatDistanceToNow } from 'date-fns';
-import type { Task } from '@/../shared/schema';
+import type { Task } from '@shared/schema';
 
 interface DragDropTimelineProps {
   tasks: Task[];
@@ -246,7 +247,7 @@ export default function DragDropTimeline({ tasks, onTaskUpdate, onTaskReorder, p
     try {
       await apiRequest(`/api/tasks/${taskId}`, {
         method: 'PATCH',
-        body: { completed }
+        body: JSON.stringify({ status: completed ? 'completed' : 'pending' })
       });
 
       // Update local state

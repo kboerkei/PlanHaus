@@ -1,0 +1,49 @@
+Please analyze the entire PlanHaus codebase and implement the following combined enhancements from all review and enhancement documents in the repo:
+
+1. **UI/UX Enhancements**
+   - Apply all recommendations from `UI_UX_COMPREHENSIVE_REVIEW.md`.
+   - Refine dashboard visual hierarchy with wedding-themed depth (card shadows, soft borders, color palette).
+   - Add a Quick Stats bar showing: wedding countdown, budget remaining, and tasks due this week.
+   - Add trend indicators (↗️ improving, ↘️ needs attention) to progress cards.
+   - Add breadcrumb navigation for multi-step workflows.
+   - Improve typography hierarchy and spacing consistency.
+   - Enhance form validation and user feedback with inline error messages and toast notifications.
+   - Add smooth animations, hover effects, and subtle micro-interactions.
+   - Implement skeleton loaders for slow-loading sections.
+   - Ensure full mobile responsiveness and touch-friendly interactions.
+
+2. **TypeScript & Bug Fixes**
+   - Scan and fix all TypeScript errors, avoiding `any` unless absolutely necessary.
+   - Resolve import path mismatches, missing schema definitions, and property access issues on unknown types.
+   - Ensure components are strongly typed with proper interfaces.
+   - Verify API endpoint consistency (match client calls to backend routes).
+   - Fix all runtime errors and broken interactions, especially in:
+     - `DragDropTimeline.tsx`
+     - `KanbanBoard.tsx`
+     - `ProjectOverview.tsx`
+
+3. **Performance Optimization**
+   - Optimize image sizes, fonts, and bundle size.
+   - Implement lazy loading and progressive loading for heavy components.
+   - Use `React.memo` for expensive re-rendering components.
+   - Deduplicate API queries and ensure correct enabled conditions in `useQuery` hooks.
+   - Minimize layout shift (CLS) and improve Core Web Vitals.
+
+4. **Accessibility Improvements**
+   - Add ARIA labels and semantic HTML to all interactive elements.
+   - Ensure proper keyboard navigation support.
+   - Improve contrast ratios and add reduced-motion support.
+   - Ensure hover and focus states are clearly visible.
+
+5. **Advanced Features**
+   - Add an AI-powered "Next Steps" panel on the dashboard that recommends actions based on the wedding timeline.
+   - Implement auto-save for forms.
+   - Wrap key areas in `ErrorBoundary` with retry buttons.
+   - Add comprehensive error boundaries and proper loading states for all pages.
+
+6. **Testing & Validation**
+   - Test on desktop, tablet, and mobile.
+   - Confirm no console errors or TypeScript build errors remain.
+   - Verify that users can successfully add, edit, and delete items across all features without breaking.
+
+After implementation, summarize the changes in a markdown file called `UI_UX_FINAL_IMPLEMENTATION.md` and note any trade-offs or decisions made during execution.

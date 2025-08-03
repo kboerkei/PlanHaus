@@ -6,6 +6,9 @@ import EnhancedQuickActions from "@/components/dashboard/enhanced-quick-actions"
 import UpcomingTasks from "@/components/dashboard/upcoming-tasks";
 import RecentActivity from "@/components/dashboard/recent-activity";
 import InspirationPreview from "@/components/dashboard/inspiration-preview";
+import { QuickStatsBar, ProgressCard, TrendIndicator } from "@/components/ui/enhanced-dashboard";
+import { AINextStepsPanel } from "@/components/ui/ai-next-steps";
+import { Breadcrumb, BreadcrumbItem, BreadcrumbHome, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 
 import CollaborativeFeatures from "@/components/dashboard/collaborative-features";
 import SmartOnboarding from "@/components/dashboard/smart-onboarding";
@@ -443,6 +446,17 @@ function AnimatedDashboardStats() {
 const Dashboard = memo(() => {
   // Performance monitoring
   const getMetrics = usePerformanceMonitor('Dashboard');
+
+  // Add queries for intakeData and dashboardStats
+  const { data: intakeData } = useQuery({
+    queryKey: ['/api/intake'],
+    staleTime: 10 * 60 * 1000, // 10 minutes
+  });
+
+  const { data: dashboardStats } = useQuery({
+    queryKey: ['/api/dashboard/stats'],
+    staleTime: 2 * 60 * 1000, // 2 minutes
+  });
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-cream/50 to-background dark:from-background dark:via-background dark:to-background">
       <div className="relative overflow-hidden">
@@ -452,8 +466,25 @@ const Dashboard = memo(() => {
         <div className="absolute top-1/4 right-1/4 w-32 h-32 bg-gradient-to-r from-champagne/20 to-rose-400/10 rounded-full blur-xl dark:from-champagne/10 dark:to-rose-600/15" />
         
         <div className="relative p-3 sm:p-4 lg:p-8 mobile-safe-spacing">
+          {/* Breadcrumb Navigation */}
+          <Breadcrumb className="mb-4">
+            <BreadcrumbHome />
+            <BreadcrumbSeparator />
+            <BreadcrumbItem active>Dashboard</BreadcrumbItem>
+          </Breadcrumb>
+
           {/* Personalized Greeting */}
           <PersonalizedGreeting />
+          
+          {/* Enhanced Quick Stats Bar */}
+          <QuickStatsBar 
+            weddingDate={intakeData?.weddingDate}
+            budgetRemaining={dashboardStats?.budget?.remaining}
+            totalBudget={dashboardStats?.budget?.total}
+            tasksDueThisWeek={dashboardStats?.tasks?.dueThisWeek}
+            totalTasks={dashboardStats?.tasks?.total}
+            completedTasks={dashboardStats?.tasks?.completed}
+          />
           
           {/* Animated Dashboard Stats */}
           <AnimatedDashboardStats />
@@ -462,6 +493,13 @@ const Dashboard = memo(() => {
           <NextUpSection />
           
           <SmartOnboarding />
+          
+          {/* AI Next Steps Panel */}
+          <AINextStepsPanel 
+            projectId={dashboardStats?.projectId?.toString()}
+            weddingDate={intakeData?.weddingDate}
+            className="mb-6"
+          />
           
           {/* Progress Overview */}
           <motion.div

@@ -1,167 +1,220 @@
-import * as React from "react"
-import { cn } from "@/lib/utils"
-import { Label } from "@/components/ui/label"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { memo, forwardRef, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/utils";
+import { Input } from "./input";
+import { Label } from "./label";
+import { Button } from "./button";
+import { AlertCircle, CheckCircle2, Eye, EyeOff, Loader2 } from "lucide-react";
 
-interface FormFieldProps extends React.HTMLAttributes<HTMLDivElement> {
-  label: string
-  required?: boolean
-  error?: string
-  hint?: string
-  children: React.ReactNode
+interface EnhancedInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'autoSave'> {
+  label?: string;
+  error?: string;
+  success?: string;
+  hint?: string;
+  loading?: boolean;
+  showPasswordToggle?: boolean;
+  autoSave?: boolean;
+  debounceMs?: number;
 }
 
-const FormField = React.forwardRef<HTMLDivElement, FormFieldProps>(
-  ({ className, label, required, error, hint, children, ...props }, ref) => {
+export const EnhancedInput = memo(forwardRef<HTMLInputElement, EnhancedInputProps>(
+  ({ 
+    className, 
+    label, 
+    error, 
+    success, 
+    hint, 
+    loading, 
+    showPasswordToggle, 
+    type: initialType = "text",
+    autoSave,
+    debounceMs = 500,
+    onChange,
+    ...props 
+  }, ref) => {
+    const [showPassword, setShowPassword] = useState(false);
+    const [isFocused, setIsFocused] = useState(false);
+    const [hasBeenFocused, setHasBeenFocused] = useState(false);
+    
+    const type = showPasswordToggle && initialType === "password" 
+      ? (showPassword ? "text" : "password") 
+      : initialType;
+
+    const hasError = !!error;
+    const hasSuccess = !!success && !hasError;
+    const showValidation = hasBeenFocused && (hasError || hasSuccess);
+
     return (
-      <div
-        ref={ref}
-        className={cn("space-y-2", className)}
-        {...props}
+      <motion.div 
+        className="space-y-2"
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
       >
-        <Label className="text-sm font-medium text-gray-700 flex items-center gap-1">
-          {label}
-          {required && (
-            <span className="text-rose-500 text-sm" aria-label="required">*</span>
+        {label && (
+          <Label 
+            htmlFor={props.id}
+            className={cn(
+              "text-sm font-medium transition-colors",
+              hasError && "text-destructive",
+              hasSuccess && "text-green-600"
+            )}
+          >
+            {label}
+          </Label>
+        )}
+        
+        <div className="relative">
+          <Input
+            ref={ref}
+            type={type}
+            className={cn(
+              "transition-all duration-200",
+              "focus:ring-2 focus:ring-offset-2",
+              hasError && "border-destructive focus:ring-destructive",
+              hasSuccess && "border-green-500 focus:ring-green-500",
+              isFocused && "ring-2 ring-primary/20",
+              loading && "pr-10",
+              showPasswordToggle && "pr-10",
+              className
+            )}
+            onFocus={(e) => {
+              setIsFocused(true);
+              setHasBeenFocused(true);
+              if (props.onFocus) props.onFocus(e);
+            }}
+            onBlur={(e) => {
+              setIsFocused(false);
+              if (props.onBlur) props.onBlur(e);
+            }}
+            onChange={onChange}
+            {...props}
+          />
+          
+          {/* Loading indicator */}
+          {loading && (
+            <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+              <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+            </div>
           )}
-        </Label>
-        {children}
-        {hint && !error && (
-          <p className="text-xs text-gray-500 mt-1">{hint}</p>
-        )}
-        {error && (
-          <p className="text-xs text-red-600 mt-1 flex items-center gap-1" role="alert">
-            <span className="inline-block w-3 h-3 rounded-full bg-red-100 flex items-center justify-center">
-              <span className="w-1 h-1 bg-red-500 rounded-full"></span>
-            </span>
-            {error}
-          </p>
-        )}
-      </div>
-    )
+          
+          {/* Password toggle */}
+          {showPasswordToggle && !loading && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0"
+              onClick={() => setShowPassword(!showPassword)}
+            >
+              {showPassword ? (
+                <EyeOff className="h-4 w-4" />
+              ) : (
+                <Eye className="h-4 w-4" />
+              )}
+            </Button>
+          )}
+          
+          {/* Validation icon */}
+          {showValidation && !loading && !showPasswordToggle && (
+            <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+              {hasError ? (
+                <AlertCircle className="h-4 w-4 text-destructive" />
+              ) : (
+                <CheckCircle2 className="h-4 w-4 text-green-500" />
+              )}
+            </div>
+          )}
+        </div>
+        
+        {/* Error/Success/Hint messages */}
+        <AnimatePresence mode="wait">
+          {(error || success || hint) && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.2 }}
+              className="overflow-hidden"
+            >
+              {error && (
+                <p className="text-sm text-destructive flex items-center gap-1">
+                  <AlertCircle className="h-3 w-3" />
+                  {error}
+                </p>
+              )}
+              {success && !error && (
+                <p className="text-sm text-green-600 flex items-center gap-1">
+                  <CheckCircle2 className="h-3 w-3" />
+                  {success}
+                </p>
+              )}
+              {hint && !error && !success && (
+                <p className="text-sm text-muted-foreground">
+                  {hint}
+                </p>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
+    );
   }
-)
-FormField.displayName = "FormField"
+));
 
-interface EnhancedInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
-  error?: boolean
+interface AutoSaveIndicatorProps {
+  status: 'idle' | 'saving' | 'saved' | 'error';
+  className?: string;
 }
 
-const EnhancedInput = React.forwardRef<HTMLInputElement, EnhancedInputProps>(
-  ({ className, error, ...props }, ref) => {
-    return (
-      <Input
-        ref={ref}
+export const AutoSaveIndicator = memo(({ status, className }: AutoSaveIndicatorProps) => {
+  const getStatusConfig = () => {
+    switch (status) {
+      case 'saving':
+        return {
+          icon: <Loader2 className="h-3 w-3 animate-spin" />,
+          text: 'Saving...',
+          className: 'text-blue-600'
+        };
+      case 'saved':
+        return {
+          icon: <CheckCircle2 className="h-3 w-3" />,
+          text: 'Saved',
+          className: 'text-green-600'
+        };
+      case 'error':
+        return {
+          icon: <AlertCircle className="h-3 w-3" />,
+          text: 'Save failed',
+          className: 'text-red-600'
+        };
+      default:
+        return null;
+    }
+  };
+
+  const config = getStatusConfig();
+  
+  if (!config) return null;
+
+  return (
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.8 }}
         className={cn(
-          "h-11 px-4 py-3 text-sm border-gray-200 focus:border-blush focus:ring-blush/20 transition-colors duration-200",
-          "placeholder:text-gray-400",
-          error && "border-red-300 focus:border-red-500 focus:ring-red-500/20",
+          "flex items-center gap-1 text-xs",
+          config.className,
           className
         )}
-        {...props}
-      />
-    )
-  }
-)
-EnhancedInput.displayName = "EnhancedInput"
+      >
+        {config.icon}
+        {config.text}
+      </motion.div>
+    </AnimatePresence>
+  );
+});
 
-interface EnhancedTextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
-  error?: boolean
-}
-
-const EnhancedTextarea = React.forwardRef<HTMLTextAreaElement, EnhancedTextareaProps>(
-  ({ className, error, ...props }, ref) => {
-    return (
-      <Textarea
-        ref={ref}
-        className={cn(
-          "min-h-[80px] px-4 py-3 text-sm border-gray-200 focus:border-blush focus:ring-blush/20 transition-colors duration-200 resize-none",
-          "placeholder:text-gray-400",
-          error && "border-red-300 focus:border-red-500 focus:ring-red-500/20",
-          className
-        )}
-        {...props}
-      />
-    )
-  }
-)
-EnhancedTextarea.displayName = "EnhancedTextarea"
-
-interface EnhancedSelectProps {
-  children: React.ReactNode
-  error?: boolean
-  placeholder?: string
-  value?: string
-  onValueChange?: (value: string) => void
-  className?: string
-}
-
-const EnhancedSelect = React.forwardRef<HTMLButtonElement, EnhancedSelectProps>(
-  ({ className, error, children, placeholder, ...props }, ref) => {
-    return (
-      <Select {...props}>
-        <SelectTrigger
-          ref={ref}
-          className={cn(
-            "h-11 px-4 py-3 text-sm border-gray-200 focus:border-blush focus:ring-blush/20 transition-colors duration-200",
-            "data-[placeholder]:text-gray-400",
-            error && "border-red-300 focus:border-red-500 focus:ring-red-500/20",
-            className
-          )}
-        >
-          <SelectValue placeholder={placeholder} />
-        </SelectTrigger>
-        <SelectContent className="max-h-60">
-          {children}
-        </SelectContent>
-      </Select>
-    )
-  }
-)
-EnhancedSelect.displayName = "EnhancedSelect"
-
-const FormRow: React.FC<{ children: React.ReactNode; className?: string }> = ({ 
-  children, 
-  className 
-}) => (
-  <div className={cn("grid grid-cols-1 md:grid-cols-2 gap-4", className)}>
-    {children}
-  </div>
-)
-
-const FormSection: React.FC<{ 
-  title?: string
-  description?: string
-  children: React.ReactNode
-  className?: string 
-}> = ({ 
-  title, 
-  description, 
-  children, 
-  className 
-}) => (
-  <div className={cn("space-y-4", className)}>
-    {title && (
-      <div className="border-b border-gray-100 pb-3 mb-6">
-        <h3 className="text-lg font-serif font-semibold text-gray-800">{title}</h3>
-        {description && (
-          <p className="text-sm text-gray-600 mt-1">{description}</p>
-        )}
-      </div>
-    )}
-    <div className="space-y-4">
-      {children}
-    </div>
-  </div>
-)
-
-export {
-  FormField,
-  EnhancedInput,
-  EnhancedTextarea,
-  EnhancedSelect,
-  FormRow,
-  FormSection
-}
+EnhancedInput.displayName = "EnhancedInput";
+AutoSaveIndicator.displayName = "AutoSaveIndicator";
