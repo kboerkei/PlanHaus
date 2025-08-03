@@ -473,7 +473,7 @@ export default function CreativeDetails() {
   };
 
   const getDetailsForCategory = (categoryId: string) => {
-    return details?.filter(detail => detail.category === categoryId) || [];
+    return details?.filter((detail: any) => detail.category === categoryId) || [];
   };
 
   const formatDate = (date: string | Date) => {
@@ -576,13 +576,13 @@ export default function CreativeDetails() {
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold gradient-text bg-gradient-to-r from-sage to-blush">
-              {details?.filter(d => d.dueDate && new Date(d.dueDate) < new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)).length || 0}
+              {details?.filter((d: any) => d.dueDate && new Date(d.dueDate) < new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)).length || 0}
             </div>
             <div className="text-sm text-gray-500">Due This Week</div>
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold gradient-text bg-gradient-to-r from-purple-400 to-indigo-500">
-              {details?.filter(d => d.isCompleted).length || 0}
+              {details?.filter((d: any) => d.isCompleted).length || 0}
             </div>
             <div className="text-sm text-gray-500">Completed</div>
           </div>
@@ -596,7 +596,7 @@ export default function CreativeDetails() {
             </CardHeader>
             <CardContent>
               <div className="space-y-2 text-sm text-gray-600">
-                {details?.slice(0, 3).map((detail, index) => (
+                {details?.slice(0, 3).map((detail: any, index: number) => (
                   <div key={detail.id} className="flex items-center justify-between py-1">
                     <span>✨ Added "{detail.title}" to {categories.find(c => c.id === detail.category)?.title}</span>
                     <span className="text-xs text-gray-400">
@@ -688,7 +688,7 @@ export default function CreativeDetails() {
                     </div>
                   ) : (
                     <div className="space-y-4">
-                      {categoryDetails.map((detail) => {
+                      {categoryDetails.map((detail: any) => {
                         const dropzone = createFileDropzone(detail.id);
                         const isUploading = uploadingFiles[detail.id];
                         
@@ -844,7 +844,7 @@ export default function CreativeDetails() {
             {formData.category && categories.find(c => c.id === formData.category)?.fields?.map((field, index) => (
               <div key={index}>
                 <Label htmlFor={field.name} className="text-sm font-medium text-gray-700">
-                  {field.label} {field.required && <span className="text-red-500">*</span>}
+                  {field.label} {(field as any).required && <span className="text-red-500">*</span>}
                 </Label>
                 
                 {field.type === 'text' && (
@@ -853,7 +853,7 @@ export default function CreativeDetails() {
                     value={formData.title || ''}
                     onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
                     placeholder={field.placeholder || `Enter ${field.label.toLowerCase()}...`}
-                    required={field.required}
+                    required={(field as any).required}
                     className="mt-1"
                   />
                 )}
@@ -869,7 +869,7 @@ export default function CreativeDetails() {
                   />
                 )}
                 
-                {field.type === 'select' && field.options && (
+                {field.type === 'select' && (field as any).options && (
                   <Select 
                     value={formData.notes || ''}
                     onValueChange={(value) => setFormData(prev => ({ ...prev, notes: value }))}
@@ -878,7 +878,7 @@ export default function CreativeDetails() {
                       <SelectValue placeholder={`Select ${field.label.toLowerCase()}...`} />
                     </SelectTrigger>
                     <SelectContent>
-                      {field.options.map(option => (
+                      {(field as any).options.map((option: string) => (
                         <SelectItem key={option} value={option}>
                           {option}
                         </SelectItem>
@@ -983,7 +983,7 @@ export default function CreativeDetails() {
                 <Label htmlFor="notes">Additional Notes</Label>
                 <Textarea
                   id="notes"
-                  value={formData.notes}
+                  value={formData.notes || ''}
                   onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
                   placeholder="Additional notes, instructions, or special requirements..."
                   rows={3}
