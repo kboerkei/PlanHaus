@@ -9,53 +9,54 @@ import {
   TrendingUp, MapPin, Camera, Music, Utensils, FileText, Star
 } from 'lucide-react';
 import { format, differenceInDays } from 'date-fns';
+import type { Project, Task, BudgetItem, Guest, Vendor } from '@shared/schema';
 
 interface ProjectOverviewProps {
   projectId: number;
 }
 
 export default function ProjectOverview({ projectId }: ProjectOverviewProps) {
-  const { data: project } = useQuery({
+  const { data: project } = useQuery<Project>({
     queryKey: [`/api/projects/${projectId}`]
   });
 
-  const { data: tasks = [] } = useQuery({
+  const { data: tasks = [] } = useQuery<Task[]>({
     queryKey: [`/api/projects/${projectId}/tasks`]
   });
 
-  const { data: budget = [] } = useQuery({
+  const { data: budget = [] } = useQuery<BudgetItem[]>({
     queryKey: [`/api/projects/${projectId}/budget`]
   });
 
-  const { data: guests = [] } = useQuery({
+  const { data: guests = [] } = useQuery<Guest[]>({
     queryKey: [`/api/projects/${projectId}/guests`]
   });
 
-  const { data: vendors = [] } = useQuery({
+  const { data: vendors = [] } = useQuery<Vendor[]>({
     queryKey: [`/api/projects/${projectId}/vendors`]
   });
 
   // Calculate statistics
   const daysUntilWedding = project?.date ? differenceInDays(new Date(project.date), new Date()) : 0;
-  const completedTasks = tasks.filter((task: any) => task.completed).length;
+  const completedTasks = tasks.filter((task: Task) => task.completed).length;
   const totalTasks = tasks.length;
   const taskProgress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
 
-  const totalBudget = budget.reduce((sum: number, item: any) => sum + item.estimatedCost, 0);
-  const actualSpent = budget.reduce((sum: number, item: any) => sum + (item.actualCost || 0), 0);
+  const totalBudget = budget.reduce((sum: number, item: BudgetItem) => sum + item.estimatedCost, 0);
+  const actualSpent = budget.reduce((sum: number, item: BudgetItem) => sum + (item.actualCost || 0), 0);
   const budgetProgress = totalBudget > 0 ? (actualSpent / totalBudget) * 100 : 0;
 
-  const confirmedGuests = guests.filter((guest: any) => guest.rsvpStatus === 'confirmed').length;
+  const confirmedGuests = guests.filter((guest: Guest) => guest.rsvpStatus === 'confirmed').length;
   const totalGuests = guests.length;
   const rsvpProgress = totalGuests > 0 ? (confirmedGuests / totalGuests) * 100 : 0;
 
-  const bookedVendors = vendors.filter((vendor: any) => vendor.status === 'booked').length;
+  const bookedVendors = vendors.filter((vendor: Vendor) => vendor.status === 'booked').length;
   const totalVendors = vendors.length;
   const vendorProgress = totalVendors > 0 ? (bookedVendors / totalVendors) * 100 : 0;
 
   // Categorize tasks by urgency
-  const urgentTasks = tasks.filter((task: any) => !task.completed && task.priority === 'high').length;
-  const overdueTasks = tasks.filter((task: any) => {
+  const urgentTasks = tasks.filter((task: Task) => !task.completed && task.priority === 'high').length;
+  const overdueTasks = tasks.filter((task: Task) => {
     if (!task.dueDate || task.completed) return false;
     return new Date(task.dueDate) < new Date();
   }).length;

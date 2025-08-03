@@ -499,6 +499,9 @@ export default function VendorsEnhanced() {
                         <Sparkles className="text-blush" size={20} />
                         <span>AI-Powered Vendor Search</span>
                       </DialogTitle>
+                      <DialogDescription>
+                        Find and discover wedding vendors in your area using AI-powered search. Enter your location and vendor type to get personalized recommendations.
+                      </DialogDescription>
                     </DialogHeader>
                     
                     <div className="space-y-6">
@@ -630,6 +633,9 @@ export default function VendorsEnhanced() {
                   <DialogContent className="sm:max-w-md max-h-[80vh] overflow-y-auto">
                     <DialogHeader>
                       <DialogTitle>Add New Vendor</DialogTitle>
+                      <DialogDescription>
+                        Add a new vendor to your wedding planning list. Fill in the vendor details below.
+                      </DialogDescription>
                     </DialogHeader>
                     <Form {...form}>
                       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -1273,6 +1279,9 @@ export default function VendorsEnhanced() {
         <DialogContent className="sm:max-w-md max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Vendor</DialogTitle>
+            <DialogDescription>
+              Update vendor information and contact details. Make changes to keep your vendor list current.
+            </DialogDescription>
           </DialogHeader>
           <Form {...editForm}>
             <form onSubmit={editForm.handleSubmit(onEditSubmit)} className="space-y-4">

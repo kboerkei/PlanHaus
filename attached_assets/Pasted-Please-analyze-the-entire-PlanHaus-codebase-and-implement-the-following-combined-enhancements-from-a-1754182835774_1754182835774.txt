@@ -1,0 +1,58 @@
+Please analyze the entire PlanHaus codebase and implement the following combined enhancements from all review, enhancement, and analysis documents in the repo:
+
+1. **UI/UX Enhancements**
+   - Apply all recommendations from `UI_UX_COMPREHENSIVE_REVIEW.md`.
+   - Refine dashboard visual hierarchy with wedding-themed depth (card shadows, soft borders, color palette).
+   - Add a Quick Stats bar showing: wedding countdown, budget remaining, and tasks due this week.
+   - Add trend indicators (↗️ improving, ↘️ needs attention) to progress cards.
+   - Add breadcrumb navigation for multi-step workflows.
+   - Improve typography hierarchy and spacing consistency.
+   - Enhance form validation and user feedback with inline error messages and toast notifications.
+   - Add smooth animations, hover effects, and subtle micro-interactions.
+   - Implement skeleton loaders for slow-loading sections.
+   - Ensure full mobile responsiveness and touch-friendly interactions.
+
+2. **TypeScript & Bug Fixes**
+   - Scan and fix all TypeScript errors, avoiding `any` unless absolutely necessary.
+   - Resolve import path mismatches, missing schema definitions, and property access issues on unknown types.
+   - Ensure components are strongly typed with proper interfaces.
+   - Fix TypeScript issues in:
+     - `client/src/components/DragDropTimeline.tsx`
+     - `client/src/components/KanbanBoard.tsx`
+     - `client/src/components/ProjectOverview.tsx`
+   - Verify API endpoint consistency (match client calls to backend routes).
+   - Fix all runtime errors and broken interactions.
+
+3. **Accessibility Improvements**
+   - Add ARIA labels and semantic HTML to all interactive elements.
+   - Add `aria-describedby` or `DialogDescription` to all `DialogContent` components.
+   - Ensure proper keyboard navigation support.
+   - Improve contrast ratios and add reduced-motion support.
+   - Ensure hover and focus states are clearly visible.
+
+4. **Authentication Improvements**
+   - Fix API calls returning 401 errors by implementing proper token refresh or session handling.
+   - Ensure authenticated routes gracefully handle expired sessions and re-authentication.
+
+5. **Performance Optimization**
+   - Optimize image sizes and implement lazy loading for large inspiration images.
+   - Implement progressive loading for heavy components.
+   - Use `React.memo` for expensive re-rendering components.
+   - Deduplicate API queries and ensure correct enabled conditions in `useQuery` hooks.
+   - Batch related API calls for dashboard stats.
+   - Make TanStack Query cache cleanup more aggressive to reduce memory usage.
+   - Minimize layout shift (CLS) and improve Core Web Vitals.
+
+6. **Advanced Features**
+   - Add an AI-powered "Next Steps" panel on the dashboard that recommends actions based on the wedding timeline.
+   - Implement auto-save for forms.
+   - Wrap key areas in `ErrorBoundary` with retry buttons.
+   - Add comprehensive error boundaries and proper loading states for all pages.
+
+7. **Testing & Validation**
+   - Test on desktop, tablet, and mobile.
+   - Confirm no console errors or TypeScript build errors remain.
+   - Verify that users can successfully add, edit, and delete items across all features without breaking.
+   - Ensure accessibility tests pass.
+
+After implementation, summarize the changes in a markdown file called `UI_UX_FINAL_IMPLEMENTATION.md` and note any trade-offs or decisions made during execution.
