@@ -11,6 +11,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { ChevronDown, ChevronRight, Plus, Edit, Trash2, CheckCircle, Clock, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { format } from "date-fns";
 
 // Simple API functions for creative details
 const getCreativeDetails = async () => {
@@ -142,6 +143,33 @@ const CreativeDetailsPage: React.FC = () => {
   const { data: details, isLoading, error } = useQuery({
     queryKey: ['creative-details'],
     queryFn: getCreativeDetails
+  });
+
+  // Fetch intake data to populate basic information
+  const { data: intakeData } = useQuery({
+    queryKey: ['intake'],
+    queryFn: async () => {
+      const sessionId = localStorage.getItem('sessionId') || 'demo_session';
+      const response = await fetch('/api/intake', {
+        headers: { Authorization: `Bearer ${sessionId}` }
+      });
+      if (!response.ok) throw new Error('Failed to fetch intake data');
+      return response.json();
+    }
+  });
+
+  // Fetch project data for additional wedding details
+  const { data: project } = useQuery({
+    queryKey: ['projects'],
+    queryFn: async () => {
+      const sessionId = localStorage.getItem('sessionId') || 'demo_session';
+      const response = await fetch('/api/projects', {
+        headers: { Authorization: `Bearer ${sessionId}` }
+      });
+      if (!response.ok) throw new Error('Failed to fetch projects');
+      const projects = await response.json();
+      return projects[0]; // Get the first project
+    }
   });
 
   const queryClient = useQueryClient();
@@ -321,10 +349,95 @@ const CreativeDetailsPage: React.FC = () => {
     <div className="p-6 max-w-6xl mx-auto">
       {/* Header */}
       <div className="mb-8 text-center">
-        <h1 className="text-4xl font-serif font-bold text-gray-900 mb-4">Creative Details</h1>
+        <h1 className="text-4xl font-serif font-bold text-gray-900 mb-4 flex items-center justify-center">
+          ❤️ The Details
+        </h1>
         <p className="text-lg text-gray-600 max-w-2xl mx-auto">
           Organize all the special touches that make your wedding uniquely yours
         </p>
+      </div>
+
+      {/* Basic Information Section */}
+      <Card className="mb-8 bg-gradient-to-br from-rose-50 to-pink-50 border-rose-200">
+        <CardHeader>
+          <CardTitle className="flex items-center text-lg font-serif">
+            📅 Basic Information
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="flex justify-between items-center p-3 bg-white/60 rounded-lg">
+              <span className="text-gray-700">Wedding Date:</span>
+              <span className="font-medium">
+                {intakeData?.weddingDate ? 
+                  format(new Date(intakeData.weddingDate), 'MMMM d, yyyy') : 
+                  project?.date ? 
+                    format(new Date(project.date), 'MMMM d, yyyy') : 
+                    'Not set'
+                }
+              </span>
+            </div>
+            <div className="flex justify-between items-center p-3 bg-white/60 rounded-lg">
+              <span className="text-gray-700">Ceremony Location:</span>
+              <span className="font-medium">
+                {intakeData?.ceremonyLocation || 'Not set'}
+              </span>
+            </div>
+            <div className="flex justify-between items-center p-3 bg-white/60 rounded-lg">
+              <span className="text-gray-700">Cocktail Hour Location:</span>
+              <span className="font-medium">
+                {intakeData?.ceremonyLocation || 'Not set'}
+              </span>
+            </div>
+            <div className="flex justify-between items-center p-3 bg-white/60 rounded-lg">
+              <span className="text-gray-700">Reception Location:</span>
+              <span className="font-medium">
+                {intakeData?.receptionLocation || 'Not set'}
+              </span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Wedding Party Section */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <Card className="bg-gradient-to-br from-purple-50 to-pink-50 border-purple-200">
+          <CardHeader>
+            <CardTitle className="flex items-center text-lg font-serif text-purple-700">
+              👰 Bridesmaids
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex justify-between items-center p-3 bg-white/60 rounded-lg">
+              <span className="text-gray-700">Bride's Party:</span>
+              <span className="font-medium">
+                {intakeData?.weddingParty ? 
+                  intakeData.weddingParty.filter((member: any) => member.role?.toLowerCase().includes('bride')).length + ' members' :
+                  'Not set'
+                }
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
+          <CardHeader>
+            <CardTitle className="flex items-center text-lg font-serif text-blue-700">
+              🤵 Groomsmen
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex justify-between items-center p-3 bg-white/60 rounded-lg">
+              <span className="text-gray-700">Groom's Party:</span>
+              <span className="font-medium">
+                {intakeData?.weddingParty ? 
+                  intakeData.weddingParty.filter((member: any) => member.role?.toLowerCase().includes('groom')).length + ' members' :
+                  'Not set'
+                }
+              </span>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Categories */}
