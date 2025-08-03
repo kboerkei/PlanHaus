@@ -197,6 +197,250 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Live Demo Screenshots */}
+      <section className="py-16 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center space-y-4 mb-16">
+            <h2 className="text-4xl font-serif font-bold text-gray-900">
+              See PlanHaus in Action
+            </h2>
+            <p className="text-xl text-gray-600">
+              Real screenshots from couples planning their perfect day
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-12 items-center">
+            {/* Demo Image */}
+            <div className="space-y-6">
+              <img 
+                src="/attached_assets/image_1754183598596.png" 
+                alt="PlanHaus Dashboard Demo showing Emma & Jake's Wedding with progress tracking, budget overview, and AI suggestions"
+                className="rounded-2xl shadow-2xl border border-rose-100"
+              />
+              <div className="text-center space-y-2">
+                <h3 className="text-lg font-semibold text-gray-900">Dashboard Overview</h3>
+                <p className="text-sm text-gray-600">Track progress, budget, and get AI-powered suggestions</p>
+              </div>
+            </div>
+
+            {/* Feature Highlights */}
+            <div className="space-y-8">
+              <div className="flex items-start space-x-4">
+                <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-r from-rose-500 to-pink-500 rounded-lg flex items-center justify-center">
+                  <CheckCircle className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">Smart Progress Tracking</h3>
+                  <p className="text-gray-600">Visual progress bars and completion tracking keep you motivated and on schedule.</p>
+                </div>
+              </div>
+
+              <div className="flex items-start space-x-4">
+                <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
+                  <Sparkles className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">AI-Powered Suggestions</h3>
+                  <p className="text-gray-600">Get timely reminders and smart recommendations based on your timeline and preferences.</p>
+                </div>
+              </div>
+
+              <div className="flex items-start space-x-4">
+                <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-500 rounded-lg flex items-center justify-center">
+                  <PiggyBank className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">Budget Management</h3>
+                  <p className="text-gray-600">Real-time budget tracking with clear visuals to keep your spending on target.</p>
+                </div>
+              </div>
+
+              <div className="flex items-start space-x-4">
+                <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-lg flex items-center justify-center">
+                  <Calendar className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">Task Management</h3>
+                  <p className="text-gray-600">Check off completed tasks and see exactly what's left to accomplish before your big day.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Additional Demo Features */}
+      <section className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center space-y-4 mb-16">
+            <h2 className="text-4xl font-serif font-bold text-gray-900">
+              More Ways PlanHaus Helps You Plan
+            </h2>
+            <p className="text-xl text-gray-600">
+              Explore additional features that make wedding planning effortless
+            </p>
+          </div>
+
+          <div className="grid gap-16">
+            {/* Budget Tracking Demo */}
+            <div className="grid md:grid-cols-2 gap-12 items-center">
+              <div className="space-y-6">
+                <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-8 rounded-2xl border border-green-100">
+                  <h3 className="text-2xl font-semibold text-gray-900 mb-4">Smart Budget Tracking</h3>
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center p-3 bg-white rounded-lg">
+                      <span className="text-gray-700">Venue</span>
+                      <span className="font-semibold text-green-600">$12,000 / $15,000</span>
+                    </div>
+                    <div className="flex justify-between items-center p-3 bg-white rounded-lg">
+                      <span className="text-gray-700">Catering</span>
+                      <span className="font-semibold text-green-600">$8,500 / $10,000</span>
+                    </div>
+                    <div className="flex justify-between items-center p-3 bg-white rounded-lg">
+                      <span className="text-gray-700">Photography</span>
+                      <span className="font-semibold text-yellow-600">$3,200 / $3,000</span>
+                    </div>
+                    <div className="p-3 bg-green-100 rounded-lg">
+                      <div className="text-sm text-green-800 font-medium">💡 You're $200 over budget on photography. Consider discussing package options with your photographer.</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="space-y-6">
+                <h3 className="text-2xl font-semibold text-gray-900">Never Go Over Budget Again</h3>
+                <p className="text-gray-600 text-lg">Real-time expense tracking with intelligent alerts keeps your wedding costs exactly where you want them.</p>
+                <ul className="space-y-3">
+                  <li className="flex items-center space-x-3">
+                    <CheckCircle className="h-5 w-5 text-green-500" />
+                    <span className="text-gray-700">Automatic budget calculations</span>
+                  </li>
+                  <li className="flex items-center space-x-3">
+                    <CheckCircle className="h-5 w-5 text-green-500" />
+                    <span className="text-gray-700">Smart spending alerts</span>
+                  </li>
+                  <li className="flex items-center space-x-3">
+                    <CheckCircle className="h-5 w-5 text-green-500" />
+                    <span className="text-gray-700">Vendor cost comparisons</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            {/* Guest Management Demo */}
+            <div className="grid md:grid-cols-2 gap-12 items-center">
+              <div className="space-y-6 md:order-2">
+                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-8 rounded-2xl border border-blue-100">
+                  <h3 className="text-2xl font-semibold text-gray-900 mb-4">Guest Management</h3>
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="bg-white p-3 rounded-lg text-center">
+                        <div className="text-2xl font-bold text-blue-600">156</div>
+                        <div className="text-sm text-gray-600">Total Invited</div>
+                      </div>
+                      <div className="bg-white p-3 rounded-lg text-center">
+                        <div className="text-2xl font-bold text-green-600">142</div>
+                        <div className="text-sm text-gray-600">RSVPs Received</div>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between p-2 bg-white rounded">
+                        <span className="text-sm">Sarah & Michael Johnson</span>
+                        <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">Attending</span>
+                      </div>
+                      <div className="flex items-center justify-between p-2 bg-white rounded">
+                        <span className="text-sm">David & Emily Chen</span>
+                        <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">Pending</span>
+                      </div>
+                      <div className="flex items-center justify-between p-2 bg-white rounded">
+                        <span className="text-sm">Alex & Jordan Smith</span>
+                        <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">Attending</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="space-y-6 md:order-1">
+                <h3 className="text-2xl font-semibold text-gray-900">Effortless Guest Coordination</h3>
+                <p className="text-gray-600 text-lg">Track RSVPs, dietary restrictions, and seating arrangements all in one place with automated reminders.</p>
+                <ul className="space-y-3">
+                  <li className="flex items-center space-x-3">
+                    <CheckCircle className="h-5 w-5 text-green-500" />
+                    <span className="text-gray-700">Digital RSVP collection</span>
+                  </li>
+                  <li className="flex items-center space-x-3">
+                    <CheckCircle className="h-5 w-5 text-green-500" />
+                    <span className="text-gray-700">Automatic follow-up reminders</span>
+                  </li>
+                  <li className="flex items-center space-x-3">
+                    <CheckCircle className="h-5 w-5 text-green-500" />
+                    <span className="text-gray-700">Seating chart generator</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            {/* Timeline Demo */}
+            <div className="grid md:grid-cols-2 gap-12 items-center">
+              <div className="space-y-6">
+                <div className="bg-gradient-to-br from-purple-50 to-pink-50 p-8 rounded-2xl border border-purple-100">
+                  <h3 className="text-2xl font-semibold text-gray-900 mb-4">Smart Timeline</h3>
+                  <div className="space-y-4">
+                    <div className="relative">
+                      <div className="absolute left-4 top-8 bottom-0 w-0.5 bg-purple-200"></div>
+                      <div className="space-y-6">
+                        <div className="flex items-start space-x-4">
+                          <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                            <CheckCircle className="h-4 w-4 text-white" />
+                          </div>
+                          <div className="flex-1">
+                            <div className="text-sm font-medium text-gray-900">Book ceremony venue</div>
+                            <div className="text-xs text-gray-500">12 months before • Completed</div>
+                          </div>
+                        </div>
+                        <div className="flex items-start space-x-4">
+                          <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                            !
+                          </div>
+                          <div className="flex-1">
+                            <div className="text-sm font-medium text-gray-900">Send save the dates</div>
+                            <div className="text-xs text-gray-500">6 months before • Due this week</div>
+                          </div>
+                        </div>
+                        <div className="flex items-start space-x-4">
+                          <div className="w-8 h-8 bg-gray-300 rounded-full"></div>
+                          <div className="flex-1">
+                            <div className="text-sm font-medium text-gray-500">Order wedding cake</div>
+                            <div className="text-xs text-gray-400">3 months before</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="space-y-6">
+                <h3 className="text-2xl font-semibold text-gray-900">AI-Generated Timeline</h3>
+                <p className="text-gray-600 text-lg">Get a personalized wedding timeline that adapts to your date and priorities, with smart reminders.</p>
+                <ul className="space-y-3">
+                  <li className="flex items-center space-x-3">
+                    <CheckCircle className="h-5 w-5 text-green-500" />
+                    <span className="text-gray-700">Custom timeline based on your date</span>
+                  </li>
+                  <li className="flex items-center space-x-3">
+                    <CheckCircle className="h-5 w-5 text-green-500" />
+                    <span className="text-gray-700">Priority-based task ordering</span>
+                  </li>
+                  <li className="flex items-center space-x-3">
+                    <CheckCircle className="h-5 w-5 text-green-500" />
+                    <span className="text-gray-700">Automated deadline reminders</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* How It Works */}
       <section className="py-16 bg-gradient-to-br from-rose-50 to-pink-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
