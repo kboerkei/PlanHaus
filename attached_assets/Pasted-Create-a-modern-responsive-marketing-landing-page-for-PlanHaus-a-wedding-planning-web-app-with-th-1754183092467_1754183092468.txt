@@ -1,0 +1,60 @@
+Create a modern, responsive marketing/landing page for PlanHaus, a wedding planning web app, with the following requirements:
+
+1. **Overall Goals**
+   - Clearly explain what PlanHaus is, who it’s for, and the value it brings.
+   - Encourage visitors to either "Try Now" or "Log In" to the app.
+   - Match the app’s wedding-themed design aesthetic (soft color palette, elegant typography, subtle animations).
+
+2. **Sections**
+   - **Hero Section**:
+     - Headline: “A Smarter Way to Plan Your Best Day — With AI That Gets You”
+     - Subheadline: Briefly describe the app’s key benefits (personalized planning, AI assistance, organized checklists, budget tracking).
+     - Call-to-Action Buttons:
+       - “Try Now” → Link to `https://YOUR-REPLIT-APP-URL/login`
+       - “Log In” → Link to `https://YOUR-REPLIT-APP-URL/login`
+     - Background: Optional soft gradient, wedding-related image, or subtle floral pattern.
+
+   - **Features Section**:
+     - Display 3–5 key features with icons or illustrations:
+       - AI Planning Assistant
+       - Budget Tracker
+       - Vendor & Guest List Management
+       - Custom Timeline & Checklist
+       - Moodboard & Inspiration Board
+     - Include short descriptions under each.
+
+   - **How It Works**:
+     - Simple 3-step flow:
+       1. Sign up and tell us about your event.
+       2. Get your personalized wedding plan instantly.
+       3. Track, update, and collaborate until the big day.
+
+   - **Screenshots or Demo**:
+     - Include mockups or screenshots of the dashboard, timeline, and moodboard features.
+     - Use placeholders if real assets aren’t ready.
+
+   - **Testimonials / Social Proof**:
+     - Include 2–3 short quotes from “users” (can be mock for now).
+
+   - **FAQ Section**:
+     - Answer common questions like: "Do I need to pay?", "Can I collaborate with my partner?", "Does this work for other events?"
+
+   - **Footer**:
+     - Company name & © year
+     - Social links (Instagram, Pinterest, TikTok)
+     - Contact email
+
+3. **Design Requirements**
+   - Fully responsive for desktop, tablet, and mobile.
+   - Use soft pastel colors, elegant typography (like serif or calligraphy-style for headings), and lots of white space.
+   - Smooth scroll behavior.
+   - Subtle hover animations on buttons and links.
+   - Light but visually appealing — minimal clutter.
+
+4. **Technical Requirements**
+   - Build in React (if project already uses it) or HTML/CSS with optional TailwindCSS.
+   - Separate styling into `landing.css` or Tailwind classes for maintainability.
+   - Include all images as optimized web-ready assets or use placeholder URLs.
+   - Link all CTA buttons to: `https://YOUR-REPLIT-APP-URL/login`.
+
+Deliver the page as `LandingPage.tsx` (or `landing.html` if standalone) and integrate it so visiting `/` on the domain loads this marketing page, while `/login` continues to load the app’s login page.

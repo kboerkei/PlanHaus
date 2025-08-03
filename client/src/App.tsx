@@ -8,6 +8,7 @@ import { ErrorBoundary } from "@/components/error-boundary";
 import LoadingSpinner from "@/components/ui/loading-spinner";
 import ToastProvider from "@/components/ToastProvider";
 import { useAuthSession } from "@/hooks/useAuthSession";
+import LandingPage from "@/pages/LandingPage";
 import Auth from "@/pages/auth";
 import Profile from "@/pages/profile";
 import NotFound from "@/pages/not-found";
@@ -130,15 +131,8 @@ function App() {
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <div className="min-h-screen bg-gray-50">
-            {user && sessionId ? (
-              <Router 
-                user={user} 
-                onLogout={handleLogout} 
-                isNewUser={isNewUser}
-                onIntakeComplete={handleIntakeComplete}
-              />
-            ) : (
-              <div>
+            <Switch>
+              <Route path="/login">
                 <Auth onAuth={handleAuth} />
                 {/* Debug info in development */}
                 {import.meta.env.NODE_ENV !== "production" && (
@@ -146,8 +140,20 @@ function App() {
                     User: {user ? 'Set' : 'None'} | SessionId: {sessionId ? 'Set' : 'None'}
                   </div>
                 )}
-              </div>
-            )}
+              </Route>
+              <Route>
+                {user && sessionId ? (
+                  <Router 
+                    user={user} 
+                    onLogout={handleLogout} 
+                    isNewUser={isNewUser}
+                    onIntakeComplete={handleIntakeComplete}
+                  />
+                ) : (
+                  <LandingPage />
+                )}
+              </Route>
+            </Switch>
           </div>
           <Toaster />
           <ToastProvider />
