@@ -303,9 +303,9 @@ const Budget = memo(() => {
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
-                          <h3 className="font-medium text-gray-900">{item.item}</h3>
+                          <h3 className="font-medium text-gray-900">{String(item.item || item.name || 'Untitled')}</h3>
                           <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded capitalize">
-                            {item.category}
+                            {String(item.category || 'uncategorized')}
                           </span>
                           {item.isPaid && (
                             <span className="text-xs bg-green-100 text-green-600 px-2 py-1 rounded">
@@ -326,7 +326,7 @@ const Budget = memo(() => {
                           {item.vendor && (
                             <div>
                               <span className="text-gray-500">Vendor:</span>
-                              <div className="font-medium">{item.vendor}</div>
+                              <div className="font-medium">{String(item.vendor)}</div>
                             </div>
                           )}
                           <div className="flex items-center gap-2">
@@ -337,7 +337,7 @@ const Budget = memo(() => {
                         </div>
                         
                         {item.notes && (
-                          <p className="text-sm text-gray-600 mt-2">{item.notes}</p>
+                          <p className="text-sm text-gray-600 mt-2">{String(item.notes)}</p>
                         )}
                       </div>
                     </div>
@@ -481,10 +481,18 @@ function BudgetOverviewAnalytics({ budgetItems, budgetSummary }: {
 
   // Top spending categories
   const topCategories = useMemo(() => {
+    if (!categoryData || categoryData.length === 0) return [];
+    
     return categoryData
-      .filter((cat: any) => cat.actual > 0)
-      .sort((a: any, b: any) => b.actual - a.actual)
-      .slice(0, 5);
+      .filter((cat: any) => cat && cat.actual > 0)
+      .sort((a: any, b: any) => (b.actual || 0) - (a.actual || 0))
+      .slice(0, 5)
+      .map((cat: any) => ({
+        category: cat.category || 'Uncategorized',
+        actual: cat.actual || 0,
+        variance: cat.variance || 0,
+        count: cat.count || 0
+      }));
   }, [categoryData]);
 
   if (!budgetSummary) {
@@ -643,20 +651,20 @@ function BudgetOverviewAnalytics({ budgetItems, budgetSummary }: {
           {topCategories.length > 0 ? (
             <div className="space-y-4">
               {topCategories.map((category: any, index: number) => (
-                <div key={category.category} className="flex items-center justify-between p-3 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors">
+                <div key={`${category.category || 'unknown'}-${index}`} className="flex items-center justify-between p-3 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors">
                   <div className="flex items-center space-x-3">
                     <div className="text-lg font-bold text-gray-700 bg-white rounded-full w-8 h-8 flex items-center justify-center">
                       #{index + 1}
                     </div>
                     <div>
-                      <div className="font-semibold text-gray-900 capitalize">{category.category}</div>
-                      <div className="text-sm text-gray-600">{category.count} items</div>
+                      <div className="font-semibold text-gray-900 capitalize">{category.category || 'Uncategorized'}</div>
+                      <div className="text-sm text-gray-600">{category.count || 0} items</div>
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="font-bold text-lg text-gray-900">{formatCurrency(category.actual)}</div>
-                    <Badge variant={category.variance > 0 ? 'destructive' : 'default'} className="text-xs">
-                      {category.variance > 0 ? '+' : ''}{formatCurrency(category.variance)}
+                    <div className="font-bold text-lg text-gray-900">{formatCurrency(category.actual || 0)}</div>
+                    <Badge variant={(category.variance || 0) > 0 ? 'destructive' : 'default'} className="text-xs">
+                      {(category.variance || 0) > 0 ? '+' : ''}{formatCurrency(category.variance || 0)}
                     </Badge>
                   </div>
                 </div>
