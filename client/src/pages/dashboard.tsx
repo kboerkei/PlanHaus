@@ -3,25 +3,15 @@ import EnhancedQuickActions from "@/components/dashboard/enhanced-quick-actions"
 import { AINextStepsPanel } from "@/components/ui/ai-next-steps";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbHome, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import { Link } from "wouter";
-import { Calendar, DollarSign, Users, Store, Palette, Bot, Clock, Globe, ArrowRight, Heart, CheckCircle2, TrendingUp, Plus, Download } from "lucide-react";
-import ExportDialog from "@/components/export/ExportDialog";
+import { Calendar, DollarSign, Users, Store, Palette, Bot, Clock, Globe, ArrowRight, Heart, CheckCircle2 } from "lucide-react";
 import { Button, Card, CardContent, CardHeader, CardTitle, SectionHeader } from "@/components/design-system";
 import { Badge } from "@/components/ui/badge";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useDashboardPrefetch, useTabVisibilityOptimization, useStaleDataCleanup } from "@/hooks/useDashboardPrefetch";
-import { motion, AnimatePresence } from "framer-motion";
-import { format, differenceInDays } from "date-fns";
-import { useEffect, useState, useMemo, memo } from "react";
+import { motion } from "framer-motion";
+import { differenceInDays } from "date-fns";
+import { useEffect, useState, memo } from "react";
 import { usePerformanceMonitor } from "@/hooks/usePerformanceOptimization";
 
-
-type Task = {
-  id: string;
-  title: string;
-  dueDate: string;
-  isCompleted: boolean;
-  priority?: string;
-};
 
 type DashboardStats = {
   tasksCompleted: number;
@@ -81,8 +71,8 @@ const PlanningToolsSection = memo(() => {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6, delay: 1.4 }}
-      className="mb-6 sm:mb-8"
+      transition={{ duration: 0.6, delay: 0.8 }}
+      className="mb-8 sm:mb-10"
     >
       <SectionHeader
         variant="wedding"
@@ -120,8 +110,8 @@ const PlanningToolsSection = memo(() => {
                         <Button
                           variant="ghost"
                           className="w-full justify-start h-auto p-4 sm:p-5 lg:p-6 hover:bg-rose-50 hover:border-rose-200 border border-transparent transition-all duration-200 group hover:scale-105 touch-target"
-                          onMouseEnter={() => prefetchPageData(item.prefetchKey)}
-                          onFocus={() => prefetchPageData(item.prefetchKey)}
+                          onMouseEnter={() => prefetchPageData((item as any).prefetchKey)}
+                          onFocus={() => prefetchPageData((item as any).prefetchKey)}
                         >
                           <div className="flex items-center space-x-3 lg:space-x-4 w-full min-w-0">
                             <div className="flex-shrink-0">
@@ -192,134 +182,7 @@ function PersonalizedGreeting() {
   );
 }
 
-function NextUpSection() {
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchTasks = async () => {
-      try {
-        const sessionId = localStorage.getItem('sessionId');
-        if (!sessionId) throw new Error('No session');
-        
-        const res = await fetch("/api/tasks", {
-          headers: { 'Authorization': `Bearer ${sessionId}` }
-        });
-        if (!res.ok) throw new Error("Fetch failed");
-        const data = await res.json();
-        
-        setTasks(Array.isArray(data) ? data : []);
-        localStorage.setItem("cached_tasks", JSON.stringify(data));
-      } catch (err) {
-        // Fallback to localStorage
-        const cached = localStorage.getItem("cached_tasks");
-        if (cached) {
-          setTasks(JSON.parse(cached));
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchTasks();
-  }, []);
-
-  // Get next 1-2 uncompleted tasks with future due dates only
-  const nextTasks = tasks
-    .filter((t: Task) => !t.isCompleted && t.dueDate && new Date(t.dueDate) > new Date())
-    .sort((a: Task, b: Task) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
-    .slice(0, 2);
-
-  const formatDueDate = (dueDate: string) => {
-    const due = new Date(dueDate);
-    const now = new Date();
-    const diffInDays = Math.ceil((due.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-    
-    if (diffInDays < 0) return "Overdue";
-    if (diffInDays === 0) return "Due today";
-    if (diffInDays === 1) return "Due tomorrow";
-    return `Due in ${diffInDays} days`;
-  };
-
-  if (loading) {
-    return (
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.2 }}
-        className="mb-6 sm:mb-8"
-      >
-        <Card variant="elegant" className="p-4 sm:p-6">
-          <div className="animate-pulse space-y-3">
-            <div className="h-5 bg-muted rounded w-1/4"></div>
-            <div className="h-4 bg-muted rounded w-3/4"></div>
-            <div className="h-4 bg-muted rounded w-1/2"></div>
-          </div>
-        </Card>
-      </motion.div>
-    );
-  }
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6, delay: 0.2 }}
-      className="mb-6 sm:mb-8"
-    >
-      <Card variant="elegant" className="p-4 sm:p-6">
-        <h2 className="text-xl sm:text-2xl font-semibold text-foreground mb-4">Next Up</h2>
-        
-        {nextTasks.length === 0 ? (
-          <div className="text-center py-4">
-            <p className="text-base sm:text-lg text-muted-foreground mb-4">
-              No upcoming tasks — you're ahead of schedule 🎉
-            </p>
-            <Link href="/timeline" className="text-rose-600 hover:text-rose-700 dark:text-rose-400 dark:hover:text-rose-300 font-medium text-base min-h-[44px] inline-flex items-center transition-colors">
-              View full checklist →
-            </Link>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {nextTasks.map((task: any, index: number) => (
-              <motion.div
-                key={task.id}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.1 * index }}
-                className="flex items-center justify-between p-4 sm:p-5 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors min-h-[60px]"
-              >
-                <div className="flex-1 min-w-0">
-                  <h4 className="font-semibold text-base sm:text-lg text-foreground truncate mb-1">
-                    {task.title}
-                  </h4>
-                  <p className="text-sm sm:text-base text-muted-foreground">
-                    {formatDueDate(task.dueDate)}
-                  </p>
-                </div>
-                {task.priority === 'high' && (
-                  <Badge variant="destructive" className="text-xs px-2 py-0 ml-2">
-                    High Priority
-                  </Badge>
-                )}
-              </motion.div>
-            ))}
-            
-            <div className="pt-2 border-t border-border/50">
-              <Link 
-                href="/timeline" 
-                className="text-rose-600 hover:text-rose-700 dark:text-rose-400 dark:hover:text-rose-300 font-medium text-base min-h-[44px] transition-colors inline-flex items-center gap-2"
-              >
-                View full checklist 
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </div>
-          </div>
-        )}
-      </Card>
-    </motion.div>
-  );
-}
 
 function AnimatedDashboardStats() {
   const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(null);
@@ -551,16 +414,13 @@ const Dashboard = memo(() => {
           {/* Personalized Greeting */}
           <PersonalizedGreeting />
           
-          {/* Consolidated Dashboard Stats - combines QuickStatsBar and AnimatedDashboardStats */}
+          {/* Dashboard Stats */}
           <AnimatedDashboardStats />
-          
-          {/* Next Up Section */}
-          <NextUpSection />
           
           {/* AI Next Steps Panel */}
           <AINextStepsPanel 
-            projectId={dashboardStats?.projectId?.toString()}
-            weddingDate={intakeData?.weddingDate}
+            projectId={(dashboardStats as any)?.projectId?.toString()}
+            weddingDate={(intakeData as any)?.weddingDate}
             className="mb-6"
           />
           
@@ -568,8 +428,8 @@ const Dashboard = memo(() => {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.8 }}
-            className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 mb-6 sm:mb-8"
+            transition={{ duration: 0.6, delay: 0.6 }}
+            className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 mb-8 sm:mb-10"
           >
             <div className="lg:col-span-2">
               <AIAssistantCard />
