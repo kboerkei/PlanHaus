@@ -6,7 +6,8 @@ import EnhancedQuickActions from "@/components/dashboard/enhanced-quick-actions"
 import UpcomingTasks from "@/components/dashboard/upcoming-tasks";
 import RecentActivity from "@/components/dashboard/recent-activity";
 import InspirationPreview from "@/components/dashboard/inspiration-preview";
-import { QuickStatsBar, ProgressCard, TrendIndicator } from "@/components/ui/enhanced-dashboard";
+import { QuickStatsBar } from "@/components/dashboard/QuickStatsBar";
+import { ProgressCard, TrendIndicator } from "@/components/ui/enhanced-dashboard";
 import { AINextStepsPanel } from "@/components/ui/ai-next-steps";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbHome, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 
@@ -478,14 +479,25 @@ const Dashboard = memo(() => {
           <PersonalizedGreeting />
           
           {/* Enhanced Quick Stats Bar */}
-          <QuickStatsBar 
-            weddingDate={intakeData?.weddingDate}
-            budgetRemaining={dashboardStats?.budget?.remaining}
-            totalBudget={dashboardStats?.budget?.total}
-            tasksDueThisWeek={dashboardStats?.tasks?.dueThisWeek}
-            totalTasks={dashboardStats?.tasks?.total}
-            completedTasks={dashboardStats?.tasks?.completed}
-          />
+          {intakeData && dashboardStats && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+              className="mb-8"
+            >
+              <QuickStatsBar 
+                data={{
+                  weddingDate: intakeData.weddingDate || "2024-12-31",
+                  totalBudget: dashboardStats.budget?.total || 25000,
+                  spentBudget: dashboardStats.budget?.spent || 15000,
+                  totalTasks: dashboardStats.tasks?.total || 0,
+                  completedTasks: dashboardStats.tasks?.completed || 0,
+                  tasks: []
+                }}
+              />
+            </motion.div>
+          )}
           
           {/* Animated Dashboard Stats */}
           <AnimatedDashboardStats />

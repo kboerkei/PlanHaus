@@ -6,6 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
+import { Breadcrumbs } from "@/components/ui/breadcrumbs";
+import { EmptyState, EmptyStates } from "@/components/ui/empty-state";
 import { Calendar, CheckCircle, Clock, Filter, AlertCircle, Target, TrendingUp, Download, Search, Zap } from "lucide-react";
 import { format, differenceInDays } from "date-fns";
 import { useProjects } from "@/hooks/useProjects";
@@ -20,6 +22,7 @@ import { EnhancedCard, StatCard, ProgressCard } from "@/components/ui/enhanced-c
 import { SearchInput } from "@/components/ui/enhanced-forms";
 import { AccessibleButton } from "@/components/ui/accessibility-enhancements";
 import { useDebounce, usePerformanceMonitor } from "@/hooks/usePerformanceOptimization";
+import { toast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
 
 const priorityFilters = [
@@ -126,6 +129,14 @@ export default function Timeline() {
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
+      {/* Breadcrumbs */}
+      <Breadcrumbs
+        items={[
+          { label: "Timeline & Tasks", current: true }
+        ]}
+        className="mb-6"
+      />
+      
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2">
@@ -344,20 +355,45 @@ export default function Timeline() {
         )}
       </div>
 
-      {/* Empty State */}
+      {/* Enhanced Empty State */}
       {filteredTasks.length === 0 && (
         <Card>
-          <CardContent className="text-center py-12">
-            <Calendar className="mx-auto mb-4 w-16 h-16 text-gray-400" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No tasks found</h3>
-            <p className="text-gray-600 mb-4">
-              {searchTerm || filterPriority || filterCategory 
-                ? "Try adjusting your filters to see more tasks."
-                : "Get started by adding your first wedding planning task."
-              }
-            </p>
-            {(!searchTerm && !filterPriority && !filterCategory) && (
-              <TaskFormDialog projectId={projectId} />
+          <CardContent>
+            {(searchTerm || filterPriority !== "all" || filterCategory !== "all") ? (
+              <EmptyState
+                {...EmptyStates.searchEmpty}
+                primaryAction={{
+                  label: "Clear Filters",
+                  onClick: () => {
+                    setSearchTerm("");
+                    setFilterPriority("all");
+                    setFilterCategory("all");
+                  },
+                  variant: "outline"
+                }}
+                compact
+              />
+            ) : (
+              <EmptyState
+                {...EmptyStates.noTasks}
+                primaryAction={{
+                  ...EmptyStates.noTasks.primaryAction,
+                  onClick: () => {
+                    // TaskFormDialog will handle opening
+                  }
+                }}
+                secondaryAction={{
+                  label: "Import from Template",
+                  onClick: () => {
+                    toast({
+                      title: "Coming Soon",
+                      description: "Task templates will be available in the next update."
+                    });
+                  },
+                  variant: "outline"
+                }}
+                icon={Calendar}
+              />
             )}
           </CardContent>
         </Card>

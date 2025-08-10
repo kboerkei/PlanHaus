@@ -5,6 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Breadcrumbs } from "@/components/ui/breadcrumbs";
+import { EmptyState, EmptyStates } from "@/components/ui/empty-state";
 import { Users, Mail, Phone, MapPin, Filter, UserPlus, Send, Download, Search, Eye, EyeOff } from "lucide-react";
 import { useProjects } from "@/hooks/useProjects";
 import { useGuests, useGuestStats, useBulkUpdateGuests } from "@/hooks/useGuests";
@@ -145,6 +147,13 @@ export default function Guests() {
 
   return (
     <div className="space-y-6">
+      {/* Breadcrumbs */}
+      <Breadcrumbs
+        items={[
+          { label: "Guest List & RSVPs", current: true }
+        ]}
+      />
+      
       {/* Header */}
       <div className="bg-white rounded-lg p-6 border border-gray-200">
         <div className="flex items-center justify-between mb-4">
