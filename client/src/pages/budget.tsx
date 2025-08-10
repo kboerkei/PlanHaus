@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { DollarSign, PieChart, TrendingUp, TrendingDown, AlertTriangle, Filter, Target, CreditCard, Calendar, Download } from "lucide-react";
 import { useProjects } from "@/hooks/useProjects";
 import { useBudget, useBudgetSummary } from "@/hooks/useBudget";
+import type { BudgetItem, BudgetCategory, BudgetSummary } from "@/types/budget";
 import BudgetEntryDialog from "@/components/budget/BudgetEntryDialog";
 import BudgetCategorySummary from "@/components/budget/BudgetCategorySummary";
 import LoadingSpinner from "@/components/ui/loading-spinner";
@@ -59,7 +60,7 @@ const Budget = memo(() => {
 
   // Fetch data using hooks
   const { data: projects, isLoading: projectsLoading } = useProjects();
-  const currentProject = projects?.find((p: any) => p.name === "Emma & Jake's Wedding") || projects?.[0];
+  const currentProject = projects?.find((p) => p.name === "Emma & Jake's Wedding") || projects?.[0];
   const projectId = currentProject?.id?.toString();
   
 
@@ -76,11 +77,11 @@ const Budget = memo(() => {
   const filteredItems = useMemo(() => {
     if (!budgetItems) return [];
     
-    return budgetItems.filter((item: any) => {
+    return budgetItems.filter((item: BudgetItem) => {
       const matchesSearch = !debouncedSearchTerm || 
-        item.item?.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+        item.name?.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
         item.category?.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
-        item.vendor?.toLowerCase().includes(debouncedSearchTerm.toLowerCase());
+        item.notes?.toLowerCase().includes(debouncedSearchTerm.toLowerCase());
       
       const matchesCategory = filterCategory === "all" || item.category === filterCategory;
       const matchesPaid = !showPaidOnly || item.isPaid;
@@ -91,9 +92,9 @@ const Budget = memo(() => {
 
   // Calculate totals from filtered items
   const filteredTotals = useMemo(() => {
-    return filteredItems.reduce((acc: any, item: any) => {
-      const estimatedCost = parseFloat(item.estimatedCost) || 0;
-      const actualCost = parseFloat(item.actualCost) || 0;
+    return filteredItems.reduce((acc: { estimated: number; actual: number; paid: number }, item: BudgetItem) => {
+      const estimatedCost = item.estimatedCost || 0;
+      const actualCost = item.actualCost || 0;
       
       acc.estimated += estimatedCost;
       acc.actual += actualCost;

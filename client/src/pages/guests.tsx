@@ -8,6 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Users, Mail, Phone, MapPin, Filter, UserPlus, Send, Download, Search, Eye, EyeOff } from "lucide-react";
 import { useProjects } from "@/hooks/useProjects";
 import { useGuests, useGuestStats, useBulkUpdateGuests } from "@/hooks/useGuests";
+import type { Guest, GuestStats, GuestInsert, GuestUpdate } from "@/types/guest";
 import GuestFormDialog from "@/components/guests/GuestFormDialog";
 import QuickRSVPButtons from "@/components/guests/QuickRSVPButtons";
 import LoadingSpinner from "@/components/ui/loading-spinner";
@@ -52,7 +53,7 @@ export default function Guests() {
 
   // Fetch data using hooks
   const { data: projects, isLoading: projectsLoading } = useProjects();
-  const currentProject = projects?.find((p: any) => p.name === "Emma & Jake's Wedding") || projects?.[0];
+  const currentProject = projects?.find((p) => p.name === "Emma & Jake's Wedding") || projects?.[0];
   const projectId = currentProject?.id?.toString();
   
   const { data: guests = [], isLoading: guestsLoading, error: guestsError } = useGuests(projectId);

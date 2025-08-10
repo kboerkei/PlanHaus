@@ -7,7 +7,13 @@ async function throwIfResNotOk(res: Response) {
   }
 }
 
-export async function apiRequest<T = any>(
+// Runtime guard to validate API responses
+function isValidApiResponse<T>(data: unknown): data is T {
+  // Basic runtime validation - can be extended with more specific checks
+  return data !== null && data !== undefined;
+}
+
+export async function apiRequest<T = unknown>(
   url: string,
   options?: RequestInit,
   signal?: AbortSignal // Add support for request cancellation
@@ -56,7 +62,13 @@ export async function apiRequest<T = any>(
         });
         
         await throwIfResNotOk(retryRes);
-        return await retryRes.json();
+        const retryData = await retryRes.json();
+        
+        if (!isValidApiResponse<T>(retryData)) {
+          throw new Error('Invalid API response format on retry');
+        }
+        
+        return retryData;
       }
     } catch (error) {
       console.error('Failed to refresh session:', error);
@@ -64,14 +76,19 @@ export async function apiRequest<T = any>(
   }
 
   await throwIfResNotOk(res);
-  return await res.json();
+  const data = await res.json();
+  
+  if (!isValidApiResponse<T>(data)) {
+    throw new Error('Invalid API response format');
+  }
+  
+  return data;
 }
 
 type UnauthorizedBehavior = "returnNull" | "throw";
-export const getQueryFn: <T>(options: {
+export const getQueryFn = <T = unknown>(options: {
   on401: UnauthorizedBehavior;
-}) => QueryFunction<T> =
-  ({ on401: unauthorizedBehavior }) =>
+}): QueryFunction<T> =>
   async ({ queryKey }) => {
     const sessionId = localStorage.getItem('sessionId');
     
@@ -102,20 +119,29 @@ export const getQueryFn: <T>(options: {
           });
           
           if (retryRes.ok) {
-            return await retryRes.json();
+            const retryData = await retryRes.json();
+            if (isValidApiResponse(retryData)) {
+              return retryData;
+            }
           }
         }
       } catch (error) {
         console.error('Query retry failed:', error);
       }
       
-      if (unauthorizedBehavior === "returnNull") {
-        return null;
+      if (options.on401 === "returnNull") {
+        return null as T;
       }
     }
 
     await throwIfResNotOk(res);
-    return await res.json();
+    const data = await res.json();
+    
+    if (!isValidApiResponse<T>(data)) {
+      throw new Error('Invalid API response format');
+    }
+    
+    return data;
   };
 
 export const queryClient = new QueryClient({

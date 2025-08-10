@@ -1,18 +1,19 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { BudgetFormData } from "@/schemas";
+import type { BudgetItem, BudgetItemInsert, BudgetItemUpdate, BudgetSummary } from "@/types/budget";
 
 export function useBudget(projectId?: string) {
-  return useQuery({
+  return useQuery<BudgetItem[]>({
     queryKey: ['/api/projects', projectId, 'budget'],
-    queryFn: () => apiRequest(`/api/projects/${projectId}/budget`),
+    queryFn: () => apiRequest<BudgetItem[]>(`/api/projects/${projectId}/budget`),
     enabled: !!projectId,
   });
 }
 
 export function useCreateBudgetItem(projectId: string) {
   return useMutation({
-    mutationFn: (data: any) => apiRequest(`/api/projects/${projectId}/budget`, {
+    mutationFn: (data: BudgetItemInsert) => apiRequest<BudgetItem>(`/api/projects/${projectId}/budget`, {
       method: 'POST',
       body: JSON.stringify({
         ...data,
@@ -28,8 +29,8 @@ export function useCreateBudgetItem(projectId: string) {
 
 export function useUpdateBudgetItem(projectId: string) {
   return useMutation({
-    mutationFn: ({ id, data }: { id: number; data: any }) =>
-      apiRequest(`/api/projects/${projectId}/budget/${id}`, {
+    mutationFn: ({ id, data }: { id: number; data: BudgetItemUpdate }) =>
+      apiRequest<BudgetItem>(`/api/projects/${projectId}/budget/${id}`, {
         method: 'PATCH',
         body: JSON.stringify(data),
       }),
@@ -65,7 +66,7 @@ export function useBudgetSummary(projectId?: string) {
     };
   }
   
-  const categories = budgetItems.reduce((acc: any, item: any) => {
+  const categories = budgetItems.reduce((acc: Record<string, { name: string; estimated: number; actual: number; items: BudgetItem[] }>, item: BudgetItem) => {
     // Only process items that have a valid category
     if (!item || !item.category) return acc;
     
@@ -75,19 +76,19 @@ export function useBudgetSummary(projectId?: string) {
     
     if (!acc[categoryKey]) {
       acc[categoryKey] = {
-        category: categoryDisplay,
+        name: categoryDisplay,
         estimated: 0,
         actual: 0,
-        items: 0,
+        items: [],
       };
     }
-    // Safe number conversion with fallback to 0
-    const estimatedCost = parseFloat(item.estimatedCost) || 0;
-    const actualCost = parseFloat(item.actualCost) || 0;
+    
+    const estimatedCost = item.estimatedCost || 0;
+    const actualCost = item.actualCost || 0;
     
     acc[categoryKey].estimated += estimatedCost;
     acc[categoryKey].actual += actualCost;
-    acc[categoryKey].items += 1;
+    acc[categoryKey].items.push(item);
     return acc;
   }, {});
   

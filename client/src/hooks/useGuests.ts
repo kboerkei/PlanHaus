@@ -1,11 +1,12 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { GuestFormData } from "@/schemas";
+import type { Guest, GuestInsert, GuestUpdate, GuestStats } from "@/types/guest";
 
 export function useGuests(projectId?: string) {
-  return useQuery({
+  return useQuery<Guest[]>({
     queryKey: projectId ? ['/api/projects', projectId, 'guests'] : ['/api/guests'],
-    queryFn: () => apiRequest(`/api/projects/${projectId}/guests`),
+    queryFn: () => apiRequest<Guest[]>(`/api/projects/${projectId}/guests`),
     enabled: !!projectId,
   });
 }
@@ -16,7 +17,7 @@ export function useCreateGuest(projectId: string) {
       console.log('Making API request with data:', { ...data, projectId: parseInt(projectId) });
       
       try {
-        const result = await apiRequest(`/api/projects/${projectId}/guests`, {
+        const result = await apiRequest<Guest>(`/api/projects/${projectId}/guests`, {
           method: 'POST',
           body: JSON.stringify({
             ...data,
@@ -44,8 +45,8 @@ export function useCreateGuest(projectId: string) {
 
 export function useUpdateGuest(projectId: string) {
   return useMutation({
-    mutationFn: ({ id, data }: { id: number; data: Partial<GuestFormData> }) =>
-      apiRequest(`/api/projects/${projectId}/guests/${id}`, {
+    mutationFn: ({ id, data }: { id: number; data: GuestUpdate }) =>
+      apiRequest<Guest>(`/api/projects/${projectId}/guests/${id}`, {
         method: 'PUT',
         body: JSON.stringify(data),
       }),

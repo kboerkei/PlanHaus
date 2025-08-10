@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Building, Mail, Phone, Globe, MapPin, Filter, Star, CheckCircle, Clock, AlertCircle, Download, Search, Sparkles } from "lucide-react";
 import { useProjects } from "@/hooks/useProjects";
 import { useVendors } from "@/hooks/useVendors";
+import type { Vendor, VendorInsert, VendorUpdate } from "@/types/vendor";
 import VendorFormDialog from "@/components/vendors/VendorFormDialog";
 import LoadingSpinner from "@/components/ui/loading-spinner";
 import ExportDialog from "@/components/export/ExportDialog";
@@ -18,24 +19,6 @@ import { SearchInput } from "@/components/ui/enhanced-forms";
 import { AccessibleButton } from "@/components/ui/accessibility-enhancements";
 import { useDebounce, usePerformanceMonitor } from "@/hooks/usePerformanceOptimization";
 import { motion, AnimatePresence } from "framer-motion";
-
-// Define vendor type for TypeScript
-type Vendor = {
-  id: number;
-  name: string;
-  category: string;
-  email?: string;
-  phone?: string;
-  website?: string;
-  address?: string;
-  contactPerson?: string;
-  priceRange?: string;
-  bookingStatus: string;
-  rating?: number;
-  notes?: string;
-  isBooked: boolean;
-  contractSigned?: boolean;
-};
 
 type Project = {
   id: number;

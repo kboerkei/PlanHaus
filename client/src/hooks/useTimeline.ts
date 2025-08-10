@@ -1,17 +1,19 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { TaskFormData } from "@/schemas";
+import type { Task, TaskInsert, TaskUpdate } from "@/types/task";
 
 export function useTasks(projectId?: string) {
-  return useQuery({
+  return useQuery<Task[]>({
     queryKey: projectId ? ['/api/projects', projectId, 'tasks'] : ['/api/tasks'],
+    queryFn: () => apiRequest<Task[]>(`/api/projects/${projectId}/tasks`),
     enabled: !!projectId,
   });
 }
 
 export function useCreateTask(projectId: string) {
   return useMutation({
-    mutationFn: (data: TaskFormData) => apiRequest(`/api/projects/${projectId}/tasks`, {
+    mutationFn: (data: TaskFormData) => apiRequest<Task>(`/api/projects/${projectId}/tasks`, {
       method: 'POST',
       body: JSON.stringify({
         ...data,
@@ -29,8 +31,8 @@ export function useCreateTask(projectId: string) {
 
 export function useUpdateTask(projectId: string) {
   return useMutation({
-    mutationFn: ({ id, data }: { id: number; data: Partial<TaskFormData> }) =>
-      apiRequest(`/api/projects/${projectId}/tasks/${id}`, {
+    mutationFn: ({ id, data }: { id: number; data: TaskUpdate }) =>
+      apiRequest<Task>(`/api/projects/${projectId}/tasks/${id}`, {
         method: 'PATCH',
         body: JSON.stringify({
           ...data,
@@ -50,7 +52,7 @@ export function useCompleteTask(projectId: string) {
       apiRequest(`/api/projects/${projectId}/tasks/${id}`, {
         method: 'PATCH',
         body: JSON.stringify({ 
-          status: isCompleted ? 'completed' : 'pending',
+          status: isCompleted ? 'completed' : 'not_started',
           isCompleted 
         }),
       }),

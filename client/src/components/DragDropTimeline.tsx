@@ -27,20 +27,19 @@ import { CalendarDays, Clock, Users, AlertTriangle, CheckCircle2, Star } from 'l
 import { useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { toast } from 'react-hot-toast';
-// @ts-ignore - canvas-confetti types
 import confetti from 'canvas-confetti';
 import { formatDistanceToNow } from 'date-fns';
-import type { Task } from '@/../shared/schema';
+import type { Task as TaskType, TaskUpdate } from '@/types/task';
 
 interface DragDropTimelineProps {
-  tasks: Task[];
-  onTaskUpdate: (taskId: number, updates: Partial<Task>) => void;
-  onTaskReorder: (tasks: Task[]) => void;
+  tasks: TaskType[];
+  onTaskUpdate: (taskId: number, updates: TaskUpdate) => void;
+  onTaskReorder: (tasks: TaskType[]) => void;
   projectId: number;
 }
 
 interface SortableTaskProps {
-  task: Task;
+  task: TaskType;
   onToggle: (taskId: number, completed: boolean) => void;
 }
 
@@ -71,14 +70,15 @@ function SortableTask({ task, onToggle }: SortableTaskProps) {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'completed': return 'text-green-600';
-      case 'in-progress': return 'text-blue-600';
-      case 'pending': return 'text-gray-600';
+      case 'in_progress': return 'text-blue-600';
+      case 'not_started': return 'text-gray-600';
       default: return 'text-gray-600';
     }
   };
 
-  const isOverdue = task.dueDate && new Date(task.dueDate) < new Date() && !task.completed;
-  const isDueSoon = task.dueDate && new Date(task.dueDate) <= new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) && !task.completed;
+  const isCompleted = task.status === 'completed';
+  const isOverdue = task.dueDate && !isCompleted && new Date(task.dueDate) < new Date();
+  const isDueSoon = task.dueDate && !isCompleted && new Date(task.dueDate) <= new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
   const handleToggle = (completed: boolean) => {
     onToggle(task.id, completed);
@@ -107,7 +107,7 @@ function SortableTask({ task, onToggle }: SortableTaskProps) {
       style={style}
       className={`mb-4 transition-all duration-200 ${
         isDragging ? 'shadow-lg scale-105 rotate-1' : 'shadow-sm hover:shadow-md'
-      } ${task.completed ? 'opacity-75 bg-gray-50' : ''} ${
+      } ${isCompleted ? 'opacity-75 bg-gray-50' : ''} ${
         isOverdue ? 'border-red-300 bg-red-50' : ''
       } ${isDueSoon ? 'border-yellow-300 bg-yellow-50' : ''}`}
       {...attributes}
@@ -117,12 +117,12 @@ function SortableTask({ task, onToggle }: SortableTaskProps) {
         <div className="flex items-start justify-between">
           <div className="flex items-start space-x-3 flex-1">
             <Checkbox
-              checked={task.completed}
+              checked={isCompleted}
               onCheckedChange={handleToggle}
               className="mt-1"
             />
             <div className="flex-1 min-w-0">
-              <CardTitle className={`text-lg ${task.completed ? 'line-through text-gray-500' : ''}`}>
+              <CardTitle className={`text-lg ${isCompleted ? 'line-through text-gray-500' : ''}`}>
                 {task.title}
               </CardTitle>
               {task.description && (
@@ -137,7 +137,7 @@ function SortableTask({ task, onToggle }: SortableTaskProps) {
             {isOverdue && (
               <AlertTriangle className="h-4 w-4 text-red-500" />
             )}
-            {task.completed && (
+            {isCompleted && (
               <CheckCircle2 className="h-4 w-4 text-green-500" />
             )}
             {task.priority === 'high' && (
@@ -207,7 +207,7 @@ function SortableTask({ task, onToggle }: SortableTaskProps) {
 }
 
 export default function DragDropTimeline({ tasks, onTaskUpdate, onTaskReorder, projectId }: DragDropTimelineProps) {
-  const [orderedTasks, setOrderedTasks] = useState<Task[]>(tasks);
+  const [orderedTasks, setOrderedTasks] = useState<TaskType[]>(tasks);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -247,13 +247,13 @@ export default function DragDropTimeline({ tasks, onTaskUpdate, onTaskReorder, p
     try {
       await apiRequest(`/api/tasks/${taskId}`, {
         method: 'PATCH',
-        body: JSON.stringify({ status: completed ? 'completed' : 'pending' })
+        body: JSON.stringify({ status: completed ? 'completed' : 'not_started' })
       });
 
       // Update local state
       setOrderedTasks(prev => 
         prev.map(task => 
-          task.id === taskId ? { ...task, completed, status: completed ? 'completed' : 'pending' } : task
+          task.id === taskId ? { ...task, status: completed ? 'completed' : 'not_started' } : task
         )
       );
 
@@ -262,15 +262,15 @@ export default function DragDropTimeline({ tasks, onTaskUpdate, onTaskReorder, p
       queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'tasks'] });
       queryClient.invalidateQueries({ queryKey: ['/api/dashboard/stats'] });
 
-      onTaskUpdate(taskId, { completed, status: completed ? 'completed' : 'pending' });
+      onTaskUpdate(taskId, { status: completed ? 'completed' : 'not_started' });
     } catch (error) {
 
       toast.error('Failed to update task');
     }
   };
 
-  const completedTasks = orderedTasks.filter(task => task.completed);
-  const pendingTasks = orderedTasks.filter(task => !task.completed);
+  const completedTasks = orderedTasks.filter(task => task.status === 'completed');
+  const pendingTasks = orderedTasks.filter(task => task.status !== 'completed');
 
   return (
     <div className="space-y-6">

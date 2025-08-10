@@ -1,18 +1,19 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { VendorFormData } from "@/schemas";
+import type { Vendor, VendorInsert, VendorUpdate, VendorStats } from "@/types/vendor";
 
 export function useVendors(projectId?: string) {
-  return useQuery({
+  return useQuery<Vendor[]>({
     queryKey: projectId ? ['/api/projects', projectId, 'vendors'] : ['/api/vendors'],
-    queryFn: () => apiRequest(`/api/projects/${projectId}/vendors`),
+    queryFn: () => apiRequest<Vendor[]>(`/api/projects/${projectId}/vendors`),
     enabled: !!projectId,
   });
 }
 
 export function useCreateVendor(projectId: string) {
   return useMutation({
-    mutationFn: (data: VendorFormData) => apiRequest(`/api/projects/${projectId}/vendors`, {
+    mutationFn: (data: VendorFormData) => apiRequest<Vendor>(`/api/projects/${projectId}/vendors`, {
       method: 'POST',
       body: JSON.stringify({
         ...data,
@@ -28,8 +29,8 @@ export function useCreateVendor(projectId: string) {
 
 export function useUpdateVendor(projectId: string) {
   return useMutation({
-    mutationFn: ({ id, data }: { id: number; data: Partial<VendorFormData> }) =>
-      apiRequest(`/api/projects/${projectId}/vendors/${id}`, {
+    mutationFn: ({ id, data }: { id: number; data: VendorUpdate }) =>
+      apiRequest<Vendor>(`/api/projects/${projectId}/vendors/${id}`, {
         method: 'PATCH',
         body: JSON.stringify(data),
       }),
@@ -57,33 +58,32 @@ export function useVendorStats(projectId?: string) {
   
   if (!vendors) return null;
   
-  const stats = vendors.reduce((acc: any, vendor: any) => {
-    acc.total += 1;
+  const stats = vendors.reduce((acc: VendorStats, vendor: Vendor) => {
+    acc.totalVendors += 1;
     
-    if (vendor.isBooked) {
-      acc.booked += 1;
+    if (vendor.status === 'booked') {
+      acc.bookedVendors += 1;
     } else {
-      acc.pending += 1;
+      acc.pendingVendors += 1;
     }
     
-    if (vendor.estimatedCost) {
-      acc.totalEstimatedCost += vendor.estimatedCost;
+    if (vendor.cost) {
+      acc.totalCost += vendor.cost;
     }
     
-    // Group by type
-    const type = vendor.type || 'other';
-    if (!acc.byType[type]) {
-      acc.byType[type] = 0;
-    }
-    acc.byType[type] += 1;
+    // Group by category
+    const category = vendor.category || 'other';
+    // We'll handle category grouping at the component level
+    // This hook focuses on overall stats
     
     return acc;
   }, {
-    total: 0,
-    booked: 0,
-    pending: 0,
-    totalEstimatedCost: 0,
-    byType: {},
+    totalVendors: 0,
+    bookedVendors: 0,
+    pendingVendors: 0,
+    totalCost: 0,
+    totalPaid: 0,
+    contractsSigned: 0,
   });
   
   return stats;
