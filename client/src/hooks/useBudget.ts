@@ -7,7 +7,10 @@ export function useBudget(projectId?: string) {
   return useQuery<BudgetItem[]>({
     queryKey: ['/api/projects', projectId, 'budget'],
     queryFn: () => apiRequest<BudgetItem[]>(`/api/projects/${projectId}/budget`),
-    enabled: !!projectId,
+    enabled: !!projectId && projectId !== 'undefined',
+    staleTime: 5 * 60 * 1000, // 5 minutes for budget data
+    gcTime: 15 * 60 * 1000, // 15 minutes
+    refetchOnWindowFocus: false,
   });
 }
 

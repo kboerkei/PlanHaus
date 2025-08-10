@@ -144,19 +144,121 @@ export const getQueryFn = <T = unknown>(options: {
     return data;
   };
 
+// Enhanced query client with optimized caching and deduplication
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       queryFn: getQueryFn({ on401: "returnNull" }),
       refetchInterval: false,
-      refetchOnWindowFocus: false,
-      staleTime: 5000, // 5 seconds cache
-      gcTime: 300000, // 5 minutes garbage collection
-      retry: 1,
-      retryDelay: 500,
+      refetchOnWindowFocus: false, // Prevent redundant fetches on tab focus
+      refetchOnMount: false, // Use cached data if available and fresh
+      refetchOnReconnect: 'always', // Refetch on network reconnection
+      staleTime: 5 * 60 * 1000, // 5 minutes - more aggressive caching
+      gcTime: 15 * 60 * 1000, // 15 minutes garbage collection
+      retry: 2, // Reasonable retry attempts
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff
+      
+      // Network optimization
+      networkMode: 'online', // Only run queries when online
+      
+      // Deduplication settings
+      structuralSharing: true, // Enable structural sharing for better performance
     },
     mutations: {
-      retry: 1,
+      retry: 2,
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+      networkMode: 'online',
     },
   },
 });
+
+// Enhanced prefetch utilities
+export const prefetchStrategies = {
+  // Prefetch critical dashboard data
+  async prefetchDashboardEssentials(projectId?: string) {
+    if (!projectId) return;
+    
+    const prefetchPromises = [
+      queryClient.prefetchQuery({
+        queryKey: ['/api/projects', projectId, 'tasks'],
+        staleTime: 2 * 60 * 1000, // 2 minutes for dynamic data
+      }),
+      queryClient.prefetchQuery({
+        queryKey: ['/api/projects', projectId, 'guests'],
+        staleTime: 2 * 60 * 1000,
+      }),
+      queryClient.prefetchQuery({
+        queryKey: ['/api/dashboard/stats'],
+        staleTime: 5 * 60 * 1000, // 5 minutes for dashboard stats
+      }),
+    ];
+    
+    return Promise.allSettled(prefetchPromises);
+  },
+  
+  // Prefetch likely navigation targets
+  async prefetchNavigationTargets(projectId?: string) {
+    if (!projectId) return;
+    
+    const prefetchPromises = [
+      queryClient.prefetchQuery({
+        queryKey: ['/api/projects', projectId, 'budget'],
+        staleTime: 5 * 60 * 1000,
+      }),
+      queryClient.prefetchQuery({
+        queryKey: ['/api/projects', projectId, 'vendors'],
+        staleTime: 10 * 60 * 1000, // Vendors change less frequently
+      }),
+      queryClient.prefetchQuery({
+        queryKey: ['/api/projects', projectId, 'activities'],
+        staleTime: 30 * 1000, // Activities are more dynamic
+      }),
+    ];
+    
+    return Promise.allSettled(prefetchPromises);
+  },
+};
+
+// Cache invalidation utilities
+export const cacheUtils = {
+  // Smart invalidation that only invalidates related data
+  invalidateProjectData(projectId: string, dataType?: 'tasks' | 'guests' | 'budget' | 'vendors' | 'all') {
+    if (dataType === 'all' || !dataType) {
+      // Invalidate all project data
+      queryClient.invalidateQueries({
+        queryKey: ['/api/projects', projectId],
+        exact: false,
+      });
+      // Also invalidate dashboard stats that depend on project data
+      queryClient.invalidateQueries({
+        queryKey: ['/api/dashboard/stats'],
+      });
+    } else {
+      // Invalidate specific data type
+      queryClient.invalidateQueries({
+        queryKey: ['/api/projects', projectId, dataType],
+      });
+      
+      // Invalidate global queries of the same type
+      queryClient.invalidateQueries({
+        queryKey: [`/api/${dataType}`],
+      });
+      
+      // Conditionally invalidate dashboard if it affects stats
+      if (['tasks', 'guests', 'budget'].includes(dataType)) {
+        queryClient.invalidateQueries({
+          queryKey: ['/api/dashboard/stats'],
+        });
+      }
+    }
+  },
+  
+  // Remove stale data based on time
+  removeStaleData(maxAge: number = 30 * 60 * 1000) { // 30 minutes default
+    queryClient.getQueryCache().findAll().forEach((query) => {
+      if (query.state.dataUpdatedAt < Date.now() - maxAge) {
+        queryClient.removeQueries({ queryKey: query.queryKey });
+      }
+    });
+  },
+};

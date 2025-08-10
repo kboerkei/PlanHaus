@@ -5,6 +5,10 @@ export function useProjects() {
   return useQuery({
     queryKey: ['/api/projects'],
     queryFn: () => apiRequest('/api/projects'),
+    enabled: !!localStorage.getItem('sessionId'),
+    staleTime: 15 * 60 * 1000, // 15 minutes - projects change infrequently
+    gcTime: 30 * 60 * 1000, // 30 minutes
+    refetchOnWindowFocus: false,
   });
 }
 

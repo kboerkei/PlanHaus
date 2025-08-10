@@ -7,7 +7,10 @@ export function useVendors(projectId?: string) {
   return useQuery<Vendor[]>({
     queryKey: projectId ? ['/api/projects', projectId, 'vendors'] : ['/api/vendors'],
     queryFn: () => apiRequest<Vendor[]>(`/api/projects/${projectId}/vendors`),
-    enabled: !!projectId,
+    enabled: !!projectId && projectId !== 'undefined',
+    staleTime: 10 * 60 * 1000, // 10 minutes - vendors change less frequently
+    gcTime: 30 * 60 * 1000, // 30 minutes
+    refetchOnWindowFocus: false,
   });
 }
 

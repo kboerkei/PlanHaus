@@ -7,7 +7,10 @@ export function useTasks(projectId?: string) {
   return useQuery<Task[]>({
     queryKey: projectId ? ['/api/projects', projectId, 'tasks'] : ['/api/tasks'],
     queryFn: () => apiRequest<Task[]>(`/api/projects/${projectId}/tasks`),
-    enabled: !!projectId,
+    enabled: !!projectId && projectId !== 'undefined',
+    staleTime: 2 * 60 * 1000, // 2 minutes - tasks change frequently
+    gcTime: 10 * 60 * 1000, // 10 minutes
+    refetchOnWindowFocus: false,
   });
 }
 

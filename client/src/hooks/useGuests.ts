@@ -7,7 +7,10 @@ export function useGuests(projectId?: string) {
   return useQuery<Guest[]>({
     queryKey: projectId ? ['/api/projects', projectId, 'guests'] : ['/api/guests'],
     queryFn: () => apiRequest<Guest[]>(`/api/projects/${projectId}/guests`),
-    enabled: !!projectId,
+    enabled: !!projectId && projectId !== 'undefined',
+    staleTime: 2 * 60 * 1000, // 2 minutes - guests change frequently
+    gcTime: 10 * 60 * 1000, // 10 minutes
+    refetchOnWindowFocus: false,
   });
 }
 

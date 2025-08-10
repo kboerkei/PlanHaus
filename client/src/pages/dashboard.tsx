@@ -19,6 +19,7 @@ import ExportDialog from "@/components/export/ExportDialog";
 import { Button, Card, CardContent, CardHeader, CardTitle, SectionHeader } from "@/components/design-system";
 import { Badge } from "@/components/ui/badge";
 import { useQuery } from "@tanstack/react-query";
+import { useDashboardPrefetch, useTabVisibilityOptimization, useStaleDataCleanup } from "@/hooks/useDashboardPrefetch";
 import { motion, AnimatePresence } from "framer-motion";
 import { format, differenceInDays } from "date-fns";
 import { useEffect, useState, useMemo, memo } from "react";
