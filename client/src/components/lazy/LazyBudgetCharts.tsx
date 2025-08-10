@@ -13,14 +13,14 @@ interface BudgetChartData {
 
 interface BudgetPieChartProps {
   data: BudgetChartData[];
-  title: string;
+  title?: string;
   height?: number;
 }
 
 const BudgetPieChart = memo(({ data, title, height = 300 }: BudgetPieChartProps) => (
   <ErrorBoundary fallback={<div className="text-red-500">Chart failed to load</div>}>
     <div className="w-full" style={{ height }}>
-      <h3 className="text-lg font-semibold mb-4 text-center">{title}</h3>
+      {title && <h3 className="text-lg font-semibold mb-4 text-center">{title}</h3>}
       <ResponsiveContainer width="100%" height="100%">
         <PieChart>
           <Pie

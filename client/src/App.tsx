@@ -73,6 +73,7 @@ function Router({ user, onLogout, isNewUser, onIntakeComplete }: { user: User; o
 
                 <Route path="/overview" component={Overview} />
                 <Route path="/timeline" component={Timeline} />
+                <Route path="/creative-details" component={CreativeDetails} />
                 <Route path="/budget" component={Budget} />
                 <Route path="/guests" component={Guests} />
                 <Route path="/seating-chart" component={SeatingChart} />

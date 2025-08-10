@@ -18,6 +18,7 @@ import LoadingSpinner from "@/components/ui/loading-spinner";
 import ExportDialog from "@/components/export/ExportDialog";
 // Lazy load charts for better performance
 import { BudgetPieChart, BudgetBarChart } from "@/components/lazy/LazyBudgetCharts";
+import { ChartSkeleton } from "@/components/ui/skeleton";
 // Import missing Recharts components
 import { 
   ResponsiveContainer, 
@@ -574,14 +575,7 @@ function BudgetOverviewAnalytics({ budgetItems, budgetSummary }: {
           </CardHeader>
           <CardContent>
             <Suspense fallback={<ChartSkeleton />}>
-              <ConsolidatedChart
-                type="pie"
-                data={categoryData.filter((item: any) => item.actual > 0)}
-                config={{}}
-                height={300}
-                dataKey="actual"
-                colors={categoryData.map((item: any) => item.color)}
-              />
+              <BudgetPieChart data={categoryData.filter((item: any) => item.actual > 0)} />
             </Suspense>
           </CardContent>
         </Card>
@@ -598,14 +592,7 @@ function BudgetOverviewAnalytics({ budgetItems, budgetSummary }: {
           </CardHeader>
           <CardContent>
             <Suspense fallback={<ChartSkeleton />}>
-              <ConsolidatedChart
-                type="pie"
-                data={paymentData.filter(item => item.value > 0)}
-                config={{}}
-                height={300}
-                dataKey="value"
-                colors={paymentData.map(item => item.color)}
-              />
+              <BudgetPieChart data={paymentData.filter(item => item.value > 0)} />
             </Suspense>
           </CardContent>
         </Card>
