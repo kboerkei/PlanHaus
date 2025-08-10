@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
+import { trackWeddingEvent } from "@/lib/analytics";
 
 const addExpenseSchema = z.object({
   description: z.string().min(1, "Description is required"),
@@ -59,7 +60,8 @@ export default function AddExpenseForm({ projectId, onSuccess }: AddExpenseFormP
       
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      trackWeddingEvent.addExpense(data.amount, data.category);
       toast({
         title: "Success",
         description: "Expense added successfully",

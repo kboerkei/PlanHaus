@@ -1,0 +1,73 @@
+User-agent: *
+Allow: /
+
+# Public pages that should be crawled
+Allow: /
+Allow: /features
+Allow: /pricing
+Allow: /about
+Allow: /contact
+Allow: /login
+Allow: /register
+Allow: /help
+Allow: /faq
+Allow: /blog
+Allow: /guides
+Allow: /templates
+Allow: /privacy
+Allow: /terms
+
+# Block private user areas and sensitive paths
+Disallow: /dashboard
+Disallow: /project/
+Disallow: /settings
+Disallow: /profile
+Disallow: /admin
+Disallow: /api/
+Disallow: /.well-known/
+Disallow: /uploads/
+Disallow: /temp/
+Disallow: /_next/
+Disallow: /static/
+Disallow: /assets/private/
+
+# Block common bot paths
+Disallow: /wp-admin/
+Disallow: /wp-content/
+Disallow: /admin/
+Disallow: /administrator/
+Disallow: /cgi-bin/
+
+# Allow search engines to access CSS and JS
+Allow: *.css
+Allow: *.js
+Allow: *.png
+Allow: *.jpg
+Allow: *.jpeg
+Allow: *.gif
+Allow: *.svg
+Allow: *.webp
+Allow: *.ico
+
+# Sitemap location
+Sitemap: https://planhaus.com/sitemap.xml
+
+# Crawl-delay for respectful bots
+Crawl-delay: 1
+
+# Specific rules for major search engines
+User-agent: Googlebot
+Crawl-delay: 0
+
+User-agent: Bingbot
+Crawl-delay: 1
+
+# Block known bad bots
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: DotBot
+Disallow: /

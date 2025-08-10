@@ -3,12 +3,15 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { useEffect } from "react";
 import KeyboardShortcuts from "@/components/ui/keyboard-shortcuts";
 import { ErrorBoundary } from "@/components/error-boundary";
 import LoadingSpinner from "@/components/ui/loading-spinner";
 import ToastProvider from "@/components/ToastProvider";
 import { useAuthSession } from "@/hooks/useAuthSession";
 import LandingPage from "@/pages/LandingPage";
+import FeaturesPage from "@/pages/public/FeaturesPage";
+import PricingPage from "@/pages/public/PricingPage";
 import Auth from "@/pages/auth";
 import Profile from "@/pages/profile";
 import NotFound from "@/pages/not-found";
@@ -109,6 +112,24 @@ function App() {
     handleIntakeComplete,
   } = useAuthSession();
 
+  // Initialize analytics on app load
+  useEffect(() => {
+    const initAnalytics = async () => {
+      try {
+        const { initAnalytics: init } = await import("./lib/analytics");
+        init();
+      } catch (error) {
+        console.warn("Failed to initialize analytics:", error);
+      }
+    };
+
+    if (import.meta.env.VITE_GA_MEASUREMENT_ID || import.meta.env.VITE_PLAUSIBLE_DOMAIN) {
+      initAnalytics();
+    } else {
+      console.info("Analytics not configured - add VITE_GA_MEASUREMENT_ID or VITE_PLAUSIBLE_DOMAIN");
+    }
+  }, []);
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -127,12 +148,16 @@ function App() {
     );
   }
 
+
+
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <div className="min-h-screen bg-gray-50">
             <Switch>
+              <Route path="/features" component={FeaturesPage} />
+              <Route path="/pricing" component={PricingPage} />
               <Route path="/login" component={Login} />
               <Route path="/auth">
                 <Auth onAuth={handleAuth} />

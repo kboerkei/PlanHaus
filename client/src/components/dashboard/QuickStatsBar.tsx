@@ -5,10 +5,10 @@ import { cn } from "@/lib/utils";
 import { format, differenceInDays } from "date-fns";
 
 interface QuickStatsBarProps {
-  stats: {
-    tasks: { total: number; completed: number };
-    guests: { total: number; confirmed: number };
-    budget: { total: number; spent: number };
+  stats?: {
+    tasks?: { total: number; completed: number };
+    guests?: { total: number; confirmed: number };
+    budget?: { total: number; spent: number };
     daysUntilWedding?: number;
   };
   weddingDate?: string;
@@ -16,9 +16,16 @@ interface QuickStatsBarProps {
 }
 
 export function QuickStatsBar({ stats, weddingDate, className }: QuickStatsBarProps) {
-  const taskProgress = stats.tasks.total > 0 ? (stats.tasks.completed / stats.tasks.total) * 100 : 0;
-  const guestProgress = stats.guests.total > 0 ? (stats.guests.confirmed / stats.guests.total) * 100 : 0;
-  const budgetProgress = stats.budget.total > 0 ? (stats.budget.spent / stats.budget.total) * 100 : 0;
+  // Add safety checks for undefined stats
+  const safeStats = {
+    tasks: stats?.tasks || { total: 0, completed: 0 },
+    guests: stats?.guests || { total: 0, confirmed: 0 },
+    budget: stats?.budget || { total: 0, spent: 0 }
+  };
+
+  const taskProgress = safeStats.tasks.total > 0 ? (safeStats.tasks.completed / safeStats.tasks.total) * 100 : 0;
+  const guestProgress = safeStats.guests.total > 0 ? (safeStats.guests.confirmed / safeStats.guests.total) * 100 : 0;
+  const budgetProgress = safeStats.budget.total > 0 ? (safeStats.budget.spent / safeStats.budget.total) * 100 : 0;
   
   const daysRemaining = weddingDate ? differenceInDays(new Date(weddingDate), new Date()) : null;
   
@@ -34,7 +41,7 @@ export function QuickStatsBar({ stats, weddingDate, className }: QuickStatsBarPr
     {
       icon: CheckCircle,
       title: "Tasks Complete",
-      value: `${stats.tasks.completed}/${stats.tasks.total}`,
+      value: `${safeStats.tasks.completed}/${safeStats.tasks.total}`,
       subtitle: `${taskProgress.toFixed(0)}% done`,
       color: "green",
       progress: taskProgress
@@ -42,7 +49,7 @@ export function QuickStatsBar({ stats, weddingDate, className }: QuickStatsBarPr
     {
       icon: Users,
       title: "RSVPs Confirmed",
-      value: `${stats.guests.confirmed}/${stats.guests.total}`,
+      value: `${safeStats.guests.confirmed}/${safeStats.guests.total}`,
       subtitle: `${guestProgress.toFixed(0)}% confirmed`,
       color: "blue",
       progress: guestProgress
@@ -50,8 +57,8 @@ export function QuickStatsBar({ stats, weddingDate, className }: QuickStatsBarPr
     {
       icon: DollarSign,
       title: "Budget Used",
-      value: `$${stats.budget.spent.toLocaleString()}`,
-      subtitle: `of $${stats.budget.total.toLocaleString()}`,
+      value: `$${safeStats.budget.spent.toLocaleString()}`,
+      subtitle: `of $${safeStats.budget.total.toLocaleString()}`,
       color: budgetProgress > 90 ? "red" : budgetProgress > 70 ? "yellow" : "green",
       progress: budgetProgress
     }

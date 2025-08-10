@@ -9,6 +9,7 @@ import { EnhancedInput } from "@/components/ui/enhanced-input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
+import { trackWeddingEvent } from "@/lib/analytics";
 
 const addGuestSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -62,7 +63,8 @@ export default function AddGuestForm({ projectId, onSuccess }: AddGuestFormProps
       
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      trackWeddingEvent.addGuest(data.partySize || 1);
       toast({
         title: "Success",
         description: "Guest added successfully",

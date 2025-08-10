@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import { trackWeddingEvent } from "@/lib/analytics";
 
 const addTaskSchema = z.object({
   title: z.string()
@@ -64,7 +65,8 @@ export default function AddTaskForm({ projectId, onSuccess }: AddTaskFormProps):
       
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      trackWeddingEvent.createTask(data.category, data.priority);
       toast({
         title: "Success",
         description: "Task added successfully",
