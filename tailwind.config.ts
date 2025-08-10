@@ -1,4 +1,5 @@
 import type { Config } from "tailwindcss";
+import { tokens } from "./client/src/design-system/tokens";
 
 const config: Config = {
   darkMode: ["class"],
@@ -49,7 +50,45 @@ const config: Config = {
       },
     },
     extend: {
+      // Design system integration - simplified for TypeScript compatibility  
+      fontFamily: {
+        display: ["Playfair Display", "serif"],
+        heading: ["DM Serif Display", "serif"], 
+        body: ["Inter", "system-ui", "sans-serif"],
+        ui: ["DM Sans", "system-ui", "sans-serif"]
+      },
+      
       colors: {
+        // Design system colors
+        rose: {
+          25: "hsl(350, 100%, 99%)",
+          50: "hsl(350, 100%, 98%)",
+          100: "hsl(350, 100%, 95%)",
+          200: "hsl(350, 100%, 90%)",
+          300: "hsl(350, 100%, 82%)",
+          400: "hsl(350, 100%, 71%)",
+          500: "hsl(350, 84%, 60%)",
+          600: "hsl(350, 84%, 54%)",
+          700: "hsl(350, 84%, 47%)",
+          800: "hsl(350, 84%, 40%)",
+          900: "hsl(350, 84%, 33%)",
+          950: "hsl(350, 84%, 20%)"
+        },
+        champagne: {
+          DEFAULT: "hsl(45, 56%, 53%)",
+          50: "hsl(45, 56%, 97%)",
+          100: "hsl(45, 56%, 94%)",
+          200: "hsl(45, 56%, 87%)",
+          300: "hsl(45, 56%, 77%)",
+          400: "hsl(45, 56%, 65%)",
+          500: "hsl(45, 56%, 53%)",
+          600: "hsl(45, 56%, 45%)",
+          700: "hsl(45, 56%, 37%)",
+          800: "hsl(45, 56%, 30%)",
+          900: "hsl(45, 56%, 24%)"
+        },
+        
+        // Shadcn/UI integration
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         card: {
@@ -83,10 +122,9 @@ const config: Config = {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
-        // Wedding theme colors
+        // Wedding theme colors  
         blush: "hsl(var(--blush))",
         'rose-gold': "hsl(var(--rose-gold))",
-        champagne: "hsl(var(--champagne))",
         sage: "hsl(var(--sage))",
         cream: "hsl(var(--cream))",
         ivory: "hsl(var(--ivory))",
@@ -97,23 +135,16 @@ const config: Config = {
       },
       borderRadius: {
         lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
+        md: "calc(var(--radius) - 2px)", 
         sm: "calc(var(--radius) - 4px)",
       },
-      fontFamily: {
-        heading: ['Playfair Display', 'DM Serif Display', 'Georgia', 'serif'],
-        body: ['Inter', 'DM Sans', 'sans-serif'],
-        sans: ['Inter', 'DM Sans', 'sans-serif'],
-        serif: ['Playfair Display', 'DM Serif Display', 'Georgia', 'serif'],
-        'playfair': ['Playfair Display', 'serif'],
-        'dm-serif': ['DM Serif Display', 'serif'],
-        'inter': ['Inter', 'sans-serif'],
-        'dm-sans': ['DM Sans', 'sans-serif'],
-      },
+      
       boxShadow: {
         'soft': '0 4px 20px rgba(0, 0, 0, 0.08)',
         'medium': '0 8px 30px rgba(0, 0, 0, 0.12)',
         'strong': '0 16px 40px rgba(0, 0, 0, 0.16)',
+        'elegant': '0 4px 20px -4px rgba(350, 84%, 60%, 0.15), 0 2px 8px -2px rgba(350, 84%, 60%, 0.08)',
+        'glow': '0 0 0 1px rgba(350, 84%, 60%, 0.05), 0 4px 16px -4px rgba(350, 84%, 60%, 0.2)',
       },
       backdropBlur: {
         'glass': '20px',

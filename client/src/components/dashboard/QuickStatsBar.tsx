@@ -1,188 +1,159 @@
-import React from "react";
-import { Calendar, DollarSign, CheckSquare, TrendingUp, TrendingDown, Clock, AlertCircle } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Calendar, CheckCircle, Users, DollarSign, Clock, TrendingUp } from "lucide-react";
+import { EnhancedCard } from "@/components/ui/enhanced-card";
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { format, differenceInDays, isAfter, addDays, startOfWeek, endOfWeek, isSameWeek } from "date-fns";
-
-interface QuickStatsData {
-  weddingDate: string;
-  totalBudget: number;
-  spentBudget: number;
-  totalTasks: number;
-  completedTasks: number;
-  tasks: Array<{
-    id: number;
-    title: string;
-    dueDate?: string;
-    isCompleted: boolean;
-    priority: 'low' | 'medium' | 'high';
-  }>;
-}
+import { cn } from "@/lib/utils";
+import { format, differenceInDays } from "date-fns";
 
 interface QuickStatsBarProps {
-  data: QuickStatsData;
+  stats: {
+    tasks: { total: number; completed: number };
+    guests: { total: number; confirmed: number };
+    budget: { total: number; spent: number };
+    daysUntilWedding?: number;
+  };
+  weddingDate?: string;
   className?: string;
 }
 
-export function QuickStatsBar({ data, className }: QuickStatsBarProps) {
-  const weddingDate = new Date(data.weddingDate);
-  const today = new Date();
-  const daysUntilWedding = differenceInDays(weddingDate, today);
-  const isPastDue = daysUntilWedding < 0;
+export function QuickStatsBar({ stats, weddingDate, className }: QuickStatsBarProps) {
+  const taskProgress = stats.tasks.total > 0 ? (stats.tasks.completed / stats.tasks.total) * 100 : 0;
+  const guestProgress = stats.guests.total > 0 ? (stats.guests.confirmed / stats.guests.total) * 100 : 0;
+  const budgetProgress = stats.budget.total > 0 ? (stats.budget.spent / stats.budget.total) * 100 : 0;
   
-  // Budget calculations
-  const budgetRemaining = data.totalBudget - data.spentBudget;
-  const budgetPercentage = data.totalBudget > 0 ? (data.spentBudget / data.totalBudget) * 100 : 0;
-  const isOverBudget = budgetRemaining < 0;
+  const daysRemaining = weddingDate ? differenceInDays(new Date(weddingDate), new Date()) : null;
   
-  // Task calculations
-  const taskCompletionRate = data.totalTasks > 0 ? (data.completedTasks / data.totalTasks) * 100 : 0;
-  
-  // Tasks due this week
-  const weekStart = startOfWeek(today);
-  const weekEnd = endOfWeek(today);
-  const tasksThisWeek = data.tasks.filter(task => {
-    if (!task.dueDate || task.isCompleted) return false;
-    const taskDate = new Date(task.dueDate);
-    return isSameWeek(taskDate, today);
-  });
-  
-  // Overdue tasks
-  const overdueTasks = data.tasks.filter(task => {
-    if (!task.dueDate || task.isCompleted) return false;
-    const taskDate = new Date(task.dueDate);
-    return isAfter(today, taskDate);
-  });
-
-  const stats = [
+  const statCards = [
     {
-      id: "countdown",
       icon: Calendar,
-      label: "Days to Wedding",
-      value: isPastDue ? "Past Due" : Math.abs(daysUntilWedding).toString(),
-      subtext: isPastDue 
-        ? `${Math.abs(daysUntilWedding)} days ago`
-        : format(weddingDate, "MMMM do, yyyy"),
-      trend: isPastDue ? "down" : daysUntilWedding <= 30 ? "alert" : "neutral",
-      urgent: daysUntilWedding <= 7 && !isPastDue,
+      title: "Days to Wedding",
+      value: daysRemaining !== null ? (daysRemaining > 0 ? daysRemaining : "Today!") : "—",
+      subtitle: weddingDate ? format(new Date(weddingDate), "MMM dd, yyyy") : "",
+      color: "rose",
+      progress: null
     },
     {
-      id: "budget",
+      icon: CheckCircle,
+      title: "Tasks Complete",
+      value: `${stats.tasks.completed}/${stats.tasks.total}`,
+      subtitle: `${taskProgress.toFixed(0)}% done`,
+      color: "green",
+      progress: taskProgress
+    },
+    {
+      icon: Users,
+      title: "RSVPs Confirmed",
+      value: `${stats.guests.confirmed}/${stats.guests.total}`,
+      subtitle: `${guestProgress.toFixed(0)}% confirmed`,
+      color: "blue",
+      progress: guestProgress
+    },
+    {
       icon: DollarSign,
-      label: "Budget Remaining",
-      value: isOverBudget 
-        ? `$${Math.abs(budgetRemaining).toLocaleString()}`
-        : `$${budgetRemaining.toLocaleString()}`,
-      subtext: `${budgetPercentage.toFixed(1)}% used`,
-      trend: isOverBudget ? "down" : budgetPercentage > 80 ? "alert" : "up",
-      urgent: isOverBudget,
-      prefix: isOverBudget ? "Over by " : "",
-    },
-    {
-      id: "tasks",
-      label: "Tasks Complete",
-      icon: CheckSquare,
-      value: `${data.completedTasks}/${data.totalTasks}`,
-      subtext: `${taskCompletionRate.toFixed(1)}% complete`,
-      trend: taskCompletionRate >= 75 ? "up" : taskCompletionRate >= 50 ? "neutral" : "down",
-      urgent: false,
-    },
-    {
-      id: "weekly",
-      icon: Clock,
-      label: "Due This Week",
-      value: tasksThisWeek.length.toString(),
-      subtext: overdueTasks.length > 0 
-        ? `${overdueTasks.length} overdue`
-        : "On track",
-      trend: overdueTasks.length > 0 ? "down" : tasksThisWeek.length <= 3 ? "up" : "alert",
-      urgent: overdueTasks.length > 0,
-    },
+      title: "Budget Used",
+      value: `$${stats.budget.spent.toLocaleString()}`,
+      subtitle: `of $${stats.budget.total.toLocaleString()}`,
+      color: budgetProgress > 90 ? "red" : budgetProgress > 70 ? "yellow" : "green",
+      progress: budgetProgress
+    }
   ];
 
-  const getTrendIcon = (trend: string) => {
-    switch (trend) {
-      case "up":
-        return <TrendingUp className="h-3 w-3 text-green-500" />;
-      case "down":
-        return <TrendingDown className="h-3 w-3 text-red-500" />;
-      case "alert":
-        return <AlertCircle className="h-3 w-3 text-yellow-500" />;
-      default:
-        return null;
+  const colorClasses = {
+    rose: {
+      icon: "text-rose-600 bg-rose-100",
+      progress: "bg-rose-500",
+      text: "text-rose-700"
+    },
+    green: {
+      icon: "text-green-600 bg-green-100", 
+      progress: "bg-green-500",
+      text: "text-green-700"
+    },
+    blue: {
+      icon: "text-blue-600 bg-blue-100",
+      progress: "bg-blue-500", 
+      text: "text-blue-700"
+    },
+    yellow: {
+      icon: "text-yellow-600 bg-yellow-100",
+      progress: "bg-yellow-500",
+      text: "text-yellow-700"
+    },
+    red: {
+      icon: "text-red-600 bg-red-100",
+      progress: "bg-red-500", 
+      text: "text-red-700"
     }
   };
 
   return (
-    <div className={cn("grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4", className)}>
-      {stats.map((stat) => {
+    <div className={cn("grid grid-cols-2 lg:grid-cols-4 gap-4", className)}>
+      {statCards.map((stat, index) => {
+        const colors = colorClasses[stat.color as keyof typeof colorClasses];
         const Icon = stat.icon;
         
         return (
-          <Card 
-            key={stat.id} 
-            className={cn(
-              "p-4 transition-all duration-200 hover:shadow-md",
-              stat.urgent && "border-red-200 bg-red-50/50 dark:border-red-800 dark:bg-red-950/20"
-            )}
+          <Card
+            key={index}
+            className="relative overflow-hidden p-4 border border-rose-100 shadow-elegant bg-gradient-to-br from-white to-rose-50/30 hover:shadow-lg hover:border-rose-200 transition-all duration-200"
+            data-testid={`stat-card-${stat.title.toLowerCase().replace(/\s+/g, '-')}`}
           >
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center space-x-2">
-                <div className={cn(
-                  "p-2 rounded-md",
-                  stat.urgent 
-                    ? "bg-red-100 dark:bg-red-900/30" 
-                    : "bg-primary/10"
-                )}>
-                  <Icon className={cn(
-                    "h-4 w-4",
-                    stat.urgent ? "text-red-600 dark:text-red-400" : "text-primary"
-                  )} />
-                </div>
-                <span className="text-sm font-medium text-muted-foreground">
-                  {stat.label}
-                </span>
-              </div>
-              
-              {getTrendIcon(stat.trend)}
-            </div>
-            
-            <div className="space-y-1">
-              <div className="flex items-baseline space-x-1">
-                {stat.prefix && (
-                  <span className="text-sm text-red-600 dark:text-red-400 font-medium">
-                    {stat.prefix}
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <div className={cn("p-1.5 rounded-md", colors.icon)}>
+                    <Icon className="h-3 w-3" />
+                  </div>
+                  <span className="text-xs font-medium text-neutral-600">
+                    {stat.title}
                   </span>
+                </div>
+                
+                <div className="mb-1">
+                  <span className="text-lg font-bold text-neutral-900">
+                    {stat.value}
+                  </span>
+                </div>
+                
+                {stat.subtitle && (
+                  <p className={cn("text-xs", colors.text)}>
+                    {stat.subtitle}
+                  </p>
                 )}
-                <span className={cn(
-                  "text-2xl font-bold",
-                  stat.urgent 
-                    ? "text-red-600 dark:text-red-400" 
-                    : "text-foreground"
-                )}>
-                  {stat.value}
-                </span>
               </div>
               
-              <p className={cn(
-                "text-xs",
-                stat.urgent 
-                  ? "text-red-600/80 dark:text-red-400/80" 
-                  : "text-muted-foreground"
-              )}>
-                {stat.subtext}
-              </p>
+              {stat.progress !== null && (
+                <div className="ml-2">
+                  <div className="flex items-center justify-center w-8 h-8">
+                    <svg className="w-8 h-8 transform -rotate-90" viewBox="0 0 24 24">
+                      <circle
+                        cx="12"
+                        cy="12"
+                        r="8"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        className="text-neutral-200"
+                      />
+                      <circle
+                        cx="12"
+                        cy="12"
+                        r="8"
+                        fill="none"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeDasharray={`${2 * Math.PI * 8}`}
+                        strokeDashoffset={`${2 * Math.PI * 8 * (1 - stat.progress / 100)}`}
+                        className={colors.progress}
+                        style={{ transition: "stroke-dashoffset 0.5s ease" }}
+                      />
+                    </svg>
+                    <span className={cn("absolute text-[10px] font-medium", colors.text)}>
+                      {Math.round(stat.progress)}%
+                    </span>
+                  </div>
+                </div>
+              )}
             </div>
-            
-            {stat.urgent && (
-              <Badge 
-                variant="destructive" 
-                className="mt-2 text-xs"
-              >
-                Needs Attention
-              </Badge>
-            )}
           </Card>
         );
       })}
