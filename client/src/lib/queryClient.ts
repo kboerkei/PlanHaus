@@ -1,9 +1,74 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
+import { toast } from "@/hooks/use-toast";
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
     const text = (await res.text()) || res.statusText;
     throw new Error(`${res.status}: ${text}`);
+  }
+}
+
+// Centralized 401 handler with silent refresh and redirect logic
+async function handle401(originalUrl: string, originalOptions?: RequestInit) {
+  console.log('401 detected, attempting silent refresh...');
+  
+  try {
+    // Clear existing session first
+    localStorage.removeItem('sessionId');
+    localStorage.removeItem('user');
+    
+    // Attempt silent refresh via demo login
+    const refreshResponse = await fetch('/api/auth/demo-login', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' }
+    });
+    
+    if (refreshResponse.ok) {
+      const refreshData = await refreshResponse.json();
+      
+      // Store new session data
+      if (refreshData.sessionId) {
+        localStorage.setItem('sessionId', refreshData.sessionId);
+        localStorage.setItem('user', JSON.stringify(refreshData.user));
+      }
+      
+      console.log('Silent refresh successful, retrying original request');
+      
+      // Retry original request with new session
+      const retryResponse = await fetch(originalUrl, {
+        ...originalOptions,
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(refreshData.sessionId && { 'Authorization': `Bearer ${refreshData.sessionId}` }),
+          ...originalOptions?.headers,
+        },
+      });
+      
+      if (retryResponse.ok) {
+        return await retryResponse.json();
+      }
+    }
+    
+    throw new Error('Silent refresh failed');
+    
+  } catch (error) {
+    console.error('Silent refresh failed:', error);
+    
+    // Show toast notification for forced re-login
+    toast({
+      title: "Session Expired",
+      description: "Please log in again to continue",
+      variant: "destructive",
+    });
+    
+    // Redirect to login with return path
+    const currentPath = window.location.pathname + window.location.search;
+    const returnTo = encodeURIComponent(currentPath);
+    window.location.href = `/login?returnTo=${returnTo}`;
+    
+    throw error;
   }
 }
 
@@ -32,46 +97,13 @@ export async function apiRequest<T = unknown>(
     },
   });
 
-  // If we get a 401, try to refresh session with demo login
+  // Centralized 401 handling with silent refresh and redirect
   if (res.status === 401) {
     try {
-      const demoResponse = await fetch('/api/auth/demo-login', {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' }
-      });
-      
-      if (demoResponse.ok) {
-        const demoData = await demoResponse.json();
-        // Update localStorage with new session data
-        if (demoData.sessionId) {
-          localStorage.setItem('sessionId', demoData.sessionId);
-          localStorage.setItem('user', JSON.stringify(demoData.user));
-        }
-        
-        // Retry the original request with Authorization header
-        const retryRes = await fetch(url, {
-          ...options,
-          signal,
-          credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json',
-            ...(demoData.sessionId && { 'Authorization': `Bearer ${demoData.sessionId}` }),
-            ...options?.headers,
-          },
-        });
-        
-        await throwIfResNotOk(retryRes);
-        const retryData = await retryRes.json();
-        
-        if (!isValidApiResponse<T>(retryData)) {
-          throw new Error('Invalid API response format on retry');
-        }
-        
-        return retryData;
-      }
+      return await handle401(url, options);
     } catch (error) {
-      console.error('Failed to refresh session:', error);
+      // 401 handler will manage toast and redirect
+      throw error;
     }
   }
 
@@ -97,40 +129,18 @@ export const getQueryFn = <T = unknown>(options: {
     });
 
     if (res.status === 401) {
-      // Try demo login first
       try {
-        // Clear old session data first
-        localStorage.removeItem('sessionId');
-        localStorage.removeItem('user');
-        
-        const demoResponse = await fetch('/api/auth/demo-login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' }
-        });
-        
-        if (demoResponse.ok) {
-          const demoData = await demoResponse.json();
-          localStorage.setItem('sessionId', demoData.sessionId);
-          localStorage.setItem('user', JSON.stringify(demoData.user));
-          
-          // Retry the original request
-          const retryRes = await fetch(queryKey.join("/") as string, {
-            headers: { Authorization: `Bearer ${demoData.sessionId}` },
-          });
-          
-          if (retryRes.ok) {
-            const retryData = await retryRes.json();
-            if (isValidApiResponse(retryData)) {
-              return retryData;
-            }
-          }
-        }
+        // Use centralized 401 handler
+        return await handle401(queryKey.join("/") as string);
       } catch (error) {
-        console.error('Query retry failed:', error);
-      }
-      
-      if (options.on401 === "returnNull") {
-        return null as T;
+        console.error('Query 401 handling failed:', error);
+        
+        if (options.on401 === "returnNull") {
+          return null as T;
+        }
+        
+        // Re-throw to trigger normal error handling
+        throw error;
       }
     }
 

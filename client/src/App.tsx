@@ -30,6 +30,7 @@ import ActivityLog from "@/pages/activity-log";
 import SeatingChart from "@/pages/seating-chart";
 import IntakeSimple from "@/pages/intake-simple";
 import IntakeWizard from "@/pages/IntakeWizard";
+import Login from "@/pages/login";
 import Sidebar from "@/components/layout/sidebar";
 import Header from "@/components/layout/header";
 import Footer from "@/components/layout/footer";
@@ -132,7 +133,8 @@ function App() {
         <TooltipProvider>
           <div className="min-h-screen bg-gray-50">
             <Switch>
-              <Route path="/login">
+              <Route path="/login" component={Login} />
+              <Route path="/auth">
                 <Auth onAuth={handleAuth} />
                 {/* Debug info in development */}
                 {import.meta.env.NODE_ENV !== "production" && (
