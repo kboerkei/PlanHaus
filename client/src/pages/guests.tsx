@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
-import { EmptyState, EmptyStates } from "@/components/ui/empty-state";
+import { EmptyState, GuestListEmptyState } from "@/components/ui/empty-state";
 import { Users, Mail, Phone, MapPin, Filter, UserPlus, Send, Download, Search, Eye, EyeOff } from "lucide-react";
 import { useProjects } from "@/hooks/useProjects";
 import { useGuests, useGuestStats, useBulkUpdateGuests } from "@/hooks/useGuests";

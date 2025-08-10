@@ -7,7 +7,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
-import { EmptyState, EmptyStates } from "@/components/ui/empty-state";
+import { EmptyState, TaskListEmptyState } from "@/components/ui/empty-state";
 import { Calendar, CheckCircle, Clock, Filter, AlertCircle, Target, TrendingUp, Download, Search, Zap } from "lucide-react";
 import { format, differenceInDays } from "date-fns";
 import { useProjects } from "@/hooks/useProjects";
@@ -361,38 +361,23 @@ export default function Timeline() {
           <CardContent>
             {(searchTerm || filterPriority !== "all" || filterCategory !== "all") ? (
               <EmptyState
-                {...EmptyStates.searchEmpty}
-                primaryAction={{
+                illustration="timeline"
+                title="No tasks match your filters"
+                description="Try adjusting your search or filters to see more tasks."
+                action={{
                   label: "Clear Filters",
                   onClick: () => {
                     setSearchTerm("");
                     setFilterPriority("all");
                     setFilterCategory("all");
-                  },
-                  variant: "outline"
-                }}
-                compact
-              />
-            ) : (
-              <EmptyState
-                {...EmptyStates.noTasks}
-                primaryAction={{
-                  ...EmptyStates.noTasks.primaryAction,
-                  onClick: () => {
-                    // TaskFormDialog will handle opening
                   }
                 }}
-                secondaryAction={{
-                  label: "Import from Template",
-                  onClick: () => {
-                    toast({
-                      title: "Coming Soon",
-                      description: "Task templates will be available in the next update."
-                    });
-                  },
-                  variant: "outline"
+              />
+            ) : (
+              <TaskListEmptyState
+                onAddTask={() => {
+                  // TaskFormDialog will handle opening
                 }}
-                icon={Calendar}
               />
             )}
           </CardContent>

@@ -1,76 +1,56 @@
-import React from "react";
+import * as React from "react";
+import { Slot } from "@radix-ui/react-slot";
+import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
-import { Loader2 } from "lucide-react";
-import { Button as ShadcnButton, ButtonProps as ShadcnButtonProps } from "@/components/ui/button";
+import { componentVariants } from "@/design-system/tokens";
 
-// Enhanced button variants for wedding theme
-const weddingVariants = {
-  wedding: "bg-gradient-to-r from-rose-500 to-rose-600 text-white hover:from-rose-600 hover:to-rose-700 hover:shadow-lg active:from-rose-700 active:to-rose-800 active:scale-[0.98] focus-visible:ring-rose-500 shadow-md transition-all duration-200",
-  elegant: "bg-white border border-rose-200 text-rose-800 shadow-elegant hover:bg-rose-50 hover:border-rose-300 hover:shadow-lg active:bg-rose-100 active:scale-[0.98] focus-visible:ring-rose-500",
-  champagne: "bg-champagne text-rose-800 border border-rose-200 hover:bg-champagne/80 hover:border-rose-300 hover:shadow-md active:bg-champagne/60 active:scale-[0.98] focus-visible:ring-rose-500"
-};
-
-export interface EnhancedButtonProps extends ShadcnButtonProps {
-  variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link" | "wedding" | "elegant" | "champagne";
-  loading?: boolean;
-  loadingText?: string;
-}
-
-const EnhancedButton = React.forwardRef<HTMLButtonElement, EnhancedButtonProps>(
-  ({ 
-    className, 
-    variant = "default", 
-    size = "default",
-    loading = false,
-    loadingText,
-    disabled,
-    children,
-    ...props 
-  }, ref) => {
-    const isDisabled = disabled || loading;
-    
-    // Use wedding variants if specified
-    const customVariant = variant as keyof typeof weddingVariants;
-    const isWeddingVariant = Object.keys(weddingVariants).includes(variant);
-    
-    return (
-      <ShadcnButton
-        className={cn(
-          isWeddingVariant && weddingVariants[customVariant],
-          loading && "opacity-75 cursor-not-allowed pointer-events-none",
-          // Ensure proper hover/focus/active states
-          "transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]",
-          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
-          // Disabled states
-          "disabled:opacity-50 disabled:pointer-events-none disabled:cursor-not-allowed",
-          // Touch-friendly sizing
-          "min-h-[44px]",
-          className
-        )}
-        variant={isWeddingVariant ? "default" : variant}
-        size={size}
-        ref={ref}
-        disabled={isDisabled}
-        data-testid={`button-${variant}-${size}${loading ? "-loading" : ""}`}
-        {...props}
-      >
-        {loading && (
-          <Loader2 
-            className={cn(
-              "animate-spin",
-              size === "sm" ? "h-3 w-3" : 
-              size === "lg" ? "h-5 w-5" :
-              size === "icon" ? "h-4 w-4" : "h-4 w-4",
-              children && "mr-2"
-            )} 
-          />
-        )}
-        {loading && loadingText ? loadingText : children}
-      </ShadcnButton>
-    );
+const buttonVariants = cva(
+  "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+  {
+    variants: {
+      variant: {
+        default: "bg-primary text-primary-foreground hover:bg-primary/90",
+        destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+        outline: "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
+        secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
+        ghost: "hover:bg-accent hover:text-accent-foreground",
+        link: "text-primary underline-offset-4 hover:underline",
+        wedding: "bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-elegant hover:from-rose-600 hover:to-pink-600 hover:shadow-lg active:from-rose-700 active:to-pink-700",
+        champagne: "bg-gradient-to-r from-amber-400 to-amber-500 text-white shadow-champagne hover:from-amber-500 hover:to-amber-600 hover:shadow-lg active:from-amber-600 active:to-amber-700",
+        elegant: "bg-white border-2 border-rose-200 text-rose-700 shadow-elegant hover:border-rose-300 hover:shadow-lg hover:bg-rose-25 active:border-rose-400 active:bg-rose-50",
+      },
+      size: {
+        default: "h-10 px-4 py-2",
+        sm: "h-9 rounded-md px-3",
+        lg: "h-11 rounded-md px-8",
+        icon: "h-10 w-10",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+      size: "default",
+    },
   }
 );
 
+export interface ButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+    VariantProps<typeof buttonVariants> {
+  asChild?: boolean;
+}
+
+const EnhancedButton = React.forwardRef<HTMLButtonElement, ButtonProps>(
+  ({ className, variant, size, asChild = false, ...props }, ref) => {
+    const Comp = asChild ? Slot : "button";
+    return (
+      <Comp
+        className={cn(buttonVariants({ variant, size, className }))}
+        ref={ref}
+        {...props}
+      />
+    );
+  }
+);
 EnhancedButton.displayName = "EnhancedButton";
 
-export { EnhancedButton };
+export { EnhancedButton, buttonVariants };

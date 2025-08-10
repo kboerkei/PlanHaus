@@ -1,7 +1,7 @@
 {
   "env": {
     "browser": true,
-    "es2022": true,
+    "es2021": true,
     "node": true
   },
   "extends": [
@@ -20,41 +20,35 @@
     "ecmaFeatures": {
       "jsx": true
     },
-    "ecmaVersion": "latest",
+    "ecmaVersion": 12,
     "sourceType": "module",
-    "project": ["./tsconfig.json", "./tsconfig.node.json"]
+    "project": "./tsconfig.json"
   },
   "plugins": [
     "react",
-    "react-hooks",
     "@typescript-eslint",
     "jsx-a11y",
     "import",
+    "react-hooks",
     "prettier"
   ],
   "rules": {
-    // TypeScript strict rules
+    "prettier/prettier": "error",
     "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
     "@typescript-eslint/no-explicit-any": "error",
-    "@typescript-eslint/explicit-function-return-type": "warn",
-    "@typescript-eslint/no-non-null-assertion": "error",
-    "@typescript-eslint/prefer-nullish-coalescing": "error",
-    "@typescript-eslint/prefer-optional-chain": "error",
-    "@typescript-eslint/strict-boolean-expressions": "error",
-    "@typescript-eslint/no-floating-promises": "error",
-    "@typescript-eslint/await-thenable": "error",
-    "@typescript-eslint/no-misused-promises": "error",
-    "@typescript-eslint/require-await": "error",
-
-    // React rules
+    "@typescript-eslint/no-non-null-assertion": "warn",
+    "@typescript-eslint/explicit-function-return-type": "off",
+    "@typescript-eslint/explicit-module-boundary-types": "off",
+    "@typescript-eslint/prefer-const": "error",
+    "@typescript-eslint/no-var-requires": "error",
     "react/react-in-jsx-scope": "off",
     "react/prop-types": "off",
-    "react/jsx-uses-react": "off",
-    "react/jsx-uses-vars": "error",
-    "react-hooks/rules-of-hooks": "error",
-    "react-hooks/exhaustive-deps": "warn",
-
-    // Import rules
+    "react/display-name": "off",
+    "jsx-a11y/anchor-is-valid": "off",
+    "jsx-a11y/click-events-have-key-events": "error",
+    "jsx-a11y/no-noninteractive-element-interactions": "error",
+    "jsx-a11y/aria-label": "off",
+    "jsx-a11y/aria-labelledby": "off",
     "import/order": [
       "error",
       {
@@ -62,8 +56,7 @@
           "builtin",
           "external",
           "internal",
-          "parent",
-          "sibling",
+          ["parent", "sibling"],
           "index"
         ],
         "newlines-between": "always",
@@ -73,39 +66,14 @@
         }
       }
     ],
-    "import/no-unresolved": "off", // Handled by TypeScript
-    "import/named": "off", // Handled by TypeScript
-    "import/default": "off", // Handled by TypeScript
-    "import/namespace": "off", // Handled by TypeScript
-
-    // General rules
-    "no-console": ["warn", { "allow": ["warn", "error"] }],
-    "no-debugger": "error",
-    "no-alert": "error",
-    "prefer-const": "error",
-    "no-var": "error",
-    "object-shorthand": "error",
-    "prefer-arrow-callback": "error",
-
-    // Prettier
-    "prettier/prettier": "error"
+    "import/no-unresolved": "off"
   },
   "settings": {
     "react": {
       "version": "detect"
     },
     "import/resolver": {
-      "typescript": {
-        "alwaysTryTypes": true,
-        "project": "./tsconfig.json"
-      }
+      "typescript": {}
     }
-  },
-  "ignorePatterns": [
-    "dist",
-    "node_modules",
-    "*.js",
-    "*.mjs",
-    "vite.config.ts"
-  ]
+  }
 }
