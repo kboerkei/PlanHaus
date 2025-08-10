@@ -4,8 +4,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
 
-import { EnhancedButton } from "@/components/ui/enhanced-button";
-import { EnhancedInput } from "@/components/ui/enhanced-input";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -93,10 +93,9 @@ export default function AddExpenseForm({ projectId, onSuccess }: AddExpenseFormP
             <FormItem>
               <FormLabel>Description *</FormLabel>
               <FormControl>
-                <EnhancedInput
+                <Input
                   {...field}
                   placeholder="Wedding venue deposit"
-                  error={form.formState.errors.description?.message}
                 />
               </FormControl>
               <FormMessage />
@@ -111,14 +110,13 @@ export default function AddExpenseForm({ projectId, onSuccess }: AddExpenseFormP
             <FormItem>
               <FormLabel>Amount *</FormLabel>
               <FormControl>
-                <EnhancedInput
+                <Input
                   {...field}
                   type="number"
                   step="0.01"
                   placeholder="0.00"
-                  onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => field.onChange(parseFloat(e.target.value) || 0)}
                   value={field.value || ""}
-                  error={form.formState.errors.amount?.message}
                 />
               </FormControl>
               <FormMessage />
@@ -161,7 +159,7 @@ export default function AddExpenseForm({ projectId, onSuccess }: AddExpenseFormP
             <FormItem>
               <FormLabel>Vendor</FormLabel>
               <FormControl>
-                <EnhancedInput
+                <Input
                   {...field}
                   placeholder="Vendor name"
                 />
@@ -178,7 +176,7 @@ export default function AddExpenseForm({ projectId, onSuccess }: AddExpenseFormP
             <FormItem>
               <FormLabel>Date</FormLabel>
               <FormControl>
-                <EnhancedInput
+                <Input
                   {...field}
                   type="date"
                 />
@@ -206,15 +204,13 @@ export default function AddExpenseForm({ projectId, onSuccess }: AddExpenseFormP
           )}
         />
 
-        <EnhancedButton
+        <Button
           type="submit"
-          variant="wedding"
-          loading={mutation.isPending}
-          loadingText="Adding Expense..."
           disabled={mutation.isPending}
+          className="w-full"
         >
-          Add Expense
-        </EnhancedButton>
+          {mutation.isPending ? "Adding Expense..." : "Add Expense"}
+        </Button>
       </form>
     </Form>
   );

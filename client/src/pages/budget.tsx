@@ -61,7 +61,9 @@ const Budget = memo(() => {
 
   // Fetch data using hooks
   const { data: projects, isLoading: projectsLoading } = useProjects();
-  const currentProject = projects?.find((p) => p.name === "Emma & Jake's Wedding") || projects?.[0];
+  const currentProject = Array.isArray(projects) 
+    ? projects.find((p: any) => p.name === "Emma & Jake's Wedding") || projects[0]
+    : null;
   const projectId = currentProject?.id?.toString();
   
 
@@ -653,7 +655,7 @@ function BudgetOverviewAnalytics({ budgetItems, budgetSummary }: {
         <CardContent>
           {topCategories.length > 0 ? (
             <div className="space-y-4">
-              {topCategories.map((categoryItem, index) => {
+              {topCategories.map((categoryItem: any, index: number) => {
                 const categoryName = String(categoryItem?.category || 'Uncategorized');
                 const categoryActual = Number(categoryItem?.actual) || 0;
                 const categoryVariance = Number(categoryItem?.variance) || 0;
