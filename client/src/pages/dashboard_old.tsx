@@ -321,6 +321,8 @@ function NextUpSection() {
   );
 }
 
+
+
 function AnimatedDashboardStats() {
   const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -578,6 +580,10 @@ const Dashboard = memo(() => {
               <EnhancedQuickActions />
             </div>
           </motion.div>
+
+
+
+
 
           {/* Planning Tools Section with Data Prefetching */}
           <PlanningToolsSection />
