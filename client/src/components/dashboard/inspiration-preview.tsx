@@ -55,6 +55,9 @@ export default function InspirationPreview() {
               src={image.url} 
               alt={image.alt}
               className="w-full h-full object-cover"
+              width={300}
+              height={200}
+              loading="lazy"
             />
             <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-opacity flex items-center justify-center">
               <Heart className="text-white opacity-0 group-hover:opacity-100 transition-opacity" size={20} />

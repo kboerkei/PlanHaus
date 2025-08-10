@@ -14,31 +14,19 @@ import {
   ArrowDown
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import type { TableColumn, TableProps } from '@/types';
 
-interface Column {
-  key: string;
-  label: string;
-  sortable?: boolean;
-  type?: 'text' | 'number' | 'date' | 'badge' | 'action';
-  render?: (value: any, item: any) => React.ReactNode;
-  className?: string;
-  mobileHidden?: boolean;
-}
-
-interface ResponsiveDataTableProps {
-  data: any[];
-  columns: Column[];
-  onRowClick?: (item: any) => void;
-  onRowSelect?: (selectedItems: any[]) => void;
+interface ResponsiveDataTableProps<T = Record<string, unknown>> extends Omit<TableProps<T>, 'onSort'> {
+  onRowClick?: (item: T) => void;
+  onRowSelect?: (selectedItems: T[]) => void;
   enableSelection?: boolean;
   enablePagination?: boolean;
   pageSize?: number;
   viewMode?: 'table' | 'grid' | 'auto';
-  className?: string;
   emptyState?: React.ReactNode;
 }
 
-export default function ResponsiveDataTable({
+export default function ResponsiveDataTable<T = Record<string, unknown>>({
   data,
   columns,
   onRowClick,
@@ -49,11 +37,11 @@ export default function ResponsiveDataTable({
   viewMode = 'auto',
   className,
   emptyState
-}: ResponsiveDataTableProps) {
+}: ResponsiveDataTableProps<T>) {
   const [currentPage, setCurrentPage] = useState(1);
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
-  const [selectedItems, setSelectedItems] = useState<any[]>([]);
+  const [selectedItems, setSelectedItems] = useState<T[]>([]);
   const [currentViewMode, setCurrentViewMode] = useState<'table' | 'grid'>(
     viewMode === 'auto' ? 'table' : viewMode
   );

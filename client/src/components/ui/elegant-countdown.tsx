@@ -101,9 +101,10 @@ export default function ElegantCountdown() {
           {currentProject.venue && (
             <button
               onClick={handleLocationClick}
-              className="flex items-center justify-center space-x-2 text-gray-600 hover:text-rose-600 transition-colors mx-auto group"
+              className="flex items-center justify-center space-x-2 text-gray-600 hover:text-rose-600 transition-colors mx-auto group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2 rounded-md p-2"
+              aria-label={`View ${currentProject.venue} on map`}
             >
-              <MapPin className="h-4 w-4 group-hover:scale-110 transition-transform" />
+              <MapPin className="h-4 w-4 group-hover:scale-110 transition-transform" aria-hidden="true" />
               <span className="text-base underline decoration-dotted underline-offset-4">
                 {currentProject.venue}
               </span>

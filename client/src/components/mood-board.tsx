@@ -34,18 +34,7 @@ import { Upload, X, Edit, Palette, Trash2, Plus, Heart, Download, Share2 } from 
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-
-interface MoodBoardItem {
-  id: string;
-  title?: string;
-  imageUrl?: string;
-  category?: string;
-  notes?: string;
-  colors?: string[];
-  tags?: string[];
-  position: { x: number; y: number };
-  size: { width: number; height: number };
-}
+import type { MoodBoardItem } from '@/types';
 
 interface SortableItemProps {
   item: MoodBoardItem;

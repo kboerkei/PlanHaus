@@ -57,9 +57,11 @@ export default function MobileNav() {
               key={item.name} 
               href={item.href}
               className={cn(
-                "relative flex flex-col items-center py-2 px-1 transition-all duration-300 hover-lift touch-manipulation min-h-[60px] group",
+                "relative flex flex-col items-center py-2 px-1 transition-all duration-300 hover-lift touch-manipulation min-h-[60px] group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2 rounded-lg",
                 isActive ? "text-gray-800" : "text-gray-500"
               )}
+              aria-label={`Navigate to ${item.name}`}
+              aria-current={isActive ? "page" : undefined}
             >
               {/* Active indicator */}
               {isActive && (
@@ -89,9 +91,13 @@ export default function MobileNav() {
         
         <Sheet open={isMoreOpen} onOpenChange={setIsMoreOpen}>
           <SheetTrigger asChild>
-            <button className="relative flex flex-col items-center py-2 px-1 transition-all duration-300 hover-lift text-gray-500 touch-manipulation min-h-[60px] group">
+            <button 
+              className="relative flex flex-col items-center py-2 px-1 transition-all duration-300 hover-lift text-gray-500 touch-manipulation min-h-[60px] group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2 rounded-lg"
+              aria-label="Open navigation menu"
+              aria-expanded={isMoreOpen}
+            >
               <div className="relative p-1.5 rounded-lg bg-gradient-to-br from-gray-400 to-gray-600 shadow-md mb-1 scale-90 opacity-70 group-hover:scale-95 transition-all duration-300">
-                <MoreHorizontal className="h-3.5 w-3.5 text-white" />
+                <MoreHorizontal className="h-3.5 w-3.5 text-white" aria-hidden="true" />
               </div>
               <span className="text-[10px] font-semibold truncate max-w-[60px]">More</span>
             </button>

@@ -67,6 +67,86 @@ export interface ChartDataPoint {
   color?: string;
 }
 
+export interface BudgetChartData {
+  category: string;
+  estimated: number;
+  actual: number;
+  percentage?: number;
+  color?: string;
+}
+
+export interface BudgetItem {
+  id: number | string;
+  projectId?: number;
+  category: string;
+  item: string;
+  estimatedCost: number;
+  actualCost: number;
+  vendor?: string;
+  isPaid?: boolean;
+  notes?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface MoodBoardItem {
+  id: string;
+  title?: string;
+  imageUrl?: string;
+  category?: string;
+  notes?: string;
+  colors?: string[];
+  tags?: string[];
+  position: { x: number; y: number };
+  size: { width: number; height: number };
+}
+
+export interface DashboardStats {
+  tasks: {
+    total: number;
+    completed: number;
+    pending: number;
+    overdue: number;
+  };
+  guests: {
+    total: number;
+    confirmed: number;
+    declined: number;
+    pending: number;
+  };
+  budget: {
+    totalBudget: number;
+    totalSpent: number;
+    remaining: number;
+    percentage: number;
+  };
+  vendors: {
+    total: number;
+    booked: number;
+    pending: number;
+  };
+}
+
+export interface TableColumn<T = Record<string, unknown>> {
+  key: string;
+  label: string;
+  sortable?: boolean;
+  type?: 'text' | 'number' | 'date' | 'badge' | 'action';
+  render?: (value: unknown, item: T) => React.ReactNode;
+  className?: string;
+  mobileHidden?: boolean;
+}
+
+export interface TableProps<T = Record<string, unknown>> {
+  data: T[];
+  columns: TableColumn<T>[];
+  loading?: boolean;
+  sortKey?: string;
+  sortOrder?: 'asc' | 'desc';
+  onSort?: (key: string, order: 'asc' | 'desc') => void;
+  className?: string;
+}
+
 export interface AnalyticsEvent {
   action: string;
   category: string;

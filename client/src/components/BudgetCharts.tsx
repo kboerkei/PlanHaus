@@ -6,17 +6,7 @@ import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { TrendingUp, TrendingDown, AlertTriangle, CheckCircle, DollarSign, Target, CreditCard } from 'lucide-react';
 import * as accounting from 'accounting-js';
-
-interface BudgetItem {
-  id: number;
-  category: string;
-  item: string;
-  estimatedCost: number;
-  actualCost: number;
-  vendor?: string;
-  isPaid?: boolean;
-  notes?: string;
-}
+import type { BudgetItem, BudgetChartData } from '@/types';
 
 interface BudgetChartsProps {
   budgetItems: BudgetItem[];

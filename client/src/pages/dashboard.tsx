@@ -19,7 +19,7 @@ import { Calendar, DollarSign, Users, Store, Palette, Bot, Clock, Globe, ArrowRi
 import ExportDialog from "@/components/export/ExportDialog";
 import { Button, Card, CardContent, CardHeader, CardTitle, SectionHeader } from "@/components/design-system";
 import { Badge } from "@/components/ui/badge";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useDashboardPrefetch, useTabVisibilityOptimization, useStaleDataCleanup } from "@/hooks/useDashboardPrefetch";
 import { motion, AnimatePresence } from "framer-motion";
 import { format, differenceInDays } from "date-fns";
@@ -51,10 +51,10 @@ const navigationSections = [
     title: "Planning",
     description: "Core wedding planning tools",
     items: [
-      { href: "/timeline", label: "Timeline & Tasks", icon: Calendar, description: "Manage your wedding timeline" },
-      { href: "/budget", label: "Budget Tracker", icon: DollarSign, description: "Track expenses and costs" },
-      { href: "/guests", label: "Guest Management", icon: Users, description: "Manage your guest list" },
-      { href: "/vendors", label: "Vendor Directory", icon: Store, description: "Find and manage vendors" },
+      { href: "/timeline", label: "Timeline & Tasks", icon: Calendar, description: "Manage your wedding timeline", prefetchKey: ['/api/projects', 1, 'tasks'] },
+      { href: "/budget", label: "Budget Tracker", icon: DollarSign, description: "Track expenses and costs", prefetchKey: ['/api/projects', 1, 'budget'] },
+      { href: "/guests", label: "Guest Management", icon: Users, description: "Manage your guest list", prefetchKey: ['/api/projects', 1, 'guests'] },
+      { href: "/vendors", label: "Vendor Directory", icon: Store, description: "Find and manage vendors", prefetchKey: ['/api/projects', 1, 'vendors'] },
     ]
   },
   {
@@ -75,6 +75,93 @@ const getGreeting = () => {
   if (hour < 18) return "Good afternoon";
   return "Good evening";
 };
+
+// Planning Tools Section with Data Prefetching
+const PlanningToolsSection = memo(() => {
+  const queryClient = useQueryClient();
+
+  const prefetchPageData = (prefetchKey?: any[]) => {
+    if (!prefetchKey) return;
+    
+    queryClient.prefetchQuery({
+      queryKey: prefetchKey,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+    });
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, delay: 1.4 }}
+      className="mb-6 sm:mb-8"
+    >
+      <SectionHeader
+        variant="wedding"
+        size="lg"
+        alignment="center"
+        title="Planning Tools"
+        subtitle="Everything you need to plan your perfect wedding"
+        showAccent={true}
+        accentColor="rose"
+        className="mb-6 sm:mb-8"
+      />
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 lg:gap-8 max-w-6xl mx-auto">
+        {navigationSections.map((section, sectionIndex) => (
+          <motion.div
+            key={section.title}
+            initial={{ opacity: 0, x: sectionIndex % 2 === 0 ? -20 : 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.1 * sectionIndex }}
+          >
+            <Card variant="wedding" className="h-full">
+              <CardHeader className="pb-3 sm:pb-4">
+                <CardTitle className="font-heading text-lg sm:text-xl lg:text-2xl text-foreground flex items-center gap-3">
+                  <div className="w-1 sm:w-2 h-6 sm:h-8 bg-gradient-to-b from-rose-400 to-pink-500 rounded-full"></div>
+                  {section.title}
+                </CardTitle>
+                <p className="text-muted-foreground text-sm sm:text-base font-medium">{section.description}</p>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <div className="grid grid-cols-1 gap-2 sm:gap-3">
+                  {section.items.map((item, itemIndex) => {
+                    const Icon = item.icon;
+                    return (
+                      <Link key={item.href} href={item.href}>
+                        <Button
+                          variant="ghost"
+                          className="w-full justify-start h-auto p-4 sm:p-5 lg:p-6 hover:bg-rose-50 hover:border-rose-200 border border-transparent transition-all duration-200 group hover:scale-105 touch-target"
+                          onMouseEnter={() => prefetchPageData(item.prefetchKey)}
+                          onFocus={() => prefetchPageData(item.prefetchKey)}
+                        >
+                          <div className="flex items-center space-x-3 lg:space-x-4 w-full min-w-0">
+                            <div className="flex-shrink-0">
+                              <Icon className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 text-rose-400 group-hover:text-rose-500 transition-colors" />
+                            </div>
+                            <div className="flex-1 text-left min-w-0">
+                              <div className="font-medium text-foreground group-hover:text-rose-600 transition-colors text-sm sm:text-base lg:text-lg truncate">
+                                {item.label}
+                              </div>
+                              <div className="text-xs sm:text-sm lg:text-base text-muted-foreground truncate">
+                                {item.description}
+                              </div>
+                            </div>
+                            <ArrowRight className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground group-hover:text-rose-500 transition-colors flex-shrink-0" />
+                          </div>
+                        </Button>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        ))}
+      </div>
+    </motion.div>
+  );
+});
 
 // Enhanced Dashboard Components
 function PersonalizedGreeting() {
@@ -568,75 +655,8 @@ const Dashboard = memo(() => {
             </div>
           </motion.div>
 
-          {/* Planning Tools Section */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 1.4 }}
-            className="mb-6 sm:mb-8"
-          >
-            <SectionHeader
-              variant="wedding"
-              size="lg"
-              alignment="center"
-              title="Planning Tools"
-              subtitle="Everything you need to plan your perfect wedding"
-              showAccent={true}
-              accentColor="rose"
-              className="mb-6 sm:mb-8"
-            />
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 lg:gap-8 max-w-6xl mx-auto">
-              {navigationSections.map((section, sectionIndex) => (
-                <motion.div
-                  key={section.title}
-                  initial={{ opacity: 0, x: sectionIndex % 2 === 0 ? -20 : 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.1 * sectionIndex }}
-                >
-                  <Card variant="wedding" className="h-full">
-                    <CardHeader className="pb-3 sm:pb-4">
-                      <CardTitle className="font-heading text-lg sm:text-xl lg:text-2xl text-foreground flex items-center gap-3">
-                        <div className="w-1 sm:w-2 h-6 sm:h-8 bg-gradient-to-b from-rose-400 to-pink-500 rounded-full"></div>
-                        {section.title}
-                      </CardTitle>
-                      <p className="text-muted-foreground text-sm sm:text-base font-medium">{section.description}</p>
-                    </CardHeader>
-                    <CardContent className="pt-0">
-                      <div className="grid grid-cols-1 gap-2 sm:gap-3">
-                        {section.items.map((item, itemIndex) => {
-                          const Icon = item.icon;
-                          return (
-                            <Link key={item.href} href={item.href}>
-                              <Button
-                                variant="ghost"
-                                className="w-full justify-start h-auto p-4 sm:p-5 lg:p-6 hover:bg-rose-50 hover:border-rose-200 border border-transparent transition-all duration-200 group hover:scale-105 touch-target"
-                              >
-                                <div className="flex items-center space-x-3 lg:space-x-4 w-full min-w-0">
-                                  <div className="flex-shrink-0">
-                                    <Icon className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 text-rose-400 group-hover:text-rose-500 transition-colors" />
-                                  </div>
-                                  <div className="flex-1 text-left min-w-0">
-                                    <div className="font-medium text-foreground group-hover:text-rose-600 transition-colors text-sm sm:text-base lg:text-lg truncate">
-                                      {item.label}
-                                    </div>
-                                    <div className="text-xs sm:text-sm lg:text-base text-muted-foreground truncate">
-                                      {item.description}
-                                    </div>
-                                  </div>
-                                  <ArrowRight className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground group-hover:text-rose-500 transition-colors flex-shrink-0" />
-                                </div>
-                              </Button>
-                            </Link>
-                          );
-                        })}
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ))}
-            </div>
-          </motion.div>
+          {/* Planning Tools Section with Data Prefetching */}
+          <PlanningToolsSection />
         </div>
       </div>
     </div>

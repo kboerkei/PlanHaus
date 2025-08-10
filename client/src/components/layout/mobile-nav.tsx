@@ -41,12 +41,14 @@ export default function MobileNav() {
               key={item.name} 
               onClick={() => handleNavClick(item.href)}
               className={cn(
-                "flex flex-col items-center py-3 px-2 transition-colors touch-manipulation min-h-[48px] relative",
+                "flex flex-col items-center py-3 px-2 transition-colors touch-manipulation min-h-[48px] relative focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2 rounded-md",
                 isActive ? "text-blush" : "text-gray-400 active:text-gray-600"
               )}
               type="button"
+              aria-label={`Navigate to ${item.name}`}
+              aria-current={isActive ? "page" : undefined}
             >
-              <Icon size={18} />
+              <Icon size={18} aria-hidden="true" />
               <span className="text-xs mt-1 truncate">{item.name}</span>
             </button>
           );
@@ -54,8 +56,12 @@ export default function MobileNav() {
         
         <Sheet open={isMoreOpen} onOpenChange={setIsMoreOpen}>
           <SheetTrigger asChild>
-            <button className="flex flex-col items-center py-2 px-1 transition-colors text-gray-400 active:text-gray-600 touch-manipulation">
-              <MoreHorizontal size={18} />
+            <button 
+              className="flex flex-col items-center py-2 px-1 transition-colors text-gray-400 active:text-gray-600 touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2 rounded-md"
+              aria-label="Open navigation menu"
+              aria-expanded={isMoreOpen}
+            >
+              <MoreHorizontal size={18} aria-hidden="true" />
               <span className="text-xs mt-1">More</span>
             </button>
           </SheetTrigger>

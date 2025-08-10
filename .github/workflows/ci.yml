@@ -66,5 +66,11 @@ jobs:
       - name: Build application
         run: npm run build
 
+      - name: Start application
+        run: npm run dev &
+        
+      - name: Wait for application
+        run: npx wait-on http://localhost:5000 --timeout 60000
+
       - name: Run accessibility audit
-        run: npx pa11y-ci --sitemap http://localhost:3000/sitemap.xml
+        run: npx pa11y-ci --sitemap http://localhost:5000/sitemap.xml

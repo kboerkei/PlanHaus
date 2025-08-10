@@ -14,6 +14,7 @@ import {
   AlertTriangle,
   Zap
 } from "lucide-react";
+import type { DashboardStats } from '@/types';
 
 interface StatCardProps {
   title: string;
@@ -21,7 +22,7 @@ interface StatCardProps {
   subtitle?: string;
   progress?: number;
   trend?: 'up' | 'down' | 'neutral';
-  icon: React.ComponentType<any>;
+  icon: React.ComponentType<{ className?: string }>;
   urgency?: 'high' | 'medium' | 'low';
 }
 
