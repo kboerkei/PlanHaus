@@ -420,21 +420,23 @@ function BudgetOverviewAnalytics({ budgetItems, budgetSummary }: {
 
   // Category data for charts
   const categoryData = useMemo(() => {
-    if (!budgetSummary?.categories) return [];
+    if (!budgetSummary?.categories || !Array.isArray(budgetSummary.categories)) return [];
     
     const colors = [
       '#8b5cf6', '#06b6d4', '#10b981', '#f59e0b', '#ef4444',
       '#ec4899', '#8b5cf6', '#06b6d4', '#10b981', '#f59e0b'
     ];
     
-    return budgetSummary.categories.map((cat: any, index: number) => ({
-      category: getCategoryDisplayName(cat.category),
-      estimated: cat.estimated,
-      actual: cat.actual,
-      variance: cat.actual - cat.estimated,
-      count: cat.items,
-      color: colors[index % colors.length]
-    }));
+    return budgetSummary.categories
+      .filter((cat: any) => cat && typeof cat === 'object')
+      .map((cat: any, index: number) => ({
+        category: getCategoryDisplayName(cat.category),
+        estimated: Number(cat.estimated) || 0,
+        actual: Number(cat.actual) || 0,
+        variance: (Number(cat.actual) || 0) - (Number(cat.estimated) || 0),
+        count: Number(cat.items) || 0,
+        color: colors[index % colors.length]
+      }));
   }, [budgetSummary]);
 
   // Payment status data
@@ -484,14 +486,15 @@ function BudgetOverviewAnalytics({ budgetItems, budgetSummary }: {
     if (!categoryData || categoryData.length === 0) return [];
     
     return categoryData
-      .filter((cat: any) => cat && cat.actual > 0)
-      .sort((a: any, b: any) => (b.actual || 0) - (a.actual || 0))
+      .filter((cat: any) => cat && typeof cat === 'object' && (cat.actual || 0) > 0)
+      .sort((a: any, b: any) => (Number(b.actual) || 0) - (Number(a.actual) || 0))
       .slice(0, 5)
-      .map((cat: any) => ({
-        category: cat.category || 'Uncategorized',
-        actual: cat.actual || 0,
-        variance: cat.variance || 0,
-        count: cat.count || 0
+      .map((cat: any, index: number) => ({
+        id: `category-${index}`,
+        category: String(cat.category || 'Uncategorized'),
+        actual: Number(cat.actual) || 0,
+        variance: Number(cat.variance) || 0,
+        count: Number(cat.count) || 0
       }));
   }, [categoryData]);
 
@@ -583,7 +586,7 @@ function BudgetOverviewAnalytics({ budgetItems, budgetSummary }: {
           </CardHeader>
           <CardContent>
             <Suspense fallback={<ChartSkeleton />}>
-              <BudgetPieChart data={categoryData.filter((item: any) => item.actual > 0)} />
+              <BudgetPieChart data={categoryData.filter((item: any) => item && typeof item.actual === 'number' && item.actual > 0)} />
             </Suspense>
           </CardContent>
         </Card>
@@ -600,7 +603,7 @@ function BudgetOverviewAnalytics({ budgetItems, budgetSummary }: {
           </CardHeader>
           <CardContent>
             <Suspense fallback={<ChartSkeleton />}>
-              <BudgetPieChart data={paymentData.filter(item => item.value > 0)} />
+              <BudgetPieChart data={paymentData.filter(item => item && typeof item.value === 'number' && item.value > 0)} />
             </Suspense>
           </CardContent>
         </Card>
@@ -650,25 +653,32 @@ function BudgetOverviewAnalytics({ budgetItems, budgetSummary }: {
         <CardContent>
           {topCategories.length > 0 ? (
             <div className="space-y-4">
-              {topCategories.map((category: any, index: number) => (
-                <div key={`${category.category || 'unknown'}-${index}`} className="flex items-center justify-between p-3 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors">
-                  <div className="flex items-center space-x-3">
-                    <div className="text-lg font-bold text-gray-700 bg-white rounded-full w-8 h-8 flex items-center justify-center">
-                      #{index + 1}
+              {topCategories.map((categoryItem, index) => {
+                const categoryName = String(categoryItem?.category || 'Uncategorized');
+                const categoryActual = Number(categoryItem?.actual) || 0;
+                const categoryVariance = Number(categoryItem?.variance) || 0;
+                const categoryCount = Number(categoryItem?.count) || 0;
+                
+                return (
+                  <div key={categoryItem?.id || `category-${index}`} className="flex items-center justify-between p-3 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors">
+                    <div className="flex items-center space-x-3">
+                      <div className="text-lg font-bold text-gray-700 bg-white rounded-full w-8 h-8 flex items-center justify-center">
+                        #{index + 1}
+                      </div>
+                      <div>
+                        <div className="font-semibold text-gray-900 capitalize">{categoryName}</div>
+                        <div className="text-sm text-gray-600">{categoryCount} items</div>
+                      </div>
                     </div>
-                    <div>
-                      <div className="font-semibold text-gray-900 capitalize">{category.category || 'Uncategorized'}</div>
-                      <div className="text-sm text-gray-600">{category.count || 0} items</div>
+                    <div className="text-right">
+                      <div className="font-bold text-lg text-gray-900">{formatCurrency(categoryActual)}</div>
+                      <Badge variant={categoryVariance > 0 ? 'destructive' : 'default'} className="text-xs">
+                        {categoryVariance > 0 ? '+' : ''}{formatCurrency(Math.abs(categoryVariance))}
+                      </Badge>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <div className="font-bold text-lg text-gray-900">{formatCurrency(category.actual || 0)}</div>
-                    <Badge variant={(category.variance || 0) > 0 ? 'destructive' : 'default'} className="text-xs">
-                      {(category.variance || 0) > 0 ? '+' : ''}{formatCurrency(category.variance || 0)}
-                    </Badge>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           ) : (
             <div className="text-center text-gray-500 py-8">
