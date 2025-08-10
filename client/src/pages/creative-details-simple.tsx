@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -474,6 +474,7 @@ const CreativeDetailsPage: React.FC = () => {
                       variant="ghost"
                       size="sm"
                       onClick={() => toggleCategory(category.id)}
+                      aria-label={`${isExpanded ? 'Collapse' : 'Expand'} ${category.title} category`}
                     >
                       {isExpanded ? (
                         <ChevronDown className="h-4 w-4" />
@@ -528,6 +529,7 @@ const CreativeDetailsPage: React.FC = () => {
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => openEditForm(detail)}
+                                aria-label={`Edit ${detail.title}`}
                               >
                                 <Edit className="h-4 w-4" />
                               </Button>
@@ -535,6 +537,7 @@ const CreativeDetailsPage: React.FC = () => {
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => handleDelete(detail.id)}
+                                aria-label={`Delete ${detail.title}`}
                               >
                                 <Trash2 className="h-4 w-4" />
                               </Button>
@@ -558,6 +561,9 @@ const CreativeDetailsPage: React.FC = () => {
             <DialogTitle>
               {editingDetail ? 'Edit Creative Detail' : 'Add Creative Detail'}
             </DialogTitle>
+            <DialogDescription>
+              {editingDetail ? 'Update your creative wedding detail information.' : 'Add a new creative detail to personalize your wedding.'}
+            </DialogDescription>
           </DialogHeader>
 
           <form onSubmit={handleSubmit} className="space-y-4">

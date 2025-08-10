@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -161,6 +161,9 @@ export default function BudgetEntryDialog({ isOpen, setIsOpen, budgetItem }: Bud
           <DialogTitle className="text-xl font-serif text-blush">
             {budgetItem ? "Edit Budget Item" : "Add Budget Item"}
           </DialogTitle>
+          <DialogDescription>
+            {budgetItem ? "Update your budget item details and costs." : "Add a new expense to track in your wedding budget."}
+          </DialogDescription>
         </DialogHeader>
         
         <Form {...form}>

@@ -69,6 +69,7 @@ export default function FloatingActions() {
                     action.color
                   )}
                   onClick={() => setIsOpen(false)}
+                  aria-label={action.label}
                 >
                   <Icon size={20} className="text-white" />
                 </Button>
@@ -87,6 +88,7 @@ export default function FloatingActions() {
           "transform transition-all duration-300 hover:scale-110",
           isOpen && "rotate-45"
         )}
+        aria-label={isOpen ? "Close quick actions menu" : "Open quick actions menu"}
       >
         {isOpen ? (
           <X size={24} className="text-white" />

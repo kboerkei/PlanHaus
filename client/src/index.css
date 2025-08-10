@@ -71,6 +71,10 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 347 77% 50%;
     --radius: 0.5rem;
+    
+    /* Focus ring for accessibility */
+    --focus-ring: 2px solid hsl(347, 77%, 50%);
+    --focus-ring-offset: 2px;
 
     /* Wedding Theme Colors - Light Mode */
     --blush: 330 81% 85%;

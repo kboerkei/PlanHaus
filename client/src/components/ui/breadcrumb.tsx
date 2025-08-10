@@ -59,7 +59,7 @@ const BreadcrumbSeparator = memo(({ className }: BreadcrumbSeparatorProps) => (
 ));
 
 const BreadcrumbHome = memo(({ href = "/", className }: { href?: string; className?: string }) => (
-  <Link href={href} className={cn("transition-colors hover:text-foreground", className)}>
+  <Link href={href} className={cn("transition-colors hover:text-foreground", className)} aria-label="Go to home page">
     <Home className="h-4 w-4" />
     <span className="sr-only">Home</span>
   </Link>

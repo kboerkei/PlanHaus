@@ -184,6 +184,7 @@ export default function AIVendorSearch({ isOpen, onClose, projectId }: AIVendorS
             size="sm"
             onClick={onClose}
             className="absolute right-0 top-0 p-2"
+            aria-label="Close vendor search"
           >
             <X className="h-4 w-4" />
           </Button>

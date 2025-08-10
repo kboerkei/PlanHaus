@@ -355,6 +355,7 @@ export default function Vendors() {
               variant="outline"
               size="sm"
               onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
+              aria-label={`Sort ${sortOrder === "asc" ? "descending" : "ascending"}`}
             >
               {sortOrder === "asc" ? "↑ A-Z" : "↓ Z-A"}
             </Button>
