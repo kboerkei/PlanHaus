@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { useFormWithAutosave } from "@/hooks/useFormWithAutosave";
+import { SaveStatusIndicator } from "@/components/forms/SaveStatusIndicator";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -11,6 +11,13 @@ import { Plus } from "lucide-react";
 import { taskSchema, TaskFormData } from "@/schemas";
 import { useCreateTask, useUpdateTask } from "@/hooks/useTimeline";
 import { useToast } from "@/hooks/use-toast";
+import {
+  TextField,
+  TextareaField,
+  SelectField,
+  DateField,
+  CheckboxField,
+} from "@/components/forms/FormField";
 
 interface TaskFormDialogProps {
   projectId: string;
@@ -25,8 +32,8 @@ export default function TaskFormDialog({ projectId, task, trigger, onClose }: Ta
   const createTask = useCreateTask(projectId);
   const updateTask = useUpdateTask(projectId);
 
-  const form = useForm<TaskFormData>({
-    resolver: zodResolver(taskSchema),
+  const form = useFormWithAutosave<TaskFormData>({
+    schema: taskSchema,
     defaultValues: {
       title: task?.title || "",
       description: task?.description || "",
@@ -34,9 +41,24 @@ export default function TaskFormDialog({ projectId, task, trigger, onClose }: Ta
       priority: task?.priority || "medium",
       category: task?.category || "planning",
       assignedTo: task?.assignedTo || "",
+      status: task?.status || "not_started",
       isCompleted: task?.isCompleted || false,
+      notes: task?.notes || "",
+    },
+    autosave: {
+      enabled: !!task, // Only enable autosave for editing existing tasks
+      saveEndpoint: `/api/projects/${projectId}/tasks`,
+      updateEndpoint: `/api/projects/${projectId}/tasks/:id`,
+      queryKey: ['/api/projects', projectId, 'tasks'],
+      getId: (data) => task?.id,
+      transformBeforeSave: (data) => ({
+        ...data,
+        projectId: Number(projectId),
+      }),
     },
   });
+
+  const { control, handleSubmit, formState, saveManually, isSaving, lastSaved, hasUnsavedChanges } = form;
 
   const onSubmit = async (data: TaskFormData) => {
     try {
@@ -79,128 +101,125 @@ export default function TaskFormDialog({ projectId, task, trigger, onClose }: Ta
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <FormField
-              control={form.control}
+          <div className="space-y-4">
+            {task && (
+              <SaveStatusIndicator
+                isSaving={isSaving}
+                lastSaved={lastSaved}
+                hasUnsavedChanges={hasUnsavedChanges}
+              />
+            )}
+          </div>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            <TextField
+              control={control}
               name="title"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Title *</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Enter task title..." {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              label="Title"
+              placeholder="Enter task title..."
+              required
             />
 
-            <FormField
-              control={form.control}
+            <TextareaField
+              control={control}
               name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Description</FormLabel>
-                  <FormControl>
-                    <Textarea placeholder="Enter task description..." {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              label="Description"
+              placeholder="Enter task description..."
+              rows={3}
             />
 
             <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
+              <SelectField
+                control={control}
                 name="category"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Category</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select category" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="venue">Venue</SelectItem>
-                        <SelectItem value="catering">Catering</SelectItem>
-                        <SelectItem value="photography">Photography</SelectItem>
-                        <SelectItem value="flowers">Flowers</SelectItem>
-                        <SelectItem value="music">Music</SelectItem>
-                        <SelectItem value="attire">Attire</SelectItem>
-                        <SelectItem value="planning">Planning</SelectItem>
-                        <SelectItem value="other">Other</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                label="Category"
+                options={[
+                  { value: "planning", label: "Planning" },
+                  { value: "venue", label: "Venue" },
+                  { value: "catering", label: "Catering" },
+                  { value: "photography", label: "Photography" },
+                  { value: "flowers", label: "Flowers" },
+                  { value: "music", label: "Music" },
+                  { value: "attire", label: "Attire" },
+                  { value: "invitations", label: "Invitations" },
+                  { value: "decorations", label: "Decorations" },
+                  { value: "other", label: "Other" },
+                ]}
               />
 
-              <FormField
-                control={form.control}
+              <SelectField
+                control={control}
                 name="priority"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Priority</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select priority" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="low">Low</SelectItem>
-                        <SelectItem value="medium">Medium</SelectItem>
-                        <SelectItem value="high">High</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                label="Priority"
+                options={[
+                  { value: "low", label: "Low" },
+                  { value: "medium", label: "Medium" },
+                  { value: "high", label: "High" },
+                ]}
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
+              <DateField
+                control={control}
                 name="dueDate"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Due Date</FormLabel>
-                    <FormControl>
-                      <Input type="date" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                label="Due Date"
               />
 
-              <FormField
-                control={form.control}
+              <TextField
+                control={control}
                 name="assignedTo"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Assigned To</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Person responsible..." {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                label="Assigned To"
+                placeholder="Person responsible..."
               />
             </div>
 
-            <div className="flex justify-end space-x-2 pt-4">
-              <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>
+            <TextareaField
+              control={control}
+              name="notes"
+              label="Notes"
+              placeholder="Additional notes or requirements..."
+              rows={2}
+            />
+
+            <CheckboxField
+              control={control}
+              name="isCompleted"
+              label="Mark as completed"
+              description="Check if this task is finished"
+            />
+
+            <div className="flex justify-end space-x-3 pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setIsOpen(false);
+                  onClose?.();
+                }}
+                disabled={createTask.isPending || updateTask.isPending}
+              >
                 Cancel
               </Button>
-              <Button 
-                type="submit" 
+              {task && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={saveManually}
+                  disabled={!hasUnsavedChanges || isSaving}
+                >
+                  {isSaving ? "Saving..." : "Save Now"}
+                </Button>
+              )}
+              <Button
+                type="submit"
                 disabled={createTask.isPending || updateTask.isPending}
                 className="gradient-blush-rose text-white"
               >
-                {createTask.isPending || updateTask.isPending ? "Saving..." : (task ? "Update Task" : "Create Task")}
+                {createTask.isPending || updateTask.isPending
+                  ? "Saving..."
+                  : task
+                  ? "Update Task"
+                  : "Create Task"}
               </Button>
             </div>
           </form>
