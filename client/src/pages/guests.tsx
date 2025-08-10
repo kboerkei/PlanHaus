@@ -53,7 +53,7 @@ export default function Guests() {
 
   // Fetch data using hooks
   const { data: projects, isLoading: projectsLoading } = useProjects();
-  const currentProject = projects?.find((p) => p.name === "Emma & Jake's Wedding") || projects?.[0];
+  const currentProject = Array.isArray(projects) ? projects.find((p: any) => p.name === "Emma & Jake's Wedding") || projects[0] : null;
   const projectId = currentProject?.id?.toString();
   
   const { data: guests = [], isLoading: guestsLoading, error: guestsError } = useGuests(projectId);

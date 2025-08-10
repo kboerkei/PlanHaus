@@ -85,8 +85,11 @@ function SortableItem({ item, onEdit, onDelete }: SortableItemProps) {
             <img
               src={item.imageUrl}
               alt={item.title || 'Mood board item'}
+              width={200}
+              height={128}
               className="w-full h-32 object-cover rounded-md"
               draggable={false}
+              loading="lazy"
             />
             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors rounded-md" />
           </div>
@@ -446,6 +449,8 @@ export default function MoodBoard({ inspirationItems, onItemsChange }: MoodBoard
                             <img
                               src={URL.createObjectURL(file)}
                               alt={file.name}
+                              width={80}
+                              height={80}
                               className="w-full h-20 object-cover rounded border"
                             />
                             <Button

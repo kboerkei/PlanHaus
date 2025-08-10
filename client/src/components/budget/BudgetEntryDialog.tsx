@@ -61,7 +61,7 @@ export default function BudgetEntryDialog({ isOpen, setIsOpen, budgetItem }: Bud
         item: budgetItem.item,
         estimatedCost: budgetItem.estimatedCost?.toString() || "",
         actualCost: budgetItem.actualCost?.toString() || "",
-        vendor: budgetItem.vendor || "",
+        vendor: "", // Note: vendor field from vendorId relation
         notes: budgetItem.notes || "",
         isPaid: budgetItem.isPaid || false,
       });

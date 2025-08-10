@@ -560,7 +560,7 @@ function BudgetOverviewAnalytics({ budgetItems, budgetSummary }: {
         </CardContent>
       </Card>
 
-      {/* Charts Grid */}
+      {/* Optimized Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Spending by Category Pie Chart */}
         <Card className="card-elegant animate-slide-in-left">
@@ -573,40 +573,16 @@ function BudgetOverviewAnalytics({ budgetItems, budgetSummary }: {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {categoryData.filter((item: any) => item.actual > 0).length > 0 ? (
-              <ResponsiveContainer width="100%" height={300}>
-                <RechartsPieChart>
-                  <Pie
-                    data={categoryData.filter((item: any) => item.actual > 0)}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ category, actual, percent }: any) => 
-                      percent > 10 ? `${category}: ${formatCurrency(actual)}` : ''
-                    }
-                    outerRadius={100}
-                    fill="#8884d8"
-                    dataKey="actual"
-                  >
-                    {categoryData.filter((item: any) => item.actual > 0).map((entry: any, index: number) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip formatter={(value) => formatCurrency(value as number)} />
-                  <Legend 
-                    verticalAlign="bottom" 
-                    height={36}
-                    formatter={(value: any, entry: any) => 
-                      `${value}: ${formatCurrency(entry?.payload?.actual || 0)}`
-                    }
-                  />
-                </RechartsPieChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="flex items-center justify-center h-[300px] text-gray-500">
-                No spending data to display
-              </div>
-            )}
+            <Suspense fallback={<ChartSkeleton />}>
+              <ConsolidatedChart
+                type="pie"
+                data={categoryData.filter((item: any) => item.actual > 0)}
+                config={{}}
+                height={300}
+                dataKey="actual"
+                colors={categoryData.map((item: any) => item.color)}
+              />
+            </Suspense>
           </CardContent>
         </Card>
 
@@ -621,40 +597,16 @@ function BudgetOverviewAnalytics({ budgetItems, budgetSummary }: {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {paymentData.some(item => item.value > 0) ? (
-              <ResponsiveContainer width="100%" height={300}>
-                <RechartsPieChart>
-                  <Pie
-                    data={paymentData.filter(item => item.value > 0)}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ name, value, percent }) => 
-                      percent > 10 ? `${name}: ${formatCurrency(value)}` : ''
-                    }
-                    outerRadius={100}
-                    fill="#8884d8"
-                    dataKey="value"
-                  >
-                    {paymentData.filter(item => item.value > 0).map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip formatter={(value) => formatCurrency(value as number)} />
-                  <Legend 
-                    verticalAlign="bottom" 
-                    height={36}
-                    formatter={(value, entry) => 
-                      `${value}: ${formatCurrency(entry.payload.value)}`
-                    }
-                  />
-                </RechartsPieChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="flex items-center justify-center h-[300px] text-gray-500">
-                No payment data to display
-              </div>
-            )}
+            <Suspense fallback={<ChartSkeleton />}>
+              <ConsolidatedChart
+                type="pie"
+                data={paymentData.filter(item => item.value > 0)}
+                config={{}}
+                height={300}
+                dataKey="value"
+                colors={paymentData.map(item => item.color)}
+              />
+            </Suspense>
           </CardContent>
         </Card>
       </div>

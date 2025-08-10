@@ -211,7 +211,7 @@ export default function ResponsiveDataTable({
                 </tr>
               </thead>
               <tbody>
-                {paginatedData.map((item, index) => (
+                {paginatedData.slice(0, 20).map((item, index) => (
                   <tr
                     key={index}
                     className={cn(
@@ -252,7 +252,7 @@ export default function ResponsiveDataTable({
       {/* Grid View */}
       {currentViewMode === 'grid' && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {paginatedData.map((item, index) => (
+          {paginatedData.slice(0, 20).map((item, index) => (
             <Card
               key={index}
               className={cn(

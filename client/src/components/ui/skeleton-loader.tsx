@@ -1,105 +1,77 @@
-import { memo } from "react";
 import { cn } from "@/lib/utils";
 
 interface SkeletonProps {
   className?: string;
 }
 
-export const Skeleton = memo(({ className }: SkeletonProps) => {
+export function Skeleton({ className, ...props }: SkeletonProps & React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={cn(
-        "animate-pulse rounded-md bg-muted",
-        className
-      )}
+      className={cn("animate-pulse rounded-md bg-muted", className)}
+      {...props}
     />
   );
-});
-
-interface SkeletonCardProps {
-  className?: string;
-  showHeader?: boolean;
-  lines?: number;
 }
 
-export const SkeletonCard = memo(({ 
-  className, 
-  showHeader = true, 
-  lines = 3 
-}: SkeletonCardProps) => {
+export function CardSkeleton({ className }: { className?: string }) {
   return (
-    <div className={cn("p-6 space-y-4 border rounded-lg", className)}>
-      {showHeader && (
-        <div className="space-y-2">
-          <Skeleton className="h-5 w-3/4" />
-          <Skeleton className="h-4 w-1/2" />
-        </div>
-      )}
-      <div className="space-y-2">
-        {Array.from({ length: lines }).map((_, i) => (
-          <Skeleton key={i} className="h-4 w-full" />
-        ))}
-      </div>
+    <div className={cn("rounded-lg border p-4", className)}>
+      <Skeleton className="h-4 w-3/4 mb-3" />
+      <Skeleton className="h-3 w-1/2 mb-2" />
+      <Skeleton className="h-3 w-2/3" />
     </div>
   );
-});
-
-interface SkeletonStatsProps {
-  className?: string;
 }
 
-export const SkeletonStats = memo(({ className }: SkeletonStatsProps) => {
+export function TableSkeleton({ rows = 5, columns = 3 }: { rows?: number; columns?: number }) {
   return (
-    <div className={cn("grid grid-cols-1 md:grid-cols-3 gap-4", className)}>
-      {Array.from({ length: 3 }).map((_, i) => (
-        <div key={i} className="p-4 border rounded-lg space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="space-y-2 flex-1">
-              <Skeleton className="h-4 w-3/4" />
-              <Skeleton className="h-8 w-1/2" />
-            </div>
-            <Skeleton className="h-8 w-8 rounded" />
-          </div>
-          <Skeleton className="h-2 w-full" />
-        </div>
-      ))}
-    </div>
-  );
-});
-
-interface SkeletonTableProps {
-  rows?: number;
-  columns?: number;
-  className?: string;
-}
-
-export const SkeletonTable = memo(({ 
-  rows = 5, 
-  columns = 4, 
-  className 
-}: SkeletonTableProps) => {
-  return (
-    <div className={cn("space-y-3", className)}>
-      {/* Header */}
-      <div className="grid grid-cols-4 gap-4 pb-2">
-        {Array.from({ length: columns }).map((_, i) => (
-          <Skeleton key={i} className="h-4 w-full" />
-        ))}
-      </div>
-      
-      {/* Rows */}
+    <div className="space-y-3">
       {Array.from({ length: rows }).map((_, i) => (
-        <div key={i} className="grid grid-cols-4 gap-4 py-2">
+        <div key={i} className="flex space-x-4">
           {Array.from({ length: columns }).map((_, j) => (
-            <Skeleton key={j} className="h-4 w-full" />
+            <Skeleton key={j} className="h-4 flex-1" />
           ))}
         </div>
       ))}
     </div>
   );
-});
+}
 
-Skeleton.displayName = "Skeleton";
-SkeletonCard.displayName = "SkeletonCard";
-SkeletonStats.displayName = "SkeletonStats";
-SkeletonTable.displayName = "SkeletonTable";
+export function ImageSkeleton({ width = 200, height = 200, className }: { width?: number; height?: number; className?: string }) {
+  return (
+    <Skeleton 
+      className={cn("rounded-lg", className)} 
+      style={{ width, height }}
+    />
+  );
+}
+
+export function ChartSkeleton({ className }: { className?: string }) {
+  return (
+    <div className={cn("space-y-3", className)}>
+      <Skeleton className="h-6 w-1/3 mx-auto" />
+      <Skeleton className="h-48 w-full rounded-lg" />
+      <div className="flex justify-center space-x-4">
+        <Skeleton className="h-3 w-16" />
+        <Skeleton className="h-3 w-20" />
+        <Skeleton className="h-3 w-14" />
+      </div>
+    </div>
+  );
+}
+
+export function DashboardSkeleton() {
+  return (
+    <div className="p-6 space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <CardSkeleton key={i} />
+        ))}
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <ChartSkeleton />
+        <ChartSkeleton />
+      </div>
+    </div>
+  );
+}
