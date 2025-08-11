@@ -8,7 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Separator } from "@/components/ui/separator";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { EmptyState, TaskListEmptyState } from "@/components/ui/empty-state";
-import { Calendar, CheckCircle, Clock, Filter, AlertCircle, Target, TrendingUp, Download, Search, Zap } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Calendar, CheckCircle, Clock, Filter, AlertCircle, Target, TrendingUp, Download, Search, Zap, Music, UtensilsCrossed, Scissors, SignpostIcon } from "lucide-react";
 import { format, differenceInDays } from "date-fns";
 import { useProjects } from "@/hooks/useProjects";
 import { useTasks } from "@/hooks/useTimeline";
@@ -41,14 +42,30 @@ const categoryFilters = [
   { value: "music", label: "Music" },
   { value: "attire", label: "Attire" },
   { value: "planning", label: "Planning" },
+  { value: "diy", label: "DIY" },
+  { value: "signage", label: "Signage" },
   { value: "other", label: "Other" }
 ];
+
+const categoryIcons: Record<string, any> = {
+  venue: Calendar,
+  catering: UtensilsCrossed,
+  photography: Target, // Using Target instead of Camera which isn't available
+  flowers: Target, // Using Target instead of Flower which isn't available
+  music: Music,
+  attire: Scissors,
+  planning: Target,
+  diy: Zap,
+  signage: SignpostIcon,
+  other: Clock
+};
 
 export default function Timeline() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterPriority, setFilterPriority] = useState("all");
   const [filterCategory, setFilterCategory] = useState("all");
   const [showCompleted, setShowCompleted] = useState(true);
+  const [activeTab, setActiveTab] = useState("chronological");
 
   // Fetch data using hooks
   const { data: projects, isLoading: projectsLoading } = useProjects();
@@ -85,6 +102,43 @@ export default function Timeline() {
     task.dueDate && new Date(task.dueDate) < new Date()
   );
   const highPriorityTasks = pendingTasks.filter((task: any) => task.priority === 'high');
+  
+  // Group tasks by category for category view
+  const tasksByCategory = useMemo(() => {
+    const categories: Record<string, any[]> = {};
+    filteredTasks.forEach((task: any) => {
+      const category = task.category || 'other';
+      if (!categories[category]) {
+        categories[category] = [];
+      }
+      categories[category].push(task);
+    });
+    return categories;
+  }, [filteredTasks]);
+  
+  // Sort tasks chronologically by due date and timeframe order
+  const chronologicalTasks = useMemo(() => {
+    return [...filteredTasks].sort((a: any, b: any) => {
+      // First sort by timeframe order if available
+      if (a.timeframeOrder && b.timeframeOrder) {
+        if (a.timeframeOrder !== b.timeframeOrder) {
+          return a.timeframeOrder - b.timeframeOrder;
+        }
+      }
+      
+      // Then by due date
+      if (a.dueDate && b.dueDate) {
+        return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+      }
+      
+      // Tasks with due dates come before tasks without
+      if (a.dueDate && !b.dueDate) return -1;
+      if (!a.dueDate && b.dueDate) return 1;
+      
+      // Finally by creation date
+      return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+    });
+  }, [filteredTasks]);
   
   // Calculate days until wedding
   const daysUntilWedding = weddingDate 
@@ -258,131 +312,270 @@ export default function Timeline() {
           </div>
         </div>
 
-        {/* Task Lists */}
-        <div className="space-y-6">
-        {/* Overdue Tasks */}
-        {overdueTasks.length > 0 && (
-          <Card className="border-l-4 border-l-red-500">
-            <CardHeader>
-              <CardTitle className="flex items-center text-red-700">
-                <AlertCircle className="mr-2 w-5 h-5" />
-                Overdue Tasks ({overdueTasks.length})
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {overdueTasks.map((task: any) => (
-                <TaskCard 
-                  key={task.id} 
-                  task={task}
-                  projectId={projectId}
-                />
-              ))}
-            </CardContent>
-          </Card>
-        )}
+        {/* Task Lists with Tabs */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="chronological" className="flex items-center gap-2">
+              <Clock className="h-4 w-4" />
+              Chronological
+            </TabsTrigger>
+            <TabsTrigger value="category" className="flex items-center gap-2">
+              <Filter className="h-4 w-4" />
+              By Category
+            </TabsTrigger>
+          </TabsList>
 
-        {/* High Priority Tasks */}
-        {highPriorityTasks.filter((t: any) => !overdueTasks.includes(t)).length > 0 && (
-          <Card className="border-l-4 border-l-orange-500">
-            <CardHeader>
-              <CardTitle className="flex items-center text-orange-700">
-                <Target className="mr-2 w-5 h-5" />
-                High Priority ({highPriorityTasks.filter((t: any) => !overdueTasks.includes(t)).length})
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {highPriorityTasks
-                .filter((t: any) => !overdueTasks.includes(t))
-                .map((task: any) => (
-                  <TaskCard 
-                    key={task.id} 
-                    task={task}
-                    projectId={projectId}
-                  />
-                ))}
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Pending Tasks */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Clock className="mr-2 w-5 h-5" />
-              Pending Tasks ({pendingTasks.filter((t: any) => !overdueTasks.includes(t) && t.priority !== 'high').length})
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {pendingTasks.filter((t: any) => !overdueTasks.includes(t) && t.priority !== 'high').length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
-                <Calendar className="mx-auto mb-4 w-12 h-12" />
-                <p>No pending tasks</p>
-                <p className="text-sm">Great job staying on top of your wedding planning!</p>
-              </div>
-            ) : (
-              pendingTasks
-                .filter((t: any) => !overdueTasks.includes(t) && t.priority !== 'high')
-                .map((task: any) => (
-                  <TaskCard 
-                    key={task.id} 
-                    task={task}
-                    projectId={projectId}
-                  />
-                ))
+          {/* Chronological View */}
+          <TabsContent value="chronological" className="space-y-6">
+            {/* Overdue Tasks */}
+            {overdueTasks.length > 0 && (
+              <Card className="border-l-4 border-l-red-500">
+                <CardHeader>
+                  <CardTitle className="flex items-center text-red-700">
+                    <AlertCircle className="mr-2 w-5 h-5" />
+                    Overdue Tasks ({overdueTasks.length})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {overdueTasks.map((task: any) => (
+                    <TaskCard 
+                      key={task.id} 
+                      task={task}
+                      projectId={projectId}
+                    />
+                  ))}
+                </CardContent>
+              </Card>
             )}
-          </CardContent>
-        </Card>
 
-        {/* Completed Tasks */}
-        {showCompleted && completedTasks.length > 0 && (
+            {/* High Priority Tasks */}
+            {highPriorityTasks.filter((t: any) => !overdueTasks.includes(t)).length > 0 && (
+              <Card className="border-l-4 border-l-orange-500">
+                <CardHeader>
+                  <CardTitle className="flex items-center text-orange-700">
+                    <Target className="mr-2 w-5 h-5" />
+                    High Priority ({highPriorityTasks.filter((t: any) => !overdueTasks.includes(t)).length})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {highPriorityTasks
+                    .filter((t: any) => !overdueTasks.includes(t))
+                    .map((task: any) => (
+                      <TaskCard 
+                        key={task.id} 
+                        task={task}
+                        projectId={projectId}
+                      />
+                    ))}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Upcoming Tasks */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Clock className="mr-2 w-5 h-5" />
+                  Upcoming Tasks ({chronologicalTasks.filter((t: any) => !overdueTasks.includes(t) && t.priority !== 'high' && t.status !== 'completed' && !t.isCompleted).length})
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {chronologicalTasks.filter((t: any) => 
+                  !overdueTasks.includes(t) && 
+                  t.priority !== 'high' && 
+                  t.status !== 'completed' && 
+                  !t.isCompleted
+                ).length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    <Calendar className="mx-auto mb-4 w-12 h-12" />
+                    <p>No upcoming tasks</p>
+                    <p className="text-sm">Great job staying on top of your wedding planning!</p>
+                  </div>
+                ) : (
+                  chronologicalTasks
+                    .filter((t: any) => 
+                      !overdueTasks.includes(t) && 
+                      t.priority !== 'high' && 
+                      t.status !== 'completed' && 
+                      !t.isCompleted
+                    )
+                    .map((task: any) => (
+                      <TaskCard 
+                        key={task.id} 
+                        task={task}
+                        projectId={projectId}
+                      />
+                    ))
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Completed Tasks */}
+            {showCompleted && completedTasks.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center text-green-700">
+                    <CheckCircle className="mr-2 w-5 h-5" />
+                    Completed Tasks ({completedTasks.length})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {completedTasks.map((task: any) => (
+                    <TaskCard 
+                      key={task.id} 
+                      task={task}
+                      projectId={projectId}
+                    />
+                  ))}
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+
+          {/* Category View */}
+          <TabsContent value="category" className="space-y-6">
+            {Object.entries(tasksByCategory).length === 0 ? (
+              <Card>
+                <CardContent className="py-12">
+                  <div className="text-center text-gray-500">
+                    <Target className="mx-auto mb-4 w-12 h-12" />
+                    <p>No tasks found</p>
+                    <p className="text-sm">Add some tasks to see them organized by category.</p>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : (
+              Object.entries(tasksByCategory)
+                .sort(([categoryA], [categoryB]) => {
+                  // Sort categories by priority: overdue tasks first, then by category name
+                  const aHasOverdue = tasksByCategory[categoryA].some((t: any) => 
+                    t.dueDate && new Date(t.dueDate) < new Date()
+                  );
+                  const bHasOverdue = tasksByCategory[categoryB].some((t: any) => 
+                    t.dueDate && new Date(t.dueDate) < new Date()
+                  );
+                  
+                  if (aHasOverdue && !bHasOverdue) return -1;
+                  if (!aHasOverdue && bHasOverdue) return 1;
+                  
+                  return categoryA.localeCompare(categoryB);
+                })
+                .map(([category, categoryTasks]) => {
+                  const CategoryIcon = categoryIcons[category] || Clock;
+                  const categoryLabel = categoryFilters.find(f => f.value === category)?.label || 
+                    category.charAt(0).toUpperCase() + category.slice(1);
+                  
+                  const pendingInCategory = categoryTasks.filter((t: any) => 
+                    t.status !== 'completed' && !t.isCompleted
+                  );
+                  const completedInCategory = categoryTasks.filter((t: any) => 
+                    t.status === 'completed' || t.isCompleted
+                  );
+                  const overdueInCategory = categoryTasks.filter((t: any) => 
+                    t.dueDate && new Date(t.dueDate) < new Date()
+                  );
+
+                  return (
+                    <Card key={category} className={overdueInCategory.length > 0 ? "border-l-4 border-l-red-500" : ""}>
+                      <CardHeader>
+                        <CardTitle className="flex items-center justify-between">
+                          <div className="flex items-center">
+                            <CategoryIcon className="mr-2 w-5 h-5" />
+                            <span>{categoryLabel}</span>
+                            <Badge variant="secondary" className="ml-2">
+                              {categoryTasks.length}
+                            </Badge>
+                          </div>
+                          <div className="flex gap-2">
+                            {pendingInCategory.length > 0 && (
+                              <Badge variant="outline" className="text-blue-600">
+                                {pendingInCategory.length} pending
+                              </Badge>
+                            )}
+                            {completedInCategory.length > 0 && (
+                              <Badge variant="outline" className="text-green-600">
+                                {completedInCategory.length} done
+                              </Badge>
+                            )}
+                            {overdueInCategory.length > 0 && (
+                              <Badge variant="destructive">
+                                {overdueInCategory.length} overdue
+                              </Badge>
+                            )}
+                          </div>
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        {/* Sort tasks within category: overdue first, then by priority, then by due date */}
+                        {categoryTasks
+                          .sort((a: any, b: any) => {
+                            // Overdue tasks first
+                            const aOverdue = a.dueDate && new Date(a.dueDate) < new Date();
+                            const bOverdue = b.dueDate && new Date(b.dueDate) < new Date();
+                            if (aOverdue && !bOverdue) return -1;
+                            if (!aOverdue && bOverdue) return 1;
+
+                            // Then by completion status (pending first)
+                            const aCompleted = a.status === 'completed' || a.isCompleted;
+                            const bCompleted = b.status === 'completed' || b.isCompleted;
+                            if (!aCompleted && bCompleted) return -1;
+                            if (aCompleted && !bCompleted) return 1;
+
+                            // Then by priority
+                            const priorityOrder = { high: 0, medium: 1, low: 2 };
+                            const aPriority = priorityOrder[a.priority as keyof typeof priorityOrder] ?? 3;
+                            const bPriority = priorityOrder[b.priority as keyof typeof priorityOrder] ?? 3;
+                            if (aPriority !== bPriority) return aPriority - bPriority;
+
+                            // Finally by due date
+                            if (a.dueDate && b.dueDate) {
+                              return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+                            }
+                            return 0;
+                          })
+                          .map((task: any) => (
+                            <TaskCard 
+                              key={task.id} 
+                              task={task}
+                              projectId={projectId}
+                            />
+                          ))}
+                      </CardContent>
+                    </Card>
+                  );
+                })
+            )}
+          </TabsContent>
+        </Tabs>
+
+        {/* Enhanced Empty State */}
+        {filteredTasks.length === 0 && (
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center text-green-700">
-                <CheckCircle className="mr-2 w-5 h-5" />
-                Completed Tasks ({completedTasks.length})
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {completedTasks.map((task: any) => (
-                <TaskCard 
-                  key={task.id} 
-                  task={task}
-                  projectId={projectId}
+            <CardContent>
+              {(searchTerm || filterPriority !== "all" || filterCategory !== "all") ? (
+                <EmptyState
+                  illustration="timeline"
+                  title="No tasks match your filters"
+                  description="Try adjusting your search or filters to see more tasks."
+                  action={{
+                    label: "Clear Filters",
+                    onClick: () => {
+                      setSearchTerm("");
+                      setFilterPriority("all");
+                      setFilterCategory("all");
+                    }
+                  }}
                 />
-              ))}
+              ) : (
+                <TaskListEmptyState
+                  onAddTask={() => {
+                    // TaskFormDialog will handle opening
+                  }}
+                />
+              )}
             </CardContent>
           </Card>
         )}
-      </div>
-
-      {/* Enhanced Empty State */}
-      {filteredTasks.length === 0 && (
-        <Card>
-          <CardContent>
-            {(searchTerm || filterPriority !== "all" || filterCategory !== "all") ? (
-              <EmptyState
-                illustration="timeline"
-                title="No tasks match your filters"
-                description="Try adjusting your search or filters to see more tasks."
-                action={{
-                  label: "Clear Filters",
-                  onClick: () => {
-                    setSearchTerm("");
-                    setFilterPriority("all");
-                    setFilterCategory("all");
-                  }
-                }}
-              />
-            ) : (
-              <TaskListEmptyState
-                onAddTask={() => {
-                  // TaskFormDialog will handle opening
-                }}
-              />
-            )}
-          </CardContent>
-        </Card>
-      )}
       </div>
     </div>
   );
