@@ -12,7 +12,7 @@ export default function QuickRSVPButtons({ guest, projectId }: QuickRSVPButtonsP
   const { toast } = useToast();
   const updateGuest = useUpdateGuest(projectId);
 
-  const handleRSVPUpdate = async (status: string) => {
+  const handleRSVPUpdate = async (status: 'pending' | 'yes' | 'no' | 'maybe') => {
     try {
       await updateGuest.mutateAsync({ 
         id: guest.id, 

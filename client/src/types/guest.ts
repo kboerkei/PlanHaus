@@ -5,7 +5,7 @@ export interface Guest {
   email?: string;
   phone?: string;
   address?: string;
-  rsvpStatus: 'pending' | 'attending' | 'not_attending' | 'maybe';
+  rsvpStatus: 'pending' | 'yes' | 'no' | 'maybe';
   dietaryRestrictions?: string;
   plusOne?: string;
   group?: string;

@@ -98,7 +98,7 @@ export const guests = pgTable("guests", {
   email: text("email"),
   phone: text("phone"),
   address: text("address"),
-  rsvpStatus: text("rsvp_status").default('pending'), // 'pending', 'accepted', 'declined'
+  rsvpStatus: text("rsvp_status").default('pending'), // 'pending', 'yes', 'no', 'maybe'
   mealPreference: text("meal_preference"),
   plusOne: boolean("plus_one").default(false),
   partySize: integer("party_size").default(1).notNull(), // Number of people this guest entry represents

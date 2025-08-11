@@ -59,7 +59,7 @@ export const guestSchema = z.object({
     "work_colleagues", "other"
   ]).default("other"),
   customGroup: optionalText,
-  rsvpStatus: z.enum(["pending", "attending", "not_attending", "maybe"]).default("pending"),
+  rsvpStatus: z.enum(["pending", "yes", "no", "maybe"]).default("pending"),
   partySize: z.number().min(1, "Party size must be at least 1").default(1),
   mealChoice: optionalText,
   dietaryRestrictions: optionalText,
