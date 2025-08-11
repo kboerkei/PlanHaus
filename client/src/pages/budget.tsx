@@ -51,6 +51,8 @@ const Budget = memo(() => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
   const [showPaidOnly, setShowPaidOnly] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<BudgetItem | undefined>(undefined);
   
   // Performance monitoring
   usePerformanceMonitor('Budget');
@@ -176,7 +178,14 @@ const Budget = memo(() => {
                 </Button>
               }
             />
-            <Button size="sm" className="gap-2">
+            <Button 
+              size="sm" 
+              className="gap-2"
+              onClick={() => {
+                setEditingItem(undefined);
+                setIsDialogOpen(true);
+              }}
+            >
               <DollarSign className="h-4 w-4" />
               Add Item
             </Button>
@@ -332,7 +341,14 @@ const Budget = memo(() => {
                             </div>
                           )}
                           <div className="flex items-center gap-2">
-                            <Button variant="outline" size="sm">
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => {
+                                setEditingItem(item);
+                                setIsDialogOpen(true);
+                              }}
+                            >
                               Edit
                             </Button>
                           </div>
@@ -366,6 +382,16 @@ const Budget = memo(() => {
           )}
         </TabsContent>
       </Tabs>
+
+      {/* Budget Entry Dialog */}
+      {projectId && (
+        <BudgetEntryDialog
+          isOpen={isDialogOpen}
+          setIsOpen={setIsDialogOpen}
+          budgetItem={editingItem}
+          projectId={projectId}
+        />
+      )}
     </div>
   );
 });

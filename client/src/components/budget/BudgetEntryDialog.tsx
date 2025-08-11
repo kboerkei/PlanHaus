@@ -35,9 +35,10 @@ interface BudgetEntryDialogProps {
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
   budgetItem?: BudgetItem;
+  projectId: string;
 }
 
-export default function BudgetEntryDialog({ isOpen, setIsOpen, budgetItem }: BudgetEntryDialogProps) {
+export default function BudgetEntryDialog({ isOpen, setIsOpen, budgetItem, projectId }: BudgetEntryDialogProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -80,7 +81,7 @@ export default function BudgetEntryDialog({ isOpen, setIsOpen, budgetItem }: Bud
 
   const createBudgetItem = useMutation({
     mutationFn: async (data: BudgetFormData) => {
-      return apiRequest("/api/budget", {
+      return apiRequest(`/api/projects/${projectId}/budget`, {
         method: "POST",
         body: JSON.stringify({
           category: data.category,
@@ -90,11 +91,12 @@ export default function BudgetEntryDialog({ isOpen, setIsOpen, budgetItem }: Bud
           vendor: data.vendor || null,
           notes: data.notes || null,
           isPaid: data.isPaid,
+          projectId: parseInt(projectId),
         }),
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/budget"] });
+      queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'budget'] });
       queryClient.invalidateQueries({ queryKey: ["/api/dashboard/stats"] });
       toast({
         title: "Success!",
@@ -115,8 +117,8 @@ export default function BudgetEntryDialog({ isOpen, setIsOpen, budgetItem }: Bud
   const updateBudgetItem = useMutation({
     mutationFn: async (data: BudgetFormData) => {
       if (!budgetItem) throw new Error("No budget item to update");
-      return apiRequest(`/api/budget/${budgetItem.id}`, {
-        method: "PUT",
+      return apiRequest(`/api/projects/${projectId}/budget/${budgetItem.id}`, {
+        method: "PATCH",
         body: JSON.stringify({
           category: data.category,
           item: data.item,
@@ -129,7 +131,7 @@ export default function BudgetEntryDialog({ isOpen, setIsOpen, budgetItem }: Bud
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/budget"] });
+      queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'budget'] });
       queryClient.invalidateQueries({ queryKey: ["/api/dashboard/stats"] });
       toast({
         title: "Success!",
