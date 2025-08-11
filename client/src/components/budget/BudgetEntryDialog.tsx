@@ -41,6 +41,8 @@ interface BudgetEntryDialogProps {
 export default function BudgetEntryDialog({ isOpen, setIsOpen, budgetItem, projectId }: BudgetEntryDialogProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  
+  console.log('BudgetEntryDialog render:', { isOpen, budgetItem, projectId });
 
   const form = useForm<BudgetFormData>({
     resolver: zodResolver(budgetFormSchema),

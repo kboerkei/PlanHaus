@@ -182,6 +182,7 @@ const Budget = memo(() => {
               size="sm" 
               className="gap-2"
               onClick={() => {
+                console.log('Add Item clicked, opening dialog');
                 setEditingItem(undefined);
                 setIsDialogOpen(true);
               }}
@@ -345,6 +346,7 @@ const Budget = memo(() => {
                               variant="outline" 
                               size="sm"
                               onClick={() => {
+                                console.log('Edit clicked for item:', item);
                                 setEditingItem(item);
                                 setIsDialogOpen(true);
                               }}
@@ -388,7 +390,7 @@ const Budget = memo(() => {
         <BudgetEntryDialog
           isOpen={isDialogOpen}
           setIsOpen={setIsDialogOpen}
-          budgetItem={editingItem}
+          budgetItem={editingItem as any}
           projectId={projectId}
         />
       )}
