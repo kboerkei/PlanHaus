@@ -44,6 +44,8 @@ export default function TaskFormDialog({ projectId, task, trigger, onClose }: Ta
       status: task?.status || "not_started",
       isCompleted: task?.isCompleted || false,
       notes: task?.notes || "",
+      estimatedHours: task?.estimatedHours || undefined,
+      actualHours: task?.actualHours || undefined,
     },
     autosave: {
       enabled: !!task, // Only enable autosave for editing existing tasks
@@ -62,11 +64,16 @@ export default function TaskFormDialog({ projectId, task, trigger, onClose }: Ta
 
   const onSubmit = async (data: TaskFormData) => {
     try {
+      const transformedData = {
+        ...data,
+        assignedTo: data.assignedTo || undefined,
+      };
+      
       if (task) {
-        await updateTask.mutateAsync({ id: task.id, data });
+        await updateTask.mutateAsync({ id: task.id, data: transformedData });
         toast({ title: "Task updated successfully!" });
       } else {
-        await createTask.mutateAsync(data);
+        await createTask.mutateAsync(transformedData);
         toast({ title: "Task created successfully!" });
       }
       form.reset();
