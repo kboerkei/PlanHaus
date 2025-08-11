@@ -1,5 +1,4 @@
 import type { Config } from "tailwindcss";
-import { tokens } from "./client/src/design-system/tokens";
 
 const config: Config = {
   darkMode: ["class"],
@@ -50,45 +49,14 @@ const config: Config = {
       },
     },
     extend: {
-      // Design system integration - simplified for TypeScript compatibility  
+      // Typography
       fontFamily: {
-        display: ["Playfair Display", "serif"],
-        heading: ["DM Serif Display", "serif"], 
-        body: ["Inter", "system-ui", "sans-serif"],
-        ui: ["DM Sans", "system-ui", "sans-serif"]
+        serif: ["Playfair Display", "serif"],
+        sans: ["Inter", "system-ui", "sans-serif"],
       },
       
       colors: {
-        // Design system colors
-        rose: {
-          25: "hsl(350, 100%, 99%)",
-          50: "hsl(350, 100%, 98%)",
-          100: "hsl(350, 100%, 95%)",
-          200: "hsl(350, 100%, 90%)",
-          300: "hsl(350, 100%, 82%)",
-          400: "hsl(350, 100%, 71%)",
-          500: "hsl(350, 84%, 60%)",
-          600: "hsl(350, 84%, 54%)",
-          700: "hsl(350, 84%, 47%)",
-          800: "hsl(350, 84%, 40%)",
-          900: "hsl(350, 84%, 33%)",
-          950: "hsl(350, 84%, 20%)"
-        },
-        champagne: {
-          DEFAULT: "hsl(45, 56%, 53%)",
-          50: "hsl(45, 56%, 97%)",
-          100: "hsl(45, 56%, 94%)",
-          200: "hsl(45, 56%, 87%)",
-          300: "hsl(45, 56%, 77%)",
-          400: "hsl(45, 56%, 65%)",
-          500: "hsl(45, 56%, 53%)",
-          600: "hsl(45, 56%, 45%)",
-          700: "hsl(45, 56%, 37%)",
-          800: "hsl(45, 56%, 30%)",
-          900: "hsl(45, 56%, 24%)"
-        },
-        
-        // Shadcn/UI integration
+        // Shadcn/UI base system
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         card: {
@@ -102,6 +70,17 @@ const config: Config = {
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
+          50: "hsl(var(--primary-50))",
+          100: "hsl(var(--primary-100))",
+          200: "hsl(var(--primary-200))",
+          300: "hsl(var(--primary-300))",
+          400: "hsl(var(--primary-400))",
+          500: "hsl(var(--primary-500))",
+          600: "hsl(var(--primary-600))",
+          700: "hsl(var(--primary-700))",
+          800: "hsl(var(--primary-800))",
+          900: "hsl(var(--primary-900))",
+          950: "hsl(var(--primary-950))",
         },
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
@@ -114,73 +93,62 @@ const config: Config = {
         accent: {
           DEFAULT: "hsl(var(--accent))",
           foreground: "hsl(var(--accent-foreground))",
+          50: "hsl(var(--accent-50))",
+          100: "hsl(var(--accent-100))",
+          200: "hsl(var(--accent-200))",
+          300: "hsl(var(--accent-300))",
+          400: "hsl(var(--accent-400))",
+          500: "hsl(var(--accent-500))",
+          600: "hsl(var(--accent-600))",
+          700: "hsl(var(--accent-700))",
+          800: "hsl(var(--accent-800))",
+          900: "hsl(var(--accent-900))",
         },
         destructive: {
           DEFAULT: "hsl(var(--destructive))",
           foreground: "hsl(var(--destructive-foreground))",
         },
+        success: {
+          DEFAULT: "hsl(var(--success))",
+          foreground: "hsl(var(--success-foreground))",
+        },
+        warning: {
+          DEFAULT: "hsl(var(--warning))",
+          foreground: "hsl(var(--warning-foreground))",
+        },
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
-        // Wedding theme colors  
-        blush: "hsl(var(--blush))",
-        'rose-gold': "hsl(var(--rose-gold))",
-        sage: "hsl(var(--sage))",
-        cream: "hsl(var(--cream))",
-        ivory: "hsl(var(--ivory))",
-        'dusty-rose': "hsl(var(--dusty-rose))",
-        'muted-gold': "hsl(var(--muted-gold))",
-        pearl: "hsl(var(--pearl))",
-        mauve: "hsl(var(--mauve))",
       },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)", 
         sm: "calc(var(--radius) - 4px)",
+        xl: "1rem",
+        "2xl": "1.5rem",
       },
       
       boxShadow: {
-        'soft': '0 4px 20px rgba(0, 0, 0, 0.08)',
-        'medium': '0 8px 30px rgba(0, 0, 0, 0.12)',
-        'strong': '0 16px 40px rgba(0, 0, 0, 0.16)',
-        'elegant': '0 4px 20px -4px rgba(350, 84%, 60%, 0.15), 0 2px 8px -2px rgba(350, 84%, 60%, 0.08)',
-        'glow': '0 0 0 1px rgba(350, 84%, 60%, 0.05), 0 4px 16px -4px rgba(350, 84%, 60%, 0.2)',
-      },
-      backdropBlur: {
-        'glass': '20px',
+        'elegant': '0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)',
+        'glow': '0 0 0 1px rgb(255 255 255 / 0.05), 0 1px 1px rgb(0 0 0 / 0.075)',
       },
       animation: {
-        'fade-in-up': 'fade-in-up 0.8s ease-out',
-        'float': 'float 6s ease-in-out infinite',
-        'gentle-float': 'gentle-float 4s ease-in-out infinite',
-        'sparkle': 'sparkle 2s ease-in-out infinite',
-        'fade-in': 'fade-in 0.6s ease-out',
-        'slide-up': 'slide-up 0.8s ease-out',
+        'fade-in': 'fade-in 0.5s ease-out',
+        'fade-in-up': 'fade-in-up 0.6s ease-out',
+        'scale-in': 'scale-in 0.3s ease-out',
       },
       keyframes: {
-        'fade-in-up': {
-          'from': { opacity: '0', transform: 'translateY(10px)' },
-          'to': { opacity: '1', transform: 'translateY(0)' }
-        },
-        'gentle-float': {
-          '0%, 100%': { transform: 'translateY(0px)' },
-          '50%': { transform: 'translateY(-4px)' }
-        },
-        'sparkle': {
-          '0%, 100%': { opacity: '0.4', transform: 'scale(1)' },
-          '50%': { opacity: '1', transform: 'scale(1.1)' }
-        },
         'fade-in': {
-          'from': { opacity: '0' },
-          'to': { opacity: '1' }
+          from: { opacity: '0' },
+          to: { opacity: '1' }
         },
-        'slide-up': {
-          'from': { opacity: '0', transform: 'translateY(20px)' },
-          'to': { opacity: '1', transform: 'translateY(0)' }
+        'fade-in-up': {
+          from: { opacity: '0', transform: 'translateY(20px)' },
+          to: { opacity: '1', transform: 'translateY(0)' }
         },
-        'float': {
-          '0%, 100%': { transform: 'translateY(0)' },
-          '50%': { transform: 'translateY(-10px)' }
+        'scale-in': {
+          from: { opacity: '0', transform: 'scale(0.95)' },
+          to: { opacity: '1', transform: 'scale(1)' }
         }
       }
     },

@@ -1,6 +1,8 @@
 import AIAssistantCard from "@/components/dashboard/ai-assistant-card";
 import EnhancedQuickActions from "@/components/dashboard/enhanced-quick-actions";
-import { AINextStepsPanel } from "@/components/ui/ai-next-steps";
+import { AINextStepsPanel } from "@/components/dashboard/AINextStepsPanel";
+import { QuickStatsBar } from "@/components/dashboard/QuickStatsBar";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbHome, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import { Link } from "wouter";
 import { Calendar, DollarSign, Users, Store, Palette, Bot, Clock, Globe, ArrowRight, Heart, CheckCircle2 } from "lucide-react";
@@ -404,24 +406,34 @@ const Dashboard = memo(() => {
         <div className="absolute top-1/4 right-1/4 w-32 h-32 bg-gradient-to-r from-champagne/20 to-rose-400/10 rounded-full blur-xl dark:from-champagne/10 dark:to-rose-600/15" />
         
         <div className="relative p-3 sm:p-4 lg:p-8 mobile-safe-spacing">
-          {/* Breadcrumb Navigation */}
-          <Breadcrumb className="mb-4">
-            <BreadcrumbHome />
-            <BreadcrumbSeparator />
-            <BreadcrumbItem active>Dashboard</BreadcrumbItem>
-          </Breadcrumb>
+          {/* Header with Breadcrumb and Theme Toggle */}
+          <div className="flex items-center justify-between mb-4">
+            <Breadcrumb>
+              <BreadcrumbHome />
+              <BreadcrumbSeparator />
+              <BreadcrumbItem active>Dashboard</BreadcrumbItem>
+            </Breadcrumb>
+            <ThemeToggle />
+          </div>
 
           {/* Personalized Greeting */}
           <PersonalizedGreeting />
           
-          {/* Dashboard Stats */}
-          <AnimatedDashboardStats />
+          {/* Enhanced Dashboard Stats */}
+          <QuickStatsBar 
+            totalGuests={(dashboardStats as any)?.guests?.total || 0}
+            confirmedGuests={(dashboardStats as any)?.guests?.confirmed || 0}
+            totalBudget={(dashboardStats as any)?.budget?.total || 0}
+            spentBudget={(dashboardStats as any)?.budget?.spent || 0}
+            completedTasks={(dashboardStats as any)?.tasks?.completed || 0}
+            totalTasks={(dashboardStats as any)?.tasks?.total || 0}
+            daysToGo={Math.max(0, differenceInDays(new Date((intakeData as any)?.weddingDate || new Date()), new Date()))}
+          />
           
           {/* AI Next Steps Panel */}
           <AINextStepsPanel 
-            projectId={(dashboardStats as any)?.projectId?.toString()}
-            weddingDate={(intakeData as any)?.weddingDate}
-            className="mb-6"
+            daysToGo={Math.max(0, differenceInDays(new Date((intakeData as any)?.weddingDate || new Date()), new Date()))}
+            className="mb-8"
           />
           
           {/* AI Assistant and Quick Actions */}

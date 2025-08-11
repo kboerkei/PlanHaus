@@ -1,169 +1,131 @@
-import { Calendar, CheckCircle, Users, DollarSign, Clock, TrendingUp } from "lucide-react";
-import { EnhancedCard } from "@/components/ui/enhanced-card";
-import { Card } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
-import { format, differenceInDays } from "date-fns";
+import { Calendar, Users, DollarSign, CheckCircle2, Clock, TrendingUp } from "lucide-react"
+import { Card, CardContent } from "@/components/ui/card"
+import { Progress } from "@/components/ui/progress"
+import { Badge } from "@/components/ui/badge"
 
 interface QuickStatsBarProps {
-  stats?: {
-    tasks?: { total: number; completed: number };
-    guests?: { total: number; confirmed: number };
-    budget?: { total: number; spent: number };
-    daysUntilWedding?: number;
-  };
-  weddingDate?: string;
-  className?: string;
+  totalGuests: number
+  confirmedGuests: number
+  totalBudget: number
+  spentBudget: number
+  completedTasks: number
+  totalTasks: number
+  daysToGo: number
 }
 
-export function QuickStatsBar({ stats, weddingDate, className }: QuickStatsBarProps) {
-  // Add safety checks for undefined stats
-  const safeStats = {
-    tasks: stats?.tasks || { total: 0, completed: 0 },
-    guests: stats?.guests || { total: 0, confirmed: 0 },
-    budget: stats?.budget || { total: 0, spent: 0 }
-  };
+export function QuickStatsBar({
+  totalGuests,
+  confirmedGuests,
+  totalBudget,
+  spentBudget,
+  completedTasks,
+  totalTasks,
+  daysToGo
+}: QuickStatsBarProps) {
+  const guestConfirmRate = totalGuests > 0 ? (confirmedGuests / totalGuests) * 100 : 0
+  const budgetUsageRate = totalBudget > 0 ? (spentBudget / totalBudget) * 100 : 0
+  const taskCompletionRate = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0
 
-  const taskProgress = safeStats.tasks.total > 0 ? (safeStats.tasks.completed / safeStats.tasks.total) * 100 : 0;
-  const guestProgress = safeStats.guests.total > 0 ? (safeStats.guests.confirmed / safeStats.guests.total) * 100 : 0;
-  const budgetProgress = safeStats.budget.total > 0 ? (safeStats.budget.spent / safeStats.budget.total) * 100 : 0;
-  
-  const daysRemaining = weddingDate ? differenceInDays(new Date(weddingDate), new Date()) : null;
-  
-  const statCards = [
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+    }).format(amount)
+  }
+
+  const stats = [
     {
       icon: Calendar,
-      title: "Days to Wedding",
-      value: daysRemaining !== null ? (daysRemaining > 0 ? daysRemaining : "Today!") : "—",
-      subtitle: weddingDate ? format(new Date(weddingDate), "MMM dd, yyyy") : "",
-      color: "rose",
-      progress: null
-    },
-    {
-      icon: CheckCircle,
-      title: "Tasks Complete",
-      value: `${safeStats.tasks.completed}/${safeStats.tasks.total}`,
-      subtitle: `${taskProgress.toFixed(0)}% done`,
-      color: "green",
-      progress: taskProgress
+      label: "Days to Go",
+      value: daysToGo.toString(),
+      trend: daysToGo < 30 ? "urgent" : daysToGo < 90 ? "warning" : "normal",
+      color: daysToGo < 30 ? "text-destructive" : daysToGo < 90 ? "text-warning" : "text-primary",
     },
     {
       icon: Users,
-      title: "RSVPs Confirmed",
-      value: `${safeStats.guests.confirmed}/${safeStats.guests.total}`,
-      subtitle: `${guestProgress.toFixed(0)}% confirmed`,
-      color: "blue",
-      progress: guestProgress
+      label: "Guest Confirmations",
+      value: `${confirmedGuests}/${totalGuests}`,
+      progress: guestConfirmRate,
+      trend: guestConfirmRate > 75 ? "good" : guestConfirmRate > 50 ? "normal" : "needs-attention",
+      color: "text-primary",
     },
     {
       icon: DollarSign,
-      title: "Budget Used",
-      value: `$${safeStats.budget.spent.toLocaleString()}`,
-      subtitle: `of $${safeStats.budget.total.toLocaleString()}`,
-      color: budgetProgress > 90 ? "red" : budgetProgress > 70 ? "yellow" : "green",
-      progress: budgetProgress
-    }
-  ];
-
-  const colorClasses = {
-    rose: {
-      icon: "text-rose-600 bg-rose-100",
-      progress: "bg-rose-500",
-      text: "text-rose-700"
+      label: "Budget Progress",
+      value: `${formatCurrency(spentBudget)}`,
+      subtitle: `of ${formatCurrency(totalBudget)}`,
+      progress: Math.min(budgetUsageRate, 100),
+      trend: budgetUsageRate < 85 ? "good" : budgetUsageRate < 95 ? "warning" : "urgent",
+      color: budgetUsageRate < 85 ? "text-success" : budgetUsageRate < 95 ? "text-warning" : "text-destructive",
     },
-    green: {
-      icon: "text-green-600 bg-green-100", 
-      progress: "bg-green-500",
-      text: "text-green-700"
+    {
+      icon: CheckCircle2,
+      label: "Tasks Complete",
+      value: `${completedTasks}/${totalTasks}`,
+      progress: taskCompletionRate,
+      trend: taskCompletionRate > 75 ? "good" : taskCompletionRate > 50 ? "normal" : "needs-attention",
+      color: "text-success",
     },
-    blue: {
-      icon: "text-blue-600 bg-blue-100",
-      progress: "bg-blue-500", 
-      text: "text-blue-700"
-    },
-    yellow: {
-      icon: "text-yellow-600 bg-yellow-100",
-      progress: "bg-yellow-500",
-      text: "text-yellow-700"
-    },
-    red: {
-      icon: "text-red-600 bg-red-100",
-      progress: "bg-red-500", 
-      text: "text-red-700"
-    }
-  };
+  ]
 
   return (
-    <div className={cn("grid grid-cols-2 lg:grid-cols-4 gap-4", className)}>
-      {statCards.map((stat, index) => {
-        const colors = colorClasses[stat.color as keyof typeof colorClasses];
-        const Icon = stat.icon;
-        
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      {stats.map((stat, index) => {
+        const Icon = stat.icon
         return (
-          <Card
-            key={index}
-            className="relative overflow-hidden p-4 border border-rose-100 shadow-elegant bg-gradient-to-br from-white to-rose-50/30 hover:shadow-lg hover:border-rose-200 transition-all duration-200"
-            data-testid={`stat-card-${stat.title.toLowerCase().replace(/\s+/g, '-')}`}
-          >
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <div className={cn("p-1.5 rounded-md", colors.icon)}>
-                    <Icon className="h-3 w-3" />
-                  </div>
-                  <span className="text-xs font-medium text-neutral-600">
-                    {stat.title}
-                  </span>
-                </div>
-                
-                <div className="mb-1">
-                  <span className="text-lg font-bold text-neutral-900">
-                    {stat.value}
-                  </span>
-                </div>
-                
-                {stat.subtitle && (
-                  <p className={cn("text-xs", colors.text)}>
-                    {stat.subtitle}
+          <Card key={index} variant="elevated" className="animate-fade-in-up" style={{ animationDelay: `${index * 100}ms` }}>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between space-y-0 pb-2">
+                <div className="flex items-center space-x-2">
+                  <Icon className={`h-4 w-4 ${stat.color}`} />
+                  <p className="text-sm font-medium text-muted-foreground">
+                    {stat.label}
                   </p>
+                </div>
+                {stat.trend === "good" && (
+                  <Badge variant="outline" className="bg-success/10 text-success border-success/20">
+                    <TrendingUp className="h-3 w-3 mr-1" />
+                    On Track
+                  </Badge>
+                )}
+                {stat.trend === "warning" && (
+                  <Badge variant="outline" className="bg-warning/10 text-warning border-warning/20">
+                    <Clock className="h-3 w-3 mr-1" />
+                    Monitor
+                  </Badge>
+                )}
+                {stat.trend === "urgent" && (
+                  <Badge variant="outline" className="bg-destructive/10 text-destructive border-destructive/20">
+                    <Clock className="h-3 w-3 mr-1" />
+                    Urgent
+                  </Badge>
                 )}
               </div>
-              
-              {stat.progress !== null && (
-                <div className="ml-2">
-                  <div className="flex items-center justify-center w-8 h-8">
-                    <svg className="w-8 h-8 transform -rotate-90" viewBox="0 0 24 24">
-                      <circle
-                        cx="12"
-                        cy="12"
-                        r="8"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        className="text-neutral-200"
-                      />
-                      <circle
-                        cx="12"
-                        cy="12"
-                        r="8"
-                        fill="none"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeDasharray={`${2 * Math.PI * 8}`}
-                        strokeDashoffset={`${2 * Math.PI * 8 * (1 - stat.progress / 100)}`}
-                        className={colors.progress}
-                        style={{ transition: "stroke-dashoffset 0.5s ease" }}
-                      />
-                    </svg>
-                    <span className={cn("absolute text-[10px] font-medium", colors.text)}>
-                      {Math.round(stat.progress)}%
-                    </span>
-                  </div>
+              <div className="space-y-2">
+                <div className="flex items-baseline justify-between">
+                  <div className="text-2xl font-bold font-serif">{stat.value}</div>
+                  {stat.subtitle && (
+                    <span className="text-xs text-muted-foreground">{stat.subtitle}</span>
+                  )}
                 </div>
-              )}
-            </div>
+                {stat.progress !== undefined && (
+                  <div className="space-y-1">
+                    <Progress 
+                      value={stat.progress} 
+                      className="progress-wedding h-2"
+                      data-testid={`progress-${stat.label.toLowerCase().replace(/\s+/g, '-')}`}
+                    />
+                    <p className="text-xs text-muted-foreground text-right">
+                      {stat.progress.toFixed(0)}% complete
+                    </p>
+                  </div>
+                )}
+              </div>
+            </CardContent>
           </Card>
-        );
+        )
       })}
     </div>
-  );
+  )
 }
