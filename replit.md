@@ -70,6 +70,7 @@ This is a full-stack AI-assisted wedding planning application called "PlanHaus."
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
+Progress indicators: Use "used" instead of "complete" in progress percentage displays (e.g., "86% used" not "86% complete").
 
 ## System Architecture
 

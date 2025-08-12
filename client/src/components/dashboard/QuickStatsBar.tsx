@@ -117,7 +117,7 @@ export function QuickStatsBar({
                       data-testid={`progress-${stat.label.toLowerCase().replace(/\s+/g, '-')}`}
                     />
                     <p className="text-xs text-muted-foreground text-right">
-                      {stat.progress.toFixed(0)}% complete
+                      {stat.progress.toFixed(0)}% used
                     </p>
                   </div>
                 )}

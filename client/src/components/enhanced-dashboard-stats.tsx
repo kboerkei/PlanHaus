@@ -132,7 +132,7 @@ export default function EnhancedDashboardStats() {
       <StatCard
         title="Tasks Progress"
         value={`${dashboardStats.tasks?.completed || 0}/${dashboardStats.tasks?.total || 0}`}
-        subtitle={`${taskCompletionRate}% completed`}
+        subtitle={`${taskCompletionRate}% used`}
         progress={taskCompletionRate}
         icon={CheckCircle2}
         urgency={dashboardStats.tasks?.overdue > 0 ? 'high' : taskCompletionRate < 50 ? 'medium' : 'low'}
