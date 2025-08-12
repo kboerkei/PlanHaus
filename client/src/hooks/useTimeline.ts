@@ -45,6 +45,10 @@ export function useUpdateTask(projectId: string) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'tasks'] });
       queryClient.invalidateQueries({ queryKey: ['/api/tasks'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/dashboard/stats'] });
+    },
+    onError: (error) => {
+      console.error('Task update error:', error);
     },
   });
 }
@@ -62,6 +66,11 @@ export function useCompleteTask(projectId: string) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'tasks'] });
       queryClient.invalidateQueries({ queryKey: ['/api/tasks'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/dashboard/stats'] });
+    },
+    onError: (error) => {
+      console.error('Task update error:', error);
+      // Don't show toast here as it will be handled by the error boundary
     },
   });
 }

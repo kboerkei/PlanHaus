@@ -3,8 +3,26 @@ import { toast } from "@/hooks/use-toast";
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
-    const text = (await res.text()) || res.statusText;
-    throw new Error(`${res.status}: ${text}`);
+    let errorMessage = res.statusText;
+    
+    try {
+      const errorData = await res.json();
+      errorMessage = errorData.message || errorData.error || errorMessage;
+    } catch {
+      // If response isn't JSON, use status text
+      errorMessage = (await res.text()) || res.statusText;
+    }
+    
+    // Show user-friendly toast for common errors
+    if (res.status >= 400 && res.status < 500) {
+      toast({
+        title: "Action Failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    }
+    
+    throw new Error(`${res.status}: ${errorMessage}`);
   }
 }
 
