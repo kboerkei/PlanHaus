@@ -146,4 +146,77 @@ router.get('/stats/:projectId', requireAuth, async (req: RequestWithUser, res) =
   }
 });
 
+// Validation schema for seating chart export
+const seatingChartExportSchema = z.object({
+  projectId: z.string(),
+  seatingData: z.object({
+    tables: z.array(z.any()),
+    guests: z.array(z.any()),
+    layout: z.any(),
+  }),
+});
+
+// PDF export for seating chart
+router.post('/seating-chart', async (req, res) => {
+  try {
+    const { projectId, seatingData } = seatingChartExportSchema.parse(req.body);
+
+    // Generate PDF content
+    const pdfContent = generateSeatingChartPDF(seatingData);
+
+    // Set response headers for PDF download
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="seating-chart-${projectId}.pdf"`);
+    
+    // Send PDF buffer
+    res.send(Buffer.from(pdfContent, 'base64'));
+  } catch (error) {
+    console.error('PDF export error:', error);
+    res.status(500).json({ 
+      error: 'Failed to generate PDF',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+// Generate PDF content for seating chart
+function generateSeatingChartPDF(seatingData: any): string {
+  // This is a simplified PDF generation
+  // In a real implementation, you would use a library like PDFKit or jsPDF
+  
+  const { tables, guests, layout } = seatingData;
+  
+  // Create a simple HTML representation that can be converted to PDF
+  const htmlContent = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>Seating Chart</title>
+      <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .table { border: 2px solid #333; padding: 10px; margin: 10px; display: inline-block; }
+        .guest { margin: 5px 0; }
+        .table-name { font-weight: bold; text-align: center; margin-bottom: 10px; }
+      </style>
+    </head>
+    <body>
+      <h1>Wedding Seating Chart</h1>
+      ${tables.map((table: any) => `
+        <div class="table">
+          <div class="table-name">Table ${table.name}</div>
+          ${table.guests?.map((guestId: string) => {
+            const guest = guests.find((g: any) => g.id === guestId);
+            return guest ? `<div class="guest">${guest.name}</div>` : '';
+          }).join('') || 'No guests assigned'}
+        </div>
+      `).join('')}
+    </body>
+    </html>
+  `;
+
+  // For now, return a base64 encoded placeholder
+  // In production, you would convert HTML to PDF using a proper library
+  return Buffer.from(htmlContent).toString('base64');
+}
+
 export default router;

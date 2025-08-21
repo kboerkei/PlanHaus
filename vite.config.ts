@@ -27,11 +27,52 @@ export default defineConfig({
   build: {
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
+    // Production optimizations
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: true,
+        drop_debugger: true,
+      },
+    },
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+          ui: ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-select'],
+          charts: ['recharts'],
+          forms: ['react-hook-form', '@hookform/resolvers'],
+          utils: ['date-fns', 'lodash', 'zod'],
+        },
+      },
+    },
+    // Enable source maps for debugging
+    sourcemap: process.env.NODE_ENV === 'development',
+    // Optimize chunk size warnings
+    chunkSizeWarningLimit: 1000,
   },
   server: {
     fs: {
       strict: true,
       deny: ["**/.*"],
     },
+    // Development optimizations
+    hmr: {
+      overlay: true,
+    },
+  },
+  // Optimize dependencies
+  optimizeDeps: {
+    include: [
+      'react',
+      'react-dom',
+      '@tanstack/react-query',
+      'framer-motion',
+      'lucide-react',
+    ],
+  },
+  // CSS optimizations
+  css: {
+    devSourcemap: process.env.NODE_ENV === 'development',
   },
 });

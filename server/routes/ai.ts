@@ -455,4 +455,250 @@ Check the vendors page to manage your bookings!`;
 I can help with timeline planning, budget advice, vendor recommendations, and guest management. What specific area would you like guidance on?`;
 }
 
+// Recommendations endpoint
+router.post('/recommendations', async (req, res) => {
+  try {
+    const { type, context } = req.body;
+
+    if (!type) {
+      return res.status(400).json({ error: 'Type is required' });
+    }
+
+    let recommendations = [];
+
+    switch (type) {
+      case 'guest':
+        recommendations = await generateGuestRecommendations(context);
+        break;
+      case 'task':
+        recommendations = await generateTaskRecommendations(context);
+        break;
+      case 'budget':
+        recommendations = await generateBudgetRecommendations(context);
+        break;
+      case 'vendor':
+        recommendations = await generateVendorRecommendations(context);
+        break;
+      default:
+        return res.status(400).json({ error: 'Invalid type' });
+    }
+
+    res.json({
+      success: true,
+      recommendations,
+      count: recommendations.length,
+    });
+  } catch (error) {
+    console.error('AI recommendations error:', error);
+    res.status(500).json({
+      error: 'Failed to generate recommendations',
+      details: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
+
+// Generate guest recommendations
+async function generateGuestRecommendations(context: any) {
+  const baseRecommendations = [
+    {
+      id: 'guest-1',
+      title: 'Add Plus Ones',
+      description: 'Consider adding plus ones for single guests who might feel more comfortable with a companion.',
+      category: 'guest-management',
+      priority: 'medium',
+    },
+    {
+      id: 'guest-2',
+      title: 'Dietary Restrictions',
+      description: 'Collect dietary restrictions and preferences from all guests to ensure everyone is accommodated.',
+      category: 'guest-management',
+      priority: 'high',
+    },
+    {
+      id: 'guest-3',
+      title: 'RSVP Follow-up',
+      description: 'Send gentle reminders to guests who haven\'t responded to their RSVP invitations.',
+      category: 'guest-management',
+      priority: 'medium',
+    },
+  ];
+
+  // Filter based on context if provided
+  if (context?.guestCount) {
+    if (context.guestCount > 100) {
+      baseRecommendations.push({
+        id: 'guest-4',
+        title: 'Guest Management App',
+        description: 'Consider using a digital guest management tool for large guest lists.',
+        category: 'guest-management',
+        priority: 'high',
+      });
+    }
+  }
+
+  return baseRecommendations;
+}
+
+// Generate task recommendations
+async function generateTaskRecommendations(context: any) {
+  const baseRecommendations = [
+    {
+      id: 'task-1',
+      title: 'Book Key Vendors',
+      description: 'Secure your venue, photographer, and caterer as early as possible.',
+      category: 'planning',
+      priority: 'high',
+      dueDate: '6 months before',
+    },
+    {
+      id: 'task-2',
+      title: 'Send Save the Dates',
+      description: 'Send save the date cards 6-8 months before the wedding.',
+      category: 'communication',
+      priority: 'high',
+      dueDate: '6 months before',
+    },
+    {
+      id: 'task-3',
+      title: 'Finalize Guest List',
+      description: 'Create your final guest list and send formal invitations.',
+      category: 'planning',
+      priority: 'high',
+      dueDate: '3 months before',
+    },
+  ];
+
+  // Add context-specific recommendations
+  if (context?.weddingDate) {
+    const monthsUntilWedding = calculateMonthsUntil(context.weddingDate);
+    
+    if (monthsUntilWedding < 3) {
+      baseRecommendations.push({
+        id: 'task-4',
+        title: 'Final Details',
+        description: 'Confirm all vendor details and create day-of timeline.',
+        category: 'final-preparation',
+        priority: 'critical',
+        dueDate: '1 month before',
+      });
+    }
+  }
+
+  return baseRecommendations;
+}
+
+// Generate budget recommendations
+async function generateBudgetRecommendations(context: any) {
+  const baseRecommendations = [
+    {
+      id: 'budget-1',
+      title: 'Track All Expenses',
+      description: 'Keep detailed records of all wedding-related expenses to stay within budget.',
+      category: 'budget-management',
+      priority: 'high',
+    },
+    {
+      id: 'budget-2',
+      title: 'Emergency Fund',
+      description: 'Set aside 10-15% of your total budget for unexpected expenses.',
+      category: 'budget-management',
+      priority: 'high',
+    },
+    {
+      id: 'budget-3',
+      title: 'Prioritize Spending',
+      description: 'Focus your budget on the elements that matter most to you as a couple.',
+      category: 'budget-management',
+      priority: 'medium',
+    },
+  ];
+
+  // Add budget-specific recommendations
+  if (context?.totalBudget) {
+    const budget = parseFloat(context.totalBudget);
+    
+    if (budget < 10000) {
+      baseRecommendations.push({
+        id: 'budget-4',
+        title: 'Budget-Friendly Options',
+        description: 'Consider DIY elements and off-peak season dates to maximize your budget.',
+        category: 'budget-optimization',
+        priority: 'high',
+      });
+    } else if (budget > 50000) {
+      baseRecommendations.push({
+        id: 'budget-5',
+        title: 'Luxury Enhancements',
+        description: 'Consider premium services and unique experiences within your budget.',
+        category: 'budget-optimization',
+        priority: 'medium',
+      });
+    }
+  }
+
+  return baseRecommendations;
+}
+
+// Generate vendor recommendations
+async function generateVendorRecommendations(context: any) {
+  const baseRecommendations = [
+    {
+      id: 'vendor-1',
+      title: 'Read Reviews',
+      description: 'Check multiple review platforms and ask for references from previous clients.',
+      category: 'vendor-selection',
+      priority: 'high',
+    },
+    {
+      id: 'vendor-2',
+      title: 'Meet in Person',
+      description: 'Schedule in-person meetings with potential vendors to assess compatibility.',
+      category: 'vendor-selection',
+      priority: 'high',
+    },
+    {
+      id: 'vendor-3',
+      title: 'Get Everything in Writing',
+      description: 'Ensure all agreements, pricing, and services are documented in contracts.',
+      category: 'vendor-management',
+      priority: 'critical',
+    },
+  ];
+
+  // Add vendor-specific recommendations
+  if (context?.vendorType) {
+    switch (context.vendorType) {
+      case 'photographer':
+        baseRecommendations.push({
+          id: 'vendor-4',
+          title: 'Portfolio Review',
+          description: 'Review full wedding albums, not just highlight reels.',
+          category: 'vendor-selection',
+          priority: 'high',
+        });
+        break;
+      case 'caterer':
+        baseRecommendations.push({
+          id: 'vendor-5',
+          title: 'Tasting Session',
+          description: 'Schedule a tasting to sample the actual menu items.',
+          category: 'vendor-selection',
+          priority: 'high',
+        });
+        break;
+    }
+  }
+
+  return baseRecommendations;
+}
+
+// Helper function to calculate months until wedding
+function calculateMonthsUntil(weddingDate: string): number {
+  const wedding = new Date(weddingDate);
+  const now = new Date();
+  const diffTime = wedding.getTime() - now.getTime();
+  const diffMonths = Math.ceil(diffTime / (1000 * 60 * 60 * 24 * 30.44));
+  return Math.max(0, diffMonths);
+}
+
 export default router;

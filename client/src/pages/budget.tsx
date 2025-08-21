@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { DollarSign, PieChart, TrendingUp, TrendingDown, AlertTriangle, Filter, Target, CreditCard, Calendar, Download } from "lucide-react";
+import { DollarSign, PieChart, TrendingUp, TrendingDown, AlertTriangle, Filter, Target, CreditCard, Calendar, Download, RefreshCw } from "lucide-react";
 import { useProjects } from "@/hooks/useProjects";
 import { useBudget, useBudgetSummary } from "@/hooks/useBudget";
 import type { BudgetItem, BudgetCategory, BudgetSummary } from "@/types/budget";
@@ -62,7 +62,7 @@ const Budget = memo(() => {
   // AbortController will be implemented in a future enhancement
 
   // Fetch data using hooks
-  const { data: projects, isLoading: projectsLoading } = useProjects();
+  const { data: projects, isLoading: projectsLoading, error: projectsError } = useProjects();
   const currentProject = Array.isArray(projects) 
     ? projects.find((p: any) => p.name === "Emma & Jake's Wedding") || projects[0]
     : null;
@@ -121,24 +121,21 @@ const Budget = memo(() => {
   };
 
   // Loading and error states
-  if (projectsLoading || budgetLoading) {
-    return (
-      <div className="p-6">
-        <LoadingSpinner size="lg" text="Loading your budget..." />
-      </div>
-    );
+  if (projectsLoading) {
+    return <LoadingSpinner />;
   }
 
-  if (budgetError) {
+  if (projectsError) {
     return (
-      <div className="p-6">
-        <div className="text-center text-red-600">
-          <p>Error loading budget. Please try again.</p>
-          <Button 
-            onClick={() => window.location.reload()} 
-            variant="outline" 
-            className="mt-4"
-          >
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <AlertTriangle className="h-12 w-12 text-destructive mx-auto mb-4" />
+          <h3 className="text-lg font-semibold mb-2">Failed to load budget data</h3>
+          <p className="text-muted-foreground mb-4">
+            {projectsError instanceof Error ? projectsError.message : 'An unexpected error occurred'}
+          </p>
+          <Button onClick={() => window.location.reload()}>
+            <RefreshCw className="h-4 w-4 mr-2" />
             Retry
           </Button>
         </div>
@@ -182,7 +179,6 @@ const Budget = memo(() => {
               size="sm" 
               className="gap-2"
               onClick={() => {
-                console.log('Add Item clicked, opening dialog');
                 setEditingItem(undefined);
                 setIsDialogOpen(true);
               }}
@@ -346,7 +342,6 @@ const Budget = memo(() => {
                               variant="outline" 
                               size="sm"
                               onClick={() => {
-                                console.log('Edit clicked for item:', item);
                                 setEditingItem(item);
                                 setIsDialogOpen(true);
                               }}

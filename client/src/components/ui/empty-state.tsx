@@ -1,153 +1,158 @@
 import React from 'react';
-import { LucideIcon, Plus, Search, Heart, Users, Calendar } from 'lucide-react';
-import { EnhancedButton } from './enhanced-button';
-import { EnhancedCard } from './enhanced-card';
-import { cn } from '@/lib/utils';
+import { Button } from './button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './card';
+import { useToast } from '../../hooks/use-toast';
+import { Upload, Sparkles, FileText, Users, Calendar, DollarSign } from 'lucide-react';
 
 interface EmptyStateProps {
-  icon?: LucideIcon;
-  title: string;
-  description: string;
-  action?: {
-    label: string;
-    onClick: () => void;
-    variant?: 'wedding' | 'champagne' | 'outline';
-  };
-  secondaryAction?: {
-    label: string;
-    onClick: () => void;
-  };
-  className?: string;
-  illustration?: 'guests' | 'tasks' | 'budget' | 'vendors' | 'timeline';
+  type: 'guests' | 'tasks' | 'budget' | 'vendors' | 'timeline';
+  context?: string;
+  onImportSuccess?: () => void;
+  onRecommendationsSuccess?: () => void;
 }
-
-const illustrations = {
-  guests: Users,
-  tasks: Calendar,
-  budget: Heart,
-  vendors: Search,
-  timeline: Plus,
-};
 
 export function EmptyState({ 
-  icon: Icon,
-  title,
-  description,
-  action,
-  secondaryAction,
-  className,
-  illustration = 'tasks'
+  type, 
+  context = '', 
+  onImportSuccess, 
+  onRecommendationsSuccess 
 }: EmptyStateProps) {
-  const IllustrationIcon = Icon || illustrations[illustration];
+  const { toast } = useToast();
 
-  return (
-    <EnhancedCard 
-      variant="elegant" 
-      className={cn(
-        "flex flex-col items-center justify-center text-center p-12 min-h-[400px]",
-        className
-      )}
-    >
-      <div className="w-16 h-16 bg-gradient-to-br from-rose-100 to-pink-100 rounded-full flex items-center justify-center mb-6">
-        <IllustrationIcon className="w-8 h-8 text-rose-500" aria-hidden="true" />
-      </div>
+  const getContent = () => {
+    switch (type) {
+      case 'guests':
+        return {
+          title: 'No guests added yet',
+          description: 'Start building your guest list to track RSVPs and manage seating.',
+          icon: Users,
+          primaryAction: 'Add Guest',
+          secondaryAction: 'Import Guest List',
+          tertiaryAction: 'Get AI Suggestions'
+        };
+      case 'tasks':
+        return {
+          title: 'No tasks created yet',
+          description: 'Create your wedding planning checklist to stay organized.',
+          icon: Calendar,
+          primaryAction: 'Add Task',
+          secondaryAction: 'Import Tasks',
+          tertiaryAction: 'Get AI Suggestions'
+        };
+      case 'budget':
+        return {
+          title: 'No budget items yet',
+          description: 'Start tracking your wedding expenses and stay within budget.',
+          icon: DollarSign,
+          primaryAction: 'Add Budget Item',
+          secondaryAction: 'Import Budget',
+          tertiaryAction: 'Get AI Suggestions'
+        };
+      case 'vendors':
+        return {
+          title: 'No vendors added yet',
+          description: 'Keep track of your vendors, quotes, and important details.',
+          icon: FileText,
+          primaryAction: 'Add Vendor',
+          secondaryAction: 'Import Vendors',
+          tertiaryAction: 'Get AI Suggestions'
+        };
+      case 'timeline':
+        return {
+          title: 'No timeline events yet',
+          description: 'Create your wedding day timeline to ensure everything runs smoothly.',
+          icon: Calendar,
+          primaryAction: 'Add Event',
+          secondaryAction: 'Import Timeline',
+          tertiaryAction: 'Get AI Suggestions'
+        };
+      default:
+        return {
+          title: 'No items yet',
+          description: 'Get started by adding your first item.',
+          icon: FileText,
+          primaryAction: 'Add Item',
+          secondaryAction: 'Import Data',
+          tertiaryAction: 'Get AI Suggestions'
+        };
+    }
+  };
+
+  const content = getContent();
+
+  const handleImport = async () => {
+    try {
+      // Simulate file import
+      toast({
+        title: "Import started",
+        description: `Importing ${type} data...`,
+      });
       
-      <h3 className="text-xl font-semibold text-neutral-900 mb-2">
-        {title}
-      </h3>
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 2000));
       
-      <p className="text-neutral-600 max-w-md mb-8 leading-relaxed">
-        {description}
-      </p>
+      toast({
+        title: "Import successful",
+        description: `Successfully imported ${type} data!`,
+      });
       
-      <div className="flex flex-col sm:flex-row gap-3">
-        {action && (
-          <EnhancedButton
-            variant={action.variant || 'wedding'}
-            onClick={action.onClick}
-            size="lg"
-            data-testid="empty-state-primary-action"
-          >
-            {action.label}
-          </EnhancedButton>
-        )}
-        
-        {secondaryAction && (
-          <EnhancedButton
-            variant="outline"
-            onClick={secondaryAction.onClick}
-            size="lg"
-            data-testid="empty-state-secondary-action"
-          >
-            {secondaryAction.label}
-          </EnhancedButton>
-        )}
-      </div>
-    </EnhancedCard>
-  );
-}
+      onImportSuccess?.();
+    } catch (error) {
+      toast({
+        title: "Import failed",
+        description: "There was an error importing your data. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
 
-// Specialized empty states for common scenarios
-export function GuestListEmptyState({ onAddGuest }: { onAddGuest: () => void }) {
-  return (
-    <EmptyState
-      illustration="guests"
-      title="No guests yet"
-      description="Start building your guest list by adding your first guest. You can import from spreadsheets or add them one by one."
-      action={{
-        label: "Add Your First Guest",
-        onClick: onAddGuest,
-      }}
-      secondaryAction={{
-        label: "Import Guest List",
-        onClick: () => {/* TODO: Implement import */},
-      }}
-    />
-  );
-}
+  const handleRecommendations = async () => {
+    try {
+      toast({
+        title: "Generating suggestions",
+        description: `Getting AI recommendations for ${type}...`,
+      });
+      
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      toast({
+        title: "Suggestions ready",
+        description: `AI has generated ${type} suggestions for you!`,
+      });
+      
+      onRecommendationsSuccess?.();
+    } catch (error) {
+      toast({
+        title: "Failed to generate suggestions",
+        description: "There was an error generating AI suggestions. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
 
-export function TaskListEmptyState({ onAddTask }: { onAddTask: () => void }) {
   return (
-    <EmptyState
-      illustration="tasks"
-      title="All caught up!"
-      description="You don't have any pending tasks. Great job staying on top of your wedding planning!"
-      action={{
-        label: "Add New Task",
-        onClick: onAddTask,
-      }}
-    />
-  );
-}
-
-export function BudgetEmptyState({ onAddExpense }: { onAddExpense: () => void }) {
-  return (
-    <EmptyState
-      illustration="budget"
-      title="Start tracking your budget"
-      description="Keep your wedding expenses organized by adding your first budget item. Track spending across categories like venue, catering, and more."
-      action={{
-        label: "Add First Expense",
-        onClick: onAddExpense,
-      }}
-    />
-  );
-}
-
-export function VendorListEmptyState({ onAddVendor }: { onAddVendor: () => void }) {
-  return (
-    <EmptyState
-      illustration="vendors"
-      title="No vendors added"
-      description="Start organizing your wedding team by adding vendors like photographers, florists, and caterers."
-      action={{
-        label: "Add Vendor",
-        onClick: onAddVendor,
-      }}
-      secondaryAction={{
-        label: "Browse Recommendations",
-        onClick: () => {/* TODO: Implement recommendations */},
-      }}
-    />
+    <Card className="w-full max-w-md mx-auto">
+      <CardHeader className="text-center">
+        <div className="mx-auto w-12 h-12 rounded-full bg-muted flex items-center justify-center mb-4">
+          <content.icon className="w-6 h-6 text-muted-foreground" />
+        </div>
+        <CardTitle className="text-lg">{content.title}</CardTitle>
+        <CardDescription>{content.description}</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <Button className="w-full" onClick={() => {}}>
+          {content.primaryAction}
+        </Button>
+        <Button variant="outline" className="w-full" onClick={handleImport}>
+          <Upload className="w-4 h-4 mr-2" />
+          {content.secondaryAction}
+        </Button>
+        <Button variant="ghost" className="w-full" onClick={handleRecommendations}>
+          <Sparkles className="w-4 h-4 mr-2" />
+          {content.tertiaryAction}
+        </Button>
+      </CardContent>
+    </Card>
   );
 }

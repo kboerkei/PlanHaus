@@ -1,5 +1,6 @@
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { useEffect, useCallback } from "react";
+import { logDebug, logError } from '@/lib/logger';
 
 // Centralized query key factory to prevent duplicates
 export const queryKeys = {
@@ -124,7 +125,10 @@ export const useDashboardPrefetch = (currentProject?: { id: string } | null) => 
     try {
       await Promise.allSettled(prefetchPromises);
     } catch (error) {
-      console.debug('Prefetch error (non-critical):', error);
+      logDebug('QueryOptimization', 'Prefetch error (non-critical)', { 
+        queryKey: queryKeys.projects.tasks(projectId), 
+        error: error instanceof Error ? error.message : 'Unknown error' 
+      });
     }
   }, [queryClient]);
   

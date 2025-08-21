@@ -1668,4 +1668,17 @@ export class DatabaseStorage implements IStorage {
   }
 }
 
-export const storage = new DatabaseStorage();
+import { MemoryStorage } from './storage-memory';
+
+// Conditionally export storage based on database type
+let storage: any;
+
+if (!process.env.DATABASE_URL) {
+  // Use memory storage for development
+  storage = new MemoryStorage();
+} else {
+  // Use PostgreSQL storage for production
+  storage = new DatabaseStorage();
+}
+
+export { storage };

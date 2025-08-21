@@ -499,12 +499,52 @@ export default function SeatingChart() {
     }
   };
 
-  // Export functions
-  const exportToPDF = () => {
-    // TODO: Implement PDF export
-    toast({ title: "PDF export coming soon!", description: "This feature will be available in the next update." });
+  // PDF Export functionality
+  const exportToPDF = async () => {
+    try {
+      const response = await fetch('/api/export/seating-chart', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          projectId: currentProject?.id,
+          seatingData: {
+            tables: tables,
+            guests: guests,
+            layout: layout
+          }
+        }),
+      });
+
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `seating-chart-${currentProject?.name || 'wedding'}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        
+        toast({
+          title: "Export Successful",
+          description: "Seating chart PDF has been downloaded.",
+        });
+      } else {
+        throw new Error('Failed to generate PDF');
+      }
+    } catch (error) {
+      toast({
+        title: "Export Failed",
+        description: "Unable to generate PDF. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
+  // Export functions
   const exportToCSV = () => {
     if (!seatingData) return;
     

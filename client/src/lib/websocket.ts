@@ -1,3 +1,5 @@
+import { logInfo, logError, logWarn } from './logger';
+
 export class WebSocketClient {
   private ws: WebSocket | null = null;
   private reconnectAttempts = 0;
@@ -17,7 +19,7 @@ export class WebSocketClient {
       this.ws = new WebSocket(wsUrl);
       
       this.ws.onopen = () => {
-        console.log('WebSocket connected');
+        logInfo('WebSocket', 'Connected successfully');
         this.reconnectAttempts = 0;
       };
 
@@ -26,20 +28,20 @@ export class WebSocketClient {
           const message = JSON.parse(event.data);
           this.handleMessage(message);
         } catch (error) {
-          console.error('Error parsing WebSocket message:', error);
+          logError('WebSocket', 'Error parsing message', { error: error instanceof Error ? error.message : 'Unknown error' });
         }
       };
 
       this.ws.onclose = () => {
-        console.log('WebSocket disconnected');
+        logWarn('WebSocket', 'Connection closed');
         this.attemptReconnect();
       };
 
       this.ws.onerror = (error) => {
-        console.error('WebSocket error:', error);
+        logError('WebSocket', 'Connection error', { error });
       };
     } catch (error) {
-      console.error('Failed to create WebSocket connection:', error);
+      logError('WebSocket', 'Failed to create connection', { error: error instanceof Error ? error.message : 'Unknown error' });
       this.attemptReconnect();
     }
   }
@@ -47,13 +49,13 @@ export class WebSocketClient {
   private attemptReconnect() {
     if (this.reconnectAttempts < this.maxReconnectAttempts) {
       this.reconnectAttempts++;
-      const delay = this.reconnectDelay * this.reconnectAttempts;
-      
-      console.log(`Attempting to reconnect in ${delay}ms (attempt ${this.reconnectAttempts})`);
+      logInfo('WebSocket', `Attempting reconnect ${this.reconnectAttempts}/${this.maxReconnectAttempts}`);
       
       setTimeout(() => {
         this.connect();
-      }, delay);
+      }, this.reconnectDelay * this.reconnectAttempts);
+    } else {
+      logError('WebSocket', 'Max reconnection attempts reached');
     }
   }
 
@@ -66,7 +68,7 @@ export class WebSocketClient {
     if (this.ws && this.ws.readyState === WebSocket.OPEN) {
       this.ws.send(JSON.stringify(message));
     } else {
-      console.warn('WebSocket is not connected');
+      logWarn('WebSocket', 'WebSocket is not connected');
     }
   }
 

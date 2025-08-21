@@ -1,7 +1,8 @@
-import { useEffect } from "react";
+import { useEffect, useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { prefetchStrategies } from "@/lib/queryClient";
 import { useProjects } from "./useProjects";
+import { logDebug } from '@/lib/logger';
 
 // Dashboard prefetching hook that intelligently prefetches next-page data
 export function useDashboardPrefetch() {
@@ -14,29 +15,57 @@ export function useDashboardPrefetch() {
   useEffect(() => {
     if (!currentProject?.id) return;
     
-    // Prefetch critical dashboard data immediately
-    const prefetchCriticalData = async () => {
+    const prefetchDashboardData = useCallback(async (projectId: string) => {
       try {
-        await prefetchStrategies.prefetchDashboardEssentials(currentProject.id.toString());
+        await Promise.allSettled([
+          queryClient.prefetchQuery({
+            queryKey: ['projects', projectId, 'stats'],
+            queryFn: () => fetch(`/api/projects/${projectId}/stats`).then(res => res.json()),
+            staleTime: 5 * 60 * 1000,
+          }),
+          queryClient.prefetchQuery({
+            queryKey: ['projects', projectId, 'recent-activity'],
+            queryFn: () => fetch(`/api/projects/${projectId}/recent-activity`).then(res => res.json()),
+            staleTime: 2 * 60 * 1000,
+          }),
+        ]);
       } catch (error) {
-        console.debug('Dashboard prefetch error (non-critical):', error);
+        logDebug('DashboardPrefetch', 'Dashboard prefetch error (non-critical)', { 
+          projectId,
+          error: error instanceof Error ? error.message : 'Unknown error' 
+        });
       }
-    };
-    
-    // Prefetch likely navigation targets after a delay
-    const prefetchNavigationData = async () => {
+    }, [queryClient]);
+
+    const prefetchNavigationData = useCallback(async (projectId: string) => {
       try {
-        await prefetchStrategies.prefetchNavigationTargets(currentProject.id.toString());
+        await Promise.allSettled([
+          queryClient.prefetchQuery({
+            queryKey: ['projects', projectId, 'guests'],
+            queryFn: () => fetch(`/api/projects/${projectId}/guests`).then(res => res.json()),
+            staleTime: 10 * 60 * 1000,
+          }),
+          queryClient.prefetchQuery({
+            queryKey: ['projects', projectId, 'budget'],
+            queryFn: () => fetch(`/api/projects/${projectId}/budget`).then(res => res.json()),
+            staleTime: 5 * 60 * 1000,
+          }),
+        ]);
       } catch (error) {
-        console.debug('Navigation prefetch error (non-critical):', error);
+        logDebug('DashboardPrefetch', 'Navigation prefetch error (non-critical)', { 
+          projectId,
+          error: error instanceof Error ? error.message : 'Unknown error' 
+        });
       }
-    };
+    }, [queryClient]);
     
     // Immediate prefetch for critical data
-    prefetchCriticalData();
+    prefetchDashboardData(currentProject.id.toString());
     
     // Delayed prefetch for navigation targets (non-blocking)
-    const navigationTimeout = setTimeout(prefetchNavigationData, 2000);
+    const navigationTimeout = setTimeout(() => {
+      prefetchNavigationData(currentProject.id.toString());
+    }, 2000);
     
     return () => {
       clearTimeout(navigationTimeout);

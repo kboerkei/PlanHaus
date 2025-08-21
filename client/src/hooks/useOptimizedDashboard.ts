@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { queryClient, prefetchStrategies, cacheUtils } from "@/lib/queryClient";
+import { logDebug, logError } from '@/lib/logger';
 
 // Optimized dashboard hook with deduplication and prefetching
 export function useOptimizedDashboard() {
@@ -34,10 +35,17 @@ export function useOptimizedDashboard() {
           await prefetchStrategies.prefetchDashboardEssentials(currentProject.id.toString());
           // Prefetch navigation targets with lower priority
           setTimeout(() => {
-            prefetchStrategies.prefetchNavigationTargets(currentProject.id.toString()).catch(console.debug);
+            prefetchStrategies.prefetchNavigationTargets(currentProject.id.toString()).catch((error) => {
+              logDebug('Dashboard', 'Navigation prefetch error (non-critical)', { 
+                projectId: currentProject.id,
+                error: error instanceof Error ? error.message : 'Unknown error' 
+              });
+            });
           }, 3000);
         } catch (error) {
-          console.debug('Dashboard prefetch error:', error);
+          logDebug('Dashboard', 'Dashboard prefetch error', { 
+            error: error instanceof Error ? error.message : 'Unknown error' 
+          });
         }
       }, 1000);
 

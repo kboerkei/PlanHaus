@@ -7,7 +7,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
-import { EmptyState, TaskListEmptyState } from "@/components/ui/empty-state";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calendar, CheckCircle, Clock, Filter, AlertCircle, Target, TrendingUp, Download, Search, Zap, Music, UtensilsCrossed, Scissors, SignpostIcon } from "lucide-react";
 import { format, differenceInDays } from "date-fns";
@@ -554,23 +554,13 @@ export default function Timeline() {
             <CardContent>
               {(searchTerm || filterPriority !== "all" || filterCategory !== "all") ? (
                 <EmptyState
-                  illustration="timeline"
-                  title="No tasks match your filters"
-                  description="Try adjusting your search or filters to see more tasks."
-                  action={{
-                    label: "Clear Filters",
-                    onClick: () => {
-                      setSearchTerm("");
-                      setFilterPriority("all");
-                      setFilterCategory("all");
-                    }
-                  }}
+                  type="tasks"
+                  context="filtered"
                 />
               ) : (
-                <TaskListEmptyState
-                  onAddTask={() => {
-                    // TaskFormDialog will handle opening
-                  }}
+                <EmptyState
+                  type="tasks"
+                  context="timeline"
                 />
               )}
             </CardContent>

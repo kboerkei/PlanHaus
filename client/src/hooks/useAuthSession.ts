@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { toast } from "@/hooks/use-toast";
+import { logInfo, logError } from '@/lib/logger';
 
 interface User {
   id: string;
@@ -43,7 +44,7 @@ export function useAuthSession(): AuthSessionState & AuthSessionActions {
       }
       return false;
     } catch (error) {
-      console.error('Session verification failed:', error);
+      logError('Auth', 'Session verification failed', { error: error instanceof Error ? error.message : 'Unknown error' });
       return false;
     }
   };
@@ -51,45 +52,39 @@ export function useAuthSession(): AuthSessionState & AuthSessionActions {
   // Demo login function for fallback authentication
   const attemptDemoLogin = async () => {
     try {
-      console.log('Attempting demo login...');
       const response = await fetch('/api/auth/demo-login', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
+        headers: {
+          'Content-Type': 'application/json',
+        },
       });
 
       if (response.ok) {
         const demoData = await response.json();
-        console.log('Demo login successful, setting user data:', demoData.user);
         
         // Set user state immediately to transition away from auth page
-        console.log('Setting user and session data:', { user: demoData.user, sessionId: demoData.sessionId });
-        
-        // Ensure we have both user and sessionId for state management
         if (demoData.user && demoData.sessionId) {
           setUser(demoData.user);
           setSessionId(demoData.sessionId);
           setIsNewUser(false); // Demo user is not new
           setIsLoading(false); // Stop loading immediately
           
+          // Store in localStorage for persistence
           localStorage.setItem('sessionId', demoData.sessionId);
           localStorage.setItem('user', JSON.stringify(demoData.user));
-          console.log('User state should now be set, triggering UI transition');
+          
+          logInfo('Auth', 'Demo login successful', { userId: demoData.user.id });
+          return true;
         } else {
-          console.error('Missing user or sessionId in demo login response:', demoData);
+          logError('Auth', 'Missing user or sessionId in demo login response', { demoData });
           return false;
         }
-        
-        // Success notification
-        toast({
-          title: "Welcome to PlanHaus!",
-          description: "You're now logged in as the demo user.",
-        });
-        
-        return true;
+      } else {
+        logError('Auth', 'Demo login failed', { status: response.status });
+        return false;
       }
-      return false;
     } catch (error) {
-      console.error('Demo login failed:', error);
+      logError('Auth', 'Demo login error', { error: error instanceof Error ? error.message : 'Unknown error' });
       return false;
     }
   };
@@ -103,8 +98,6 @@ export function useAuthSession(): AuthSessionState & AuthSessionActions {
   // Initialize session on app load
   useEffect(() => {
     const initializeSession = async () => {
-      console.log('Initializing session...');
-      
       // Check for existing valid session first
       const storedSessionId = localStorage.getItem('sessionId');
       const storedUserData = localStorage.getItem('user');
@@ -115,23 +108,20 @@ export function useAuthSession(): AuthSessionState & AuthSessionActions {
           const isValid = await verifySession(storedSessionId, storedUser);
           
           if (isValid) {
-            console.log('Existing session is valid, using stored session');
             setIsLoading(false);
             return;
           }
         } catch (error) {
-          console.log('Stored session invalid, clearing...');
+          // Session validation failed, continue to demo login
         }
       }
       
       // Clear any invalid session data
       clearStoredSession();
       
-      console.log('Session expired, attempting demo login...');
       const demoLoginSuccess = await attemptDemoLogin();
       
       if (!demoLoginSuccess) {
-        console.log('Demo login failed, showing auth page');
         toast({
           title: "Connection Issue",
           description: "Unable to connect automatically. Please log in manually.",
@@ -147,7 +137,6 @@ export function useAuthSession(): AuthSessionState & AuthSessionActions {
 
   // Handle successful authentication
   const handleAuth = (userData: User, newSessionId: string, isRegistration = false) => {
-    console.log('handleAuth called:', { userData, newSessionId, isRegistration });
     setUser(userData);
     setSessionId(newSessionId);
     setIsNewUser(isRegistration && !userData.hasCompletedIntake);
