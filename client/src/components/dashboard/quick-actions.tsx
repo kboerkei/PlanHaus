@@ -2,15 +2,16 @@ import { Plus, CalendarPlus, Upload, Users, DollarSign, Camera, Heart } from "lu
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
+import { WeddingProject } from "@/types";
 
 export default function QuickActions() {
-  const { data: projects } = useQuery({
+  const { data: projects } = useQuery<WeddingProject[]>({
     queryKey: ['/api/projects'],
     enabled: !!localStorage.getItem('sessionId')
   });
   
   const project = projects?.[0];
-  const weddingDate = project?.date ? new Date(project.date) : null;
+  const weddingDate = project?.weddingDate ? new Date(project.weddingDate) : null;
   const daysUntilWedding = weddingDate ? Math.ceil((weddingDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)) : null;
 
   const actions = [

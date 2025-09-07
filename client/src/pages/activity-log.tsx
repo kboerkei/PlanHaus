@@ -24,7 +24,7 @@ import {
   Palette,
   CheckSquare
 } from 'lucide-react';
-import { RoleBasedAccess } from '@/components/RoleBasedAccess';
+import { RoleBasedAccess } from '@/components/features/project-management';
 import { format, isToday, isYesterday, parseISO } from 'date-fns';
 
 interface ActivityLogEntry {

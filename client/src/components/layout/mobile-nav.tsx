@@ -41,7 +41,7 @@ export default function MobileNav() {
               key={item.name} 
               onClick={() => handleNavClick(item.href)}
               className={cn(
-                "flex flex-col items-center py-3 px-2 transition-colors touch-manipulation min-h-[48px] relative focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2 rounded-md",
+                "flex flex-col items-center py-3 px-2 transition-colors touch-manipulation min-h-[48px] relative focus-ring-rose rounded-md",
                 isActive ? "text-blush" : "text-gray-400 active:text-gray-600"
               )}
               type="button"
@@ -57,7 +57,7 @@ export default function MobileNav() {
         <Sheet open={isMoreOpen} onOpenChange={setIsMoreOpen}>
           <SheetTrigger asChild>
             <button 
-              className="flex flex-col items-center py-2 px-1 transition-colors text-gray-400 active:text-gray-600 touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2 rounded-md"
+              className="flex flex-col items-center py-2 px-1 transition-colors text-gray-400 active:text-gray-600 touch-manipulation focus-ring-rose rounded-md"
               aria-label="Open navigation menu"
               aria-expanded={isMoreOpen}
             >

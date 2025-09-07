@@ -208,7 +208,6 @@ export const OptimizedFileDropzone = memo(({
     <div ref={dropzoneRef} className={cn("space-y-4", className)}>
       {/* Dropzone Area */}
       <motion.div
-        {...getRootProps()}
         className={cn(
           "border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-all duration-200",
           isDragActive && !isDragReject && "border-blue-400 bg-blue-50",
@@ -218,6 +217,7 @@ export const OptimizedFileDropzone = memo(({
         )}
         whileHover={uploadedFiles.length < maxFiles ? { scale: 1.02 } : {}}
         whileTap={uploadedFiles.length < maxFiles ? { scale: 0.98 } : {}}
+        {...getRootProps()}
       >
         <input {...getInputProps()} />
         <div className="space-y-4">

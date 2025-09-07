@@ -25,6 +25,8 @@ import { AccessibleButton } from "@/components/ui/accessibility-enhancements";
 import { useDebounce, usePerformanceMonitor } from "@/hooks/usePerformanceOptimization";
 import { toast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
+import UnifiedPageLayout from "@/components/layout/UnifiedPageLayout";
+import { UnifiedSection, UnifiedGrid, UnifiedCard } from "@/components/layout/UnifiedSection";
 
 const priorityFilters = [
   { value: "all", label: "All Priorities" },
@@ -67,6 +69,9 @@ export default function Timeline() {
   const [showCompleted, setShowCompleted] = useState(true);
   const [activeTab, setActiveTab] = useState("chronological");
 
+  // Performance monitoring
+  usePerformanceMonitor('Timeline');
+
   // Fetch data using hooks
   const { data: projects, isLoading: projectsLoading } = useProjects();
   const currentProject = Array.isArray(projects) 
@@ -75,7 +80,7 @@ export default function Timeline() {
   const projectId = currentProject?.id?.toString();
   
   const { data: tasks = [], isLoading: tasksLoading, error: tasksError } = useTasks(projectId);
-  const weddingDate = currentProject?.date ? new Date(currentProject.date) : null;
+  const weddingDate = currentProject?.weddingDate ? new Date(currentProject.weddingDate) : null;
 
   // Filter and search logic
   const filteredTasks = useMemo(() => {
@@ -145,188 +150,219 @@ export default function Timeline() {
     ? differenceInDays(weddingDate, new Date())
     : null;
 
+  // Calculate stats
+  const stats = useMemo(() => {
+    if (!tasks) return { total: 0, completed: 0, pending: 0, overdue: 0 };
+    
+    const now = new Date();
+    return {
+      total: tasks.length,
+      completed: tasks.filter((task: any) => task.status === 'completed' || task.isCompleted).length,
+      pending: tasks.filter((task: any) => task.status !== 'completed' && !task.isCompleted).length,
+      overdue: tasks.filter((task: any) => 
+        task.dueDate && new Date(task.dueDate) < now && (task.status !== 'completed' && !task.isCompleted)
+      ).length,
+    };
+  }, [tasks]);
+
   // Loading and error states
   if (projectsLoading || tasksLoading) {
     return (
-      <div className="p-6">
-        <LoadingSpinner size="lg" text="Loading your wedding timeline..." />
-      </div>
+      <UnifiedPageLayout title="Timeline & Tasks" subtitle="Stay on track with your wedding timeline">
+        <UnifiedSection animation="fadeIn" margin="lg">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {[...Array(4)].map((_, i) => (
+              <SkeletonCard key={i} />
+            ))}
+          </div>
+        </UnifiedSection>
+      </UnifiedPageLayout>
     );
   }
 
   if (tasksError) {
     return (
-      <div className="p-6">
-        <div className="text-center text-red-600">
-          <p>Error loading tasks. Please try again.</p>
-          <Button 
-            onClick={() => window.location.reload()} 
-            variant="outline" 
-            className="mt-4"
-          >
-            Retry
-          </Button>
-        </div>
-      </div>
+      <UnifiedPageLayout title="Timeline & Tasks" subtitle="Stay on track with your wedding timeline">
+        <UnifiedSection animation="fadeIn" margin="lg">
+          <div className="text-center py-8">
+            <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Error Loading Tasks</h3>
+            <p className="text-gray-600 mb-4">Unable to load timeline information. Please try again.</p>
+            <Button onClick={() => window.location.reload()}>Retry</Button>
+          </div>
+        </UnifiedSection>
+      </UnifiedPageLayout>
     );
   }
 
   if (!projectId) {
     return (
-      <div className="p-6">
-        <div className="text-center text-gray-600">
-          <p>No wedding project found. Please create a project first.</p>
-        </div>
-      </div>
+      <UnifiedPageLayout title="Timeline & Tasks" subtitle="Stay on track with your wedding timeline">
+        <UnifiedSection animation="fadeIn" margin="lg">
+          <div className="text-center py-8">
+            <Calendar className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">No Wedding Project Found</h3>
+            <p className="text-gray-600 mb-4">Please create a project first to start planning your wedding.</p>
+                         <TaskFormDialog
+               projectId={projectId || ""}
+               trigger={
+                 <Button className="flex items-center gap-2">
+                   <Zap className="w-4 h-4" />
+                   Create Wedding Project
+                 </Button>
+               }
+             />
+          </div>
+        </UnifiedSection>
+      </UnifiedPageLayout>
     );
   }
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
-      {/* Breadcrumbs */}
-      <Breadcrumbs
-        items={[
-          { label: "Timeline & Tasks", current: true }
-        ]}
-        className="mb-6"
-      />
-      
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-2">
-          <Calendar className="w-6 h-6 text-rose-600" />
-          <div>
-            <h1 className="text-2xl font-semibold text-gray-800">Timeline</h1>
-            {weddingDate && daysUntilWedding !== null && (
-              <span className="text-gray-500 text-sm">
-                {daysUntilWedding > 0 
-                  ? `${daysUntilWedding} days until your special day`
-                  : daysUntilWedding === 0 
-                    ? "Your wedding is today!"
-                    : "Congratulations on your recent wedding!"
-                }
-              </span>
-            )}
-          </div>
-        </div>
-        <ExportDialog
-          projectId={projectId}
-          projectName={currentProject?.name || "Wedding Project"}
-          trigger={
-            <Button variant="outline" className="gap-2">
-              <Download className="h-4 w-4" />
-              Export Timeline
-            </Button>
-          }
-        />
-      </div>
-
-      <div className="space-y-6">
-        {/* Stats and Add Task */}
-        <div className="bg-white rounded-lg p-6 border border-gray-200">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-medium text-gray-800">Task Overview</h2>
-            <TaskFormDialog projectId={projectId} />
-          </div>
-
-        {/* Quick Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <Card className="border-blue-200">
-            <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-blue-600">{pendingTasks.length}</div>
-              <div className="text-sm text-gray-600">Pending</div>
-            </CardContent>
-          </Card>
-          <Card className="border-green-200">
-            <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-green-600">{completedTasks.length}</div>
-              <div className="text-sm text-gray-600">Completed</div>
-            </CardContent>
-          </Card>
-          <Card className="border-red-200">
-            <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-red-600">{overdueTasks.length}</div>
-              <div className="text-sm text-gray-600">Overdue</div>
-            </CardContent>
-          </Card>
-          <Card className="border-purple-200">
-            <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-purple-600">
-                {Array.isArray(tasks) && tasks.length > 0 ? Math.round((completedTasks.length / (tasks as any[]).length) * 100) : 0}%
+    <UnifiedPageLayout 
+      title="Timeline & Tasks" 
+      subtitle="Stay on track with your wedding timeline"
+      animation="fadeIn"
+    >
+      {/* Stats Section */}
+      <UnifiedSection animation="slideUp" margin="lg">
+        <UnifiedGrid cols={4}>
+          <UnifiedCard variant="wedding">
+            <div className="flex items-center">
+              <div className="p-2 rounded-lg bg-blue-100 text-blue-600">
+                <Calendar className="w-6 h-6" />
               </div>
-              <div className="text-sm text-gray-600">Progress</div>
-            </CardContent>
-          </Card>
-        </div>
-
-          {/* Filters */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="relative">
-            <Input
-              placeholder="Search tasks..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Filter className="h-4 w-4 text-gray-400" />
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Total Tasks</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
+              </div>
             </div>
+          </UnifiedCard>
+          
+          <UnifiedCard variant="wedding">
+            <div className="flex items-center">
+              <div className="p-2 rounded-lg bg-green-100 text-green-600">
+                <CheckCircle className="w-6 h-6" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Completed</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.completed}</p>
+              </div>
+            </div>
+          </UnifiedCard>
+          
+          <UnifiedCard variant="wedding">
+            <div className="flex items-center">
+              <div className="p-2 rounded-lg bg-yellow-100 text-yellow-600">
+                <Clock className="w-6 h-6" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Pending</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.pending}</p>
+              </div>
+            </div>
+          </UnifiedCard>
+          
+          <UnifiedCard variant="wedding">
+            <div className="flex items-center">
+              <div className="p-2 rounded-lg bg-red-100 text-red-600">
+                <AlertCircle className="w-6 h-6" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Overdue</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.overdue}</p>
+              </div>
+            </div>
+          </UnifiedCard>
+        </UnifiedGrid>
+      </UnifiedSection>
+
+      {/* Filters and Actions */}
+      <UnifiedSection animation="slideUp" margin="lg">
+        <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
+          <div className="flex flex-col sm:flex-row gap-4 flex-1">
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <Input
+                placeholder="Search tasks..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            
+            <Select value={filterPriority} onValueChange={setFilterPriority}>
+              <SelectTrigger className="w-full sm:w-48">
+                <SelectValue placeholder="Priority" />
+              </SelectTrigger>
+              <SelectContent>
+                {priorityFilters.map((filter) => (
+                  <SelectItem key={filter.value} value={filter.value}>
+                    {filter.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            
+            <Select value={filterCategory} onValueChange={setFilterCategory}>
+              <SelectTrigger className="w-full sm:w-48">
+                <SelectValue placeholder="Category" />
+              </SelectTrigger>
+              <SelectContent>
+                {categoryFilters.map((filter) => (
+                  <SelectItem key={filter.value} value={filter.value}>
+                    {filter.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-
-          <Select value={filterPriority} onValueChange={setFilterPriority}>
-            <SelectTrigger>
-              <SelectValue placeholder="Filter by priority" />
-            </SelectTrigger>
-            <SelectContent>
-              {priorityFilters.map(filter => (
-                <SelectItem key={filter.value} value={filter.value}>
-                  {filter.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <Select value={filterCategory} onValueChange={setFilterCategory}>
-            <SelectTrigger>
-              <SelectValue placeholder="Filter by category" />
-            </SelectTrigger>
-            <SelectContent>
-              {categoryFilters.map(filter => (
-                <SelectItem key={filter.value} value={filter.value}>
-                  {filter.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="show-completed"
-              checked={showCompleted}
-              onCheckedChange={(checked) => setShowCompleted(checked === true)}
+          
+          <div className="flex gap-2">
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="show-completed"
+                checked={showCompleted}
+                onCheckedChange={(checked) => setShowCompleted(checked as boolean)}
+              />
+              <label htmlFor="show-completed" className="text-sm text-gray-600">
+                Show completed
+              </label>
+            </div>
+            
+            <TaskFormDialog
+              projectId={projectId}
+              trigger={
+                <Button className="flex items-center gap-2">
+                  <Zap className="w-4 h-4" />
+                  Add Task
+                </Button>
+              }
             />
-            <label htmlFor="show-completed" className="text-sm">
-              Show completed
-            </label>
-          </div>
+            
+            <ExportDialog
+              projectId={projectId || ""}
+              projectName={currentProject?.name || "Wedding Project"}
+              trigger={
+                <Button variant="outline" className="flex items-center gap-2">
+                  <Download className="w-4 h-4" />
+                  Export
+                </Button>
+              }
+            />
           </div>
         </div>
+      </UnifiedSection>
 
-        {/* Task Lists with Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+      {/* Timeline Content */}
+      <UnifiedSection animation="slideUp" margin="lg">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="chronological" className="flex items-center gap-2">
-              <Clock className="h-4 w-4" />
-              Chronological
-            </TabsTrigger>
-            <TabsTrigger value="category" className="flex items-center gap-2">
-              <Filter className="h-4 w-4" />
-              By Category
-            </TabsTrigger>
+            <TabsTrigger value="chronological">Chronological View</TabsTrigger>
+            <TabsTrigger value="category">Category View</TabsTrigger>
           </TabsList>
 
-          {/* Chronological View */}
-          <TabsContent value="chronological" className="space-y-6">
+          <TabsContent value="chronological" className="space-y-4">
             {/* Overdue Tasks */}
             {overdueTasks.length > 0 && (
               <Card className="border-l-4 border-l-red-500">
@@ -433,7 +469,7 @@ export default function Timeline() {
           </TabsContent>
 
           {/* Category View */}
-          <TabsContent value="category" className="space-y-6">
+          <TabsContent value="category" className="space-y-4">
             {Object.entries(tasksByCategory).length === 0 ? (
               <Card>
                 <CardContent className="py-12">
@@ -550,23 +586,28 @@ export default function Timeline() {
 
         {/* Enhanced Empty State */}
         {filteredTasks.length === 0 && (
-          <Card>
-            <CardContent>
-              {(searchTerm || filterPriority !== "all" || filterCategory !== "all") ? (
-                <EmptyState
-                  type="tasks"
-                  context="filtered"
-                />
-              ) : (
-                <EmptyState
-                  type="tasks"
-                  context="timeline"
-                />
-              )}
-            </CardContent>
-          </Card>
+          <div className="text-center py-12">
+            <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">No tasks found</h3>
+            <p className="text-gray-600 mb-6">
+              {searchTerm || filterPriority !== "all" || filterCategory !== "all"
+                ? "Try adjusting your filters to see more results."
+                : "Start planning your wedding by adding your first task."}
+            </p>
+            {!searchTerm && filterPriority === "all" && filterCategory === "all" && (
+              <TaskFormDialog
+                projectId={projectId}
+                trigger={
+                  <Button className="flex items-center gap-2">
+                    <Zap className="w-4 h-4" />
+                    Add Your First Task
+                  </Button>
+                }
+              />
+            )}
+          </div>
         )}
-      </div>
-    </div>
+      </UnifiedSection>
+    </UnifiedPageLayout>
   );
 }

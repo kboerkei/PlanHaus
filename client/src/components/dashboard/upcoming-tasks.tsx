@@ -6,17 +6,18 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { format, isAfter, isBefore, addDays } from "date-fns";
 import { Link } from "wouter";
+import { WeddingProject, Task } from "@/types";
 
 export default function UpcomingTasks() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  const { data: projects } = useQuery({
+  const { data: projects } = useQuery<WeddingProject[]>({
     queryKey: ['/api/projects'],
     enabled: !!localStorage.getItem('sessionId')
   });
 
-  const { data: tasks = [] } = useQuery({
+  const { data: tasks = [] } = useQuery<Task[]>({
     queryKey: ['/api/projects', projects?.[0]?.id, 'tasks'],
     enabled: !!projects?.[0]?.id
   });
@@ -33,11 +34,11 @@ export default function UpcomingTasks() {
 
   // Filter and sort upcoming tasks
   const upcomingTasks = tasks
-    .filter(task => task.status !== 'completed')
-    .filter(task => !task.dueDate || isBefore(new Date(), addDays(new Date(task.dueDate), 1)))
-    .sort((a, b) => {
+    .filter((task: Task) => task.status !== 'completed')
+    .filter((task: Task) => !task.dueDate || isBefore(new Date(), addDays(new Date(task.dueDate), 1)))
+    .sort((a: Task, b: Task) => {
       // Sort by priority first, then by due date
-      const priorityOrder = { high: 3, medium: 2, low: 1 };
+      const priorityOrder: Record<string, number> = { high: 3, medium: 2, low: 1 };
       const aPriority = priorityOrder[a.priority] || 0;
       const bPriority = priorityOrder[b.priority] || 0;
       
@@ -51,7 +52,7 @@ export default function UpcomingTasks() {
     .slice(0, 4); // Show only top 4 tasks
 
   const recentlyCompleted = tasks
-    .filter(task => task.status === 'completed')
+    .filter((task: Task) => task.status === 'completed')
     .slice(0, 2);
 
   const formatDueDate = (dueDate: string) => {

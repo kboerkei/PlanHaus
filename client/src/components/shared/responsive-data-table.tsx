@@ -16,7 +16,15 @@ import {
 import { cn } from "@/lib/utils";
 import type { TableColumn, TableProps } from '@/types';
 
-interface ResponsiveDataTableProps<T = Record<string, unknown>> extends Omit<TableProps<T>, 'onSort'> {
+interface Column {
+  key: string;
+  label: string;
+  sortable?: boolean;
+  width?: string;
+  render?: (value: any, item: any) => React.ReactNode;
+}
+
+interface ResponsiveDataTableProps<T = Record<string, unknown>> extends Omit<TableProps, 'onSort'> {
   onRowClick?: (item: T) => void;
   onRowSelect?: (selectedItems: T[]) => void;
   enableSelection?: boolean;

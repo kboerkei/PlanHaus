@@ -159,25 +159,32 @@ router.post('/demo-login', async (req, res) => {
       return res.status(404).json({ error: 'Demo user not found' });
     }
 
-    // Generate token for demo user
-    const token = generateToken({
-      id: user.id,
-      email: user.email,
-      username: user.username,
-      role: user.role
+    // Create a session ID for demo user
+    const sessionId = `demo_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
+    // Store session in memory storage
+    await storage.createSession({
+      sessionId,
+      userId: user.id,
+      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
     });
 
     // Log demo login activity
-    await storage.logActivity({
-      projectId: 0, // System-level activity
-      userId: user.id,
-      action: 'Demo login',
-      entityType: 'user',
-      entityId: user.id,
-      entityName: user.username,
-      details: { loginType: 'demo' },
-      isVisible: false,
-    });
+    try {
+      await storage.logActivity({
+        projectId: 0, // System-level activity
+        userId: user.id,
+        action: 'Demo login',
+        entityType: 'user',
+        entityId: user.id,
+        entityName: user.username,
+        details: { loginType: 'demo' },
+        isVisible: false,
+      });
+    } catch (error) {
+      // Ignore activity logging errors for demo
+      console.log('Demo activity logging skipped');
+    }
 
     res.json({
       user: {
@@ -187,7 +194,7 @@ router.post('/demo-login', async (req, res) => {
         hasCompletedIntake: user.hasCompletedIntake,
         avatar: user.avatar,
       },
-      sessionId: token // For compatibility with existing frontend
+      sessionId: sessionId
     });
   } catch (error) {
     console.error('Demo login error:', error);

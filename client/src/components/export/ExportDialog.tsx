@@ -64,7 +64,7 @@ export default function ExportDialog({ projectId, projectName, trigger }: Export
     
     setIsLoading(true);
     try {
-      const response = await apiRequest(`/api/export/preview/${projectId}`);
+      const response = await apiRequest<ExportStats>(`/api/export/preview/${projectId}`);
       setStats(response);
     } catch (error) {
       toast({
@@ -160,11 +160,29 @@ export default function ExportDialog({ projectId, projectName, trigger }: Export
     }
   };
 
-  const formatCurrency = (amount: number) => {
+  const formatCurrency = (amount: number | string) => {
+    // Handle string inputs and ensure proper number parsing
+    let safeAmount = 0;
+    
+    if (typeof amount === 'string') {
+      // Remove any non-numeric characters except decimal points
+      const cleanString = amount.replace(/[^0-9.]/g, '');
+      safeAmount = parseFloat(cleanString) || 0;
+    } else if (typeof amount === 'number') {
+      safeAmount = amount;
+    } else {
+      safeAmount = 0;
+    }
+    
+    // Ensure the amount is a valid number
+    if (isNaN(safeAmount) || !isFinite(safeAmount)) {
+      safeAmount = 0;
+    }
+    
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
-    }).format(amount);
+    }).format(safeAmount);
   };
 
   const getCompletionPercentage = (completed: number, total: number) => {

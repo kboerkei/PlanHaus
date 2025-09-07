@@ -119,6 +119,17 @@ const config: Config = {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
+        // Wedding theme colors
+        blush: "hsl(var(--blush))",
+        "rose-gold": "hsl(var(--rose-gold))",
+        champagne: "hsl(var(--champagne))",
+        sage: "hsl(var(--sage))",
+        cream: "hsl(var(--cream))",
+        ivory: "hsl(var(--ivory))",
+        "dusty-rose": "hsl(var(--dusty-rose))",
+        "muted-gold": "hsl(var(--muted-gold))",
+        pearl: "hsl(var(--pearl))",
+        mauve: "hsl(var(--mauve))",
       },
       borderRadius: {
         lg: "var(--radius)",

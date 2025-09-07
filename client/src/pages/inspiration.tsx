@@ -14,7 +14,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import MoodBoard from "@/components/mood-board";
+import { MoodBoard } from "@/components/shared";
 
 const inspirationSchema = z.object({
   title: z.string().min(1, "Title is required"),

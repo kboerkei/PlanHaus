@@ -17,7 +17,8 @@ import {
   Heart,
   Home,
   ChevronRight,
-  Sparkles
+  Sparkles,
+  FileText
 } from "lucide-react";
 
 interface NavItem {
@@ -66,6 +67,12 @@ const navigationSections: NavSection[] = [
         label: "Vendors", 
         icon: <Store className="h-4 w-4" />,
         description: "Find and manage vendors"
+      },
+      { 
+        href: "/intake", 
+        label: "Intake Form", 
+        icon: <FileText className="h-4 w-4" />,
+        description: "Complete your wedding intake form"
       },
     ]
   },

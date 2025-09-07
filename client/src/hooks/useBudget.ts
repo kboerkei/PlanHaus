@@ -1,6 +1,6 @@
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { BudgetFormData } from "@/schemas";
+import { BudgetItemFormData } from "@/schemas";
 import type { BudgetItem, BudgetItemInsert, BudgetItemUpdate, BudgetSummary } from "@/types/budget";
 
 export function useBudget(projectId?: string) {
@@ -86,8 +86,13 @@ export function useBudgetSummary(projectId?: string) {
       };
     }
     
-    const estimatedCost = item.estimatedCost || 0;
-    const actualCost = item.actualCost || 0;
+    // Parse string values to numbers, handling both string and number types
+    const estimatedCost = typeof item.estimatedCost === 'string' 
+      ? parseFloat(item.estimatedCost) || 0 
+      : (item.estimatedCost || 0);
+    const actualCost = typeof item.actualCost === 'string' 
+      ? parseFloat(item.actualCost) || 0 
+      : (item.actualCost || 0);
     
     acc[categoryKey].estimated += estimatedCost;
     acc[categoryKey].actual += actualCost;

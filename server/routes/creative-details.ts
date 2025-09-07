@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { storage } from '../storage';
-import { requireAuth, RequestWithUser } from '../middleware/auth';
+import { RequestWithUser } from '../middleware/auth';
+import { requireAuthCookie } from '../middleware/cookieAuth';
 import { validateBody } from '../utils/validation';
 import { getOrCreateDefaultProject } from '../utils/projects';
 import { insertCreativeDetailSchema } from '@shared/schema';
@@ -9,7 +10,7 @@ import { logInfo, logError } from '../utils/logger';
 const router = Router();
 
 // Get all creative details for current project
-router.get('/', requireAuth, async (req: RequestWithUser, res) => {
+router.get('/', requireAuthCookie, async (req: RequestWithUser, res) => {
   try {
     const project = await getOrCreateDefaultProject(req.userId);
     const creativeDetails = await storage.getCreativeDetails(project.id);
@@ -21,7 +22,7 @@ router.get('/', requireAuth, async (req: RequestWithUser, res) => {
 });
 
 // Create new creative detail
-router.post('/', requireAuth, validateBody(insertCreativeDetailSchema), async (req: RequestWithUser, res) => {
+router.post('/', requireAuthCookie, validateBody(insertCreativeDetailSchema), async (req: RequestWithUser, res) => {
   try {
     const project = await getOrCreateDefaultProject(req.userId);
     const creativeDetailData = { 
@@ -40,7 +41,7 @@ router.post('/', requireAuth, validateBody(insertCreativeDetailSchema), async (r
 });
 
 // Update creative detail
-router.put('/:id', requireAuth, validateBody(insertCreativeDetailSchema.partial()), async (req: RequestWithUser, res) => {
+router.put('/:id', requireAuthCookie, validateBody(insertCreativeDetailSchema.partial()), async (req: RequestWithUser, res) => {
   try {
     const creativeDetailId = parseInt(req.params.id);
     const creativeDetail = await storage.getCreativeDetailById(creativeDetailId);
@@ -68,7 +69,7 @@ router.put('/:id', requireAuth, validateBody(insertCreativeDetailSchema.partial(
 });
 
 // Delete creative detail
-router.delete('/:id', requireAuth, async (req: RequestWithUser, res) => {
+router.delete('/:id', requireAuthCookie, async (req: RequestWithUser, res) => {
   try {
     const creativeDetailId = parseInt(req.params.id);
     const creativeDetail = await storage.getCreativeDetailById(creativeDetailId);

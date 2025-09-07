@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { TrendingUp, TrendingDown, DollarSign, ChevronDown, ChevronRight, Edit, Trash2 } from "lucide-react";
 import BudgetEntryDialog from "./BudgetEntryDialog";
+import BudgetFormDialog from "./BudgetFormDialog";
 import { useDeleteBudgetItem, useBudget } from "@/hooks/useBudget";
 import { useToast } from "@/hooks/use-toast";
 
@@ -89,9 +90,24 @@ export default function BudgetCategorySummary({
       }
     }
   };
-  const formatCurrency = (amount: number | undefined | null) => {
-    const safeAmount = parseFloat(String(amount)) || 0;
-    if (isNaN(safeAmount)) return '$0';
+  const formatCurrency = (amount: number | string | undefined | null) => {
+    // Handle string inputs and ensure proper number parsing
+    let safeAmount = 0;
+    
+    if (typeof amount === 'string') {
+      // Remove any non-numeric characters except decimal points
+      const cleanString = amount.replace(/[^0-9.]/g, '');
+      safeAmount = parseFloat(cleanString) || 0;
+    } else if (typeof amount === 'number') {
+      safeAmount = amount;
+    } else {
+      safeAmount = 0;
+    }
+    
+    // Ensure the amount is a valid number
+    if (isNaN(safeAmount) || !isFinite(safeAmount)) {
+      safeAmount = 0;
+    }
     
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -133,7 +149,11 @@ export default function BudgetCategorySummary({
           <p className="text-gray-600 mb-4">
             Add budget items to see your category breakdown and spending analysis.
           </p>
-          <BudgetEntryDialog projectId={projectId} />
+          <BudgetEntryDialog 
+            projectId={projectId} 
+            isOpen={false} 
+            setIsOpen={() => {}} 
+          />
         </CardContent>
       </Card>
     );
@@ -289,7 +309,7 @@ export default function BudgetCategorySummary({
                           
                           {/* Mobile-friendly action buttons */}
                           <div className="flex gap-1 shrink-0">
-                            <BudgetEntryDialog
+                            <BudgetFormDialog
                               projectId={actualProjectId}
                               budgetItem={item}
                               trigger={

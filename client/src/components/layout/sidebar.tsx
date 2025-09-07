@@ -52,7 +52,7 @@ export default function Sidebar() {
                 <Link 
                   href={item.href}
                   className={cn(
-                    "flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 font-medium focus:outline-none focus:ring-2 focus:ring-blush focus:ring-offset-2 hover:scale-105",
+                    "flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 font-medium focus-ring-blush hover:scale-105",
                     isActive 
                       ? "gradient-blush-rose text-white" 
                       : "text-gray-600 hover:bg-gray-50 hover:text-gray-800"
@@ -79,7 +79,7 @@ export default function Sidebar() {
                     <Link 
                       href={item.href}
                       className={cn(
-                        "flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors font-medium focus:outline-none focus:ring-2 focus:ring-blush focus:ring-offset-2",
+                        "flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors font-medium focus-ring-blush",
                         isActive 
                           ? "gradient-blush-rose text-white" 
                           : "text-gray-600 hover:bg-gray-50 hover:text-gray-800"

@@ -35,6 +35,19 @@ import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import type { MoodBoardItem } from '@/types';
+import type { InspirationItem } from '@/../../shared/types';
+
+interface MoodBoardItemData {
+  id: number;
+  title: string;
+  imageUrl?: string;
+  category?: string;
+  notes?: string;
+  colors?: string[];
+  tags?: string[];
+  createdAt: string;
+  updatedAt: string;
+}
 
 interface SortableItemProps {
   item: MoodBoardItem;
@@ -132,7 +145,7 @@ function SortableItem({ item, onEdit, onDelete }: SortableItemProps) {
             className="h-6 w-6 p-0 bg-white/90 hover:bg-white hover:text-red-600"
             onClick={(e) => {
               e.stopPropagation();
-              onDelete(item.id);
+              onDelete(item.id.toString());
             }}
           >
             <Trash2 className="w-3 h-3" />
@@ -263,7 +276,7 @@ export default function MoodBoard({ inspirationItems, onItemsChange }: MoodBoard
       
       return createdItems;
     },
-    onSuccess: (createdItems) => {
+    onSuccess: (createdItems: InspirationItem[]) => {
       // Add new items to mood board
       const newMoodBoardItems = createdItems.map((item, index) => ({
         id: item.id.toString(),

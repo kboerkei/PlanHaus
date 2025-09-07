@@ -18,7 +18,7 @@ export const taskSchema = z.object({
   title: requiredText("Title"),
   description: optionalText,
   dueDate: z.string().optional(),
-  priority: z.enum(["low", "medium", "high"]).default("medium"),
+  priority: z.enum(["low", "medium", "high"]),
   category: z.enum([
     "planning", "venue", "catering", "photography", "flowers", 
     "music", "attire", "invitations", "decorations", "other"
@@ -41,10 +41,10 @@ export const budgetItemSchema = z.object({
   actualCost: nonNegativeNumber.optional(),
   vendor: optionalText,
   notes: optionalText,
-  isPaid: z.boolean().default(false),
+  isPaid: z.boolean(),
   paymentDue: z.string().optional(),
-  priority: z.enum(["low", "medium", "high"]).default("medium"),
-  status: z.enum(["planned", "quoted", "booked", "paid", "cancelled"]).default("planned"),
+  priority: z.enum(["low", "medium", "high"]),
+  status: z.enum(["planned", "quoted", "booked", "paid", "cancelled"]),
 });
 
 export type BudgetItemFormData = z.infer<typeof budgetItemSchema>;

@@ -29,6 +29,7 @@ interface MemoizedListProps {
   className?: string;
   itemHeight?: number;
   maxHeight?: number;
+  width?: number;
   virtual?: boolean;
 }
 
@@ -39,6 +40,7 @@ export function MemoizedList({
   className, 
   itemHeight = 80,
   maxHeight = 400,
+  width = 400,
   virtual = false
 }: MemoizedListProps) {
   const memoizedItems = useMemo(() => items, [items]);
@@ -59,6 +61,7 @@ export function MemoizedList({
     return (
       <div className={className}>
         <VirtualList
+          width={width}
           height={Math.min(maxHeight, items.length * itemHeight)}
           itemCount={items.length}
           itemSize={itemHeight}

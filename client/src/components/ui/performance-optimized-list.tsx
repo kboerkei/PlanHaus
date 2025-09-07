@@ -2,8 +2,8 @@ import { memo, useMemo, useCallback, Suspense, lazy } from "react";
 import { MemoizedList } from "./memoized-list";
 
 // Lazy load heavy components
-const LazyMoodBoard = lazy(() => import("@/components/mood-board"));
-const LazyResponsiveDataTable = lazy(() => import("@/components/responsive-data-table"));
+const LazyMoodBoard = lazy(() => import("@/components/shared/mood-board"));
+const LazyResponsiveDataTable = lazy(() => import("@/components/shared/responsive-data-table"));
 
 interface OptimizedListProps {
   items: any[];

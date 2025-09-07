@@ -36,6 +36,11 @@ export const UI_CONFIG = {
   TOAST_DURATION: 5000,
 } as const;
 
+// Feature Flags
+export const FEATURE_FLAGS = {
+  DASHBOARD_SMART_ACTIONS: false, // Set to false to disable Smart Actions
+} as const;
+
 // Wedding Planning Categories
 export const CATEGORIES = {
   TASKS: [

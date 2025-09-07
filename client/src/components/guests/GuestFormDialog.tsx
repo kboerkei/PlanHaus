@@ -24,7 +24,7 @@ const guestGroups = [
   { value: "wedding_party", label: "Wedding Party" },
   { value: "family", label: "Family" },
   { value: "friends", label: "Friends" },
-  { value: "colleagues", label: "Colleagues" },
+  { value: "work_colleagues", label: "Colleagues" },
   { value: "other", label: "Other" }
 ];
 

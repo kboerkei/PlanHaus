@@ -1,8 +1,6 @@
 import { useState, useMemo, Suspense, memo } from "react";
 import { useDebounce, usePerformanceMonitor } from "@/hooks/usePerformance";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle, Button, Input } from "@/components/design-system";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
@@ -33,6 +31,8 @@ import {
   Pie,
   Cell
 } from "recharts";
+import UnifiedPageLayout from "@/components/layout/UnifiedPageLayout";
+import { UnifiedSection, UnifiedGrid, UnifiedCard } from "@/components/layout/UnifiedSection";
 
 const categoryFilters = [
   { value: "all", label: "All Categories" },
@@ -59,7 +59,6 @@ const Budget = memo(() => {
   
   // Debounce search input for better performance
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
-  // AbortController will be implemented in a future enhancement
 
   // Fetch data using hooks
   const { data: projects, isLoading: projectsLoading, error: projectsError } = useProjects();
@@ -68,15 +67,8 @@ const Budget = memo(() => {
     : null;
   const projectId = currentProject?.id?.toString();
   
-
-  
   const { data: budgetItems = [], isLoading: budgetLoading, error: budgetError } = useBudget(projectId);
   const budgetSummary = useBudgetSummary(projectId);
-  
-  // Ensure we have budget items data for the category summary
-  const actualBudgetItems = budgetItems || [];
-  
-
 
   // Filter logic with debounced search
   const filteredItems = useMemo(() => {
@@ -98,8 +90,13 @@ const Budget = memo(() => {
   // Calculate totals from filtered items
   const filteredTotals = useMemo(() => {
     return filteredItems.reduce((acc: { estimated: number; actual: number; paid: number }, item: BudgetItem) => {
-      const estimatedCost = item.estimatedCost || 0;
-      const actualCost = item.actualCost || 0;
+      // Parse string values to numbers, handling both string and number types
+      const estimatedCost = typeof item.estimatedCost === 'string' 
+        ? parseFloat(item.estimatedCost) || 0 
+        : (item.estimatedCost || 0);
+      const actualCost = typeof item.actualCost === 'string' 
+        ? parseFloat(item.actualCost) || 0 
+        : (item.actualCost || 0);
       
       acc.estimated += estimatedCost;
       acc.actual += actualCost;
@@ -108,9 +105,24 @@ const Budget = memo(() => {
     }, { estimated: 0, actual: 0, paid: 0 });
   }, [filteredItems]);
 
-  const formatCurrency = (amount: number | undefined | null) => {
-    const safeAmount = parseFloat(String(amount)) || 0;
-    if (isNaN(safeAmount)) return '$0';
+  const formatCurrency = (amount: number | string | undefined | null) => {
+    // Handle string inputs and ensure proper number parsing
+    let safeAmount = 0;
+    
+    if (typeof amount === 'string') {
+      // Remove any non-numeric characters except decimal points
+      const cleanString = amount.replace(/[^0-9.]/g, '');
+      safeAmount = parseFloat(cleanString) || 0;
+    } else if (typeof amount === 'number') {
+      safeAmount = amount;
+    } else {
+      safeAmount = 0;
+    }
+    
+    // Ensure the amount is a valid number and not excessively large
+    if (isNaN(safeAmount) || !isFinite(safeAmount) || safeAmount > 1000000000) {
+      safeAmount = 0;
+    }
     
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -154,16 +166,15 @@ const Budget = memo(() => {
   }
 
   return (
-    <div className="space-y-4 sm:space-y-6 pb-20 sm:pb-6 px-2 sm:px-4 animate-fade-in-up">
-      {/* Header */}
-      <div className="bg-white rounded-lg p-4 sm:p-6 border border-gray-200">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Budget</h1>
-            <p className="text-sm sm:text-base text-gray-600 hidden sm:block">
-              Track your wedding expenses and stay on budget
-            </p>
-          </div>
+    <UnifiedPageLayout
+      title="Budget Tracker"
+      subtitle="Track your wedding expenses and stay on budget with our comprehensive budget management tools"
+      animation="slideUp"
+      headerBackground="gradient"
+    >
+      {/* Header Actions */}
+      <UnifiedSection animation="fadeIn">
+        <div className="flex items-center justify-between mb-6">
           <div className="flex gap-2">
             <ExportDialog
               projectId={projectId}
@@ -190,44 +201,38 @@ const Budget = memo(() => {
         </div>
 
         {/* Quick Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 mb-4 sm:mb-6">
-          <Card className="border-blue-200">
-            <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-blue-600">
-                {formatCurrency(budgetSummary?.totalEstimated || 0)}
-              </div>
-              <div className="text-sm text-gray-600">Total Budget</div>
-            </CardContent>
-          </Card>
-          <Card className="border-green-200">
-            <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-green-600">
-                {formatCurrency(budgetSummary?.totalActual || 0)}
-              </div>
-              <div className="text-sm text-gray-600">Total Spent</div>
-            </CardContent>
-          </Card>
-          <Card className="border-orange-200">
-            <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-orange-600">
-                {formatCurrency(Math.abs(budgetSummary?.totalRemaining || 0))}
-              </div>
-              <div className="text-sm text-gray-600">
-                {(budgetSummary?.totalRemaining || 0) >= 0 ? 'Remaining' : 'Over Budget'}
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="border-purple-200">
-            <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-purple-600">
-                {budgetSummary?.items || 0}
-              </div>
-              <div className="text-sm text-gray-600">Budget Items</div>
-            </CardContent>
-          </Card>
-        </div>
+        <UnifiedGrid cols={4} gap="md">
+          <UnifiedCard variant="elegant" className="text-center">
+            <div className="text-2xl font-bold text-primary">
+              {formatCurrency(budgetSummary?.totalEstimated || 0)}
+            </div>
+            <div className="text-sm text-neutral-600">Total Budget</div>
+          </UnifiedCard>
+          <UnifiedCard variant="elegant" className="text-center">
+            <div className="text-2xl font-bold text-success">
+              {formatCurrency(budgetSummary?.totalActual || 0)}
+            </div>
+            <div className="text-sm text-neutral-600">Total Spent</div>
+          </UnifiedCard>
+          <UnifiedCard variant="elegant" className="text-center">
+            <div className="text-2xl font-bold text-warning">
+              {formatCurrency(Math.abs(budgetSummary?.totalRemaining || 0))}
+            </div>
+            <div className="text-sm text-neutral-600">
+              {(budgetSummary?.totalRemaining || 0) >= 0 ? 'Remaining' : 'Over Budget'}
+            </div>
+          </UnifiedCard>
+          <UnifiedCard variant="elegant" className="text-center">
+            <div className="text-2xl font-bold text-secondary">
+              {budgetSummary?.items || 0}
+            </div>
+            <div className="text-sm text-neutral-600">Budget Items</div>
+          </UnifiedCard>
+        </UnifiedGrid>
+      </UnifiedSection>
 
-        {/* Filters */}
+      {/* Filters */}
+      <UnifiedSection animation="fadeIn">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
           <div className="relative">
             <Input
@@ -267,118 +272,115 @@ const Budget = memo(() => {
             </label>
           </div>
         </div>
-      </div>
+      </UnifiedSection>
 
-      <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 mb-4">
-          <TabsTrigger value="overview" className="text-xs sm:text-sm">Overview</TabsTrigger>
-          <TabsTrigger value="items" className="text-xs sm:text-sm">Items</TabsTrigger>
-          <TabsTrigger value="categories" className="text-xs sm:text-sm">Categories</TabsTrigger>
-        </TabsList>
+      {/* Main Content */}
+      <UnifiedSection animation="fadeIn">
+        <Tabs defaultValue="overview" className="w-full">
+          <TabsList className="grid w-full grid-cols-3 mb-4">
+            <TabsTrigger value="overview" className="text-xs sm:text-sm">Overview</TabsTrigger>
+            <TabsTrigger value="items" className="text-xs sm:text-sm">Items</TabsTrigger>
+            <TabsTrigger value="categories" className="text-xs sm:text-sm">Categories</TabsTrigger>
+          </TabsList>
 
-        <TabsContent value="overview" className="space-y-6">
-          <BudgetOverviewAnalytics 
-            budgetItems={budgetItems || []}
-            budgetSummary={budgetSummary}
-          />
-        </TabsContent>
+          <TabsContent value="overview" className="space-y-6">
+            <BudgetOverviewAnalytics 
+              budgetItems={budgetItems || []}
+              budgetSummary={budgetSummary}
+            />
+          </TabsContent>
 
-        <TabsContent value="items" className="space-y-3 sm:space-y-4">
-          {filteredItems.length === 0 ? (
-            <Card>
-              <CardContent className="text-center py-8 sm:py-12">
-                <DollarSign className="mx-auto mb-4 w-12 h-12 sm:w-16 sm:h-16 text-gray-400" />
-                <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">No budget items found</h3>
-                <p className="text-gray-600 mb-4">
-                  {searchTerm || filterCategory 
-                    ? "Try adjusting your filters to see more items."
-                    : "Get started by adding your first budget item."
-                  }
-                </p>
-                {(!searchTerm && !filterCategory) && (
-                  <Button className="gap-2">
-                    <DollarSign className="h-4 w-4" />
-                    Add Budget Item
-                  </Button>
-                )}
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="grid gap-4">
-              {filteredItems.map((item: any) => (
-                <Card key={item.id} className="hover:shadow-md transition-shadow">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          <h3 className="font-medium text-gray-900">{String(item.item || item.name || 'Untitled')}</h3>
-                          <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded capitalize">
-                            {String(item.category || 'uncategorized')}
-                          </span>
-                          {item.isPaid && (
-                            <span className="text-xs bg-green-100 text-green-600 px-2 py-1 rounded">
-                              Paid
+          <TabsContent value="items" className="space-y-3 sm:space-y-4">
+            {filteredItems.length === 0 ? (
+              <Card>
+                <CardContent className="text-center py-8 sm:py-12">
+                  <DollarSign className="mx-auto mb-4 w-12 h-12 sm:w-16 sm:h-16 text-gray-400" />
+                  <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">No budget items found</h3>
+                  <p className="text-gray-600 mb-4">
+                    {searchTerm || filterCategory 
+                      ? "Try adjusting your filters to see more items."
+                      : "Get started by adding your first budget item."
+                    }
+                  </p>
+                  {(!searchTerm && !filterCategory) && (
+                    <Button className="gap-2">
+                      <DollarSign className="h-4 w-4" />
+                      Add Budget Item
+                    </Button>
+                  )}
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid gap-4">
+                {filteredItems.map((item: any) => (
+                  <Card key={item.id} className="hover:shadow-md transition-shadow">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <h3 className="font-medium text-gray-900">{String(item.item || item.name || 'Untitled')}</h3>
+                            <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded capitalize">
+                              {String(item.category || 'uncategorized')}
                             </span>
-                          )}
-                        </div>
-                        
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                          <div>
-                            <span className="text-gray-500">Estimated:</span>
-                            <div className="font-medium">{formatCurrency(item.estimatedCost || 0)}</div>
+                            {item.isPaid && (
+                              <span className="text-xs bg-green-100 text-green-600 px-2 py-1 rounded">
+                                Paid
+                              </span>
+                            )}
                           </div>
-                          <div>
-                            <span className="text-gray-500">Actual:</span>
-                            <div className="font-medium">{formatCurrency(item.actualCost || 0)}</div>
-                          </div>
-                          {item.vendor && (
+                          
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                             <div>
-                              <span className="text-gray-500">Vendor:</span>
-                              <div className="font-medium">{String(item.vendor)}</div>
+                              <span className="text-gray-500">Estimated:</span>
+                              <div className="font-medium">{formatCurrency(item.estimatedCost || 0)}</div>
                             </div>
-                          )}
-                          <div className="flex items-center gap-2">
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              onClick={() => {
-                                setEditingItem(item);
-                                setIsDialogOpen(true);
-                              }}
-                            >
-                              Edit
-                            </Button>
+                            <div>
+                              <span className="text-gray-500">Actual:</span>
+                              <div className="font-medium">{formatCurrency(item.actualCost || 0)}</div>
+                            </div>
+                            {item.vendor && (
+                              <div>
+                                <span className="text-gray-500">Vendor:</span>
+                                <div className="font-medium">{String(item.vendor)}</div>
+                              </div>
+                            )}
+                            <div className="flex items-center gap-2">
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => {
+                                  setEditingItem(item);
+                                  setIsDialogOpen(true);
+                                }}
+                              >
+                                Edit
+                              </Button>
+                            </div>
                           </div>
+                          
+                          {item.notes && (
+                            <p className="text-sm text-gray-600 mt-2">{String(item.notes)}</p>
+                          )}
                         </div>
-                        
-                        {item.notes && (
-                          <p className="text-sm text-gray-600 mt-2">{String(item.notes)}</p>
-                        )}
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-        </TabsContent>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </TabsContent>
 
-        <TabsContent value="categories">
-          {projectId ? (
-            <BudgetCategorySummary
+          <TabsContent value="categories" className="space-y-6">
+            <BudgetCategorySummary 
               categories={(budgetSummary?.categories as any) || []}
               totalBudget={budgetSummary?.totalEstimated || 0}
               totalSpent={budgetSummary?.totalActual || 0}
               budgetItems={budgetItems || []}
               projectId={projectId}
             />
-          ) : (
-            <div className="flex items-center justify-center p-8">
-              <p className="text-gray-500">Loading project...</p>
-            </div>
-          )}
-        </TabsContent>
-      </Tabs>
+          </TabsContent>
+        </Tabs>
+      </UnifiedSection>
 
       {/* Budget Entry Dialog */}
       {projectId && (
@@ -389,7 +391,7 @@ const Budget = memo(() => {
           projectId={projectId}
         />
       )}
-    </div>
+    </UnifiedPageLayout>
   );
 });
 
@@ -400,8 +402,25 @@ function BudgetOverviewAnalytics({ budgetItems, budgetSummary }: {
   budgetItems: any[], 
   budgetSummary: any 
 }) {
-  const formatCurrency = (amount: number | undefined | null) => {
-    const safeAmount = parseFloat(String(amount)) || 0;
+  const formatCurrency = (amount: number | string | undefined | null) => {
+    // Handle string inputs and ensure proper number parsing
+    let safeAmount = 0;
+    
+    if (typeof amount === 'string') {
+      // Remove any non-numeric characters except decimal points
+      const cleanString = amount.replace(/[^0-9.]/g, '');
+      safeAmount = parseFloat(cleanString) || 0;
+    } else if (typeof amount === 'number') {
+      safeAmount = amount;
+    } else {
+      safeAmount = 0;
+    }
+    
+    // Ensure the amount is a valid number
+    if (isNaN(safeAmount) || !isFinite(safeAmount)) {
+      safeAmount = 0;
+    }
+    
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
@@ -434,9 +453,17 @@ function BudgetOverviewAnalytics({ budgetItems, budgetSummary }: {
       'other': 'Other'
     };
     
+    // Handle null, undefined, or empty values
+    if (!category || category === 'undefined' || category === 'null') {
+      return 'Uncategorized';
+    }
+    
     // If it's a string category, use the mapping or capitalize the first letter
     if (typeof category === 'string') {
-      return categoryMap[category.toLowerCase()] || category.charAt(0).toUpperCase() + category.slice(1).toLowerCase();
+      const cleanCategory = category.trim();
+      if (cleanCategory === '') return 'Uncategorized';
+      
+      return categoryMap[cleanCategory.toLowerCase()] || cleanCategory.charAt(0).toUpperCase() + cleanCategory.slice(1).toLowerCase();
     }
     
     // If it's a number (legacy data), convert to string and use mapping
@@ -445,194 +472,125 @@ function BudgetOverviewAnalytics({ budgetItems, budgetSummary }: {
 
   // Category data for charts
   const categoryData = useMemo(() => {
-    if (!budgetSummary?.categories || !Array.isArray(budgetSummary.categories)) return [];
+    // Try to use budgetSummary.categories first, fallback to budgetItems
+    let categories = [];
     
-    const colors = [
-      '#8b5cf6', '#06b6d4', '#10b981', '#f59e0b', '#ef4444',
-      '#ec4899', '#8b5cf6', '#06b6d4', '#10b981', '#f59e0b'
-    ];
-    
-    return budgetSummary.categories
-      .filter((cat: any) => cat && typeof cat === 'object')
-      .map((cat: any, index: number) => ({
-        category: getCategoryDisplayName(cat.category),
-        estimated: Number(cat.estimated) || 0,
-        actual: Number(cat.actual) || 0,
-        variance: (Number(cat.actual) || 0) - (Number(cat.estimated) || 0),
-        count: Number(cat.items) || 0,
-        color: colors[index % colors.length]
+    if (budgetSummary?.categories && Array.isArray(budgetSummary.categories)) {
+      console.log('Using budgetSummary.categories:', budgetSummary.categories);
+      categories = budgetSummary.categories;
+    } else if (budgetItems && Array.isArray(budgetItems)) {
+      console.log('Using budgetItems to calculate categories');
+      // Calculate categories from budgetItems
+      const categoryMap: { [key: string]: { estimated: number; actual: number; count: number } } = {};
+      
+      budgetItems.forEach(item => {
+        const category = String(item?.category || 'Uncategorized');
+        const estimated = Number(item?.estimatedCost) || 0;
+        const actual = Number(item?.actualCost) || 0;
+        
+        if (!categoryMap[category]) {
+          categoryMap[category] = { estimated: 0, actual: 0, count: 0 };
+        }
+        
+        categoryMap[category].estimated += estimated;
+        categoryMap[category].actual += actual;
+        categoryMap[category].count += 1;
+      });
+      
+      categories = Object.entries(categoryMap).map(([category, data]) => ({
+        category: getCategoryDisplayName(category),
+        estimated: data.estimated,
+        actual: data.actual,
+        count: data.count
       }));
-  }, [budgetSummary]);
-
-  // Payment status data
-  const paymentData = useMemo(() => {
-    if (!budgetItems) return [];
+    }
     
-    const paid = budgetItems.filter(item => item.isPaid).reduce((sum, item) => sum + (parseFloat(item.actualCost) || 0), 0);
-    const unpaid = totalActual - paid;
+    return categories;
+  }, [budgetItems, budgetSummary]);
+
+  // Payment status data for pie chart
+  const paymentData = useMemo(() => {
+    if (!budgetItems || !Array.isArray(budgetItems)) return [];
+    
+    const paid = budgetItems.filter(item => item.isPaid).length;
+    const unpaid = budgetItems.length - paid;
     
     return [
       { name: 'Paid', value: paid, color: '#10b981' },
       { name: 'Unpaid', value: unpaid, color: '#f59e0b' }
     ];
-  }, [budgetItems, totalActual]);
-
-  // Budget alerts
-  const alerts = useMemo(() => {
-    const alertList = [];
-    
-    if (budgetUsage > 100) {
-      alertList.push({
-        type: 'error',
-        message: `You're ${(budgetUsage - 100).toFixed(1)}% over budget! Consider reviewing expenses.`
-      });
-    } else if (budgetUsage > 90) {
-      alertList.push({
-        type: 'warning',
-        message: `You've used ${budgetUsage.toFixed(1)}% of your budget. Watch your remaining expenses.`
-      });
-    }
-    
-    // Check for categories over budget
-    categoryData.forEach((cat: any) => {
-      if (cat.variance > 0) {
-        alertList.push({
-          type: 'warning',
-          message: `${cat.category} is ${formatCurrency(cat.variance)} over budget.`
-        });
-      }
-    });
-    
-    return alertList;
-  }, [budgetUsage, categoryData]);
+  }, [budgetItems]);
 
   // Top spending categories
   const topCategories = useMemo(() => {
-    if (!categoryData || categoryData.length === 0) return [];
-    
     return categoryData
-      .filter((cat: any) => cat && typeof cat === 'object' && (cat.actual || 0) > 0)
-      .sort((a: any, b: any) => (Number(b.actual) || 0) - (Number(a.actual) || 0))
+      .sort((a: any, b: any) => (b.actual || 0) - (a.actual || 0))
       .slice(0, 5)
-      .map((cat: any, index: number) => ({
-        id: `category-${index}`,
-        category: String(cat.category || 'Uncategorized'),
-        actual: Number(cat.actual) || 0,
-        variance: Number(cat.variance) || 0,
-        count: Number(cat.count) || 0
+      .map((cat: any) => ({
+        ...cat,
+        variance: (cat.actual || 0) - (cat.estimated || 0)
       }));
   }, [categoryData]);
 
-  if (!budgetSummary) {
-    return (
-      <div className="flex items-center justify-center p-8">
-        <LoadingSpinner size="lg" text="Loading analytics..." />
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
-      {/* Budget Alerts */}
-      {alerts.length > 0 && (
-        <div className="space-y-3">
-          {alerts.map((alert, index) => (
-            <Alert key={index} variant={alert.type === 'error' ? 'destructive' : 'default'} className="animate-scale-in">
-              <AlertTriangle className="h-4 w-4" />
-              <AlertDescription>{alert.message}</AlertDescription>
-            </Alert>
-          ))}
-        </div>
-      )}
-
-      {/* Key Metrics */}
-      <Card className="card-elegant animate-scale-in">
+      {/* Budget Progress Overview */}
+      <Card className="card-elegant animate-fade-in-up">
         <CardHeader>
           <CardTitle className="flex items-center gap-3 font-heading">
-            <div className="p-2 rounded-xl bg-gradient-to-br from-purple-400 to-purple-600 shadow-sm">
+            <div className="p-2 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 shadow-sm">
               <Target className="h-5 w-5 text-white" />
             </div>
-            Budget Performance Overview
+            Budget Progress
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-            <div className="text-center p-4 rounded-xl bg-gradient-to-br from-purple-50 to-purple-100">
-              <div className="text-3xl font-bold text-purple-600 mb-1">{formatCurrency(totalEstimated)}</div>
-              <div className="text-sm font-medium text-purple-700">Total Budget</div>
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <span className="text-sm font-medium">Budget Usage</span>
+              <span className="text-sm text-gray-600">{budgetUsage.toFixed(1)}%</span>
             </div>
-            <div className="text-center p-4 rounded-xl bg-gradient-to-br from-blue-50 to-blue-100">
-              <div className="text-3xl font-bold text-blue-600 mb-1">{formatCurrency(totalActual)}</div>
-              <div className="text-sm font-medium text-blue-700">Total Spent</div>
-            </div>
-            <div className="text-center p-4 rounded-xl bg-gradient-to-br from-rose-50 to-rose-100">
-              <div className={`text-3xl font-bold mb-1 ${totalVariance > 0 ? 'text-red-600' : 'text-green-600'}`}>
-                {formatCurrency(Math.abs(totalVariance))}
+            <Progress value={Math.min(budgetUsage, 100)} className="h-3" />
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <span className="text-gray-500">Total Budget:</span>
+                <div className="font-semibold">{formatCurrency(totalEstimated)}</div>
               </div>
-              <div className="text-sm font-medium text-gray-700">
-                {totalVariance > 0 ? 'Over Budget' : 'Under Budget'}
+              <div>
+                <span className="text-gray-500">Total Spent:</span>
+                <div className="font-semibold">{formatCurrency(totalActual)}</div>
               </div>
             </div>
-            <div className="text-center p-4 rounded-xl bg-gradient-to-br from-gray-50 to-gray-100">
-              <div className="text-3xl font-bold text-gray-800 mb-1">{budgetUsage.toFixed(1)}%</div>
-              <div className="text-sm font-medium text-gray-700">Budget Used</div>
-            </div>
-          </div>
-          
-          <div className="space-y-3">
-            <div className="flex justify-between text-sm font-medium">
-              <span>Budget Usage Progress</span>
-              <span>{budgetUsage.toFixed(1)}%</span>
-            </div>
-            <Progress 
-              value={Math.min(budgetUsage, 100)} 
-              className="h-4"
-            />
-            {budgetUsage > 100 && (
-              <div className="text-sm text-red-600 font-medium">
-                Over budget by {formatCurrency(totalVariance)}
-              </div>
+            {totalVariance !== 0 && (
+              <Alert className={totalVariance > 0 ? "border-orange-200 bg-orange-50" : "border-green-200 bg-green-50"}>
+                <AlertDescription>
+                  {totalVariance > 0 
+                    ? `Over budget by ${formatCurrency(totalVariance)}`
+                    : `Under budget by ${formatCurrency(Math.abs(totalVariance))}`
+                  }
+                </AlertDescription>
+              </Alert>
             )}
           </div>
         </CardContent>
       </Card>
 
-      {/* Optimized Charts Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Spending by Category Pie Chart */}
-        <Card className="card-elegant animate-slide-in-left">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-3 font-heading">
-              <div className="p-2 rounded-xl bg-gradient-to-br from-emerald-400 to-green-600 shadow-sm">
-                <PieChart className="h-5 w-5 text-white" />
-              </div>
-              Spending by Category
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Suspense fallback={<ChartSkeleton />}>
-              <BudgetPieChart data={categoryData.filter((item: any) => item && typeof item.actual === 'number' && item.actual > 0)} />
-            </Suspense>
-          </CardContent>
-        </Card>
-
-        {/* Payment Status */}
-        <Card className="card-elegant animate-slide-in-right">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-3 font-heading">
-              <div className="p-2 rounded-xl bg-gradient-to-br from-blue-400 to-blue-600 shadow-sm">
-                <CreditCard className="h-5 w-5 text-white" />
-              </div>
-              Payment Status
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Suspense fallback={<ChartSkeleton />}>
-              <BudgetPieChart data={paymentData.filter(item => item && typeof item.value === 'number' && item.value > 0)} />
-            </Suspense>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Payment Status Chart */}
+      <Card className="card-elegant animate-slide-in-right">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-3 font-heading">
+            <div className="p-2 rounded-xl bg-gradient-to-br from-blue-400 to-blue-600 shadow-sm">
+              <CreditCard className="h-5 w-5 text-white" />
+            </div>
+            Payment Status
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Suspense fallback={<ChartSkeleton />}>
+            <BudgetPieChart data={paymentData.filter(item => item && typeof item.value === 'number' && item.value > 0)} />
+          </Suspense>
+        </CardContent>
+      </Card>
 
       {/* Budget vs Actual Chart */}
       <Card className="card-elegant animate-fade-in-up">

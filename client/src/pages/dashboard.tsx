@@ -1,463 +1,565 @@
-import AIAssistantCard from "@/components/dashboard/ai-assistant-card";
-import EnhancedQuickActions from "@/components/dashboard/enhanced-quick-actions";
-import { AINextStepsPanel } from "@/components/dashboard/AINextStepsPanel";
-import { QuickStatsBar } from "@/components/dashboard/QuickStatsBar";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
-import { Breadcrumb, BreadcrumbItem, BreadcrumbHome, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
+import * as React from "react";
+import { useState } from "react";
 import { Link } from "wouter";
-import { Calendar, DollarSign, Users, Store, Palette, Bot, Clock, Globe, ArrowRight, Heart, CheckCircle2 } from "lucide-react";
-import { Button, Card, CardContent, CardHeader, CardTitle, SectionHeader } from "@/components/design-system";
-import { Badge } from "@/components/ui/badge";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { motion } from "framer-motion";
 import { differenceInDays } from "date-fns";
-import { useEffect, useState, memo } from "react";
-import { usePerformanceMonitor } from "@/hooks/usePerformanceOptimization";
+import { Plus, Calendar, Users, DollarSign, MapPin, Clock, CheckCircle, ArrowRight, Sparkles, Heart, Star } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { motion } from "framer-motion";
+import { Card, CardContent } from "@/components/ui/card";
 
+// Import only components that exist
+import { FEATURE_FLAGS } from "@/lib/constants";
+import AIAssistantCard from "@/components/dashboard/ai-assistant-card";
 
-type DashboardStats = {
-  tasksCompleted: number;
-  totalTasks: number;
-  totalSpent: number;
-  totalBudget: number;
-  rsvpResponses: number;
-  totalGuests: number;
-  vendorsBooked: number;
-  totalVendors: number;
-};
+// Type definitions
+interface DashboardStats {
+  tasks: {
+    total: number;
+    completed: number;
+  };
+  guests: {
+    total: number;
+    confirmed: number;
+  };
+  budget: {
+    total: number;
+    spent: number;
+  };
+  vendors: {
+    total: number;
+    booked: number;
+  };
+  daysUntilWedding: number;
+}
 
-const navigationSections = [
+interface Project {
+  id: number;
+  name: string;
+  date: string;
+  budget: string;
+}
+
+// Quick access items (these can stay as they're navigation links)
+const quickAccessItems = [
   {
-    title: "Planning",
-    description: "Core wedding planning tools",
-    items: [
-      { href: "/timeline", label: "Timeline & Tasks", icon: Calendar, description: "Manage your wedding timeline", prefetchKey: ['/api/projects', 1, 'tasks'] },
-      { href: "/budget", label: "Budget Tracker", icon: DollarSign, description: "Track expenses and costs", prefetchKey: ['/api/projects', 1, 'budget'] },
-      { href: "/guests", label: "Guest Management", icon: Users, description: "Manage your guest list", prefetchKey: ['/api/projects', 1, 'guests'] },
-      { href: "/vendors", label: "Vendor Directory", icon: Store, description: "Find and manage vendors", prefetchKey: ['/api/projects', 1, 'vendors'] },
-    ]
+    title: "Timeline",
+    description: "Manage your wedding schedule",
+    href: "/timeline",
+    icon: Clock,
+    emoji: "⏰",
+    gradient: "from-blue-400 to-cyan-500",
+    bgGradient: "from-blue-50 to-cyan-50"
   },
   {
-    title: "Creative & Support",
-    description: "Inspiration and assistance",
-    items: [
-      { href: "/inspiration", label: "Inspiration Board", icon: Palette, description: "Save ideas and inspiration" },
-      { href: "/ai-assistant", label: "AI Assistant", icon: Bot, description: "Get personalized advice" },
-      { href: "/schedules", label: "Event Schedules", icon: Clock, description: "Plan your wedding day" },
-      { href: "/resources", label: "Resources", icon: Globe, description: "Helpful guides and tips" },
-    ]
+    title: "Guests",
+    description: "Track RSVPs and seating",
+    href: "/guests",
+    icon: Users,
+    emoji: "👥",
+    gradient: "from-emerald-400 to-teal-500",
+    bgGradient: "from-emerald-50 to-teal-50"
+  },
+  {
+    title: "Budget",
+    description: "Monitor expenses and payments",
+    href: "/budget",
+    icon: DollarSign,
+    emoji: "💰",
+    gradient: "from-purple-400 to-pink-500",
+    bgGradient: "from-purple-50 to-pink-50"
+  },
+  {
+    title: "Vendors",
+    description: "Find and manage suppliers",
+    href: "/vendors",
+    icon: MapPin,
+    emoji: "🏛️",
+    gradient: "from-orange-400 to-red-500",
+    bgGradient: "from-orange-50 to-red-50"
   }
 ];
 
-const getGreeting = () => {
-  const hour = new Date().getHours();
-  if (hour < 12) return "Good morning";
-  if (hour < 18) return "Good afternoon";
-  return "Good evening";
+const planningTools = [
+  {
+    title: "Intake Form",
+    description: "Complete your wedding details",
+    href: "/intake",
+    icon: CheckCircle,
+    emoji: "📝",
+    gradient: "from-indigo-400 to-purple-500",
+    bgGradient: "from-indigo-50 to-purple-50"
+  },
+  {
+    title: "Checklist",
+    description: "Track your planning progress",
+    href: "/checklist",
+    icon: CheckCircle,
+    emoji: "✅",
+    gradient: "from-green-400 to-emerald-500",
+    bgGradient: "from-green-50 to-emerald-50"
+  },
+  {
+    title: "Inspiration",
+    description: "Browse wedding ideas",
+    href: "/inspiration",
+    icon: CheckCircle,
+    emoji: "💡",
+    gradient: "from-yellow-400 to-orange-500",
+    bgGradient: "from-yellow-50 to-orange-50"
+  },
+  {
+    title: "Settings",
+    description: "Manage your preferences",
+    href: "/settings",
+    icon: CheckCircle,
+    emoji: "⚙️",
+    gradient: "from-gray-400 to-slate-500",
+    bgGradient: "from-gray-50 to-slate-50"
+  }
+];
+
+// Mock hook for performance monitoring
+const usePerformanceMonitor = () => {
+  return { isOptimized: true };
 };
 
-// Planning Tools Section with Data Prefetching
-const PlanningToolsSection = memo(() => {
-  const queryClient = useQueryClient();
-
-  const prefetchPageData = (prefetchKey?: any[]) => {
-    if (!prefetchKey) return;
-    
-    queryClient.prefetchQuery({
-      queryKey: prefetchKey,
-      staleTime: 5 * 60 * 1000, // 5 minutes
-    });
+// Mock hook for prefetching
+const usePrefetchPageData = () => {
+  return (key: string) => {
+    console.log(`Prefetching data for: ${key}`);
   };
+};
 
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6, delay: 0.8 }}
-      className="mb-8 sm:mb-10"
-    >
-      <SectionHeader
-        variant="wedding"
-        size="lg"
-        alignment="center"
-        title="Planning Tools"
-        subtitle="Everything you need to plan your perfect wedding"
-        showAccent={true}
-        accentColor="rose"
-        className="mb-6 sm:mb-8"
-      />
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 lg:gap-8 max-w-6xl mx-auto">
-        {navigationSections.map((section, sectionIndex) => (
-          <motion.div
-            key={section.title}
-            initial={{ opacity: 0, x: sectionIndex % 2 === 0 ? -20 : 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.1 * sectionIndex }}
-          >
-            <Card variant="wedding" className="h-full">
-              <CardHeader className="pb-3 sm:pb-4">
-                <CardTitle className="font-heading text-lg sm:text-xl lg:text-2xl text-foreground flex items-center gap-3">
-                  <div className="w-1 sm:w-2 h-6 sm:h-8 bg-gradient-to-b from-rose-400 to-pink-500 rounded-full"></div>
-                  {section.title}
-                </CardTitle>
-                <p className="text-muted-foreground text-sm sm:text-base font-medium">{section.description}</p>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <div className="grid grid-cols-1 gap-2 sm:gap-3">
-                  {section.items.map((item, itemIndex) => {
-                    const Icon = item.icon;
-                    return (
-                      <Link key={item.href} href={item.href}>
-                        <Button
-                          variant="ghost"
-                          className="w-full justify-start h-auto p-4 sm:p-5 lg:p-6 hover:bg-rose-50 hover:border-rose-200 border border-transparent transition-all duration-200 group hover:scale-105 touch-target"
-                          onMouseEnter={() => prefetchPageData((item as any).prefetchKey)}
-                          onFocus={() => prefetchPageData((item as any).prefetchKey)}
-                        >
-                          <div className="flex items-center space-x-3 lg:space-x-4 w-full min-w-0">
-                            <div className="flex-shrink-0">
-                              <Icon className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 text-rose-400 group-hover:text-rose-500 transition-colors" />
-                            </div>
-                            <div className="flex-1 text-left min-w-0">
-                              <div className="font-medium text-foreground group-hover:text-rose-600 transition-colors text-sm sm:text-base lg:text-lg truncate">
-                                {item.label}
-                              </div>
-                              <div className="text-xs sm:text-sm lg:text-base text-muted-foreground truncate">
-                                {item.description}
-                              </div>
-                            </div>
-                            <ArrowRight className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground group-hover:text-rose-500 transition-colors flex-shrink-0" />
-                          </div>
-                        </Button>
-                      </Link>
-                    );
-                  })}
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        ))}
-      </div>
-    </motion.div>
-  );
-});
-
-// Enhanced Dashboard Components
-function PersonalizedGreeting() {
-  const { data: intakeData } = useQuery({
-    queryKey: ['/api/intake'],
-    enabled: !!localStorage.getItem('sessionId')
-  });
-
-  const { data: projects } = useQuery({
+const PersonalizedGreeting = () => {
+  // Use real API data for the greeting
+  const { data: projects } = useQuery<Project[]>({
     queryKey: ['/api/projects'],
-    enabled: !!localStorage.getItem('sessionId')
+    enabled: !!localStorage.getItem('sessionId'),
   });
 
-  const projectsArray = Array.isArray(projects) ? projects : [];
-  const currentProject = projectsArray.find((p: any) => p.name === "Emma & Jake's Wedding") || projectsArray[0];
-  const firstName = (intakeData as any)?.partner1FirstName || "Demo User";
-  const weddingDate = currentProject?.date;
-  const daysUntil = weddingDate ? differenceInDays(new Date(weddingDate), new Date()) : null;
-  const greeting = getGreeting();
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6 }}
-      className="mb-6 sm:mb-8"
-    >
-      <div className="text-center sm:text-left">
-        <h1 className="text-xl font-bold text-gradient mb-2">
-          {firstName !== "Demo User" ? `${greeting}, ${firstName}!` : `${greeting}! Welcome to PlanHaus`}
-          <Heart className="inline-block ml-2 h-6 w-6 text-rose-500" fill="currentColor" />
-        </h1>
-        {daysUntil && daysUntil > 0 && (
-          <p className="text-sm sm:text-base text-muted-foreground">
-            Only <span className="font-semibold text-rose-600 dark:text-rose-400">{daysUntil} days</span> until your special day!
-          </p>
-        )}
-      </div>
-    </motion.div>
-  );
-}
-
-
-
-function AnimatedDashboardStats() {
-  const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const sessionId = localStorage.getItem('sessionId');
-        if (!sessionId) throw new Error('No session');
-        
-        const res = await fetch("/api/dashboard/stats", {
-          headers: { 'Authorization': `Bearer ${sessionId}` }
-        });
-        if (!res.ok) throw new Error("Fetch failed");
-        const data = await res.json();
-        
-        setDashboardStats(data);
-        localStorage.setItem("cached_dashboard_stats", JSON.stringify(data));
-      } catch (err) {
-        // Fallback to localStorage
-        const cached = localStorage.getItem("cached_dashboard_stats");
-        if (cached) {
-          setDashboardStats(JSON.parse(cached));
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchStats();
-  }, []);
-
-  const statsData = dashboardStats || {};
-  const stats = [
-    {
-      label: "Tasks Complete",
-      value: (statsData as any).tasks?.completed || 0,
-      total: (statsData as any).tasks?.total || 0,
-      icon: CheckCircle2,
-      color: "text-rose-600 dark:text-rose-400",
-      bgColor: "bg-rose-50 dark:bg-rose-950/30",
-      emptyMessage: "You're all caught up! 🎉 Add tasks to stay organized",
-      emptyAction: { href: "/timeline", text: "Add tasks →" }
-    },
-    {
-      label: "Budget Used",
-      value: `$${(statsData as any).budget?.spent?.toLocaleString() || 0}`,
-      total: `$${(statsData as any).budget?.total?.toLocaleString() || 0}`,
-      icon: DollarSign,
-      color: "text-amber-600 dark:text-amber-400",
-      bgColor: "bg-amber-50 dark:bg-amber-950/30",
-      emptyMessage: "Your budget breakdown is empty — get started here",
-      emptyAction: { href: "/budget", text: "Set budget →" }
-    },
-    {
-      label: "RSVP Responses",
-      value: (statsData as any).guests?.confirmed || 0,
-      total: (statsData as any).guests?.total || 0,
-      icon: Users,
-      color: "text-emerald-600 dark:text-emerald-400",
-      bgColor: "bg-emerald-50 dark:bg-emerald-950/30",
-      emptyMessage: "No guests added yet — start building your list",
-      emptyAction: { href: "/guests", text: "Add guests →" }
-    },
-    {
-      label: "Vendors Booked",
-      value: (statsData as any).vendors?.booked || 0,
-      total: (statsData as any).vendors?.total || 0,
-      icon: Store,
-      color: "text-pink-600 dark:text-pink-400",
-      bgColor: "bg-pink-50 dark:bg-pink-950/30",
-      emptyMessage: "Haven't saved any vendors yet. Explore recommendations",
-      emptyAction: { href: "/vendors", text: "Find vendors →" }
-    }
-  ];
-
-  if (loading) {
-    return (
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6 sm:mb-8"
-      >
-        {Array.from({ length: 4 }).map((_, i) => (
-          <motion.div
-            key={i}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.1 }}
-          >
-            <Card variant="elegant" className="p-4">
-              <div className="animate-pulse space-y-2">
-                <div className="h-4 bg-muted rounded w-3/4"></div>
-                <div className="h-6 bg-muted rounded w-1/2"></div>
-              </div>
-            </Card>
-          </motion.div>
-        ))}
-      </motion.div>
-    );
-  }
-
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.6, delay: 0.4 }}
-      className="mb-6 sm:mb-8"
-    >
-      <SectionHeader
-        title="Wedding Progress"
-        subtitle="Track your planning milestones"
-        variant="elegant"
-        size="lg"
-        className="mb-4"
-      />
-      
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-        {stats.map((stat, index) => {
-          const Icon = stat.icon;
-          // Only show empty state if total is actually 0, not just if value is 0
-          const isEmpty = !stat.total || stat.total === 0 || (typeof stat.total === 'string' && stat.total === '$0');
-          
-          return (
-            <motion.div
-              key={stat.label}
-              initial={{ opacity: 0, y: 30, scale: 0.9 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              transition={{ 
-                delay: 0.1 * index, 
-                duration: 0.5,
-                type: "spring",
-                stiffness: 100,
-                damping: 15
-              }}
-              whileHover={{ scale: 1.02, y: -2 }}
-              className="group"
-            >
-              <Card variant="elegant" className="h-full transition-all duration-300 group-hover:shadow-lg">
-                <CardContent className="p-4 sm:p-6">
-                  {isEmpty ? (
-                    <motion.div 
-                      className="text-center"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: 0.2 + (0.1 * index) }}
-                    >
-                      <div className={`w-12 h-12 sm:w-14 sm:h-14 ${stat.bgColor} rounded-full flex items-center justify-center mx-auto mb-4 transition-all duration-300 group-hover:scale-110 shadow-sm`}>
-                        <Icon className={`h-6 w-6 sm:h-7 sm:w-7 ${stat.color}`} />
-                      </div>
-                      <p className="text-sm sm:text-base text-muted-foreground mb-4 leading-relaxed">{stat.emptyMessage}</p>
-                      <Link href={stat.emptyAction.href}>
-                        <Button size="sm" variant="wedding" className="text-sm min-h-[44px] px-4 py-2 transition-all hover:scale-105 shadow-sm">
-                          {stat.emptyAction.text}
-                        </Button>
-                      </Link>
-                    </motion.div>
-                  ) : (
-                    <>
-                      <motion.div 
-                        className="flex items-center gap-2 mb-2"
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        transition={{ delay: 0.2 + (0.1 * index), type: "spring", stiffness: 200 }}
-                      >
-                        <div className={`w-10 h-10 sm:w-12 sm:h-12 ${stat.bgColor} rounded-full flex items-center justify-center transition-all group-hover:scale-110`}>
-                          <Icon className={`h-5 w-5 sm:h-6 sm:w-6 ${stat.color}`} />
-                        </div>
-                      </motion.div>
-                      <motion.div 
-                        className="space-y-1"
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.3 + (0.1 * index) }}
-                      >
-                        <p className="text-sm sm:text-base font-medium text-muted-foreground">{stat.label}</p>
-                        <p className="text-xl sm:text-2xl font-bold text-foreground">
-                          {stat.value}
-                          {stat.total && stat.total !== "$0" && stat.total !== 0 && (
-                            <span className="text-base sm:text-lg font-normal text-muted-foreground">
-                              /{typeof stat.total === 'string' ? stat.total : stat.total}
-                            </span>
-                          )}
-                        </p>
-                      </motion.div>
-                    </>
-                  )}
-                </CardContent>
-              </Card>
-            </motion.div>
-          );
-        })}
-      </div>
-    </motion.div>
-  );
-}
-
-const Dashboard = memo(() => {
-  // Performance monitoring
-  const getMetrics = usePerformanceMonitor('Dashboard');
-
-  // Add queries for intakeData and dashboardStats
-  const { data: intakeData } = useQuery({
-    queryKey: ['/api/intake'],
-    staleTime: 10 * 60 * 1000, // 10 minutes
-  });
-
-  const { data: dashboardStats } = useQuery({
+  const { data: dashboardStats } = useQuery<DashboardStats>({
     queryKey: ['/api/dashboard/stats'],
-    staleTime: 2 * 60 * 1000, // 2 minutes
+    enabled: !!localStorage.getItem('sessionId'),
   });
+
+  // Get current project (Emma & Jake's Wedding)
+  const currentProject = projects?.find((p: Project) => p.name === "Emma & Jake's Wedding") || projects?.[0];
+
+  // Calculate real values
+  const weddingDate = currentProject ? new Date(currentProject.date) : new Date();
+  const today = new Date();
+  const daysUntil = Math.max(0, Math.ceil((weddingDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)));
+
+  // Calculate overall progress
+  const taskProgress = dashboardStats?.tasks?.total > 0 
+    ? Math.round((dashboardStats.tasks.completed / dashboardStats.tasks.total) * 100)
+    : 0;
+
+  const budgetProgress = dashboardStats?.budget?.total > 0
+    ? Math.round((dashboardStats.budget.spent / dashboardStats.budget.total) * 100)
+    : 0;
+
+  const guestProgress = dashboardStats?.guests?.total > 0
+    ? Math.round((dashboardStats.guests.confirmed / dashboardStats.guests.total) * 100)
+    : 0;
+
+  const vendorProgress = dashboardStats?.vendors?.total > 0
+    ? Math.round((dashboardStats.vendors.booked / dashboardStats.vendors.total) * 100)
+    : 0;
+
+  const overallProgress = Math.round((taskProgress + budgetProgress + guestProgress + vendorProgress) / 4);
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-cream/50 to-background dark:from-background dark:via-background dark:to-background">
-      <div className="relative overflow-hidden">
-        {/* Enhanced background decorations */}
-        <div className="absolute -top-32 -right-32 w-96 h-96 bg-gradient-to-br from-rose-400/8 to-pink-400/15 rounded-full blur-3xl animate-float dark:from-rose-600/10 dark:to-pink-600/20" />
-        <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-gradient-to-tr from-purple-400/5 to-rose-400/10 rounded-full blur-2xl dark:from-purple-600/8 dark:to-rose-600/15" />
-        <div className="absolute top-1/4 right-1/4 w-32 h-32 bg-gradient-to-r from-champagne/20 to-rose-400/10 rounded-full blur-xl dark:from-champagne/10 dark:to-rose-600/15" />
+    <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-pink-50 via-white to-rose-50 p-8 mb-8 border border-pink-100 shadow-lg">
+      {/* Decorative elements */}
+      <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-pink-200/20 to-rose-200/20 rounded-full -translate-y-16 translate-x-16"></div>
+      <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-orange-200/20 to-yellow-200/20 rounded-full translate-y-12 -translate-x-12"></div>
+      
+      <div className="relative text-center">
+        <div className="flex items-center justify-center mb-4">
+          <Sparkles className="h-6 w-6 text-pink-500 mr-2" />
+          <h2 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-pink-600 to-rose-600 bg-clip-text text-transparent">
+            Welcome back! 👋
+          </h2>
+          <Sparkles className="h-6 w-6 text-pink-500 ml-2" />
+        </div>
         
-        <div className="relative p-3 sm:p-4 lg:p-8 mobile-safe-spacing">
-          {/* Header with Breadcrumb and Theme Toggle */}
-          <div className="flex items-center justify-between mb-4">
-            <Breadcrumb>
-              <BreadcrumbHome />
-              <BreadcrumbSeparator />
-              <BreadcrumbItem active>Dashboard</BreadcrumbItem>
-            </Breadcrumb>
-            <ThemeToggle />
+        <div className="space-y-2">
+          <p className="text-lg text-slate-700 font-medium">
+            Only <span className="font-bold text-pink-600 text-xl">{daysUntil} days</span> until your magical day! 🎉
+          </p>
+        </div>
+        
+        <p className="text-slate-600 mt-3 font-medium">
+          Let's make your wedding dreams come true ✨
+        </p>
+        
+        {/* Progress indicator */}
+        <div className="mt-6 max-w-md mx-auto">
+          <div className="flex justify-between text-sm text-slate-600 mb-2">
+            <span>Planning Progress</span>
+            <span>{overallProgress}%</span>
           </div>
-
-          {/* Personalized Greeting */}
-          <PersonalizedGreeting />
-          
-          {/* Enhanced Dashboard Stats */}
-          <QuickStatsBar 
-            totalGuests={(dashboardStats as any)?.guests?.total || 0}
-            confirmedGuests={(dashboardStats as any)?.guests?.confirmed || 0}
-            totalBudget={(dashboardStats as any)?.budget?.total || 0}
-            spentBudget={(dashboardStats as any)?.budget?.spent || 0}
-            completedTasks={(dashboardStats as any)?.tasks?.completed || 0}
-            totalTasks={(dashboardStats as any)?.tasks?.total || 0}
-            daysToGo={Math.max(0, differenceInDays(new Date((intakeData as any)?.weddingDate || new Date()), new Date()))}
-          />
-          
-          {/* AI Next Steps Panel */}
-          <AINextStepsPanel 
-            daysToGo={Math.max(0, differenceInDays(new Date((intakeData as any)?.weddingDate || new Date()), new Date()))}
-            className="mb-8"
-          />
-          
-          {/* AI Assistant and Quick Actions */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.6 }}
-            className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 mb-8 sm:mb-10"
-          >
-            <div className="lg:col-span-2">
-              <AIAssistantCard />
-            </div>
-            <div>
-              <EnhancedQuickActions />
-            </div>
-          </motion.div>
-
-          {/* Planning Tools Section with Data Prefetching */}
-          <PlanningToolsSection />
+          <div className="w-full bg-slate-200 rounded-full h-2">
+            <div className="bg-gradient-to-r from-pink-500 to-rose-500 h-2 rounded-full transition-all duration-1000 ease-out" style={{ width: `${overallProgress}%` }}></div>
+          </div>
         </div>
       </div>
     </div>
   );
-});
+};
 
-Dashboard.displayName = 'Dashboard';
+const ClickableStatsCards = () => {
+  // Use real API data instead of mock data
+  const { data: dashboardStats, isLoading } = useQuery<DashboardStats>({
+    queryKey: ['/api/dashboard/stats'],
+    enabled: !!localStorage.getItem('sessionId'),
+  });
+
+  const { data: projects } = useQuery<Project[]>({
+    queryKey: ['/api/projects'],
+    enabled: !!localStorage.getItem('sessionId'),
+  });
+
+  // Get current project (Emma & Jake's Wedding)
+  const currentProject = projects?.find((p: Project) => p.name === "Emma & Jake's Wedding") || projects?.[0];
+
+  if (isLoading || !dashboardStats || !currentProject) {
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {[...Array(4)].map((_, i) => (
+          <div key={i} className="rounded-2xl border shadow-sm p-6 bg-white min-w-[240px] h-auto">
+            <div className="animate-pulse space-y-4">
+              <div className="h-4 bg-slate-200 rounded w-3/4"></div>
+              <div className="h-8 bg-slate-200 rounded w-1/2"></div>
+              <div className="h-2 bg-slate-200 rounded w-full"></div>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  // Calculate real stats from API data
+  const weddingDate = new Date(currentProject.date);
+  const today = new Date();
+  const daysUntil = Math.max(0, Math.ceil((weddingDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)));
+
+  // Calculate percentages
+  const taskProgress = dashboardStats.tasks?.total > 0 
+    ? Math.round((dashboardStats.tasks.completed / dashboardStats.tasks.total) * 100)
+    : 0;
+
+  const budgetProgress = dashboardStats.budget?.total > 0
+    ? Math.round((dashboardStats.budget.spent / dashboardStats.budget.total) * 100)
+    : 0;
+
+  const guestProgress = dashboardStats.guests?.total > 0
+    ? Math.round((dashboardStats.guests.confirmed / dashboardStats.guests.total) * 100)
+    : 0;
+
+  const vendorProgress = dashboardStats.vendors?.total > 0
+    ? Math.round((dashboardStats.vendors.booked / dashboardStats.vendors.total) * 100)
+    : 0;
+
+  // Create real stats array
+  const realStats = [
+    {
+      title: "Days Until Wedding",
+      value: daysUntil > 0 ? daysUntil.toString() : "Today!",
+      icon: Calendar,
+      href: "/timeline",
+      emoji: "📅",
+      description: daysUntil > 0 ? `Countdown to ${weddingDate.toLocaleDateString()}` : "Your big day!",
+      gradient: "from-blue-500 to-indigo-600",
+      bgGradient: "from-blue-50 to-indigo-50",
+      progress: daysUntil > 0 ? Math.min(100, Math.max(0, 100 - (daysUntil / 365) * 100)) : 100
+    },
+    {
+      title: "Total Guests",
+      value: dashboardStats.guests?.total?.toString() || "0",
+      icon: Users,
+      href: "/guests",
+      emoji: "👥",
+      description: `${dashboardStats.guests?.confirmed || 0} confirmed RSVPs`,
+      gradient: "from-emerald-500 to-teal-600",
+      bgGradient: "from-emerald-50 to-teal-50",
+      progress: guestProgress
+    },
+    {
+      title: "Budget Spent",
+      value: `$${dashboardStats.budget?.spent?.toLocaleString() || "0"}`,
+      icon: DollarSign,
+      href: "/budget",
+      emoji: "💰",
+      description: `${budgetProgress}% of $${dashboardStats.budget?.total?.toLocaleString() || "0"}`,
+      gradient: "from-purple-500 to-pink-600",
+      bgGradient: "from-purple-50 to-pink-50",
+      progress: budgetProgress
+    },
+    {
+      title: "Vendors Booked",
+      value: `${dashboardStats.vendors?.booked || 0}/${dashboardStats.vendors?.total || 0}`,
+      icon: MapPin,
+      href: "/vendors",
+      emoji: "🏛️",
+      description: `${vendorProgress}% secured`,
+      gradient: "from-orange-500 to-red-600",
+      bgGradient: "from-orange-50 to-red-50",
+      progress: vendorProgress
+    }
+  ];
+
+  return (
+    <div>
+      <div className="flex items-center mb-6">
+        <div className="flex-1">
+          <h2 className="text-2xl font-bold text-slate-900">Your Wedding Progress</h2>
+          <p className="text-slate-600 mt-1">Track your planning milestones and achievements</p>
+        </div>
+        <div className="flex items-center space-x-2">
+          <Sparkles className="h-5 w-5 text-amber-500" />
+          <span className="text-sm font-medium text-amber-700">Live Updates</span>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {realStats.map((stat, index) => {
+          const Icon = stat.icon;
+          return (
+            <Link key={index} href={stat.href}>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+                whileHover={{ scale: 1.02, y: -2 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <Card className="group cursor-pointer hover:shadow-lg transition-all duration-300 border-0 bg-white/80 backdrop-blur-sm">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between space-y-0 pb-3">
+                      <div className="flex items-center space-x-3">
+                        <div className={`w-10 h-10 rounded-full bg-gradient-to-r ${stat.gradient} flex items-center justify-center shadow-md group-hover:shadow-lg transition-all duration-300`}>
+                          <Icon className="h-5 w-5 text-white" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-slate-600">{stat.title}</p>
+                          <div className="text-2xl font-bold text-slate-900">{stat.value}</div>
+                        </div>
+                      </div>
+                      <div className="text-2xl opacity-60 group-hover:opacity-80 transition-opacity">
+                        {stat.emoji}
+                      </div>
+                    </div>
+                    
+                    <p className="text-sm text-slate-600 mb-3">{stat.description}</p>
+                    
+                    {/* Progress bar */}
+                    <div className="w-full bg-slate-200 rounded-full h-2 mb-3">
+                      <div 
+                        className={`h-2 rounded-full transition-all duration-1000 ease-out bg-gradient-to-r ${stat.gradient}`}
+                        style={{ width: `${stat.progress}%` }}
+                      ></div>
+                    </div>
+                    
+                    <div className="flex items-center justify-between text-xs text-slate-500">
+                      <span>Progress</span>
+                      <span className="font-medium">{stat.progress}%</span>
+                    </div>
+                    
+                    <div className="flex items-center mt-3 text-sm text-slate-500 group-hover:text-slate-700 transition-colors">
+                      <span>View details</span>
+                      <ArrowRight className="h-3 w-3 ml-1 group-hover:translate-x-1 transition-transform" />
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            </Link>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+const QuickAccessCards = () => {
+  const prefetchPageData = usePrefetchPageData();
+
+  return (
+    <div>
+      <div className="flex items-center mb-6">
+        <div className="w-1 h-8 bg-gradient-to-b from-emerald-500 to-teal-600 rounded-full mr-3"></div>
+        <h2 className="text-xl font-bold text-slate-800">Quick Access</h2>
+      </div>
+      
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {quickAccessItems.map((card, index) => {
+          const Icon = card.icon;
+          return (
+            <Link key={card.href} href={card.href}>
+              <div 
+                className={`group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:-translate-y-1`}
+                style={{ animationDelay: `${index * 100}ms` }}
+              >
+                {/* Gradient overlay on hover */}
+                <div className={`absolute inset-0 bg-gradient-to-br ${card.gradient} opacity-0 group-hover:opacity-5 transition-opacity duration-300`}></div>
+                
+                <div className="relative space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${card.gradient} flex items-center justify-center shadow-md`}>
+                      <Icon className="h-5 w-5 text-white" />
+                    </div>
+                    <span className="text-xl transform group-hover:scale-110 transition-transform duration-300">{card.emoji}</span>
+                  </div>
+                  
+                  <div>
+                    <h3 className="font-bold text-slate-900 text-lg mb-2 group-hover:text-slate-700 transition-colors duration-300">
+                      {card.title}
+                    </h3>
+                    <p className="text-slate-600 leading-relaxed">
+                      {card.description}
+                    </p>
+                  </div>
+                  
+                  <div className="flex items-center text-sm text-slate-500 group-hover:text-slate-700 transition-colors duration-300">
+                    <span>Open {card.title.toLowerCase()}</span>
+                    <ArrowRight className="h-4 w-4 ml-1 transform group-hover:translate-x-1 transition-transform duration-300" />
+                  </div>
+                </div>
+              </div>
+            </Link>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+const PlanningToolsSection = () => {
+  const prefetchPageData = usePrefetchPageData();
+
+  return (
+    <div>
+      <div className="flex items-center mb-6">
+        <div className="w-1 h-8 bg-gradient-to-b from-purple-500 to-pink-600 rounded-full mr-3"></div>
+        <h2 className="text-xl font-bold text-slate-800">Planning Tools</h2>
+      </div>
+      
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {planningTools.map((tool, index) => {
+          const Icon = tool.icon;
+          return (
+            <Link key={tool.href} href={tool.href}>
+              <div 
+                className={`group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:-translate-y-1`}
+                style={{ animationDelay: `${index * 100}ms` }}
+              >
+                {/* Gradient overlay on hover */}
+                <div className={`absolute inset-0 bg-gradient-to-br ${tool.gradient} opacity-0 group-hover:opacity-5 transition-opacity duration-300`}></div>
+                
+                <div className="relative space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${tool.gradient} flex items-center justify-center shadow-md`}>
+                      <Icon className="h-5 w-5 text-white" />
+                    </div>
+                    <span className="text-xl transform group-hover:scale-110 transition-transform duration-300">{tool.emoji}</span>
+                  </div>
+                  
+                  <div>
+                    <h3 className="font-bold text-slate-900 text-lg mb-2 group-hover:text-slate-700 transition-colors duration-300">
+                      {tool.title}
+                    </h3>
+                    <p className="text-slate-600 leading-relaxed">
+                      {tool.description}
+                    </p>
+                  </div>
+                  
+                  <div className="flex items-center text-sm text-slate-500 group-hover:text-slate-700 transition-colors duration-300">
+                    <span>Open {tool.title.toLowerCase()}</span>
+                    <ArrowRight className="h-4 w-4 ml-1 transform group-hover:translate-x-1 transition-transform duration-300" />
+                  </div>
+                </div>
+              </div>
+            </Link>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+const Dashboard = () => {
+  const { isOptimized } = usePerformanceMonitor();
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 pb-24">
+        
+        {/* Enhanced Header */}
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center space-x-3">
+            <div className="w-2 h-10 bg-gradient-to-b from-pink-500 to-rose-500 rounded-full"></div>
+            <div>
+              <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
+                Dashboard
+              </h1>
+              <p className="text-slate-500 text-sm mt-1">Your wedding planning command center</p>
+            </div>
+          </div>
+          
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 px-4 py-2 bg-white rounded-full shadow-sm border border-slate-200">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+              <span className="text-sm font-medium text-slate-700">
+                {FEATURE_FLAGS.DASHBOARD_SMART_ACTIONS ? "Enhanced View" : "Classic View"}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Enhanced Personalized Greeting */}
+        <div className="mb-8">
+          <PersonalizedGreeting />
+        </div>
+
+        {/* Enhanced Stats Cards */}
+        <div className="mb-8">
+          <ClickableStatsCards />
+        </div>
+
+        {/* Enhanced AI Assistant Card */}
+        <div className="mb-8">
+          <AIAssistantCard />
+        </div>
+
+        {/* Enhanced Quick Access */}
+        <div className="mb-8">
+          <QuickAccessCards />
+        </div>
+
+        {/* Enhanced Planning Tools */}
+        <div className="mb-8">
+          <PlanningToolsSection />
+        </div>
+      </div>
+
+      {/* Enhanced Floating Action Button */}
+      <div className="fixed bottom-6 right-6 z-40">
+        <button
+          className="group relative w-16 h-16 bg-gradient-to-r from-pink-500 to-rose-500 text-white rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 flex items-center justify-center focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-pink-500/40 transform hover:scale-110"
+          aria-label="Quick actions"
+        >
+          <Plus className="h-7 w-7 transform group-hover:rotate-90 transition-transform duration-300" />
+          
+          {/* Ripple effect */}
+          <div className="absolute inset-0 rounded-full bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
+          
+          {/* Glow effect */}
+          <div className="absolute inset-0 rounded-full bg-gradient-to-r from-pink-400 to-rose-400 blur-xl opacity-0 group-hover:opacity-50 transition-opacity duration-300"></div>
+        </button>
+      </div>
+    </div>
+  );
+};
+
 export default Dashboard;

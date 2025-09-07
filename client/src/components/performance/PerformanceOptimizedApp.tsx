@@ -5,9 +5,9 @@ import { ConsolidatedChart } from "@/components/ui/consolidated-chart";
 import { DashboardSkeleton, CardSkeleton, ChartSkeleton, TableSkeleton } from "@/components/ui/skeleton-loader";
 
 // Lazy load heavy components
-const LazyMoodBoard = lazy(() => import("@/components/mood-board"));
-const LazyResponsiveDataTable = lazy(() => import("@/components/responsive-data-table"));
-const LazyEnhancedDashboardStats = lazy(() => import("@/components/enhanced-dashboard-stats"));
+const LazyMoodBoard = lazy(() => import("@/components/shared/mood-board"));
+const LazyResponsiveDataTable = lazy(() => import("@/components/shared/responsive-data-table"));
+const LazyEnhancedDashboardStats = lazy(() => import("@/components/features/dashboard/enhanced-dashboard-stats"));
 
 interface PerformanceOptimizedAppProps {
   children: React.ReactNode;

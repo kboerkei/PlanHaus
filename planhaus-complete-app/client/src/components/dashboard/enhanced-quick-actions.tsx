@@ -423,7 +423,7 @@ export default function EnhancedQuickActions() {
                 <SelectContent>
                   <SelectItem value="family">Family</SelectItem>
                   <SelectItem value="friends">Friends</SelectItem>
-                  <SelectItem value="colleagues">Colleagues</SelectItem>
+                  <SelectItem value="work_colleagues">Colleagues</SelectItem>
                   <SelectItem value="wedding-party">Wedding Party</SelectItem>
                   <SelectItem value="other">Other</SelectItem>
                 </SelectContent>

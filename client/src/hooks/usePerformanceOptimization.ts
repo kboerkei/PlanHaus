@@ -241,7 +241,7 @@ export function useLazyImage(src: string, placeholder?: string) {
 }
 
 // Batch state updates for better performance
-export function useBatchedState<T>(initialState: T) {
+export function useBatchedState<T extends object>(initialState: T) {
   const [state, setState] = useState<T>(initialState);
   const pendingUpdates = useRef<Partial<T>[]>([]);
   const timeoutRef = useRef<NodeJS.Timeout>();

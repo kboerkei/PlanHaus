@@ -40,7 +40,7 @@ export function CSRFProvider({ children }: CSRFProviderProps) {
     setToken(getCsrfToken());
   }, []);
 
-  const getHeaders = () => {
+  const getHeaders = (): Record<string, string> => {
     if (!token) return {};
     
     return {
@@ -50,7 +50,7 @@ export function CSRFProvider({ children }: CSRFProviderProps) {
   };
 
   return (
-    <CSRFContext.Provider value={{ token, getHeaders }}>
+    <CSRFContext.Provider value={{ token, getHeaders: () => getHeaders() }}>
       {children}
     </CSRFContext.Provider>
   );

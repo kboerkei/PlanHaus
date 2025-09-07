@@ -6,7 +6,7 @@ import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { TrendingUp, TrendingDown, AlertTriangle, CheckCircle, DollarSign, Target, CreditCard } from 'lucide-react';
 import * as accounting from 'accounting-js';
-import type { BudgetItem, BudgetChartData } from '@/types';
+import type { BudgetItem } from '@/types';
 
 interface BudgetChartsProps {
   budgetItems: BudgetItem[];
@@ -42,8 +42,10 @@ export default function BudgetCharts({ budgetItems }: BudgetChartsProps) {
       if (!categories[item.category]) {
         categories[item.category] = { estimated: 0, actual: 0, count: 0 };
       }
-      const estimated = parseFloat(String(item.estimatedCost)) || 0;
-      const actual = parseFloat(String(item.actualCost)) || 0;
+      
+      // Handle string inputs and ensure proper number parsing
+      const estimated = parseFloat(String(item.estimatedCost || 0)) || 0;
+      const actual = parseFloat(String(item.actualCost || 0)) || 0;
       
       categories[item.category].estimated += estimated;
       categories[item.category].actual += actual;
@@ -64,8 +66,8 @@ export default function BudgetCharts({ budgetItems }: BudgetChartsProps) {
   const paymentData = React.useMemo(() => {
     const status = { pending: 0, paid: 0, overdue: 0 };
     budgetItems.forEach(item => {
-      const actualCost = parseFloat(String(item.actualCost)) || 0;
-      const estimatedCost = parseFloat(String(item.estimatedCost)) || 0;
+      const actualCost = parseFloat(String(item.actualCost || 0)) || 0;
+      const estimatedCost = parseFloat(String(item.estimatedCost || 0)) || 0;
       const paymentStatus = item.isPaid ? 'paid' : 'pending'; // Use isPaid field from our schema
       
       status[paymentStatus] += actualCost || estimatedCost;
@@ -91,8 +93,8 @@ export default function BudgetCharts({ budgetItems }: BudgetChartsProps) {
   }, []);
 
   // Calculate totals with proper number parsing
-  const totalEstimated = budgetItems.reduce((sum, item) => sum + (parseFloat(String(item.estimatedCost)) || 0), 0);
-  const totalActual = budgetItems.reduce((sum, item) => sum + (parseFloat(String(item.actualCost)) || 0), 0);
+  const totalEstimated = budgetItems.reduce((sum, item) => sum + (parseFloat(String(item.estimatedCost || 0)) || 0), 0);
+  const totalActual = budgetItems.reduce((sum, item) => sum + (parseFloat(String(item.actualCost || 0)) || 0), 0);
   const totalVariance = totalActual - totalEstimated;
   const budgetUsage = totalEstimated > 0 ? (totalActual / totalEstimated) * 100 : 0;
 
@@ -119,7 +121,27 @@ export default function BudgetCharts({ budgetItems }: BudgetChartsProps) {
     return alerts;
   }, [budgetUsage, budgetItems]);
 
-  const formatCurrency = (amount: number) => accounting.formatMoney(amount || 0, { symbol: '$', precision: 2 });
+  const formatCurrency = (amount: number | string) => {
+    // Handle string inputs and ensure proper number parsing
+    let safeAmount = 0;
+    
+    if (typeof amount === 'string') {
+      // Remove any non-numeric characters except decimal points
+      const cleanString = amount.replace(/[^0-9.]/g, '');
+      safeAmount = parseFloat(cleanString) || 0;
+    } else if (typeof amount === 'number') {
+      safeAmount = amount;
+    } else {
+      safeAmount = 0;
+    }
+    
+    // Ensure the amount is a valid number
+    if (isNaN(safeAmount) || !isFinite(safeAmount)) {
+      safeAmount = 0;
+    }
+    
+    return accounting.formatMoney(safeAmount, { symbol: '$', precision: 2 });
+  };
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -188,35 +210,51 @@ export default function BudgetCharts({ budgetItems }: BudgetChartsProps) {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <ResponsiveContainer width="100%" height={400}>
-            <PieChart>
-              <Pie
-                data={categoryData.filter(item => item.actual > 0)}
-                cx="50%"
-                cy="45%"
-                labelLine={true}
-                label={({ category, actual, percent }) => 
-                  percent > 8 ? `${category}: ${formatCurrency(actual)}` : ''
-                }
-                outerRadius={100}
-                fill="#8884d8"
-                dataKey="actual"
-              >
-                {categoryData.filter(item => item.actual > 0).map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-              </Pie>
-              <Tooltip formatter={(value) => formatCurrency(value as number)} />
-              <Legend 
-                verticalAlign="bottom" 
-                height={50}
-                formatter={(value, entry) => {
-                  const payload = entry?.payload as any;
-                  return payload?.category ? `${payload.category}: ${formatCurrency(payload.actual)}` : String(value);
-                }}
-              />
-            </PieChart>
-          </ResponsiveContainer>
+          {categoryData.filter(item => item.actual > 0).length > 0 ? (
+            <div>
+              <div className="mb-4 text-sm text-gray-600">
+                Debug: Found {categoryData.filter(item => item.actual > 0).length} categories with actual costs
+              </div>
+              <ResponsiveContainer width="100%" height={400}>
+                <PieChart>
+                  <Pie
+                    data={categoryData.filter(item => item.actual > 0)}
+                    cx="50%"
+                    cy="45%"
+                    labelLine={true}
+                    label={({ category, actual, percent }) => 
+                      percent > 8 ? `${category}: ${formatCurrency(actual)}` : ''
+                    }
+                    outerRadius={100}
+                    fill="#8884d8"
+                    dataKey="actual"
+                  >
+                    {categoryData.filter(item => item.actual > 0).map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip formatter={(value) => formatCurrency(value as number)} />
+                  <Legend 
+                    verticalAlign="bottom" 
+                    height={50}
+                    formatter={(value, entry) => {
+                      const payload = entry?.payload as any;
+                      return payload?.category ? `${payload.category}: ${formatCurrency(payload.actual)}` : String(value);
+                    }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              <DollarSign className="mx-auto h-12 w-12 text-gray-300 mb-4" />
+              <p>No spending data available yet</p>
+              <p className="text-sm">Add budget items with actual costs to see the chart</p>
+              <div className="mt-4 text-xs text-gray-400">
+                Debug: Total categories: {categoryData.length}, Categories with actual costs: {categoryData.filter(item => item.actual > 0).length}
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 

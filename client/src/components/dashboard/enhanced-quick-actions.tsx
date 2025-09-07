@@ -35,7 +35,7 @@ import {
 } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import AIVendorSearch from "@/components/ai-vendor-search";
+import { AIVendorSearch } from "@/components/features/ai";
 import ExportDialog from "@/components/export/ExportDialog";
 
 export default function EnhancedQuickActions() {
@@ -49,7 +49,7 @@ export default function EnhancedQuickActions() {
   const [budgetForm, setBudgetForm] = useState({ item: "", category: "venue", estimatedCost: "" });
   const { toast } = useToast();
   
-  const { data: dashboardStats } = useQuery({
+  const { data: dashboardStats } = useQuery<any>({
     queryKey: ['/api/dashboard/stats']
   });
 
@@ -129,6 +129,7 @@ export default function EnhancedQuickActions() {
         icon: <CalendarPlus className="h-5 w-5" />,
         color: "bg-blue-500 hover:bg-blue-600",
         category: "Planning",
+        urgent: false,
         action: () => setIsTaskDialogOpen(true)
       },
       {
@@ -138,6 +139,7 @@ export default function EnhancedQuickActions() {
         icon: <UserPlus className="h-5 w-5" />,
         color: "bg-green-500 hover:bg-green-600", 
         category: "Guests",
+        urgent: false,
         action: () => setIsGuestDialogOpen(true)
       },
       {
@@ -147,6 +149,7 @@ export default function EnhancedQuickActions() {
         icon: <PlusCircle className="h-5 w-5" />,
         color: "bg-purple-500 hover:bg-purple-600",
         category: "Budget",
+        urgent: false,
         action: () => setIsBudgetDialogOpen(true)
       },
       {
@@ -156,6 +159,7 @@ export default function EnhancedQuickActions() {
         icon: <Download className="h-5 w-5" />,
         color: "bg-teal-500 hover:bg-teal-600",
         category: "Data",
+        urgent: false,
         action: () => {} // Will be handled by ExportDialog trigger
       }
     ];
@@ -169,6 +173,7 @@ export default function EnhancedQuickActions() {
         icon: <Search className="h-5 w-5" />,
         color: "bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600",
         category: "AI Tools",
+        urgent: false,
         action: () => setIsVendorSearchOpen(true)
       },
       {
@@ -178,6 +183,7 @@ export default function EnhancedQuickActions() {
         icon: <MapPin className="h-5 w-5" />,
         color: "bg-rose-500 hover:bg-rose-600",
         category: "Vendors",
+        urgent: false,
         action: () => setLocation('/vendors')
       },
       {
@@ -187,6 +193,7 @@ export default function EnhancedQuickActions() {
         icon: <Calendar className="h-5 w-5" />,
         color: "bg-indigo-500 hover:bg-indigo-600",
         category: "Planning",
+        urgent: false,
         action: () => setLocation('/timeline')
       },
       {
@@ -196,6 +203,7 @@ export default function EnhancedQuickActions() {
         icon: <Heart className="h-5 w-5" />,
         color: "bg-pink-500 hover:bg-pink-600",
         category: "Inspiration",
+        urgent: false,
         action: () => setLocation('/inspiration')
       }
     ];
@@ -464,7 +472,7 @@ export default function EnhancedQuickActions() {
                 <SelectContent>
                   <SelectItem value="family">Family</SelectItem>
                   <SelectItem value="friends">Friends</SelectItem>
-                  <SelectItem value="colleagues">Colleagues</SelectItem>
+                  <SelectItem value="work_colleagues">Colleagues</SelectItem>
                   <SelectItem value="wedding-party">Wedding Party</SelectItem>
                   <SelectItem value="other">Other</SelectItem>
                 </SelectContent>

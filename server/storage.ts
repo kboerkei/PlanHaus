@@ -1091,35 +1091,7 @@ export class DatabaseStorage implements IStorage {
     return activity;
   }
 
-  async getActivitiesByProjectId(projectId: number): Promise<(Activity & { user: User })[]> {
-    const result = await db
-      .select({
-        id: activities.id,
-        projectId: activities.projectId,
-        userId: activities.userId,
-        action: activities.action,
-        target: activities.target,
-        targetId: activities.targetId,
-        details: activities.details,
-        createdAt: activities.createdAt,
-        user: {
-          id: users.id,
-          username: users.username,
-          email: users.email,
-          avatar: users.avatar,
-          password: users.password,
-          createdAt: users.createdAt,
-        }
-      })
-      .from(activities)
-      .innerJoin(users, eq(activities.userId, users.id))
-      .where(eq(activities.projectId, projectId));
 
-    return result.map(row => ({
-      ...row,
-      user: row.user
-    }));
-  }
 
   // Shopping Lists
   async createShoppingList(insertList: InsertShoppingList): Promise<ShoppingList> {

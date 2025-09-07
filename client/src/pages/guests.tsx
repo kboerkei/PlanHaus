@@ -1,12 +1,10 @@
 import { useState, useMemo, Suspense } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle, Button, Input } from "@/components/design-system";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
-import { EmptyState, GuestListEmptyState } from "@/components/ui/empty-state";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Users, Mail, Phone, MapPin, Filter, UserPlus, Send, Download, Search, Eye, EyeOff } from "lucide-react";
 import { useProjects } from "@/hooks/useProjects";
 import { useGuests, useGuestStats, useBulkUpdateGuests } from "@/hooks/useGuests";
@@ -22,13 +20,15 @@ import { SearchInput } from "@/components/ui/enhanced-forms";
 import { AccessibleButton } from "@/components/ui/accessibility-enhancements";
 import { useDebounce } from "@/hooks/usePerformanceOptimization";
 import { motion, AnimatePresence } from "framer-motion";
+import UnifiedPageLayout from "@/components/layout/UnifiedPageLayout";
+import { UnifiedSection, UnifiedGrid, UnifiedCard } from "@/components/layout/UnifiedSection";
 
 const groupFilters = [
   { value: "all", label: "All Groups" },
   { value: "wedding_party", label: "Wedding Party" },
   { value: "family", label: "Family" },
   { value: "friends", label: "Friends" },
-  { value: "colleagues", label: "Colleagues" },
+  { value: "work_colleagues", label: "Colleagues" },
   { value: "other", label: "Other" }
 ];
 
@@ -105,29 +105,25 @@ export default function Guests() {
       });
       setSelectedGuests([]);
     } catch (error) {
-      console.error('Failed to update guests:', error);
+      console.error('Bulk update failed:', error);
     }
   };
 
   // Loading and error states
   if (projectsLoading || guestsLoading) {
-    return (
-      <div className="p-6">
-        <LoadingSpinner size="lg" text="Loading your guest list..." />
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   if (guestsError) {
     return (
-      <div className="p-6">
-        <div className="text-center text-red-600">
-          <p>Error loading guests. Please try again.</p>
-          <Button 
-            onClick={() => window.location.reload()} 
-            variant="outline" 
-            className="mt-4"
-          >
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <Users className="h-12 w-12 text-destructive mx-auto mb-4" />
+          <h3 className="text-lg font-semibold mb-2">Failed to load guest data</h3>
+          <p className="text-muted-foreground mb-4">
+            {guestsError instanceof Error ? guestsError.message : 'An unexpected error occurred'}
+          </p>
+          <Button onClick={() => window.location.reload()}>
             Retry
           </Button>
         </div>
@@ -146,23 +142,15 @@ export default function Guests() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Breadcrumbs */}
-      <Breadcrumbs
-        items={[
-          { label: "Guest List & RSVPs", current: true }
-        ]}
-      />
-      
-      {/* Header */}
-      <div className="bg-white rounded-lg p-6 border border-gray-200">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Guest List</h1>
-            <p className="text-gray-600">
-              Manage your wedding guests and track RSVPs
-            </p>
-          </div>
+    <UnifiedPageLayout
+      title="Guest List & RSVPs"
+      subtitle="Manage your wedding guests and track RSVPs with our comprehensive guest management tools"
+      animation="slideUp"
+      headerBackground="gradient"
+    >
+      {/* Header Actions */}
+      <UnifiedSection animation="fadeIn">
+        <div className="flex items-center justify-between mb-6">
           <div className="flex gap-2">
             <ExportDialog
               projectId={projectId}
@@ -180,41 +168,29 @@ export default function Guests() {
 
         {/* Quick Stats */}
         {guestStats && (
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
-            <Card className="border-blue-200">
-              <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-blue-600">{guestStats.total}</div>
-                <div className="text-sm text-gray-600">Total Guests</div>
-              </CardContent>
-            </Card>
-            <Card className="border-green-200">
-              <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-green-600">{guestStats.confirmed}</div>
-                <div className="text-sm text-gray-600">Confirmed</div>
-              </CardContent>
-            </Card>
-            <Card className="border-red-200">
-              <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-red-600">{guestStats.declined}</div>
-                <div className="text-sm text-gray-600">Declined</div>
-              </CardContent>
-            </Card>
-            <Card className="border-yellow-200">
-              <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-yellow-600">{guestStats.pending}</div>
-                <div className="text-sm text-gray-600">Pending</div>
-              </CardContent>
-            </Card>
-            <Card className="border-purple-200">
-              <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-purple-600">{guestStats.totalAttending}</div>
-                <div className="text-sm text-gray-600">Expected Attending</div>
-              </CardContent>
-            </Card>
-          </div>
+          <UnifiedGrid cols={4} gap="md">
+            <UnifiedCard variant="elegant" className="text-center">
+              <div className="text-2xl font-bold text-primary">{guestStats.total}</div>
+              <div className="text-sm text-neutral-600">Total Guests</div>
+            </UnifiedCard>
+            <UnifiedCard variant="elegant" className="text-center">
+              <div className="text-2xl font-bold text-success">{guestStats.confirmed}</div>
+              <div className="text-sm text-neutral-600">Confirmed</div>
+            </UnifiedCard>
+            <UnifiedCard variant="elegant" className="text-center">
+              <div className="text-2xl font-bold text-error">{guestStats.declined}</div>
+              <div className="text-sm text-neutral-600">Declined</div>
+            </UnifiedCard>
+            <UnifiedCard variant="elegant" className="text-center">
+              <div className="text-2xl font-bold text-warning">{guestStats.pending}</div>
+              <div className="text-sm text-neutral-600">Pending</div>
+            </UnifiedCard>
+          </UnifiedGrid>
         )}
+      </UnifiedSection>
 
-        {/* Filters */}
+      {/* Filters */}
+      <UnifiedSection animation="fadeIn">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="relative">
             <Input
@@ -261,144 +237,152 @@ export default function Guests() {
               onCheckedChange={handleSelectAll}
             />
             <label htmlFor="select-all" className="text-sm">
-              Select all ({selectedGuests.length})
+              Select All
             </label>
           </div>
         </div>
 
         {/* Bulk Actions */}
         {selectedGuests.length > 0 && (
-          <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-blue-800">
-                {selectedGuests.length} guest{selectedGuests.length === 1 ? '' : 's'} selected
-              </span>
-              <div className="flex gap-2">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => handleBulkRsvpUpdate('yes')}
-                  disabled={bulkUpdate.isPending}
-                >
-                  Mark Attending
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => handleBulkRsvpUpdate('no')}
-                  disabled={bulkUpdate.isPending}
-                >
-                  Mark Declined
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => setSelectedGuests([])}
-                >
-                  Clear Selection
-                </Button>
-              </div>
+          <div className="flex items-center gap-2 mt-4 p-3 bg-blue-50 rounded-lg">
+            <span className="text-sm font-medium text-blue-900">
+              {selectedGuests.length} guest{selectedGuests.length !== 1 ? 's' : ''} selected
+            </span>
+            <div className="flex gap-2 ml-auto">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => handleBulkRsvpUpdate("yes")}
+                className="text-green-600 border-green-200 hover:bg-green-50"
+              >
+                Mark Attending
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => handleBulkRsvpUpdate("no")}
+                className="text-red-600 border-red-200 hover:bg-red-50"
+              >
+                Mark Declined
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => handleBulkRsvpUpdate("maybe")}
+                className="text-blue-600 border-blue-200 hover:bg-blue-50"
+              >
+                Mark Maybe
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setSelectedGuests([])}
+              >
+                Clear
+              </Button>
             </div>
           </div>
         )}
-      </div>
+      </UnifiedSection>
 
       {/* Guest List */}
-      {filteredGuests.length === 0 ? (
-        <Card>
-          <CardContent className="text-center py-12">
-            <Users className="mx-auto mb-4 w-16 h-16 text-gray-400" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No guests found</h3>
-            <p className="text-gray-600 mb-4">
-              {searchTerm || filterGroup || filterRsvp 
-                ? "Try adjusting your filters to see more guests."
-                : "Get started by adding your first guest."
-              }
-            </p>
-            {(!searchTerm && !filterGroup && !filterRsvp) && (
-              <GuestFormDialog projectId={projectId} />
-            )}
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="grid gap-4">
-          {filteredGuests.map((guest: any) => (
-            <Card key={guest.id} className="hover:shadow-md transition-shadow">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-4">
-                  <Checkbox
-                    checked={selectedGuests.includes(guest.id)}
-                    onCheckedChange={(checked) => handleSelectGuest(guest.id, checked as boolean)}
-                  />
-                  
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-2">
-                      <h3 className="font-medium text-gray-900">{guest.name}</h3>
-                      <div className="flex gap-2">
-                        <Badge 
-                          className={`${rsvpStatusColors[guest.rsvpStatus as keyof typeof rsvpStatusColors]} border-0`}
-                        >
-                          {guest.rsvpStatus === 'yes' ? 'Attending' : 
-                           guest.rsvpStatus === 'no' ? 'Declined' : 
-                           guest.rsvpStatus === 'maybe' ? 'Maybe' : 'Pending'}
-                        </Badge>
-                        <Badge variant="outline" className="capitalize">
-                          {guest.group?.replace('_', ' ') || 'other'}
-                        </Badge>
-                        <QuickRSVPButtons guest={guest} projectId={projectId} />
-                      </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
-                      {guest.email && (
-                        <div className="flex items-center gap-1">
-                          <Mail className="w-4 h-4" />
-                          <span className="truncate">{guest.email}</span>
-                        </div>
-                      )}
-                      {guest.phone && (
-                        <div className="flex items-center gap-1">
-                          <Phone className="w-4 h-4" />
-                          <span>{guest.phone}</span>
-                        </div>
-                      )}
-                      {guest.attendingCount && guest.attendingCount > 1 && (
-                        <div className="flex items-center gap-1">
-                          <UserPlus className="w-4 h-4" />
-                          <span>+{guest.attendingCount - 1} guest{guest.attendingCount > 2 ? 's' : ''}</span>
-                        </div>
-                      )}
-                    </div>
-
-                    {(guest.dietaryRestrictions || guest.mealChoice) && (
-                      <div className="mt-2 text-sm text-gray-600">
-                        {guest.mealChoice && <span className="mr-2">Meal: {guest.mealChoice}</span>}
-                        {guest.dietaryRestrictions && <span>Dietary: {guest.dietaryRestrictions}</span>}
-                      </div>
-                    )}
-                    
-                    {guest.notes && (
-                      <p className="text-sm text-gray-600 mt-2">{guest.notes}</p>
-                    )}
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <GuestFormDialog
-                      projectId={projectId}
-                      guest={guest}
-                      trigger={
-                        <Button variant="outline" size="sm">
-                          Edit
-                        </Button>
-                      }
+      <UnifiedSection animation="fadeIn">
+        {filteredGuests.length === 0 ? (
+          <Card>
+            <CardContent className="text-center py-12">
+              <Users className="mx-auto mb-4 w-16 h-16 text-gray-400" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No guests found</h3>
+              <p className="text-gray-600 mb-4">
+                {searchTerm || filterGroup || filterRsvp 
+                  ? "Try adjusting your filters to see more guests."
+                  : "Get started by adding your first guest."
+                }
+              </p>
+              {(!searchTerm && !filterGroup && !filterRsvp) && (
+                <GuestFormDialog projectId={projectId} />
+              )}
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid gap-4">
+            {filteredGuests.map((guest: any) => (
+              <Card key={guest.id} className="hover:shadow-md transition-shadow">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-4">
+                    <Checkbox
+                      checked={selectedGuests.includes(guest.id)}
+                      onCheckedChange={(checked) => handleSelectGuest(guest.id, checked as boolean)}
                     />
+                    
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="font-medium text-gray-900">{guest.name}</h3>
+                        <div className="flex gap-2">
+                          <Badge 
+                            className={`${rsvpStatusColors[guest.rsvpStatus as keyof typeof rsvpStatusColors]} border-0`}
+                          >
+                            {guest.rsvpStatus === 'yes' ? 'Attending' : 
+                             guest.rsvpStatus === 'no' ? 'Declined' : 
+                             guest.rsvpStatus === 'maybe' ? 'Maybe' : 'Pending'}
+                          </Badge>
+                          <Badge variant="outline" className="capitalize">
+                            {guest.group?.replace('_', ' ') || 'other'}
+                          </Badge>
+                          <QuickRSVPButtons guest={guest} projectId={projectId} />
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
+                        {guest.email && (
+                          <div className="flex items-center gap-1">
+                            <Mail className="w-4 h-4" />
+                            <span className="truncate">{guest.email}</span>
+                          </div>
+                        )}
+                        {guest.phone && (
+                          <div className="flex items-center gap-1">
+                            <Phone className="w-4 h-4" />
+                            <span>{guest.phone}</span>
+                          </div>
+                        )}
+                        {guest.attendingCount && guest.attendingCount > 1 && (
+                          <div className="flex items-center gap-1">
+                            <UserPlus className="w-4 h-4" />
+                            <span>+{guest.attendingCount - 1} guest{guest.attendingCount > 2 ? 's' : ''}</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {(guest.dietaryRestrictions || guest.mealChoice) && (
+                        <div className="mt-2 text-sm text-gray-600">
+                          {guest.mealChoice && <span className="mr-2">Meal: {guest.mealChoice}</span>}
+                          {guest.dietaryRestrictions && <span>Dietary: {guest.dietaryRestrictions}</span>}
+                        </div>
+                      )}
+                      
+                      {guest.notes && (
+                        <p className="text-sm text-gray-600 mt-2">{guest.notes}</p>
+                      )}
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      <GuestFormDialog
+                        projectId={projectId}
+                        guest={guest}
+                        trigger={
+                          <Button variant="outline" size="sm">
+                            Edit
+                          </Button>
+                        }
+                      />
+                    </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
-    </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+      </UnifiedSection>
+    </UnifiedPageLayout>
   );
 }

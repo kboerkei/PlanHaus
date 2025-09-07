@@ -4,6 +4,8 @@ import { motion } from "framer-motion";
 import { LoadingSpinner, SkeletonStats } from "@/components/ui/enhanced-loading";
 import { EnhancedCard, StatCard, ProgressCard } from "@/components/ui/enhanced-cards";
 import { usePerformanceMonitor } from "@/hooks/usePerformanceOptimization";
+import { apiRequest } from "@/lib/queryClient";
+import { DashboardStats } from "@/types";
 import { 
   Calendar, 
   DollarSign, 
@@ -22,8 +24,9 @@ export const OptimizedDashboard = memo(() => {
   const getMetrics = usePerformanceMonitor("OptimizedDashboard");
 
   // Single dashboard stats query with proper caching
-  const { data: stats, isLoading, error } = useQuery({
+  const { data: stats, isLoading, error } = useQuery<DashboardStats>({
     queryKey: ['/api/dashboard/stats'],
+    queryFn: () => apiRequest<DashboardStats>('/api/dashboard/stats'),
     staleTime: 5 * 60 * 1000, // 5 minutes stale time
     gcTime: 10 * 60 * 1000, // 10 minutes cache time
   });
@@ -39,7 +42,7 @@ export const OptimizedDashboard = memo(() => {
       (stats.budget.spent / stats.budget.total) * 100 : 0;
     
     const guestProgress = stats.guests.total > 0 ? 
-      (stats.guests.responded / stats.guests.total) * 100 : 0;
+      ((stats.guests.confirmed + (stats.guests.declined || 0)) / stats.guests.total) * 100 : 0;
     
     const vendorProgress = stats.vendors.total > 0 ? 
       (stats.vendors.booked / stats.vendors.total) * 100 : 0;
@@ -50,7 +53,7 @@ export const OptimizedDashboard = memo(() => {
       guestProgress,
       vendorProgress,
       isOverBudget: budgetProgress > 100,
-      hasOverdueTasks: stats.tasks.overdue > 0,
+      hasOverdueTasks: (stats.tasks?.overdue || 0) > 0,
       lowGuestResponse: guestProgress < 50 && stats.guests.total > 0
     };
   }, [stats]);
@@ -167,7 +170,7 @@ export const OptimizedDashboard = memo(() => {
         
         <StatCard
           title="RSVP Responses"
-          value={`${stats.guests.responded}/${stats.guests.total}`}
+          value={`${(stats.guests.confirmed + (stats.guests.declined || 0))}/${stats.guests.total}`}
           change={{
             value: `${calculations.guestProgress.toFixed(0)}% responded`,
             trend: calculations.guestProgress > 60 ? "up" : "neutral"

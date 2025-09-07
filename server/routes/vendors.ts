@@ -1,15 +1,14 @@
 import { Router } from "express";
 import { storage } from "../storage";
-import { requireAuth } from "../middleware/auth";
+import { RequestWithUser, authenticateUser } from "../middleware/auth";
 import { validateBody } from "../utils/validation";
 import { getOrCreateDefaultProject, ensureProjectAccess } from "../utils/projects";
 import { logError, logInfo } from "../utils/logger";
-import { RequestWithUser } from "../types/express";
 import { insertVendorSchema } from "@shared/schema";
 
 const router = Router();
 
-router.get("/", requireAuth, async (req: RequestWithUser, res) => {
+router.get("/", authenticateUser, async (req: RequestWithUser, res) => {
   try {
     const project = await getOrCreateDefaultProject(req.userId);
     const vendors = await storage.getVendorsByProjectId(project.id);
@@ -21,7 +20,7 @@ router.get("/", requireAuth, async (req: RequestWithUser, res) => {
   }
 });
 
-router.get("/project/:projectId", requireAuth, async (req: RequestWithUser, res) => {
+router.get("/project/:projectId", authenticateUser, async (req: RequestWithUser, res) => {
   try {
     const projectId = parseInt(req.params.projectId);
     await ensureProjectAccess(req.userId, projectId);
@@ -39,7 +38,7 @@ router.get("/project/:projectId", requireAuth, async (req: RequestWithUser, res)
   }
 });
 
-router.post("/", requireAuth, validateBody(insertVendorSchema), async (req: RequestWithUser, res) => {
+router.post("/", authenticateUser, validateBody(insertVendorSchema.omit({ projectId: true, addedBy: true })), async (req: RequestWithUser, res) => {
   try {
     let projectId = req.body.projectId;
     
@@ -50,7 +49,7 @@ router.post("/", requireAuth, validateBody(insertVendorSchema), async (req: Requ
       await ensureProjectAccess(req.userId, projectId);
     }
 
-    const vendorData = { ...req.body, projectId };
+    const vendorData = { ...req.body, projectId, addedBy: req.userId };
     const vendor = await storage.createVendor(vendorData);
     
     logInfo('vendors', `Vendor added: ${vendor.name}`, { userId: req.userId, projectId });
@@ -67,7 +66,7 @@ router.post("/", requireAuth, validateBody(insertVendorSchema), async (req: Requ
   }
 });
 
-router.put("/:id", requireAuth, validateBody(insertVendorSchema.partial()), async (req: RequestWithUser, res) => {
+router.put("/:id", authenticateUser, validateBody(insertVendorSchema.partial()), async (req: RequestWithUser, res) => {
   try {
     const vendorId = parseInt(req.params.id);
     const vendor = await storage.getVendorById(vendorId);
@@ -94,7 +93,7 @@ router.put("/:id", requireAuth, validateBody(insertVendorSchema.partial()), asyn
   }
 });
 
-router.delete("/:id", requireAuth, async (req: RequestWithUser, res) => {
+router.delete("/:id", authenticateUser, async (req: RequestWithUser, res) => {
   try {
     const vendorId = parseInt(req.params.id);
     const vendor = await storage.getVendorById(vendorId);

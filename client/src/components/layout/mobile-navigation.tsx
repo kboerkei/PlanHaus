@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Home, Bot, Calendar, DollarSign, Users, Store, Palette, Clock, Menu } from "lucide-react";
+import { Home, Bot, Calendar, DollarSign, Users, Store, Palette, Clock, Menu, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
@@ -17,6 +17,7 @@ const secondaryNavigation = [
   { name: "Schedules", href: "/schedules", icon: Clock },
   { name: "Inspiration", href: "/inspiration", icon: Palette },
   { name: "AI Assistant", href: "/ai-assistant", icon: Bot },
+  { name: "Intake Form", href: "/intake", icon: FileText },
 ];
 
 export default function MobileNavigation() {

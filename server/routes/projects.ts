@@ -151,4 +151,46 @@ router.get("/:id/tasks", requireAuth, async (req: RequestWithUser, res) => {
   }
 });
 
+router.patch("/:id/tasks/:taskId", requireAuth, async (req: RequestWithUser, res) => {
+  try {
+    const projectId = parseInt(req.params.id);
+    const taskId = parseInt(req.params.taskId);
+    
+    // Verify project access
+    const projects = await storage.getWeddingProjectsByUserId(req.userId);
+    const project = projects.find(p => p.id === projectId);
+    
+    if (!project) {
+      return res.status(404).json({ message: "Project not found" });
+    }
+    
+    // Get the task to verify it belongs to this project
+    const task = await storage.getTaskById(taskId);
+    if (!task || task.projectId !== projectId) {
+      return res.status(404).json({ message: "Task not found" });
+    }
+    
+    const updatedTask = await storage.updateTask(taskId, req.body);
+    
+    // Log activity for status changes
+    if (req.body.status || req.body.isCompleted !== undefined) {
+      const isCompleted = req.body.isCompleted || req.body.status === 'completed';
+      await storage.createActivity({
+        projectId,
+        userId: req.userId,
+        type: isCompleted ? 'task_completed' : 'task_updated',
+        description: isCompleted ? `Completed task: ${task.title}` : `Updated task: ${task.title}`,
+        metadata: { taskId: task.id }
+      });
+    }
+    
+    logInfo('projects', `Task updated: ${taskId} in project ${projectId}`, { userId: req.userId });
+    
+    res.json(updatedTask);
+  } catch (error) {
+    logError('projects', error, { userId: req.userId, projectId: req.params.id, taskId: req.params.taskId });
+    res.status(500).json({ message: "Failed to update task" });
+  }
+});
+
 export default router;

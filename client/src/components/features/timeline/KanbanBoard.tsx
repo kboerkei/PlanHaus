@@ -32,7 +32,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { toast } from 'react-hot-toast';
 import { formatDistanceToNow } from 'date-fns';
-import type { Task } from '@/../shared/schema';
+import type { Task } from '@/types';
 
 interface KanbanBoardProps {
   tasks: Task[];
@@ -46,7 +46,7 @@ interface KanbanTaskProps {
   onToggle: (taskId: number, completed: boolean) => void;
 }
 
-type TaskStatus = 'pending' | 'in-progress' | 'completed';
+type TaskStatus = 'not_started' | 'in_progress' | 'completed';
 
 interface Column {
   id: TaskStatus;
@@ -58,14 +58,14 @@ interface Column {
 
 const columns: Column[] = [
   {
-    id: 'pending',
+    id: 'not_started',
     title: 'To Do',
     color: 'bg-gray-100 border-gray-300',
     icon: Clock,
     description: 'Tasks waiting to be started'
   },
   {
-    id: 'in-progress',
+    id: 'in_progress',
     title: 'In Progress',
     color: 'bg-blue-100 border-blue-300',
     icon: Star,
@@ -206,12 +206,12 @@ function KanbanColumn({ column, tasks, onTaskUpdate }: {
             <KanbanTask 
               key={task.id} 
               task={task} 
-              onToggle={(taskId, completed) => {
+                              onToggle={(taskId, completed) => {
                 onTaskUpdate(taskId, { 
-                  completed, 
-                  status: completed ? 'completed' : 'pending' 
+                  isCompleted: completed, 
+                  status: completed ? 'completed' : 'not_started' 
                 });
-              }}
+              })}
             />
           ))}
         </SortableContext>
@@ -240,9 +240,9 @@ export default function KanbanBoard({ tasks, onTaskUpdate, onTaskReorder, projec
 
   const tasksByStatus = React.useMemo(() => {
     const grouped = {
-      pending: tasks.filter(task => task.status === 'pending' || (!task.status && !task.completed)),
-      'in-progress': tasks.filter(task => task.status === 'in-progress'),
-      completed: tasks.filter(task => task.status === 'completed' || task.completed),
+      'not_started': tasks.filter(task => task.status === 'not_started' || (!task.status && !task.isCompleted)),
+      'in_progress': tasks.filter(task => task.status === 'in_progress'),
+      'completed': tasks.filter(task => task.status === 'completed' || task.isCompleted),
     };
     return grouped;
   }, [tasks]);
@@ -298,24 +298,24 @@ export default function KanbanBoard({ tasks, onTaskUpdate, onTaskReorder, projec
         try {
           await apiRequest(`/api/tasks/${task.id}`, {
             method: 'PATCH',
-            body: { 
+            body: JSON.stringify({ 
               status: newStatus,
               completed: newStatus === 'completed' 
-            }
+            })
           });
 
           // Show success message
           toast.success(
             newStatus === 'completed' 
               ? `🎉 "${task.title}" completed!` 
-              : `Task moved to ${newStatus === 'in-progress' ? 'In Progress' : 'To Do'}`,
+              : `Task moved to ${newStatus === 'in_progress' ? 'In Progress' : 'To Do'}`,
             {
               duration: 2000,
               style: {
                 background: newStatus === 'completed' ? '#10b981' : '#8b5cf6',
                 color: 'white',
-              },
-            }
+              }),
+            })
           );
 
           // Invalidate queries

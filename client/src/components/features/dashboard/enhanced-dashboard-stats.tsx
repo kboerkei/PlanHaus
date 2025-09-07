@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { differenceInDays } from "date-fns";
+import { WeddingProject, DashboardStats } from "@/types";
 import { 
   TrendingUp, 
   TrendingDown, 
@@ -14,7 +15,6 @@ import {
   AlertTriangle,
   Zap
 } from "lucide-react";
-import type { DashboardStats } from '@/types';
 
 interface StatCardProps {
   title: string;
@@ -74,12 +74,12 @@ function StatCard({ title, value, subtitle, progress, trend, icon: Icon, urgency
 }
 
 export default function EnhancedDashboardStats() {
-  const { data: dashboardStats } = useQuery({
+  const { data: dashboardStats } = useQuery<DashboardStats>({
     queryKey: ['/api/dashboard/stats'],
     enabled: true,
   });
 
-  const { data: projects } = useQuery({
+  const { data: projects } = useQuery<WeddingProject[]>({
     queryKey: ['/api/projects'],
     enabled: true,
   });
@@ -105,7 +105,7 @@ export default function EnhancedDashboardStats() {
   }
 
   // Calculate days until wedding using same method as header for consistency
-  const daysUntil = currentProject?.date ? differenceInDays(new Date(currentProject.date), new Date()) : 0;
+  const daysUntil = currentProject?.weddingDate ? differenceInDays(new Date(currentProject.weddingDate), new Date()) : 0;
 
   // Task completion rate
   const taskCompletionRate = dashboardStats.tasks?.total > 0 
@@ -119,7 +119,7 @@ export default function EnhancedDashboardStats() {
 
   // RSVP rate: guests who have responded (confirmed + declined) vs total
   const rsvpRate = dashboardStats.guests?.total > 0
-    ? Math.round(((dashboardStats.guests.confirmed + dashboardStats.guests.declined) / dashboardStats.guests.total) * 100)
+    ? Math.round(((dashboardStats.guests.confirmed + (dashboardStats.guests.declined || 0)) / dashboardStats.guests.total) * 100)
     : 0;
 
   // Vendor completion rate
@@ -135,7 +135,7 @@ export default function EnhancedDashboardStats() {
         subtitle={`${taskCompletionRate}% used`}
         progress={taskCompletionRate}
         icon={CheckCircle2}
-        urgency={dashboardStats.tasks?.overdue > 0 ? 'high' : taskCompletionRate < 50 ? 'medium' : 'low'}
+        urgency={(dashboardStats.tasks?.overdue || 0) > 0 ? 'high' : taskCompletionRate < 50 ? 'medium' : 'low'}
         trend={taskCompletionRate > 70 ? 'up' : taskCompletionRate < 30 ? 'down' : 'neutral'}
       />
       
@@ -155,7 +155,7 @@ export default function EnhancedDashboardStats() {
         subtitle={`${rsvpRate}% responded`}
         progress={rsvpRate}
         icon={Users}
-        urgency={dashboardStats.guests?.pending > 10 ? 'high' : dashboardStats.guests?.pending > 5 ? 'medium' : 'low'}
+        urgency={(dashboardStats.guests?.pending || 0) > 10 ? 'high' : (dashboardStats.guests?.pending || 0) > 5 ? 'medium' : 'low'}
         trend={rsvpRate > 70 ? 'up' : 'neutral'}
       />
     </div>
@@ -163,13 +163,25 @@ export default function EnhancedDashboardStats() {
 }
 
 function VendorStatsCard() {
-  const { data: dashboardStats } = useQuery({
+  const { data: dashboardStats } = useQuery<DashboardStats>({
     queryKey: ['/api/dashboard/stats'],
     enabled: true,
   });
 
-  const vendorBookedRate = dashboardStats?.vendors?.total > 0
-    ? Math.round((dashboardStats.vendors.booked / dashboardStats.vendors.total) * 100)
+  if (!dashboardStats) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-1 gap-4 mb-6">
+        <Card className="animate-pulse">
+          <CardContent className="p-4">
+            <div className="h-20 bg-gray-200 rounded"></div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  const vendorBookedRate = dashboardStats.vendors?.total > 0
+    ? Math.round(((dashboardStats.vendors.booked || 0) / dashboardStats.vendors.total) * 100)
     : 0;
 
   return (
@@ -180,7 +192,7 @@ function VendorStatsCard() {
         subtitle={`${vendorBookedRate}% completed`}
         progress={vendorBookedRate}
         icon={Zap}
-        urgency={dashboardStats?.vendors?.total > 0 && dashboardStats?.vendors?.booked === 0 ? 'high' : 'low'}
+        urgency={(dashboardStats?.vendors?.total || 0) > 0 && (dashboardStats?.vendors?.booked || 0) === 0 ? 'high' : 'low'}
         trend={vendorBookedRate > 50 ? 'up' : 'neutral'}
       />
     </div>

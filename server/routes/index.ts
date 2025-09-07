@@ -10,6 +10,9 @@ import activityRoutes from './activities';
 import activityLogRoutes from './activity-log';
 import exportRoutes from './export';
 import importRoutes from './import';
+import overviewRoutes from './overview';
+import creativeDetailsRoutes from './creative-details';
+import analyticsRoutes from './analytics';
 
 export function registerRoutes(app: express.Application) {
   // Register all routes
@@ -24,6 +27,9 @@ export function registerRoutes(app: express.Application) {
   app.use('/api/import', importRoutes);
   app.use('/api/activities', activityRoutes);
   app.use('/api/activity-log', activityLogRoutes);
+  app.use('/api/creative-details', creativeDetailsRoutes);
+  app.use('/api/overview', overviewRoutes);
+  app.use('/api/analytics', analyticsRoutes);
 
   return app;
 } 

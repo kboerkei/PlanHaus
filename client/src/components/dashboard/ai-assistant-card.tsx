@@ -7,14 +7,14 @@ import { useState, useEffect } from "react";
 export default function AIAssistantCard() {
   const [currentTip, setCurrentTip] = useState(0);
 
-  const { data: projects } = useQuery({
+  const { data: projects = [] } = useQuery<any[]>({
     queryKey: ['/api/projects'],
     enabled: !!localStorage.getItem('sessionId')
   });
 
-  const { data: tasks } = useQuery({
-    queryKey: ['/api/projects', projects?.[0]?.id, 'tasks'],
-    enabled: !!projects?.[0]?.id
+  const { data: tasks = [] } = useQuery<any[]>({
+    queryKey: ['/api/projects', projects[0]?.id, 'tasks'],
+    enabled: !!projects[0]?.id
   });
 
   const project = projects?.[0];

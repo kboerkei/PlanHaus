@@ -22,7 +22,7 @@ const inputVariants = {
   ].join(" ")
 };
 
-export interface EnhancedInputProps extends ShadcnInputProps {
+export interface EnhancedInputProps extends Omit<ShadcnInputProps, 'variant'> {
   variant?: "default" | "wedding" | "error" | "success";
   inputSize?: "sm" | "default" | "lg";
   label?: string;

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
+import { WeddingProject } from "@/types";
 
 interface OnboardingStep {
   id: string;
@@ -21,20 +22,20 @@ export default function SmartOnboarding() {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [dismissedPermanently, setDismissedPermanently] = useState(false);
 
-  const { data: projects } = useQuery({
+  const { data: projects } = useQuery<WeddingProject[]>({
     queryKey: ['/api/projects'],
     enabled: !!localStorage.getItem('sessionId')
   });
 
   // Prioritize Austin farmhouse wedding demo
-  const project = projects?.find(p => p.name === "Emma & Jake's Wedding") || projects?.[0];
+  const project = projects?.find((p: any) => p.name === "Emma & Jake's Wedding") || projects?.[0];
 
   const { data: tasks } = useQuery({
     queryKey: ['/api/projects', project?.id, 'tasks'],
     enabled: !!project?.id
   });
 
-  const { data: guests } = useQuery({
+  const { data: guests } = useQuery<any[]>({
     queryKey: ['/api/projects', project?.id, 'guests'],
     enabled: !!project?.id
   });
@@ -54,7 +55,7 @@ export default function SmartOnboarding() {
       title: 'Set Your Wedding Date',
       description: 'Choose your special day to get a personalized timeline',
       icon: Calendar,
-      completed: !!project?.date,
+      completed: !!project?.weddingDate,
       action: 'Set Date',
       href: '/profile',
       priority: 1

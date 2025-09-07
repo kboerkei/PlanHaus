@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
+import { WeddingProject, Activity } from "@/types";
 
 const actionIcons = {
   'completed': CheckCircle,
@@ -27,12 +28,12 @@ const actionColors = {
 };
 
 export default function RecentActivity() {
-  const { data: projects } = useQuery({
+  const { data: projects } = useQuery<WeddingProject[]>({
     queryKey: ['/api/projects'],
     enabled: !!localStorage.getItem('sessionId')
   });
 
-  const { data: activities = [] } = useQuery({
+  const { data: activities = [] } = useQuery<Activity[]>({
     queryKey: ['/api/projects', projects?.[0]?.id, 'activities'],
     enabled: !!projects?.[0]?.id
   });
@@ -40,14 +41,14 @@ export default function RecentActivity() {
   const recentActivities = activities.slice(0, 5);
 
   const getActivityIcon = (action: string) => {
-    return actionIcons[action] || actionIcons.default;
+    return (actionIcons as any)[action] || actionIcons.default;
   };
 
   const getActivityColor = (action: string) => {
-    return actionColors[action] || actionColors.default;
+    return (actionColors as any)[action] || actionColors.default;
   };
 
-  const formatActivityText = (activity: any) => {
+  const formatActivityText = (activity: Activity) => {
     if (activity.details?.taskTitle) {
       return `${activity.action} "${activity.details.taskTitle}"`;
     }
@@ -84,11 +85,11 @@ export default function RecentActivity() {
                 </div>
                 <div className="flex-1">
                   <p className="text-sm">
-                    <span className="font-medium">{activity.user.name || 'Someone'}</span>{' '}
+                    <span className="font-medium">Someone</span>{' '}
                     <span className="text-gray-600">{formatActivityText(activity)}</span>
                   </p>
                   <p className="text-xs text-gray-500">
-                    {formatDistanceToNow(new Date(activity.createdAt), { addSuffix: true })}
+                    {formatDistanceToNow(new Date(activity.timestamp), { addSuffix: true })}
                   </p>
                 </div>
               </div>

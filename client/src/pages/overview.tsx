@@ -564,44 +564,44 @@ export default function OverviewPage() {
         </Card>
 
         {/* Wedding Party */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card>
-            <CardHeader className="pb-4">
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Badge variant="secondary" className="bg-pink-100 text-pink-800">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <Card className="min-w-[220px] h-auto p-4 md:p-5 rounded-2xl shadow-sm border">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-sm font-medium text-slate-700">
+                <Badge variant="secondary" className="bg-pink-100 text-pink-800 font-medium">
                   Bridesmaids
                 </Badge>
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-3">
               {renderEditableField('Bride\'s Party', 'brideParty', overviewData?.brideParty || [], 'array')}
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader className="pb-4">
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+          <Card className="min-w-[220px] h-auto p-4 md:p-5 rounded-2xl shadow-sm border">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-sm font-medium text-slate-700">
+                <Badge variant="secondary" className="bg-blue-100 text-blue-800 font-medium">
                   Groomsmen
                 </Badge>
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-3">
               {renderEditableField('Groom\'s Party', 'groomParty', overviewData?.groomParty || [], 'array')}
             </CardContent>
           </Card>
         </div>
 
         {/* Important Dates */}
-        <Card>
-          <CardHeader className="pb-4">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Badge variant="secondary" className="bg-orange-100 text-orange-800">
+        <Card className="min-w-[220px] h-auto p-4 md:p-5 rounded-2xl shadow-sm border">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-sm font-medium text-slate-700">
+              <Badge variant="secondary" className="bg-orange-100 text-orange-800 font-medium">
                 Important Dates
               </Badge>
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-2">
+          <CardContent className="space-y-3 pb-20">
             {renderEditableField('Engagement Party', 'engagementParty', overviewData?.engagementParty || '', 'date', true)}
             {renderEditableField('Dress Shopping', 'dressShoppingDate', overviewData?.dressShoppingDate || '', 'date', true)}
             {renderEditableField('Send Save the Dates', 'saveTheDateSent', overviewData?.saveTheDateSent || '', 'date', true)}

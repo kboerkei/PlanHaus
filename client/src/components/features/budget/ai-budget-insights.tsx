@@ -29,19 +29,19 @@ export default function AIBudgetInsights() {
   const [insights, setInsights] = useState<BudgetInsight[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
 
-  const { data: projects } = useQuery({
+  const { data: projects = [] } = useQuery<any[]>({
     queryKey: ['/api/projects'],
     enabled: true,
   });
 
-  const currentProject = projects?.find(p => p.name === "Emma & Jake's Wedding") || projects?.[0];
+  const currentProject = projects.find((p: any) => p.name === "Emma & Jake's Wedding") || projects[0];
 
-  const { data: budgetItems } = useQuery({
+  const { data: budgetItems = [] } = useQuery<any[]>({
     queryKey: ['/api/projects', currentProject?.id, 'budget'],
     enabled: !!currentProject?.id,
   });
 
-  const { data: dashboardStats } = useQuery({
+  const { data: dashboardStats } = useQuery<any>({
     queryKey: ['/api/dashboard/stats'],
     enabled: true,
   });

@@ -33,13 +33,31 @@ export default function BudgetProgressBar({
     return <TrendingDown className="w-4 h-4 text-green-500" />;
   };
 
-  const formatCurrency = (amount: number) => {
+  const formatCurrency = (amount: number | string) => {
+    // Handle string inputs and ensure proper number parsing
+    let safeAmount = 0;
+    
+    if (typeof amount === 'string') {
+      // Remove any non-numeric characters except decimal points
+      const cleanString = amount.replace(/[^0-9.]/g, '');
+      safeAmount = parseFloat(cleanString) || 0;
+    } else if (typeof amount === 'number') {
+      safeAmount = amount;
+    } else {
+      safeAmount = 0;
+    }
+    
+    // Ensure the amount is a valid number
+    if (isNaN(safeAmount) || !isFinite(safeAmount)) {
+      safeAmount = 0;
+    }
+    
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
-    }).format(amount);
+    }).format(safeAmount);
   };
 
   return (
@@ -58,8 +76,7 @@ export default function BudgetProgressBar({
           </div>
           <Progress 
             value={percentage} 
-            className="h-2"
-            indicatorClassName={getProgressColor()}
+            className={`h-2 ${getProgressColor()}`}
           />
           <div className="text-xs text-gray-500 text-center">
             {percentage.toFixed(1)}% of budget used

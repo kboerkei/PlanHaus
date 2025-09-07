@@ -49,7 +49,7 @@ export function useCreateGuest(projectId: string) {
 export function useUpdateGuest(projectId: string) {
   return useMutation({
     mutationFn: ({ id, data }: { id: number; data: GuestUpdate }) =>
-      apiRequest<Guest>(`/api/projects/${projectId}/guests/${id}`, {
+      apiRequest<Guest>(`/api/guests/${id}`, {
         method: 'PUT',
         body: JSON.stringify(data),
       }),
@@ -63,7 +63,7 @@ export function useUpdateGuest(projectId: string) {
 
 export function useDeleteGuest(projectId: string) {
   return useMutation({
-    mutationFn: (id: number) => apiRequest(`/api/projects/${projectId}/guests/${id}`, {
+    mutationFn: (id: number) => apiRequest(`/api/guests/${id}`, {
       method: 'DELETE',
     }),
     onSuccess: () => {
@@ -76,7 +76,7 @@ export function useDeleteGuest(projectId: string) {
 export function useBulkUpdateGuests(projectId: string) {
   return useMutation({
     mutationFn: ({ guestIds, updates }: { guestIds: number[]; updates: Partial<GuestFormData> }) =>
-      apiRequest(`/api/projects/${projectId}/guests/bulk-update`, {
+      apiRequest(`/api/guests/bulk-update`, {
         method: 'PATCH',
         body: JSON.stringify({ guestIds, updates }),
       }),

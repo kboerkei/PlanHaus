@@ -122,9 +122,9 @@ router.put("/:id", requireAuth, validateBody(insertTaskSchema.partial()), async 
     
     res.json(updatedTask);
   } catch (error) {
-    logError('tasks', error, { userId: req.userId, taskId: req.params.id });
+    logError('tasks', error as Error, { userId: req.userId, taskId: req.params.id });
     
-    if (error.message.includes('not found')) {
+    if ((error as Error).message.includes('not found')) {
       return res.status(404).json({ message: "Task or project not found" });
     }
     
@@ -166,9 +166,9 @@ router.delete("/:id", requireAuth, async (req: RequestWithUser, res) => {
     
     res.json({ message: "Task deleted successfully" });
   } catch (error) {
-    logError('tasks', error, { userId: req.userId, taskId: req.params.id });
+    logError('tasks', error as Error, { userId: req.userId, taskId: req.params.id });
     
-    if (error.message.includes('not found')) {
+    if ((error as Error).message.includes('not found')) {
       return res.status(404).json({ message: "Task or project not found" });
     }
     

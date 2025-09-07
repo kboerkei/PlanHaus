@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Party, X, Star, Heart, Calendar, Gift } from "lucide-react";
+import { X, Star, Heart, Calendar, Gift } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
@@ -18,31 +18,31 @@ export default function MilestoneCelebration() {
   const [showCelebration, setShowCelebration] = useState(false);
   const [completedMilestone, setCompletedMilestone] = useState<Milestone | null>(null);
 
-  const { data: projects } = useQuery({
+  const { data: projects = [] } = useQuery<any[]>({
     queryKey: ['/api/projects'],
     enabled: !!localStorage.getItem('sessionId')
   });
 
   // Calculate milestone progress - prioritize Emma & Jake's Wedding demo
-  const project = projects?.find(p => p.name === "Emma & Jake's Wedding") || projects?.[0];
+  const project = projects.find((p: any) => p.name === "Emma & Jake's Wedding") || projects[0];
 
-  const { data: tasks } = useQuery({
+  const { data: tasks = [] } = useQuery<any[]>({
     queryKey: ['/api/projects', project?.id, 'tasks'],
     enabled: !!project?.id
   });
 
-  const { data: guests } = useQuery({
+  const { data: guests = [] } = useQuery<any[]>({
     queryKey: ['/api/projects', project?.id, 'guests'],
     enabled: !!project?.id
   });
 
-  const { data: vendors } = useQuery({
+  const { data: vendors = [] } = useQuery<any[]>({
     queryKey: ['/api/projects', project?.id, 'vendors'],
     enabled: !!project?.id
   });
-  const completedTasks = tasks?.filter(t => t.status === 'completed') || [];
-  const confirmedGuests = guests?.filter(g => g.rsvpStatus === 'confirmed') || [];
-  const bookedVendors = vendors?.filter(v => v.status === 'booked') || [];
+  const completedTasks = tasks.filter((t: any) => t.status === 'completed');
+  const confirmedGuests = guests.filter((g: any) => g.rsvpStatus === 'confirmed');
+  const bookedVendors = vendors.filter((v: any) => v.status === 'booked');
 
   const milestones: Milestone[] = [
     {

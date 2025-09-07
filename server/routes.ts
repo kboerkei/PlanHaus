@@ -4,7 +4,8 @@ import { z } from "zod";
 import { storage } from "./storage";
 import { initializeWebSocketService } from "./services/websocket";
 import { logInfo, logError } from "./utils/logger";
-import { requireAuth, addSession, RequestWithUser } from "./middleware/auth";
+import { requireAuth, RequestWithUser } from "./middleware/auth";
+import { requireAuthCookie } from "./middleware/cookieAuth";
 import { validateBody } from "./utils/validation";
 import { getOrCreateDefaultProject } from "./utils/projects";
 import { 
@@ -80,9 +81,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Demo user not found" });
       }
 
-      // Create a simple session ID for compatibility and store it in sessions map
+      // Create a simple session ID for compatibility and store it in storage
       const sessionId = `demo_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      addSession(sessionId, user.id);
+      await storage.createSession({
+        sessionId,
+        userId: user.id,
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
+      });
 
       res.json({ 
         user: { 
@@ -104,7 +109,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use("/api/auth", authRoutes);
   app.use("/api/projects", requireAuth, projectRoutes);
   app.use("/api/tasks", requireAuth, taskRoutes);
-  app.use("/api/guests", requireAuth, guestRoutes);
+  app.use("/api/guests", requireAuthCookie, guestRoutes);
   app.use("/api/vendors", requireAuth, vendorRoutes);
   app.use("/api/budget", requireAuth, budgetRoutes);
   app.use("/api/creative-details", creativeDetailsRoutes);
@@ -115,6 +120,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use("/api/upload", uploadRoutes);
   app.use("/api/analyzeFile", analyzeFileRoutes);
   app.use("/api/export", requireAuth, exportRoutes);
+  app.use("/api/intake", requireAuthCookie, intakeRoutes);
   
   // Register collaboration routes with auth
   app.use("/api/collaborators", requireAuth, collaboratorRoutes);
@@ -428,6 +434,199 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Overview endpoint simplified for now
+  app.get("/api/overview", requireAuth, async (req: RequestWithUser, res) => {
+    try {
+      // Get user's project
+      const projects = await storage.getWeddingProjectsByUserId(req.userId);
+      const project = projects[0]; // Get first project for now
+      
+      if (!project) {
+        return res.status(404).json({ message: "No project found" });
+      }
+
+      // Get intake data for the user
+      const intake = await storage.getIntakeDataByUserId(req.userId);
+      
+      // Get existing overview data
+      let overview = await storage.getWeddingOverviewByProjectId(project.id);
+      
+      if (!overview) {
+        // Create default overview with intake data
+        const defaultOverview = {
+          projectId: project.id,
+          weddingDate: intake?.weddingDate || '',
+          ceremonyLocation: intake?.ceremonyLocation || '',
+          receptionLocation: intake?.receptionLocation || '',
+          estimatedGuests: intake?.estimatedGuests || 0,
+          totalBudget: intake?.totalBudget || '',
+          overallVibe: intake?.overallVibe || '',
+          colorPalette: intake?.colorPalette || '',
+          mustHaveElements: intake?.mustHaveElements || [],
+          topPriorities: intake?.topPriorities || [],
+          nonNegotiables: intake?.nonNegotiables || '',
+          // Initialize other fields
+          brideParty: [],
+          groomParty: [],
+          engagementParty: '',
+          dressShoppingDate: '',
+          saveTheDateSent: '',
+          dressFitting: '',
+          bridalShower: '',
+          sendWeddingInvites: '',
+          bachelorBacheloretteParty: '',
+          rsvpDue: '',
+          rehearsalDinner: '',
+          honeymoonStart: '',
+          honeymoonEnd: '',
+          customImportantDates: [],
+          customGettingStartedQuestions: [],
+          customWeddingPartyQuestions: [],
+          customMiscellaneousQuestions: [],
+          customCeremonyQuestions: [],
+          customCocktailHourQuestions: [],
+          customReceptionQuestions: [],
+          customMinorDetailsQuestions: [],
+          areYouPlanningTogether: '',
+          doYouWantOutdoorCeremony: '',
+          willYouHaveBridalParty: '',
+          howManyBridalParty: '',
+          howWillYouAskBridalParty: '',
+          bridalPartyResponsibilities: '',
+          bridalPartyAttire: '',
+          bridalPartyHairMakeup: '',
+          bridalPartyWalkingOrder: '',
+          willYouNeedHotelBlock: '',
+          willYouProvideTransportation: '',
+          willYouHaveDressCode: '',
+          whoWillHandOutTips: '',
+          doYouWantUnplugged: '',
+          doYouWantAisleRunner: '',
+          willYouHaveFlowerGirls: '',
+          willYouHaveRingBearer: '',
+          whatTypeOfOfficiant: '',
+          willYouWriteVows: '',
+          willYouUseUnityCandle: '',
+          willYouDoSandCeremony: '',
+          whoWillWalkBrideDown: '',
+          whatWillCeremonyMusic: '',
+          whoWillPlayMusic: '',
+          willYouHaveReceivingLine: '',
+          whereWillYouTakePictures: '',
+          willYouDoFirstLook: '',
+          whatKindOfCeremonyDecor: '',
+          whoWillSetupTakedown: '',
+          whereWillCocktailHour: '',
+          whatCocktailEntertainment: '',
+          willYouServingFood: '',
+          willYouHaveSignatureBar: '',
+          willYouHaveSpecialtyDrinks: '',
+          willYouBeMingling: '',
+          whatKindOfDecorCocktail: '',
+          whereWillReception: '',
+          willYouDoReceivingLineReception: '',
+          howLongReception: '',
+          whatKindOfMeal: '',
+          willYouHaveToasts: '',
+          willYouHaveGuestbook: '',
+          willYouHaveWeddingFavor: '',
+          willYouServeCake: '',
+          willYouCutCake: '',
+          brideWalkingWith: '',
+          groomWalkingWith: '',
+          weddingPartyTransport: '',
+          ringsToVenue: '',
+          dressToVenue: '',
+          belongingsTransport: '',
+          getawayCar: '',
+          decorTakeHome: '',
+          giftsFromVenue: '',
+          floralsDisposal: '',
+          bouquetPreservation: '',
+          finalVenueSweep: '',
+          leftoverFood: '',
+          lateNightSnack: ''
+        };
+        
+        overview = await storage.createWeddingOverview(defaultOverview);
+      }
+
+      // Merge intake data with overview data
+      const enhancedOverview = {
+        ...overview,
+        // Override with intake data if available
+        weddingDate: intake?.weddingDate || overview.weddingDate,
+        ceremonyLocation: intake?.ceremonyLocation || overview.ceremonyLocation,
+        receptionLocation: intake?.receptionLocation || overview.receptionLocation,
+        estimatedGuests: intake?.estimatedGuests || overview.estimatedGuests,
+        totalBudget: intake?.totalBudget || overview.totalBudget,
+        overallVibe: intake?.overallVibe || overview.overallVibe,
+        colorPalette: intake?.colorPalette || overview.colorPalette,
+        mustHaveElements: intake?.mustHaveElements || overview.mustHaveElements,
+        topPriorities: intake?.topPriorities || overview.topPriorities,
+        nonNegotiables: intake?.nonNegotiables || overview.nonNegotiables,
+        // Add couple information from intake
+        coupleInfo: {
+          partner1: {
+            firstName: intake?.partner1FirstName || '',
+            lastName: intake?.partner1LastName || '',
+            email: intake?.partner1Email || ''
+          },
+          partner2: {
+            firstName: intake?.partner2FirstName || '',
+            lastName: intake?.partner2LastName || '',
+            email: intake?.partner2Email || ''
+          }
+        }
+      };
+      
+      logInfo('overview', 'Overview data fetched', { userId: req.userId, projectId: project.id });
+      res.json(enhancedOverview);
+    } catch (error) {
+      logError('overview', error, { userId: req.userId });
+      res.status(500).json({ message: "Failed to fetch overview" });
+    }
+  });
+
+  app.patch("/api/overview", requireAuth, async (req: RequestWithUser, res) => {
+    try {
+      const projects = await storage.getWeddingProjectsByUserId(req.userId);
+      const project = projects[0];
+      
+      if (!project) {
+        return res.status(404).json({ message: "No project found" });
+      }
+
+      let overview = await storage.getWeddingOverviewByProjectId(project.id);
+      
+      if (!overview) {
+        // Create new overview with updates
+        overview = await storage.createWeddingOverview({
+          projectId: project.id,
+          ...req.body
+        });
+      } else {
+        // Update existing overview
+        overview = await storage.updateWeddingOverview(project.id, req.body);
+      }
+
+      if (!overview) {
+        return res.status(500).json({ message: "Failed to update overview" });
+      }
+
+      logInfo('overview', 'Overview updated', { 
+        userId: req.userId, 
+        projectId: project.id,
+        action: 'updated wedding overview',
+        target: 'overview',
+        details: Object.keys(req.body)
+      });
+
+      res.json(overview);
+    } catch (error) {
+      logError('overview', error, { userId: req.userId });
+      res.status(500).json({ message: "Failed to update overview" });
+    }
+  });
 
   return httpServer;
 }

@@ -40,16 +40,13 @@ export function verifyToken(token: string): any {
   }
 }
 
-// Simple session storage for demo compatibility
-const sessions = new Map<string, { userId: number }>();
-
-// Add session helper
-export function addSession(sessionId: string, userId: number) {
-  sessions.set(sessionId, { userId });
+// Type-safe middleware wrapper
+export function authenticateUser(req: Request, res: Response, next: NextFunction) {
+  return _authenticateUser(req as RequestWithUser, res, next);
 }
 
-// Authentication middleware that supports both JWT tokens and simple session IDs
-export async function authenticateUser(req: RequestWithUser, res: Response, next: NextFunction) {
+// Internal authentication function with proper typing
+async function _authenticateUser(req: RequestWithUser, res: Response, next: NextFunction) {
   try {
     const authHeader = req.headers.authorization;
     const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
@@ -62,10 +59,11 @@ export async function authenticateUser(req: RequestWithUser, res: Response, next
 
     // Check if it's a simple session ID (demo_*)
     if (token.startsWith('demo_')) {
-      if (!sessions.has(token)) {
-        return res.status(401).json({ error: 'Invalid or expired token' });
+      const session = await storage.getSessionById(token);
+      if (!session) {
+        return res.status(401).json({ error: 'Invalid or expired session' });
       }
-      userId = sessions.get(token)!.userId;
+      userId = session.userId;
     } else {
       // Try JWT token verification
       const decoded = verifyToken(token);
@@ -98,10 +96,16 @@ export async function authenticateUser(req: RequestWithUser, res: Response, next
   }
 }
 
-
-
 // Project permission middleware
-export async function checkProjectPermission(requiredRole: 'admin' | 'editor' | 'viewer' = 'viewer') {
+export function checkProjectPermission(requiredRole: 'admin' | 'editor' | 'viewer' = 'viewer') {
+  return async (req: Request, res: Response, next: NextFunction) => {
+    const authReq = req as RequestWithUser;
+    return _checkProjectPermission(requiredRole)(authReq, res, next);
+  };
+}
+
+// Internal permission check function with proper typing
+function _checkProjectPermission(requiredRole: 'admin' | 'editor' | 'viewer' = 'viewer') {
   return async (req: RequestWithUser, res: Response, next: NextFunction) => {
     try {
       if (!req.user) {
@@ -111,6 +115,13 @@ export async function checkProjectPermission(requiredRole: 'admin' | 'editor' | 
       const projectId = parseInt(req.params.projectId || req.body.projectId);
       if (!projectId) {
         return res.status(400).json({ error: 'Project ID required' });
+      }
+
+      // For demo purposes, assume user has admin access to their own projects
+      const project = await storage.getWeddingProjectById(projectId);
+      if (project && project.createdBy === req.user.id) {
+        req.projectRole = 'admin';
+        return next();
       }
 
       // Get user's role in this project

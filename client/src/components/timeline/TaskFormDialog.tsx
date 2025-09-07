@@ -41,7 +41,7 @@ export default function TaskFormDialog({ projectId, task, trigger, onClose }: Ta
       priority: task?.priority || "medium",
       category: task?.category || "planning",
       assignedTo: task?.assignedTo || "",
-      status: task?.status || "not_started",
+      status: task?.status || "not_started" as const,
       isCompleted: task?.isCompleted || false,
       notes: task?.notes || "",
       estimatedHours: task?.estimatedHours || undefined,
@@ -66,7 +66,7 @@ export default function TaskFormDialog({ projectId, task, trigger, onClose }: Ta
     try {
       const transformedData = {
         ...data,
-        assignedTo: data.assignedTo || undefined,
+        assignedTo: data.assignedTo ? Number(data.assignedTo) : undefined,
       };
       
       if (task) {

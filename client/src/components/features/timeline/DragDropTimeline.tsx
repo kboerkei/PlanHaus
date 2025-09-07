@@ -192,7 +192,7 @@ function SortableTask({ task, onToggle }: SortableTaskProps) {
         </div>
 
         {/* Progress bar for in-progress tasks */}
-        {task.status === 'in-progress' && (
+        {task.status === 'in_progress' && (
           <div className="mt-3">
             <div className="flex justify-between text-xs text-gray-600 mb-1">
               <span>Progress</span>

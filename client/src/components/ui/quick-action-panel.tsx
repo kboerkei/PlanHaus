@@ -41,7 +41,7 @@ export default function QuickActionPanel({
 }: QuickActionPanelProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
 
-  const categories = ["all", ...new Set(actions.map(action => action.category))];
+  const categories = ["all", ...Array.from(new Set(actions.map(action => action.category)))];
   const filteredActions = selectedCategory === "all" 
     ? actions 
     : actions.filter(action => action.category === selectedCategory);

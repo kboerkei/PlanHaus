@@ -8,6 +8,7 @@ interface LazyImageProps {
   height: number;
   className?: string;
   placeholder?: string;
+  loading?: "eager" | "lazy";
   onLoad?: () => void;
   onError?: () => void;
 }

@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import EnhancedDashboardStats from "@/components/enhanced-dashboard-stats";
+import EnhancedDashboardStats from "@/components/features/dashboard/enhanced-dashboard-stats";
 
 interface ProgressRingProps {
   percentage: number;
@@ -57,40 +57,40 @@ function ProgressRing({ percentage, color, label, sublabel, onClick }: ProgressR
 export default function ProgressOverview() {
   const [, setLocation] = useLocation();
   
-  const { data: projects } = useQuery({
+  const { data: projects = [] } = useQuery<any[]>({
     queryKey: ['/api/projects'],
     enabled: !!localStorage.getItem('sessionId')
   });
 
   // Prioritize Austin farmhouse wedding demo
-  const currentProject = projects?.find(p => p.name === "Emma & Jake's Wedding") || projects?.[0];
+  const currentProject = projects.find((p: any) => p.name === "Emma & Jake's Wedding") || projects[0];
 
   // Use dashboard stats for consistent global data
-  const { data: dashboardStats } = useQuery({
+  const { data: dashboardStats } = useQuery<any>({
     queryKey: ['/api/dashboard/stats'],
     enabled: !!localStorage.getItem('sessionId')
   });
 
-  const { data: guests } = useQuery({
+  const { data: guests = [] } = useQuery<any[]>({
     queryKey: ['/api/projects', currentProject?.id, 'guests'],
     enabled: !!currentProject?.id
   });
 
-  const { data: vendors } = useQuery({
+  const { data: vendors = [] } = useQuery<any[]>({
     queryKey: ['/api/projects', currentProject?.id, 'vendors'],
     enabled: !!currentProject?.id
   });
 
-  const { data: budgetItems } = useQuery({
+  const { data: budgetItems = [] } = useQuery<any[]>({
     queryKey: ['/api/projects', currentProject?.id, 'budget'],
     enabled: !!currentProject?.id
   });
 
   // Use dashboard stats for consistent calculations
   const project = currentProject;
-  const confirmedGuests = guests?.filter(g => g.rsvpStatus === 'confirmed') || [];
-  const bookedVendors = vendors?.filter(v => v.status === 'booked') || [];
-  const paidBudgetItems = budgetItems?.filter(b => b.isPaid) || [];
+  const confirmedGuests = guests.filter((g: any) => g.rsvpStatus === 'confirmed');
+  const bookedVendors = vendors.filter((v: any) => v.status === 'booked');
+  const paidBudgetItems = budgetItems.filter((b: any) => b.isPaid);
   
   // Calculate budget progress based on estimated vs actual (not total budget)
   const totalEstimated = budgetItems?.reduce((sum, item) => sum + (parseFloat(item.estimatedCost || '0')), 0) || 0;

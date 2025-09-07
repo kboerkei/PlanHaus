@@ -193,3 +193,267 @@ export interface WebSocketMessage {
   data: any;
   timestamp: string;
 }
+
+// Server-side Type Definitions - Comprehensive type definitions for server entities
+
+// User Session Types
+export interface UserSession {
+  id: string;
+  userId: number;
+  expiresAt: string;
+  userAgent?: string;
+  ipAddress?: string;
+  createdAt: string;
+}
+
+export interface InsertUserSession {
+  id: string;
+  userId: number;
+  expiresAt: string;
+  userAgent?: string;
+  ipAddress?: string;
+}
+
+// Wedding Overview Types
+export interface WeddingOverview {
+  id: number;
+  projectId: number;
+  theme: string;
+  colorPalette: string;
+  styleNotes: string;
+  inspirationImages: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface InsertWeddingOverview {
+  projectId: number;
+  theme: string;
+  colorPalette: string;
+  styleNotes: string;
+  inspirationImages: string;
+}
+
+// Vendor Payment Types
+export interface VendorPayment {
+  id: number;
+  vendorId: number;
+  projectId: number;
+  amount: number;
+  paymentType: 'deposit' | 'partial' | 'final';
+  dueDate: string;
+  paidDate?: string;
+  status: 'pending' | 'paid' | 'overdue';
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface InsertVendorPayment {
+  vendorId: number;
+  projectId: number;
+  amount: number;
+  paymentType: 'deposit' | 'partial' | 'final';
+  dueDate: string;
+  paidDate?: string;
+  status?: 'pending' | 'paid' | 'overdue';
+  notes?: string;
+}
+
+// Shopping List Types
+export interface ShoppingList {
+  id: number;
+  projectId: number;
+  name: string;
+  description?: string;
+  isCompleted: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface InsertShoppingList {
+  projectId: number;
+  name: string;
+  description?: string;
+  isCompleted?: boolean;
+}
+
+// Shopping Item Types
+export interface ShoppingItem {
+  id: number;
+  listId: number;
+  projectId: number;
+  name: string;
+  quantity: number;
+  unit: string;
+  isPurchased: boolean;
+  purchasedAt?: string;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface InsertShoppingItem {
+  listId: number;
+  projectId: number;
+  name: string;
+  quantity: number;
+  unit: string;
+  isPurchased?: boolean;
+  purchasedAt?: string;
+  notes?: string;
+}
+
+// Activity Log Types
+export interface ActivityLogEntry {
+  id: number;
+  projectId: number;
+  userId: number;
+  userName: string;
+  section: string;
+  action: string;
+  entityType: string;
+  entityId: number;
+  details: Record<string, any>;
+  timestamp: string;
+  createdAt: string;
+}
+
+export interface InsertActivityLogEntry {
+  projectId: number;
+  userId: number;
+  userName: string;
+  section: string;
+  action: string;
+  entityType: string;
+  entityId: number;
+  details: Record<string, any>;
+  timestamp?: string;
+}
+
+// Error Types
+export interface ApiError {
+  message: string;
+  status: number;
+  code?: string;
+  details?: Record<string, any>;
+}
+
+export interface ValidationError {
+  field: string;
+  message: string;
+  value?: any;
+}
+
+// Request Types
+export interface RequestWithUser extends Request {
+  userId: number;
+  user?: {
+    id: number;
+    email: string;
+    username: string;
+    role: string;
+  };
+}
+
+// Response Types
+export interface ApiResponse<T = any> {
+  success: boolean;
+  data?: T;
+  error?: string;
+  message?: string;
+}
+
+export interface PaginatedResponse<T> extends ApiResponse<T[]> {
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
+// Database Types
+export interface DatabaseConfig {
+  host: string;
+  port: number;
+  database: string;
+  username: string;
+  password: string;
+  ssl?: boolean;
+}
+
+// Logging Types
+export interface LogEntry {
+  timestamp: string;
+  level: 'debug' | 'info' | 'warn' | 'error';
+  message: string;
+  context?: Record<string, any>;
+  userId?: number;
+  requestId?: string;
+}
+
+// Cache Types
+export interface CacheEntry<T = any> {
+  key: string;
+  value: T;
+  expiresAt: number;
+  createdAt: number;
+}
+
+// Authentication Types
+export interface AuthToken {
+  token: string;
+  expiresAt: string;
+  userId: number;
+  permissions: string[];
+}
+
+export interface LoginCredentials {
+  email: string;
+  password: string;
+  rememberMe?: boolean;
+}
+
+// File Upload Types
+export interface FileUpload {
+  id: string;
+  filename: string;
+  originalName: string;
+  mimeType: string;
+  size: number;
+  path: string;
+  uploadedBy: number;
+  projectId?: number;
+  createdAt: string;
+}
+
+export interface UploadConfig {
+  maxSize: number;
+  allowedTypes: string[];
+  destination: string;
+  filename?: (file: Express.Multer.File) => string;
+}
+
+// Notification Types
+export interface Notification {
+  id: string;
+  userId: number;
+  type: 'info' | 'success' | 'warning' | 'error';
+  title: string;
+  message: string;
+  read: boolean;
+  createdAt: string;
+  expiresAt?: string;
+  actionUrl?: string;
+}
+
+export interface InsertNotification {
+  userId: number;
+  type: 'info' | 'success' | 'warning' | 'error';
+  title: string;
+  message: string;
+  read?: boolean;
+  expiresAt?: string;
+  actionUrl?: string;
+}

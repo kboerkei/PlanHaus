@@ -3,11 +3,12 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DashboardSkeleton, CardSkeleton, ChartSkeleton } from "./skeleton-loader";
 import { ConsolidatedChart } from "./consolidated-chart";
+import { DashboardStats } from "@/types";
 
 // Lazy load heavy dashboard components
-const LazyEnhancedDashboardStats = lazy(() => import("@/components/enhanced-dashboard-stats"));
-const LazyMoodBoard = lazy(() => import("@/components/mood-board"));
-const LazyResponsiveDataTable = lazy(() => import("@/components/responsive-data-table"));
+const LazyEnhancedDashboardStats = lazy(() => import("@/components/features/dashboard/enhanced-dashboard-stats"));
+const LazyMoodBoard = lazy(() => import("@/components/shared/mood-board"));
+const LazyResponsiveDataTable = lazy(() => import("@/components/shared/responsive-data-table"));
 
 interface OptimizedDashboardProps {
   children?: React.ReactNode;
@@ -61,7 +62,7 @@ const OptimizedChartWrapper = memo(({
 OptimizedChartWrapper.displayName = "OptimizedChartWrapper";
 
 export const OptimizedDashboard = memo(({ children }: OptimizedDashboardProps) => {
-  const { data: dashboardStats, isLoading } = useQuery({
+  const { data: dashboardStats, isLoading } = useQuery<DashboardStats>({
     queryKey: ['/api/dashboard/stats'],
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes
   });

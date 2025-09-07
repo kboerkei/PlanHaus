@@ -7,26 +7,26 @@ import { Link } from "wouter";
 import { formatDistanceToNow } from "date-fns";
 
 export default function CollaborativeFeatures() {
-  const { data: projects } = useQuery({
+  const { data: projects = [] } = useQuery<any[]>({
     queryKey: ['/api/projects'],
     enabled: !!localStorage.getItem('sessionId')
   });
 
   // Prioritize Austin farmhouse wedding demo
-  const project = projects?.find(p => p.name === "Emma & Jake's Wedding") || projects?.[0];
+  const project = projects.find((p: any) => p.name === "Emma & Jake's Wedding") || projects[0];
 
-  const { data: collaborators } = useQuery({
+  const { data: collaborators = [] } = useQuery<any[]>({
     queryKey: ['/api/projects', project?.id, 'collaborators'],
     enabled: !!project?.id
   });
 
-  const { data: activities } = useQuery({
+  const { data: activities = [] } = useQuery<any[]>({
     queryKey: ['/api/projects', project?.id, 'activities'],
     enabled: !!project?.id
   });
 
-  const recentActivities = activities?.slice(0, 3) || [];
-  const activeCollaborators = collaborators?.filter(c => c.status === 'active') || [];
+  const recentActivities = activities.slice(0, 3);
+  const activeCollaborators = collaborators.filter((c: any) => c.status === 'active');
 
   if (!project) return null;
 

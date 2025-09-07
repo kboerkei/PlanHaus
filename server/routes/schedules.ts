@@ -1,13 +1,13 @@
 import { Router } from "express";
 import { z } from "zod";
 import { storage } from "../storage";
-import { enhancedRequireAuth } from "../middleware/enhanced-auth";
+import { requireAuth, RequestWithUser } from "../middleware/auth";
 import { insertScheduleSchema, insertScheduleEventSchema } from "@shared/schema";
 
 const router = Router();
 
 // Get schedules for a project
-router.get("/api/projects/:id/schedules", enhancedRequireAuth, async (req: any, res) => {
+router.get("/api/projects/:id/schedules", requireAuth, async (req: RequestWithUser, res) => {
   try {
     const projectId = parseInt(req.params.id);
     const schedules = await storage.getSchedulesByProjectId(projectId);
@@ -19,7 +19,7 @@ router.get("/api/projects/:id/schedules", enhancedRequireAuth, async (req: any, 
 });
 
 // Create a new schedule
-router.post("/api/projects/:id/schedules", enhancedRequireAuth, async (req: any, res) => {
+router.post("/api/projects/:id/schedules", requireAuth, async (req: RequestWithUser, res) => {
   try {
     const projectId = parseInt(req.params.id);
     
@@ -50,7 +50,7 @@ router.post("/api/projects/:id/schedules", enhancedRequireAuth, async (req: any,
 });
 
 // Update a schedule
-router.put("/api/schedules/:id", enhancedRequireAuth, async (req: any, res) => {
+router.put("/api/schedules/:id", requireAuth, async (req: RequestWithUser, res) => {
   try {
     const scheduleId = parseInt(req.params.id);
     
@@ -77,7 +77,7 @@ router.put("/api/schedules/:id", enhancedRequireAuth, async (req: any, res) => {
 });
 
 // Delete a schedule
-router.delete("/api/schedules/:id", enhancedRequireAuth, async (req: any, res) => {
+router.delete("/api/schedules/:id", requireAuth, async (req: RequestWithUser, res) => {
   try {
     const scheduleId = parseInt(req.params.id);
     const success = await storage.deleteSchedule(scheduleId);
@@ -94,7 +94,7 @@ router.delete("/api/schedules/:id", enhancedRequireAuth, async (req: any, res) =
 });
 
 // Get events for a schedule
-router.get("/api/schedule-events/:scheduleId", enhancedRequireAuth, async (req: any, res) => {
+router.get("/api/schedule-events/:scheduleId", requireAuth, async (req: RequestWithUser, res) => {
   try {
     const scheduleId = parseInt(req.params.scheduleId);
     const events = await storage.getScheduleEventsByScheduleId(scheduleId);
@@ -106,7 +106,7 @@ router.get("/api/schedule-events/:scheduleId", enhancedRequireAuth, async (req: 
 });
 
 // Create a new schedule event
-router.post("/api/schedule-events", enhancedRequireAuth, async (req: any, res) => {
+router.post("/api/schedule-events", requireAuth, async (req: RequestWithUser, res) => {
   try {
     // Get the schedule to find the projectId
     const schedule = await storage.getScheduleById(req.body.scheduleId);
@@ -142,7 +142,7 @@ router.post("/api/schedule-events", enhancedRequireAuth, async (req: any, res) =
 });
 
 // Update a schedule event
-router.put("/api/schedule-events/:id", enhancedRequireAuth, async (req: any, res) => {
+router.put("/api/schedule-events/:id", requireAuth, async (req: RequestWithUser, res) => {
   try {
     const eventId = parseInt(req.params.id);
     
@@ -173,7 +173,7 @@ router.put("/api/schedule-events/:id", enhancedRequireAuth, async (req: any, res
 });
 
 // Delete a schedule event
-router.delete("/api/schedule-events/:id", enhancedRequireAuth, async (req: any, res) => {
+router.delete("/api/schedule-events/:id", requireAuth, async (req: RequestWithUser, res) => {
   try {
     const eventId = parseInt(req.params.id);
     const success = await storage.deleteScheduleEvent(eventId);

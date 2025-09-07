@@ -3,7 +3,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import SearchFilterBar from "@/components/ui/search-filter-bar";
 import ExportOptions from "@/components/ui/export-options";
 import LoadingSpinner from "@/components/ui/loading-spinner";
-import BudgetCharts from "@/components/BudgetCharts";
+import { BudgetCharts } from "@/components/features/budget";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

@@ -5,9 +5,9 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useEffect } from "react";
 import KeyboardShortcuts from "@/components/ui/keyboard-shortcuts";
-import { ErrorBoundary } from "@/components/error-boundary";
-import LoadingSpinner from "@/components/ui/loading-spinner";
-import ToastProvider from "@/components/ToastProvider";
+import { ErrorBoundary } from "@/components/shared";
+import { LoadingSpinner } from "@/components/shared";
+import { ToastProvider } from "@/components/design-system";
 import { useAuthSession } from "@/hooks/useAuthSession";
 import LandingPage from "@/pages/LandingPage";
 import FeaturesPage from "@/pages/public/FeaturesPage";
@@ -16,6 +16,7 @@ import Auth from "@/pages/auth";
 import Profile from "@/pages/profile";
 import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/dashboard";
+import DashboardAnalytics from "@/pages/dashboard-analytics";
 import AIAssistant from "@/pages/ai-assistant";
 import Chat from "@/pages/Chat";
 
@@ -39,7 +40,7 @@ import Header from "@/components/layout/header";
 import Footer from "@/components/layout/footer";
 import MobileNav from "@/components/layout/mobile-nav-enhanced";
 import FloatingActions from "@/components/layout/floating-actions";
-import MobileMenu from "@/components/mobile-menu";
+import { MobileMenu } from "@/components/shared";
 
 interface User {
   id: string;
@@ -62,6 +63,7 @@ function Router({ user, onLogout, isNewUser, onIntakeComplete }: { user: User; o
             <div className="flex-1 w-full">
               <Switch>
                 <Route path="/" component={Dashboard} />
+                <Route path="/analytics" component={DashboardAnalytics} />
                 <Route path="/intake">
                   <IntakeSimple />
                 </Route>

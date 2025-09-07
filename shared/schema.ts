@@ -221,32 +221,25 @@ export const scheduleEvents = pgTable("schedule_events", {
 export const intakeData = pgTable("intake_data", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull(),
-  // Couple Info
-  partner1FirstName: text("partner1_first_name"),
-  partner1LastName: text("partner1_last_name"),
-  partner1Email: text("partner1_email"),
-  partner2FirstName: text("partner2_first_name"),
-  partner2LastName: text("partner2_last_name"),
-  partner2Email: text("partner2_email"),
-  hasWeddingPlanner: boolean("has_wedding_planner").default(false),
-  // Wedding Basics
-  weddingDate: text("wedding_date"),
-  ceremonyLocation: text("ceremony_location"),
-  receptionLocation: text("reception_location"),
-  estimatedGuests: integer("estimated_guests"),
-  totalBudget: text("total_budget"),
-  // Style & Vision
-  overallVibe: text("overall_vibe"),
-  colorPalette: text("color_palette"),
-  mustHaveElements: text("must_have_elements").array(),
-  pinterestBoards: text("pinterest_boards").array(),
-  // Priorities
-  topPriorities: text("top_priorities").array(),
-  nonNegotiables: text("non_negotiables"),
-  // Key People
-  vips: jsonb("vips"), // Array of {name, role} objects
-  weddingParty: jsonb("wedding_party"), // Array of {name, role} objects
-  officiantStatus: text("officiant_status"),
+  projectId: integer("project_id"),
+  // Raw form data stored as JSON
+  rawData: jsonb("raw_data").notNull(),
+  // Step completion tracking
+  completedSteps: integer("completed_steps").array().default([]),
+  // Status
+  status: text("status").default("draft"), // 'draft', 'submitted', 'processed'
+  // Metadata
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Intake step data for individual step saves
+export const intakeStepData = pgTable("intake_step_data", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  projectId: integer("project_id"),
+  stepNumber: integer("step_number").notNull(),
+  stepData: jsonb("step_data").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -343,6 +336,8 @@ export type InsertScheduleEvent = typeof scheduleEvents.$inferInsert;
 
 export type IntakeData = typeof intakeData.$inferSelect;
 export type InsertIntakeData = typeof intakeData.$inferInsert;
+export type IntakeStepData = typeof intakeStepData.$inferSelect;
+export type InsertIntakeStepData = typeof intakeStepData.$inferInsert;
 
 export type CreativeDetail = typeof creativeDetails.$inferSelect;
 export type InsertCreativeDetail = typeof creativeDetails.$inferInsert;
@@ -353,6 +348,125 @@ export type InsertSeatingTable = typeof seatingTables.$inferInsert;
 export type SeatingAssignment = typeof seatingAssignments.$inferSelect;
 export type InsertSeatingAssignment = typeof seatingAssignments.$inferInsert;
 
+// Missing type exports
+export type UserSession = {
+  id: string;
+  userId: number;
+  expiresAt: Date;
+  createdAt: Date;
+};
+
+export type InsertUserSession = {
+  sessionId: string;
+  userId: number;
+  expiresAt: Date;
+};
+
+export type WeddingOverview = {
+  id: number;
+  projectId: number;
+  weddingDate: string;
+  venue: string | null;
+  guestCount: number | null;
+  budget: number | null;
+  theme: string | null;
+  colors: string[] | null;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+export type InsertWeddingOverview = {
+  projectId: number;
+  weddingDate: string;
+  venue?: string | null;
+  guestCount?: number | null;
+  budget?: number | null;
+  theme?: string | null;
+  colors?: string[] | null;
+};
+
+export type VendorPayment = {
+  id: number;
+  vendorId: number;
+  amount: number;
+  dueDate: Date;
+  paidAt: Date | null;
+  status: string;
+  notes: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+export type InsertVendorPayment = {
+  vendorId: number;
+  amount: number;
+  dueDate: Date;
+  paidAt?: Date | null;
+  status?: string;
+  notes?: string | null;
+};
+
+export type ShoppingList = {
+  id: number;
+  projectId: number;
+  name: string;
+  description: string | null;
+  createdBy: number;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+export type InsertShoppingList = {
+  projectId: number;
+  name: string;
+  description?: string | null;
+  createdBy: number;
+};
+
+export type ShoppingItem = {
+  id: number;
+  listId: number;
+  name: string;
+  quantity: number;
+  purchased: boolean;
+  notes: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+export type InsertShoppingItem = {
+  listId: number;
+  name: string;
+  quantity: number;
+  purchased?: boolean;
+  notes?: string | null;
+};
+
+export type ActivityLogEntry = {
+  id: number;
+  projectId: number;
+  userId: number;
+  action: string;
+  entityType: string | null;
+  entityId: number | null;
+  entityName: string | null;
+  details: unknown;
+  isVisible: boolean;
+  timestamp: Date;
+};
+
+export type InsertActivityLogEntry = {
+  projectId: number;
+  userId: number;
+  action: string;
+  entityType?: string | null;
+  entityId?: number | null;
+  entityName?: string | null;
+  details?: unknown;
+  isVisible?: boolean;
+  timestamp?: Date;
+};
+
 // Zod schemas for validation
 export const insertUserSchema = createInsertSchema(users);
 export const insertWeddingProjectSchema = createInsertSchema(weddingProjects);
@@ -361,6 +475,7 @@ export const insertInvitationSchema = createInsertSchema(invitations);
 export const insertDefaultTaskSchema = createInsertSchema(defaultTasks);
 export const insertTaskSchema = createInsertSchema(tasks);
 export const insertGuestSchema = createInsertSchema(guests);
+export const updateGuestSchema = createInsertSchema(guests).omit({ id: true, projectId: true, addedBy: true, addedAt: true }).partial();
 export const insertVendorSchema = createInsertSchema(vendors);
 export const insertBudgetItemSchema = createInsertSchema(budgetItems);
 export const insertTimelineEventSchema = createInsertSchema(timelineEvents);
@@ -369,6 +484,73 @@ export const insertActivitySchema = createInsertSchema(activities);
 export const insertScheduleSchema = createInsertSchema(schedules);
 export const insertScheduleEventSchema = createInsertSchema(scheduleEvents);
 export const insertIntakeDataSchema = createInsertSchema(intakeData);
-export const insertCreativeDetailSchema = createInsertSchema(creativeDetails);
+export const insertCreativeDetailSchema = createInsertSchema(creativeDetails).omit({ id: true, projectId: true, createdBy: true, createdAt: true, updatedAt: true });
 export const insertSeatingTableSchema = createInsertSchema(seatingTables).omit({ id: true, projectId: true, createdBy: true, createdAt: true, updatedAt: true });
 export const insertSeatingAssignmentSchema = createInsertSchema(seatingAssignments).omit({ id: true, projectId: true, createdAt: true });
+
+// Missing table definitions
+export const userSessions = pgTable("user_sessions", {
+  id: text("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  expiresAt: timestamp("expires_at").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const weddingOverview = pgTable("wedding_overview", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id").notNull(),
+  weddingDate: text("wedding_date").notNull(),
+  venue: text("venue"),
+  guestCount: integer("guest_count"),
+  budget: decimal("budget", { precision: 10, scale: 2 }),
+  theme: text("theme"),
+  colors: jsonb("colors"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const vendorPayments = pgTable("vendor_payments", {
+  id: serial("id").primaryKey(),
+  vendorId: integer("vendor_id").notNull(),
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  dueDate: timestamp("due_date").notNull(),
+  paidAt: timestamp("paid_at"),
+  status: text("status").notNull().default("pending"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const shoppingLists = pgTable("shopping_lists", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id").notNull(),
+  name: text("name").notNull(),
+  description: text("description"),
+  createdBy: integer("created_by").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const shoppingItems = pgTable("shopping_items", {
+  id: serial("id").primaryKey(),
+  listId: integer("list_id").notNull(),
+  name: text("name").notNull(),
+  quantity: integer("quantity").notNull().default(1),
+  purchased: boolean("purchased").notNull().default(false),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const activityLog = pgTable("activity_log", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id").notNull(),
+  userId: integer("user_id").notNull(),
+  action: text("action").notNull(),
+  entityType: text("entity_type"),
+  entityId: integer("entity_id"),
+  entityName: text("entity_name"),
+  details: jsonb("details"),
+  isVisible: boolean("is_visible").notNull().default(true),
+  timestamp: timestamp("timestamp").defaultNow().notNull(),
+});

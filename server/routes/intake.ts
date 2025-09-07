@@ -1,130 +1,276 @@
-import { Router } from "express";
+import express from "express";
 import { z } from "zod";
-import { storage } from "../storage";
-import { requireAuth } from "../middleware/auth";
+import { db } from "../db";
+import { intakeData, intakeStepData, weddingProjects } from "../../shared/schema";
+import { eq, and } from "drizzle-orm";
+import { requireAuthCookie } from "../middleware/cookieAuth";
 import { logError, logInfo } from "../utils/logger";
+import { RequestWithUser } from "../types/express";
 
-const router = Router();
+const router = express.Router();
 
-// Intake form submission schema
-const intakeSchema = z.object({
-  partner1FirstName: z.string().optional(),
-  partner1LastName: z.string().optional(),
-  partner1Email: z.string().email().optional(),
-  partner2FirstName: z.string().optional(),
-  partner2LastName: z.string().optional(),
-  partner2Email: z.string().email().optional(),
-  weddingDate: z.string().optional(),
-  ceremonyLocation: z.string().optional(),
-  receptionLocation: z.string().optional(),
-  estimatedGuests: z.number().optional(),
-  totalBudget: z.string().optional(),
-  overallVibe: z.string().optional(),
-  colorPalette: z.string().optional(),
-  nonNegotiables: z.string().optional(),
-  officiantStatus: z.string().optional(),
+// Validation schemas
+const saveDraftSchema = z.object({
+  projectId: z.number().optional(),
+  step: z.number().min(1).max(7).optional(),
+  data: z.any(), // Will be validated by the client-side schema
 });
 
-// Submit intake form
-router.post("/", requireAuth, async (req, res) => {
+const submitSchema = z.object({
+  projectId: z.number().optional(),
+  data: z.any(), // Will be validated by the client-side schema
+});
+
+// GET /api/intake - Load existing intake data
+router.get("/", requireAuthCookie, async (req: any, res) => {
   try {
-    const validatedData = intakeSchema.parse(req.body);
-    const userId = req.user.id;
+    const { projectId } = req.query;
+    const userId = req.userId;
 
-    // Get or create wedding project
-    let project = await storage.getWeddingProjectByUserId(userId);
-    
-    if (!project) {
-      // Create new wedding project
-      const projectName = validatedData.partner1FirstName && validatedData.partner2FirstName 
-        ? `${validatedData.partner1FirstName} & ${validatedData.partner2FirstName}'s Wedding`
-        : "My Wedding";
-
-      project = await storage.createWeddingProject({
-        name: projectName,
-        date: validatedData.weddingDate ? new Date(validatedData.weddingDate) : new Date(),
-        venue: validatedData.ceremonyLocation || "",
-        theme: validatedData.overallVibe || "",
-        budget: validatedData.totalBudget || "0",
-        guestCount: validatedData.estimatedGuests || 0,
-        style: validatedData.overallVibe || "",
-        description: validatedData.nonNegotiables || "",
-        createdBy: userId,
-      });
-    } else {
-      // Update existing project
-      await storage.updateWeddingProject(project.id, {
-        name: validatedData.partner1FirstName && validatedData.partner2FirstName 
-          ? `${validatedData.partner1FirstName} & ${validatedData.partner2FirstName}'s Wedding`
-          : project.name,
-        date: validatedData.weddingDate ? new Date(validatedData.weddingDate) : project.date,
-        venue: validatedData.ceremonyLocation || project.venue,
-        theme: validatedData.overallVibe || project.theme,
-        budget: validatedData.totalBudget || project.budget,
-        guestCount: validatedData.estimatedGuests || project.guestCount,
-        style: validatedData.overallVibe || project.style,
-        description: validatedData.nonNegotiables || project.description,
-      });
+    if (!projectId) {
+      return res.status(400).json({ message: "Project ID is required" });
     }
 
-    // Mark user as having completed intake - simplified for now
-    // await storage.updateUser(userId, { 
-    //   hasCompletedIntake: true,
-    //   firstName: validatedData.partner1FirstName || null,
-    //   lastName: validatedData.partner1LastName || null,
-    // });
+    // Get the most recent intake data for this project
+    const existingIntake = await db
+      .select()
+      .from(intakeData)
+              .where(
+          and(
+            eq(intakeData.userId, userId),
+            eq(intakeData.projectId, parseInt(projectId) || 0)
+          )
+        )
+      .orderBy(intakeData.updatedAt)
+      .limit(1);
 
-    logInfo(`User ${userId} completed intake form`, { projectId: project.id });
+    if (existingIntake.length === 0) {
+      return res.status(404).json({ message: "No intake data found" });
+    }
 
-    res.json({ 
-      success: true, 
-      message: "Intake form completed successfully",
-      project: project
-    });
-
+    const intake = existingIntake[0];
+    
+    logInfo('intake', 'Intake data loaded', { userId, projectId: parseInt(projectId) });
+    
+    res.json(intake.rawData);
   } catch (error) {
-    logError("Error submitting intake form", error, { userId: req.user?.id });
-    res.status(500).json({ 
-      error: "Failed to submit intake form",
-      details: error instanceof Error ? error.message : "Unknown error"
-    });
+    logError('intake', error as Error, { userId: req.userId });
+    res.status(500).json({ message: "Failed to load intake data" });
   }
 });
 
-// Get existing intake data
-router.get("/", requireAuth, async (req, res) => {
+// POST /api/intake/save - Save draft intake data
+router.post("/save", requireAuthCookie, async (req: any, res) => {
   try {
-    const userId = req.user.id;
-    const project = await storage.getWeddingProjectByUserId(userId);
-    
-    if (!project) {
-      return res.json({ exists: false });
+    const userId = req.userId;
+    const { projectId, step, data } = saveDraftSchema.parse(req.body);
+
+    // If saving individual step
+    if (step && data) {
+      // Check if step data already exists
+      const existingStep = await db
+        .select()
+        .from(intakeStepData)
+        .where(
+          and(
+            eq(intakeStepData.userId, userId),
+            eq(intakeStepData.projectId, projectId || 0),
+            eq(intakeStepData.stepNumber, step)
+          )
+        )
+        .limit(1);
+
+      if (existingStep.length > 0) {
+        // Update existing step
+        await db
+          .update(intakeStepData)
+          .set({
+            stepData: data,
+            updatedAt: new Date(),
+          })
+          .where(eq(intakeStepData.id, existingStep[0].id));
+      } else {
+        // Create new step
+        await db.insert(intakeStepData).values({
+          userId,
+          projectId: projectId || null,
+          stepNumber: step,
+          stepData: data,
+        });
+      }
+
+      logInfo('intake', 'Step data saved', { userId, projectId, step });
+      return res.status(200).json({ message: "Step saved successfully" });
     }
 
-    res.json({
-      exists: true,
-      project: project,
-      // Map project data back to intake form format
-      partner1FirstName: req.user.username || "",
-      partner1LastName: "",
-      partner1Email: req.user.email || "",
-      weddingDate: project.date.toISOString(),
-      ceremonyLocation: project.venue || "",
-      receptionLocation: project.venue || "",
-      estimatedGuests: project.guestCount || 0,
-      totalBudget: project.budget || "0",
-      overallVibe: project.theme || "",
-      colorPalette: "",
-      nonNegotiables: project.description || "",
-      officiantStatus: "",
-    });
+    // If saving complete draft
+    if (data) {
+      // Check if intake data already exists
+      const existingIntake = await db
+        .select()
+        .from(intakeData)
+        .where(
+          and(
+            eq(intakeData.userId, userId),
+            eq(intakeData.projectId, projectId || null)
+          )
+        )
+        .limit(1);
 
+      if (existingIntake.length > 0) {
+        // Update existing intake
+        await db
+          .update(intakeData)
+          .set({
+            rawData: data,
+            updatedAt: new Date(),
+          })
+          .where(eq(intakeData.id, existingIntake[0].id));
+      } else {
+        // Create new intake
+        await db.insert(intakeData).values({
+          userId,
+          projectId: projectId || null,
+          rawData: data,
+          status: "draft",
+        });
+      }
+
+      logInfo('intake', 'Draft saved', { userId, projectId });
+      return res.status(200).json({ message: "Draft saved successfully" });
+    }
+
+    res.status(400).json({ message: "Invalid request data" });
   } catch (error) {
-    logError("Error fetching intake data", error, { userId: req.user?.id });
-    res.status(500).json({ 
-      error: "Failed to fetch intake data",
-      details: error instanceof Error ? error.message : "Unknown error"
+    logError('intake', error as Error, { userId: req.userId });
+    res.status(500).json({ message: "Failed to save draft" });
+  }
+});
+
+// POST /api/intake/submit - Submit final intake data
+router.post("/submit", requireAuthCookie, async (req: any, res) => {
+  try {
+    const userId = req.userId;
+    const { projectId, data } = submitSchema.parse(req.body);
+
+    // Validate the complete intake data
+    // Note: In a real implementation, you'd import and use the intakeSchema here
+    if (!data || typeof data !== 'object') {
+      return res.status(400).json({ message: "Invalid intake data" });
+    }
+
+    // Check if intake data already exists
+    const existingIntake = await db
+      .select()
+      .from(intakeData)
+      .where(
+        and(
+          eq(intakeData.userId, userId),
+          eq(intakeData.projectId, projectId || null)
+        )
+      )
+      .limit(1);
+
+    let intakeId: number;
+
+    if (existingIntake.length > 0) {
+      // Update existing intake
+      const result = await db
+        .update(intakeData)
+        .set({
+          rawData: data,
+          status: "submitted",
+          updatedAt: new Date(),
+        })
+        .where(eq(intakeData.id, existingIntake[0].id))
+        .returning({ id: intakeData.id });
+
+      intakeId = result[0].id;
+    } else {
+      // Create new intake
+      const result = await db
+        .insert(intakeData)
+        .values({
+          userId,
+          projectId: projectId || null,
+          rawData: data,
+          status: "submitted",
+        })
+        .returning({ id: intakeData.id });
+
+      intakeId = result[0].id;
+    }
+
+    // If no projectId was provided, create a new project
+    let finalProjectId = projectId;
+    if (!projectId) {
+      // Extract basic project info from intake data
+      const projectInfo = {
+        name: data.step2?.workingTitle || "New Wedding Project",
+        date: new Date(data.step2?.date || Date.now()),
+        venue: data.step2?.venues?.ceremonyVenueName || "",
+        description: `Wedding for ${data.step1?.couple?.firstName?.[0]} and ${data.step1?.couple?.firstName?.[1]}`,
+        createdBy: userId,
+      };
+
+      const newProject = await db
+        .insert(weddingProjects)
+        .values(projectInfo)
+        .returning({ id: weddingProjects.id });
+
+      finalProjectId = newProject[0].id;
+
+      // Update the intake record with the new project ID
+      await db
+        .update(intakeData)
+        .set({ projectId: finalProjectId })
+        .where(eq(intakeData.id, intakeId));
+    }
+
+    // TODO: Run the mapping pipeline to populate other pages
+    // await applyIntakeToProject(finalProjectId, data);
+
+    logInfo('intake', 'Intake submitted', { userId, projectId: finalProjectId, intakeId });
+    
+    res.status(200).json({ 
+      message: "Intake submitted successfully",
+      projectId: finalProjectId,
+      intakeId 
     });
+  } catch (error) {
+    logError('intake', error as Error, { userId: req.userId });
+    res.status(500).json({ message: "Failed to submit intake" });
+  }
+});
+
+// GET /api/intake/steps/:projectId - Get step data for a project
+router.get("/steps/:projectId", requireAuthCookie, async (req: any, res) => {
+  try {
+    const userId = req.userId;
+    const projectId = parseInt(req.params.projectId);
+
+    const stepData = await db
+      .select()
+      .from(intakeStepData)
+      .where(
+        and(
+          eq(intakeStepData.userId, userId),
+          eq(intakeStepData.projectId, projectId)
+        )
+      )
+      .orderBy(intakeStepData.stepNumber);
+
+    const steps = stepData.reduce((acc, step) => {
+      acc[step.stepNumber] = step.stepData;
+      return acc;
+    }, {} as Record<number, any>);
+
+    logInfo('intake', 'Step data retrieved', { userId, projectId });
+    
+    res.json(steps);
+  } catch (error) {
+    logError('intake', error as Error, { userId: req.userId });
+    res.status(500).json({ message: "Failed to load step data" });
   }
 });
 

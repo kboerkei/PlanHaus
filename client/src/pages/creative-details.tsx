@@ -15,22 +15,20 @@ import { useDropzone } from "react-dropzone";
 import { useToast } from "@/hooks/use-toast";
 // API functions for creative details
 const getCreativeDetails = async () => {
-  const sessionId = localStorage.getItem('sessionId') || 'demo_session';
   const response = await fetch('/api/creative-details', {
-    headers: { Authorization: `Bearer ${sessionId}` }
+    credentials: 'include'
   });
   if (!response.ok) throw new Error('Failed to fetch creative details');
   return response.json();
 };
 
 const createCreativeDetail = async (detail: any) => {
-  const sessionId = localStorage.getItem('sessionId') || 'demo_session';
   const response = await fetch('/api/creative-details', {
     method: 'POST',
     headers: { 
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${sessionId}`
+      'Content-Type': 'application/json'
     },
+    credentials: 'include',
     body: JSON.stringify(detail)
   });
   if (!response.ok) throw new Error('Failed to create creative detail');
@@ -38,13 +36,12 @@ const createCreativeDetail = async (detail: any) => {
 };
 
 const updateCreativeDetail = async (id: number, updates: any) => {
-  const sessionId = localStorage.getItem('sessionId') || 'demo_session';
   const response = await fetch(`/api/creative-details/${id}`, {
     method: 'PUT',
     headers: { 
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${sessionId}`
+      'Content-Type': 'application/json'
     },
+    credentials: 'include',
     body: JSON.stringify(updates)
   });
   if (!response.ok) throw new Error('Failed to update creative detail');
@@ -52,10 +49,9 @@ const updateCreativeDetail = async (id: number, updates: any) => {
 };
 
 const deleteCreativeDetail = async (id: number) => {
-  const sessionId = localStorage.getItem('sessionId') || 'demo_session';
   const response = await fetch(`/api/creative-details/${id}`, {
     method: 'DELETE',
-    headers: { Authorization: `Bearer ${sessionId}` }
+    credentials: 'include'
   });
   if (!response.ok) throw new Error('Failed to delete creative detail');
   return response.json();
@@ -255,15 +251,9 @@ export default function CreativeDetails() {
 
   // Check authentication status
   useEffect(() => {
-    const sessionId = localStorage.getItem('sessionId');
-    const user = localStorage.getItem('user');
-    const authenticated = !!(sessionId && user);
-    setIsAuthenticated(authenticated);
-
-    if (authenticated) {
-      // Authentication is working, no sync needed for demo
-      console.log('User authenticated:', authenticated);
-    }
+    // For now, assume user is authenticated since we're using cookie-based auth
+    setIsAuthenticated(true);
+    console.log('User authenticated: true (cookie-based auth)');
   }, []);
 
   // Load collaborators and check permissions
@@ -286,14 +276,7 @@ export default function CreativeDetails() {
   // Fetch creative details using our API
   const { data: details = [], isLoading } = useQuery({
     queryKey: ['creative-details'],
-    queryFn: async () => {
-      const sessionId = localStorage.getItem('sessionId') || 'demo_session';
-      const response = await fetch('/api/creative-details', {
-        headers: { Authorization: `Bearer ${sessionId}` }
-      });
-      if (!response.ok) throw new Error('Failed to fetch creative details');
-      return response.json();
-    }
+    queryFn: getCreativeDetails
   });
 
   // Create/update mutation using our Supabase service
@@ -352,12 +335,9 @@ export default function CreativeDetails() {
     formData.append('detailId', detailId.toString());
 
     try {
-      const sessionId = localStorage.getItem('sessionId');
       const response = await fetch('/api/creative-details/upload', {
         method: 'POST',
-        headers: {
-          Authorization: `Bearer ${sessionId}`,
-        },
+        credentials: 'include',
         body: formData,
       });
 

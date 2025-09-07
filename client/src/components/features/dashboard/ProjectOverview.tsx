@@ -9,7 +9,7 @@ import {
   TrendingUp, MapPin, Camera, Music, Utensils, FileText, Star
 } from 'lucide-react';
 import { format, differenceInDays } from 'date-fns';
-import type { Project, Task, BudgetItem, Guest, Vendor } from '@shared/schema';
+import type { WeddingProject as Project, Task, BudgetItem, Guest, Vendor } from '@/types';
 
 interface ProjectOverviewProps {
   projectId: number;
@@ -37,20 +37,26 @@ export default function ProjectOverview({ projectId }: ProjectOverviewProps) {
   });
 
   // Calculate statistics
-  const daysUntilWedding = project?.date ? differenceInDays(new Date(project.date), new Date()) : 0;
-  const completedTasks = tasks.filter((task: Task) => task.completed).length;
+  const daysUntilWedding = project?.weddingDate ? differenceInDays(new Date(project.weddingDate), new Date()) : 0;
+  const completedTasks = tasks.filter((task: Task) => task.isCompleted || task.completed).length;
   const totalTasks = tasks.length;
   const taskProgress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
 
-  const totalBudget = budget.reduce((sum: number, item: BudgetItem) => sum + item.estimatedCost, 0);
-  const actualSpent = budget.reduce((sum: number, item: BudgetItem) => sum + (item.actualCost || 0), 0);
+  const totalBudget = budget.reduce((sum: number, item: BudgetItem) => {
+    const cost = typeof item.estimatedCost === 'string' ? parseFloat(item.estimatedCost) || 0 : item.estimatedCost || 0;
+    return sum + cost;
+  }, 0);
+  const actualSpent = budget.reduce((sum: number, item: BudgetItem) => {
+    const cost = typeof item.actualCost === 'string' ? parseFloat(item.actualCost) || 0 : item.actualCost || 0;
+    return sum + cost;
+  }, 0);
   const budgetProgress = totalBudget > 0 ? (actualSpent / totalBudget) * 100 : 0;
 
   const confirmedGuests = guests.filter((guest: Guest) => guest.rsvpStatus === 'confirmed').length;
   const totalGuests = guests.length;
   const rsvpProgress = totalGuests > 0 ? (confirmedGuests / totalGuests) * 100 : 0;
 
-  const bookedVendors = vendors.filter((vendor: Vendor) => vendor.status === 'booked').length;
+  const bookedVendors = vendors.filter((vendor: Vendor) => vendor.bookingStatus === 'booked').length;
   const totalVendors = vendors.length;
   const vendorProgress = totalVendors > 0 ? (bookedVendors / totalVendors) * 100 : 0;
 
@@ -85,9 +91,9 @@ export default function ProjectOverview({ projectId }: ProjectOverviewProps) {
           <h1 className="text-3xl font-bold text-gray-900">{project?.name || 'Your Wedding'}</h1>
           <Heart className="h-6 w-6 text-rose-500" />
         </div>
-        {project?.date && (
+        {project?.weddingDate && (
           <div className="text-lg text-gray-600">
-            {format(new Date(project.date), 'MMMM d, yyyy')}
+            {format(new Date(project.weddingDate), 'MMMM d, yyyy')}
             {daysUntilWedding > 0 && (
               <span className="ml-2 text-rose-600 font-semibold">
                 • {daysUntilWedding} days to go!
